@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Permit to use the hidden menu-->
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start">
+
+    <!-- Main body Layout of screen (drawer will slide over this) -->
+    <GridLayout
+        android:id="@+id/mainContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Toolbar -->
+        <android.support.v7.widget.Toolbar
+            android:layout_column="0"
+            android:layout_row="0"
+            android:layout_columnSpan="2"
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
+
+        <!-- Previews -->
+        <TextView
+            android:layout_column="0"
+            android:layout_row="1"
+            android:layout_rowSpan="2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Previews"
+            android:textAlignment="center"
+            android:gravity="center"/>
+
+        <!-- Records -->
+        <TextView
+            android:layout_column="1"
+            android:layout_row="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Records"
+            android:textAlignment="center"
+            android:gravity="center"/>
+
+        <!-- Current data preview -->
+        <TextView
+            android:layout_column="1"
+            android:layout_row="2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current data preview"
+            android:textAlignment="center"
+            android:gravity="center"/>
+
+    </GridLayout>
+
+    <!-- Include the drawer layout (left menu) -->
+    <include layout="@layout/drawer_layout"/>
+
+</android.support.v4.widget.DrawerLayout>

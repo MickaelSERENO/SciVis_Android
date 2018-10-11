@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">VFV_Hololens</string>
+    <string name="addDataBtn">Add Dataset</string>
+    <string name="deleteDataBtn">Delete Dataset</string>
+    <string name="amplitudeRange">Clamp Amplitude</string>
+    <string name="vorticity">Vorticity</string>
+    <string name="colorMode">Color Mode</string>
+    <string name="open_dataset">Open Dataset</string>
+    <string name="open">Open</string>
+    <string name="cancel">Cancel</string>
+    <string name="errorDatasets">No datasets available</string>
+</resources>
