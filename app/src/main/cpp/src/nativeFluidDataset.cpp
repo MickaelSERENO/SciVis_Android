@@ -1,6 +1,8 @@
 #include "nativeFluidDataset.h"
 
-JNIEXPORT jlong      JNICALL Java_com_sereno_vfs_FluidDataset_Data_initPtr(JNIEnv* jenv, jobject jobj, jstring path)
+using namespace sereno;
+
+JNIEXPORT jlong      JNICALL Java_com_sereno_vfs_FluidDataset_Data_nativeInitPtr(JNIEnv* jenv, jobject jobj, jstring path)
 {
     const char* strPath = jenv->GetStringUTFChars(path, 0);
     FluidDataset* fd = FluidDataset::readFromFilePath(strPath);
@@ -8,7 +10,7 @@ JNIEXPORT jlong      JNICALL Java_com_sereno_vfs_FluidDataset_Data_initPtr(JNIEn
     return (jlong)(fd);
 }
 
-JNIEXPORT jintArray JNICALL Java_com_sereno_vfs_FluidDataset_Data_getSize(JNIEnv* jenv, jobject jobj, jlong   jptr)
+JNIEXPORT jintArray JNICALL Java_com_sereno_vfs_FluidDataset_Data_nativeGetSize(JNIEnv* jenv, jobject jobj, jlong   jptr)
 {
     FluidDataset* fd     = (FluidDataset*)fd;
     jintArray     retval = jenv->NewIntArray(3);

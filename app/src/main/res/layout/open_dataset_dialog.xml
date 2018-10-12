@@ -10,7 +10,7 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:gravity="center"
-    tools:openDrawer="start">
+    >
 
     <Spinner
         android:id="@+id/openDatasetSpinner"
