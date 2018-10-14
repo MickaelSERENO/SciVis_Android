@@ -10,7 +10,10 @@ android {
         versionName "1.0"
         externalNativeBuild {
             cmake {
+                println("Use cmakeArguments for adding arguments to this script. Use ',' for separating the arguments !")
+                getCMakeArgument().each {arguments.add(it.trim())}
                 cppFlags "-std=c++14 -frtti -fexceptions"
+                abiFilters 'armeabi-v7a'
             }
         }
     }
@@ -25,6 +28,14 @@ android {
             path "CMakeLists.txt"
         }
     }
+}
+
+def List getCMakeArgument()
+{
+    File cmakeFile = new File(projectDir.absolutePath + '/cmakeArguments')
+    if(cmakeFile.exists())
+        return cmakeFile.getText().split(/,/) as List
+    return []
 }
 
 dependencies {
