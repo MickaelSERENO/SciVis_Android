@@ -3,7 +3,7 @@
 
 #include "ConcurrentVector.h"
 #include "Event.h"
-#include "GLRenderer.h"
+#include "Graphics/GLRenderer.h"
 
 namespace sereno
 {

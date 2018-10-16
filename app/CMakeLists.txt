@@ -22,6 +22,7 @@ endif(${ANDROID_ABI} STREQUAL "arm" OR ${ANDROID_ABI} STREQUAL "armeabi-v7a" OR 
 
 find_package(PkgConfig    REQUIRED)
 PKG_CHECK_MODULES(LIB3DS  REQUIRED lib3ds)
+PKG_CHECK_MODULES(GLM     REQUIRED glm)
 
 #Find android internal libraries
 find_library(log-lib     log)
@@ -29,5 +30,6 @@ find_library(android-lib android)
 find_library(egl-lib     EGL)
 find_library(gles-lib    GLESv2)
 
-target_compile_options(native-lib PUBLIC ${LIB3DS_CLFGAS})
-target_link_libraries(native-lib PUBLIC ${log-lib} ${egl-lib} ${gles-lib} ${android-lib} ${android-lib} ${LIB3DS_LDFLAGS})
+target_compile_options(native-lib PUBLIC ${LIB3DS_CFLAGS} ${GLM_CFLAGS})
+target_link_libraries(native-lib PUBLIC ${log-lib} ${egl-lib} ${gles-lib} ${android-lib}
+                                        ${LIB3DS_LDFLAGS} ${GLM_LDFLAGS})

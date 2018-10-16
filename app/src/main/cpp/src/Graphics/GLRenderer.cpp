@@ -1,8 +1,8 @@
-#include "GLRenderer.h"
+#include "Graphics/GLRenderer.h"
 
 namespace sereno
 {
-    GLRenderer::GLRenderer()
+    GLRenderer::GLRenderer() : Render()
     {
     }
 
@@ -140,5 +140,11 @@ namespace sereno
         {
             eglSwapBuffers(m_disp, m_surface);
         }
+    }
+
+    void GLRenderer::render()
+    {
+        eglMakeCurrent(m_disp, m_surface, m_surface, m_context);
+        swapBuffers();
     }
 }

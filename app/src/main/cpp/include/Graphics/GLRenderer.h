@@ -7,10 +7,12 @@
 #include <android/native_window.h>
 #include <utils.h>
 
+#include "Render.h"
+
 namespace sereno
 {
     /* \brief the Renderer which can be modified by both Java and C++ */
-    class GLRenderer
+    class GLRenderer : public Render
     {
         public:
             /* \brief Constructor. Does not yet create the surface */
@@ -31,9 +33,12 @@ namespace sereno
              * \param nativeWindow the nativeWindow associated with the surface*/
             void createSurface(ANativeWindow* nativeWindow);
 
-            /* \brief Swap the buffers for displaying into the SurfaceView */
+            /* \brief Swap the buffers for displaying into the SurfaceView
+             * the function render does it automatically */
             void swapBuffers();
 
+            /* \brief Render all the known Drawable on screen */
+            void render();
         private: 
             /* \brief Destroy the EGL surface without locking any mutex */
             void internalEglDestroySurface();
