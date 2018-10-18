@@ -9,6 +9,8 @@
 #include "FluidDataset.h"
 #include "MeshLoader.h"
 
+#define MAX_VECTOR_ALONG_AXIS 60
+
 namespace sereno
 {
     /* \brief VectorField GameObject. Draw on screen a VectorField */
@@ -34,6 +36,8 @@ namespace sereno
             GLuint   m_vboID;       /*!< Vertex Buffer Object*/
             GLuint   m_eboID;       /*!< Element Buffer Object*/
             uint32_t m_nbTriangles; /*!< Number of total triangles*/
+
+            uint32_t m_displayableSize[3]; /*!< The displayable size (how many vectors are being displayed ?)*/
     };
 }
 

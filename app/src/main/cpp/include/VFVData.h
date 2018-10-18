@@ -3,9 +3,34 @@
 
 #include <string>
 #include <vector>
+#include <pthread.h>
+#include <deque>
+#include "FluidDataset.h"
 
 namespace sereno
 {
+    /* \brief Enumeration representing the possible events from the Model modification */
+    enum VFVEventType
+    {
+        VFV_ADD_DATA,        /*!< Data added*/
+        VFV_DEL_DATA,        /*!< Data removed*/
+        VFV_SET_CURRENT_DATA /*!< Current Data setted*/
+    };
+
+    struct VFVEvent
+    {
+        VFVEventType type;
+        union
+        {
+            struct
+            {
+                uint32_t      fluidID;
+                FluidDataset* dataset;
+            }fluidData;
+        };
+    };
+
+
     /* \brief Callback interface for communication between JNI and CPP applications 
      * Note that the most part of the communication will not be in the OpenGL thread*/
     class IVFVCallback
@@ -34,10 +59,27 @@ namespace sereno
              * \param clbk the new callback to discuss with
              * \param data data to send to this callback*/
             void setCallback(IVFVCallback* clkb);
-            
+
+            /* \brief Add a new Dataset in this application
+             * \param dataset the dataset to add*/
+            void addData(FluidDataset* dataset);
+
+            /* \brief Remove the dataset "dataID"
+             * \param dataID the id of the dataset to remove*/
+            void removeData(int dataID);
+
+            /* \brief Set the current data displayed in the application
+             * \param dataID the dataID*/
+            void setCurrentData(int dataID);
         private:
-            std::vector<std::string> m_dataPaths;        /*!< The data paths */
-            IVFVCallback*            m_clbk      = NULL; /*!< The callback interface */
+            /* \brief Add an event 
+             * \param ev the event to add */
+            void addEvent(VFVEvent* ev);
+
+            std::vector<FluidDataset*> m_datas;          /*!< The data paths */
+            IVFVCallback*              m_clbk    = NULL; /*!< The callback interface */
+            std::deque<VFVEvent*>      m_events;         /*!< The events from Java*/
+            pthread_mutex_t            m_mutex;          /*!< The mutex for handling communication between Java and Cpp*/
     };
 }
 

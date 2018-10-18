@@ -24,6 +24,13 @@ public class FluidDataset
         m_ptr = nativeInitPtr(path);
     }
 
+    @Override
+    public void finalize() throws Throwable
+    {
+        super.finalize();
+        nativeDelPtr(m_ptr);
+    }
+
     /* \brief Get the 3D grid size of this dataset
      * \return the 3D grid size*/
     public int[] getSize()
@@ -36,8 +43,13 @@ public class FluidDataset
      * \return the C++ ptr as a long*/
     private native long nativeInitPtr(String path);
 
-    /* \brief Get the 3D grid size of this dataset
+    /* \brief Delete the native pointer associated to this object
+     * \param ptr the Cpp ptr to delete*/
+    private native void nativeDelPtr(long ptr);
+
+    /* \brief Get the 3D grid size of the dataset index idx
      * \param ptr the C++ ptr generated using initPtr
+     * \param idx the dataset index
      * \return the 3D grid size*/
     private native int[] nativeGetSize(long ptr);
 }

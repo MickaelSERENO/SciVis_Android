@@ -10,9 +10,15 @@ JNIEXPORT jlong      JNICALL Java_com_sereno_vfs_FluidDataset_Data_nativeInitPtr
     return (jlong)(fd);
 }
 
-JNIEXPORT jintArray JNICALL Java_com_sereno_vfs_FluidDataset_Data_nativeGetSize(JNIEnv* jenv, jobject jobj, jlong   jptr)
+JNIEXPORT void       JNICALL Java_com_sereno_vfs_FluidDataset_Data_nativeDelPtr(JNIEnv* jenv, jobject jobj, jlong jptr)
 {
-    FluidDataset* fd     = (FluidDataset*)fd;
+    FluidDataset* fd = (FluidDataset*)jptr;
+    delete fd;
+}
+
+JNIEXPORT jintArray JNICALL Java_com_sereno_vfs_FluidDataset_Data_nativeGetSize(JNIEnv* jenv, jobject jobj, jlong jptr)
+{
+    FluidDataset* fd     = (FluidDataset*)jptr;
     jintArray     retval = jenv->NewIntArray(3);
     jenv->SetIntArrayRegion(retval, 0, 3, (const int*)fd->getGridSize());
     return retval;

@@ -1,6 +1,8 @@
 package com.sereno.vfs;
 
+import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -10,8 +12,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Spinner;
 
+import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfs.Data.ApplicationModel;
+import com.sereno.vfs.Data.DataFile;
 import com.sereno.vfs.Data.FluidDataset;
 import com.sereno.vfs.Listener.INoticeDialogListener;
 
@@ -55,32 +60,38 @@ public class MainActivity extends AppCompatActivity
      * \param model the model which fired this call
      * \param d the new dataset added*/
     @Override
-    public void OnAddDataset(ApplicationModel model, FluidDataset d)
+    public void onAddDataset(ApplicationModel model, FluidDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
     }
 
     /* \brief Function called when the model is deleting a new dataset
      * \param model the model which fired this call
-     * \param d the dataset being destroyed*/
+     * \param idx the index dataset being destroyed*/
     @Override
-    public void OnDeleteDataset(ApplicationModel model, FluidDataset d)
+    public void onDeleteDataset(ApplicationModel model, int idx)
     {
         if(m_model.getFluidDatasets().size() == 1)
             m_deleteDataBtn.setVisibility(View.INVISIBLE);
     }
 
     /* \brief Function called when an AlertDialog constructor from a DialogFragment has pressed the positive button
-     * \param dialog the fragment dialog which created the AlertDialog calling this function*/
+     * \param dialog the fragment dialog which created the AlertDialog calling this function
+     * \param v the dialog view calling this method*/
     @Override
-    public void onDialogPositiveClick(DialogFragment dialog)
+    public void onDialogPositiveClick(DialogFragment dialogFragment, View v)
     {
+        Spinner dataSpinner = v.findViewById(R.id.openDatasetSpinner);
+        DataFile df         = (DataFile)dataSpinner.getSelectedItem();
+        FluidDataset fd     = new FluidDataset(df.getFile());
+
+        m_model.addFluidDataset(fd);
     }
 
     /* \brief Function called when an AlertDialog constructor from a DialogFragment has pressed the negative button
      * \param dialog the fragment dialog which created the AlertDialog calling this function*/
     @Override
-    public void onDialogNegativeClick(DialogFragment dialog)
+    public void onDialogNegativeClick(DialogFragment dialogFragment, View v)
     {
     }
 
@@ -102,6 +113,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDrawerStateChanged(int newState){}
         });
+
+        VFVSurfaceView surfaceView = findViewById(R.id.mainView);
+        m_model.addCallback(surfaceView);
     }
 
     /* \brief Setup the toolbar */

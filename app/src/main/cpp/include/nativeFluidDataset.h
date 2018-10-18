@@ -15,6 +15,12 @@ extern "C"
      * \return the pointer as a long */
 	JNIEXPORT jlong JNICALL Java_com_sereno_vfs_Data_FluidDataset_nativeInitPtr(JNIEnv* jenv, jobject jobj, jstring path);
 
+    /* \brief Delete a FluidDataset object owned by Java
+     * \param jenv the JNIEnvironment
+     * \param jobj the Java Object calling this function
+     * \param ptr the FluidDataset ptr */
+	JNIEXPORT jlong JNICALL Java_com_sereno_vfs_Data_FluidDataset_nativeDelPtr(JNIEnv* jenv, jobject jobj, jlong ptr);
+
     /* \brief Get the size of the dataset
      * \param jenv the JNIEnvironment
      * \param jobj the Java Object calling this function
