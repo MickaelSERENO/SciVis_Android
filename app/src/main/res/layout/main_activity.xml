@@ -50,7 +50,7 @@
             android:gravity="center"/>
 
         <!-- Current data preview -->
-        <com.sereno.gl.GLSurfaceView
+        <com.sereno.gl.VFVSurfaceView
             android:id="@+id/mainView"
             android:layout_column="1"
             android:layout_row="2"

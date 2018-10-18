@@ -22,8 +22,10 @@ extern "C"
     /* \brief Initialize the internal data state of the native thread handling the GLSurfaceView
      * \param jenv the JNI environment variable
      * \param jobj the java object
+     * \param dataPath the external data path
      * \return the GLSurfaceViewData as a jlong */
-    JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(JNIEnv* jenv, jobject jobj);
+    JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(JNIEnv* jenv, jobject jobj, 
+                                                                                    jstring dataPath);
 
     /* \brief Initialize the internal data state of the native thread handling the GLSurfaceView
      * \param jenv the JNI environment variable
@@ -33,7 +35,7 @@ extern "C"
      * \param mainFunction the name of the main function
      * \param arg the argument to pass to the main function*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeMain(JNIEnv* jenv, jobject jobj, jlong data, 
-                                                                            jstring mainLibrary, jstring mainFunction, jlong arg);
+                                                                        jstring mainLibrary, jstring mainFunction, jlong arg);
 
     /* \brief Initialize the internal data state of the native thread handling the GLSurfaceView
      * \param jenv the JNI environment variable
@@ -41,7 +43,7 @@ extern "C"
      * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData
      * \param jNativeWindow the native windows from android*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnSurfaceCreated(JNIEnv* jenv, jobject jobj, 
-                                                                                        jlong data, jobject jNativeWindow);
+                                                                                    jlong data, jobject jNativeWindow);
 
     /* \brief Initialize the internal data state of the native thread handling the GLSurfaceView
      * \param jenv the JNI environment variable

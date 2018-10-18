@@ -2,8 +2,9 @@
 #define  MAIN_INC
 
 #include "GLSurfaceViewData.h"
-#include "unistd.h"
-#include "time.h"
+#include "VFVData.h"
+#include "MainVFV.h"
+
 using namespace sereno;
 
 extern "C"

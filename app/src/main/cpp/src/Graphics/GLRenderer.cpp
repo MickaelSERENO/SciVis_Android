@@ -1,8 +1,9 @@
 #include "Graphics/GLRenderer.h"
+#include "GLSurfaceViewData.h"
 
 namespace sereno
 {
-    GLRenderer::GLRenderer() : Render()
+    GLRenderer::GLRenderer(GLSurfaceViewData* data) : Render(), m_surfaceData(data)
     {
     }
 
@@ -115,6 +116,36 @@ namespace sereno
             return false;
         }
 
+        //Initialize Shaders
+        const char* shaders[] = {"color"};
+        for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
+        {
+            Shader* shader = NULL;
+            std::string vertDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i] + ".vert";
+            std::string fragDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i] + ".frag";
+
+            FILE* vertShadFile = fopen(vertDataPath.c_str(), "r");
+            FILE* fragShadFile = fopen(fragDataPath.c_str(), "r");
+
+            if(vertShadFile == NULL || fragShadFile == NULL)
+                goto error;
+
+            shader = Shader::loadFromFiles(vertShadFile, fragShadFile);
+
+            if(shader == NULL)
+                goto error;
+
+            m_shaders.add(shaders[i], shader);
+error:
+            LOG_ERROR("Could not initialize shader %s\n", shaders[i]);
+            if(vertShadFile != NULL)
+                fclose(vertShadFile);
+            if(fragShadFile != NULL)
+                fclose(fragShadFile);
+            if(shader != NULL)
+                delete shader;
+        }
+
         return true;
     }
 
@@ -146,5 +177,17 @@ namespace sereno
     {
         eglMakeCurrent(m_disp, m_surface, m_surface, m_context);
         swapBuffers();
+    }
+
+    void GLRenderer::setCurrentShader(Shader* shader)
+    {
+        m_currentShader = shader; 
+        if(shader != NULL) 
+            glUseProgram(shader->getProgramID());
+    }
+
+    Shader* GLRenderer::getShader(const std::string& shaderName)
+    {
+        return m_shaders.get(shaderName);
     }
 }

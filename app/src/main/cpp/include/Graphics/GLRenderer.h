@@ -8,15 +8,20 @@
 #include <utils.h>
 
 #include "Render.h"
+#include "Shader.h"
+#include "ResourcesManager.h"
 
 namespace sereno
 {
+    class GLSurfaceViewData;
+
     /* \brief the Renderer which can be modified by both Java and C++ */
     class GLRenderer : public Render
     {
         public:
-            /* \brief Constructor. Does not yet create the surface */
-            GLRenderer();
+            /* \brief Constructor. Does not yet create the surface
+             * \param data the data sent from Java when creating this Renderer */
+            GLRenderer(GLSurfaceViewData* data);
 
             /* \brief Destructor. */
             ~GLRenderer();
@@ -39,12 +44,25 @@ namespace sereno
 
             /* \brief Render all the known Drawable on screen */
             void render();
+
+            /* \brief Retrieve a Shader based on its name.
+             * \param shaderName the shader name
+             * \return the Shader corresponding, or NULL if not found */
+            Shader* getShader(const std::string& shaderName);
+
+            /* \brief Return the current in used shader */
+            Shader* getCurrentShader() {return m_currentShader;}
+
+            /* \brief Set the current in used shader */
+            void setCurrentShader(Shader* shader); 
         private: 
             /* \brief Destroy the EGL surface without locking any mutex */
             void internalEglDestroySurface();
 
             /* \brief Create the EGL surface in the correct thread*/
             void internalCreateSurface(ANativeWindow* nativeWindow);
+
+            GLSurfaceViewData* m_surfaceData = NULL; /*!< The data sent from Java at the creation of this Renderer*/
 
             EGLDisplay m_disp    = EGL_NO_DISPLAY; /*!< The EGL display*/
             EGLSurface m_surface = EGL_NO_SURFACE; /*!< The EGL surface*/
@@ -57,10 +75,13 @@ namespace sereno
             int m_width  = 0; /*!< The width of the surface (pixels)*/
             int m_height = 0; /*!< The height of the surface (pixels)*/
 
-            bool            m_destroy      = false; /*!< Destroy the surface ?*/
-            bool            m_recreate     = false; /*!< Recreate the surface ?*/
-            ANativeWindow*  m_window       = NULL;  /*!< The android native window*/
-            ANativeWindow*  m_recreateWindow = NULL; /*!< The increation native window*/
+            bool            m_destroy        = false; /*!< Destroy the surface ?*/
+            bool            m_recreate       = false; /*!< Recreate the surface ?*/
+            ANativeWindow*  m_window         = NULL;  /*!< The android native window*/
+            ANativeWindow*  m_recreateWindow = NULL;  /*!< The increation native window*/
+
+            ResourcesManager<Shader*> m_shaders;              /*!< The shaders loaded by this OpenGL Renderer*/
+            Shader*                   m_currentShader = NULL; /*!< The current in used shader program*/
     };
 }
 

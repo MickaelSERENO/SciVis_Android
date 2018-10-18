@@ -2,9 +2,12 @@
 
 using namespace sereno;
 
-JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(JNIEnv* jenv, jobject jobj)
+JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(JNIEnv* jenv, jobject jobj, jstring dataPath)
 {
-    GLSurfaceViewData* data = new GLSurfaceViewData();
+    const char* cDataPath = jenv->GetStringUTFChars(dataPath, 0);
+    jenv->ReleaseStringUTFChars(dataPath, cDataPath);
+
+    GLSurfaceViewData* data = new GLSurfaceViewData(cDataPath);
     return (jlong)data;
 }
 

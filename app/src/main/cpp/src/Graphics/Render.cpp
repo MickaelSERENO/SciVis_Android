@@ -1,4 +1,5 @@
 #include "Graphics/Render.h"
+#include "Graphics/Drawable.h"
 
 namespace sereno
 {

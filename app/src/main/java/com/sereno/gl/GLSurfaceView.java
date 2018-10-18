@@ -26,27 +26,28 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     protected long          m_internalData  = 0;                                     /*!< Pointer to a C++ object permitting to send data to the main thread*/
 
     /* \brief Initialize the view*/
-    public void init()
+    public void init(Context context)
     {
         getHolder().addCallback(this);
         getHolder().setFormat(PixelFormat.RGBA_8888);
-        m_internalData = nativeInitInternalData();
+        m_internalData = nativeInitInternalData(context.getExternalFilesDir(null).getPath());
     }
 
     public GLSurfaceView(Context context)
     {
         super(context);
-        init();
+        init(context);
     }
 
-    public GLSurfaceView(Context context, AttributeSet attrs) {
+    public GLSurfaceView(Context context, AttributeSet attrs) 
+    {
         super(context, attrs);
-        init();
+        init(context);
     }
 
     public GLSurfaceView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init();
+        init(context);
     }
 
     /* \brief Finalize method. Close the thread*/
@@ -151,7 +152,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 
     /* \brief Permit to init the internal data of this view. This data will mostly contain events sent from Java
      * \return C++ pointer*/
-    private native long nativeInitInternalData();
+    private native long nativeInitInternalData(String internalData);
 
     /* \brief Main C++ function being called
      * \param data the internal data to pass on

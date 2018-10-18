@@ -2,10 +2,12 @@
 #define  RENDER_INC
 
 #include <vector>
-#include "Graphics/Drawable.h"
+#include <glm/glm.hpp>
 
 namespace sereno
 {
+    class Drawable;
+
     /* \brief Render class. Permits to draw objects : initialize framebuffer, render object, can perform after effects rendering, etc. */
     class Render
     {

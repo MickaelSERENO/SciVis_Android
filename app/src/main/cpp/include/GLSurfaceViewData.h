@@ -8,10 +8,14 @@
 namespace sereno
 {
     /* \brief Data managed by both Java and C++ regarding GLSurfaceView */
-    struct GLSurfaceViewData
+    class GLSurfaceViewData
     {
-        ConcurrentVector<Event*> events;   /*!< Array of events*/
-        GLRenderer               renderer; /*!< The renderer */
+        public:
+            GLSurfaceViewData(const std::string& _dataPath) : dataPath(_dataPath), renderer(this)
+            {}
+            ConcurrentVector<Event*> events;   /*!< Array of events*/
+            const std::string        dataPath; /*!< The data path*/
+            GLRenderer               renderer; /*!< The renderer */
     };
 }
 
