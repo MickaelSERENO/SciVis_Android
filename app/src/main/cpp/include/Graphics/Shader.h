@@ -3,7 +3,10 @@
 
 #define ERROR_MAX_LENGTH 500
 
+#define GL_GLEXT_PROTOTYPES
+
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #include <iostream>
 #include <string>
 #include <map>
@@ -12,7 +15,8 @@
 #include "utils.h"
 
 #define MATERIAL_VPOSITION 0
-#define MATERIAL_VUV       1
+#define MATERIAL_VNORMAL   1
+#define MATERIAL_VUV       2
 
 namespace sereno
 {

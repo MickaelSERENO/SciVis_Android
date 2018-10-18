@@ -29,6 +29,7 @@ namespace sereno
         //The extracted value : texels, points and elems
         float*    texels = (float*)   malloc(sizeof(float)   *2*nbPoints);
         float*    points = (float*)   malloc(sizeof(float)   *3*nbPoints);
+        float*    norms  = (float*)   malloc(sizeof(float)   *3*nbPoints);
         uint32_t* elems  = (uint32_t*)malloc(sizeof(uint32_t)*nbElems*3);
 
         nbElems  = 0;
@@ -78,10 +79,13 @@ namespace sereno
                     elems[j + 3*nbElems] = subMesh->faces[i].index[j];
             }
 
-            //Copy Positions
+            //Copy Positions / normals
             for(uint32_t i = 0; i < subMesh->nvertices; i++)
                 for(uint32_t j = 0; j < 3; j++)
+                {
                     points[3*i+j + nbPoints*3] = subMesh->vertices[i][j];
+                    norms [3*i+j + nbPoints*3] = 1.0f;//subMesh->normals[i][j];
+                }
 
             //Copy Texels
             if(subMesh->texcos)
@@ -100,6 +104,7 @@ namespace sereno
 
         loader->nbVertices = nbPoints;
         loader->nbSurfaces = nbElems;
+        loader->normals    = norms;
         loader->vertices   = points;
         loader->surfaces   = elems;
         loader->texels     = texels;
@@ -112,6 +117,7 @@ namespace sereno
     {
         for(SubMeshData* data : subMeshData)
             free(data);
+        free(normals);
         free(vertices);
         free(surfaces);
         free(texels);

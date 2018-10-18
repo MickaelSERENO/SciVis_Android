@@ -30,6 +30,25 @@ namespace sereno
             Quaternion(T _w, T _x, T _y, T _z) : w(_w), x(_x), y(_y), z(_z)
             {}
 
+            /* \brief Constructor from euler angles in radians
+             * \param pitch the rotation along x axis
+             * \param roll the rotation along y axis 
+             * \param yaw the rotation along z axis*/
+            Quaternion(T pitch, T roll, T yaw)
+            {
+                T cy = cos(yaw * 0.5);
+                T sy = sin(yaw * 0.5);
+                T cr = cos(pitch * 0.5);
+                T sr = sin(pitch * 0.5);
+                T cp = cos(roll * 0.5);
+                T sp = sin(roll * 0.5);
+
+                w = cy * cr * cp + sy * sr * sp;
+                x = cy * sr * cp - sy * cr * sp;
+                y = cy * cr * sp + sy * sr * cp;
+                z = sy * cr * cp - cy * sr * sp;
+            }
+
             /* \brief Copy Constructor
              * \parma q the quaternion to copy */
             Quaternion(const Quaternion& q)
@@ -83,9 +102,9 @@ namespace sereno
                 T yzT = 2*y*z;
 
                 return glm::tmat4x4<T>(1 - 2*yy - 2*zz, xyT - wzT,     xzT + wyT,     0,
-                                     xyT + wzT,       1-2*xx - 2*zz, yzT - wxT,     0,
-                                     xzT - wyT,       yzT + wxT,     1-2*xx - 2*yy, 0,
-                                     0,               0,             0,             1);
+                                       xyT + wzT,       1-2*xx - 2*zz, yzT - wxT,     0,
+                                       xzT - wyT,       yzT + wxT,     1-2*xx - 2*yy, 0,
+                                       0,               0,             0,             1);
             }
     };
 

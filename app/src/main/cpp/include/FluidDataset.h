@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "utils.h"
+#include "Quaternion.h"
 
 namespace sereno
 {
@@ -39,12 +40,23 @@ namespace sereno
              * \return the FluidDataset. Destroy it using delete operator*/
             static FluidDataset* readFromFilePath(const std::string& path);
 
+            /* \brief Get the rotation quaternion of this cell (orientation of the vector)
+             * \param x the x coordinate
+             * \param y the y coordinate
+             * \param z the z coordinate
+             * \return the direction encoded in a Quaternion */
+            Quaternionf getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z);
+
             /* \brief Is this dataset valid ? */
-            bool isValid() {return m_isValid;}
+            bool isValid() const {return m_isValid;}
 
             /* \brief Get the grid size of this dataset
              * \return the grid size as a pointer with length == 3 */
-            const uint32_t* getGridSize() {return m_size;}
+            const uint32_t* getGridSize() const {return m_size;}
+
+            /* \brief Compute how many cells exist in this grid (X*Y*Z)
+             * \return the number of cells */
+            const uint32_t  nbCells() const {return m_size[0]*m_size[1]*m_size[2];}
         private:
             bool     m_isValid  = false;  /*!< Is this dataset in a valid state ?*/
             uint32_t m_size[3];           /*!< The 3D size of the grid*/

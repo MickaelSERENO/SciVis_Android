@@ -44,6 +44,5 @@ namespace sereno
 
     void MeshData::draw(const glm::mat4& cameraMat)
     {
-        
     }
 }

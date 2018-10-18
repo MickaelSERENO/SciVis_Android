@@ -1,8 +1,13 @@
 #ifndef  VECTORFIELD_INC
 #define  VECTORFIELD_INC
 
+#define GL_GLEXT_PROTOTYPES
+
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #include "Graphics/GameObject.h"
 #include "FluidDataset.h"
+#include "MeshLoader.h"
 
 namespace sereno
 {
@@ -25,9 +30,10 @@ namespace sereno
              * \param cameraMat the camera matrix */
             void onDraw(const glm::mat4& cameraMat);
         private:
-            GLint m_vaoID; /*!< Vertex Array Object*/
-            GLint m_vboID; /*!< Vertex Buffer Object*/
-            GLint m_eboID; /*!< Element Buffer Object*/
+            GLuint   m_vaoID;       /*!< Vertex Array Object*/
+            GLuint   m_vboID;       /*!< Vertex Buffer Object*/
+            GLuint   m_eboID;       /*!< Element Buffer Object*/
+            uint32_t m_nbTriangles; /*!< Number of total triangles*/
     };
 }
 

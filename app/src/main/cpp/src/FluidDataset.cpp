@@ -93,4 +93,14 @@ namespace sereno
         fclose(file);
         return data;
     }
+
+    Quaternionf FluidDataset::getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z)
+    {
+        uint32_t ind = x + m_size[0]*y + m_size[0]*m_size[1]*z;
+        float vel[3] = {m_velocity[3*ind], m_velocity[3*ind+1], m_velocity[3*ind+2]};
+        float pitch  = atan2(vel[1], vel[0]);
+        float roll   = asin(vel[2]);
+
+        return Quaternionf(pitch, roll, 0);
+    }
 }
