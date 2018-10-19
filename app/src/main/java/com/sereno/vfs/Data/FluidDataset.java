@@ -38,6 +38,10 @@ public class FluidDataset
         return nativeGetSize(m_ptr);
     }
 
+    /* \brief Get the C++ pointer handler of the FluidDataset
+     * \param m_ptr the pointer handler*/
+    public long getPtr() {return m_ptr;}
+
     /* \brief native function. Initialized the C++ pointer of this object
      * \param path the path of the dataset to read at
      * \return the C++ ptr as a long*/

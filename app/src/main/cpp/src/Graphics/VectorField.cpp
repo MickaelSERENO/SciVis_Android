@@ -22,18 +22,18 @@ namespace sereno
         m_nbTriangles = arrowLoader->nbSurfaces*fieldSize;
 
         float*    fieldVertices  = (float*)   malloc(sizeof(float)   *3*arrowLoader->nbVertices*fieldSize);
-        float*    fieldNormals   = (float*)   malloc(sizeof(float)   *2*arrowLoader->nbVertices*fieldSize);
+        float*    fieldNormals   = (float*)   malloc(sizeof(float)   *3*arrowLoader->nbVertices*fieldSize);
         uint32_t* fieldTriangles = (uint32_t*)malloc(sizeof(uint32_t)*3*m_nbTriangles);
 
         uint32_t currentFace = 0;
         uint32_t currentVert = 0;
 
         //For each cell
-        for(uint32_t k = 0; k < dataset->getGridSize()[2]; k+=dataStep)
+        for(uint32_t k = 0; k < m_displayableSize[2]; k+=dataStep)
         {
-            for(uint32_t j = 0; j < dataset->getGridSize()[1]; j+=dataStep)
+            for(uint32_t j = 0; j < m_displayableSize[1]; j+=dataStep)
             {
-                for(uint32_t i = 0; i < dataset->getGridSize()[0]; i+=dataStep)
+                for(uint32_t i = 0; i < m_displayableSize[0]; i+=dataStep)
                 {
                     //Compute transformation matrix
                     glm::mat4 transMat(1.0f);
@@ -114,7 +114,7 @@ namespace sereno
         glDeleteVertexArraysOES(1, &m_vaoID);
     }
 
-    void VectorField::onDraw(const glm::mat4& cameraMat)
+    void VectorField::draw(const glm::mat4& cameraMat)
     {
         glm::mat4 mat    = getMatrix();
         glm::mat4 mvp    = cameraMat*mat;

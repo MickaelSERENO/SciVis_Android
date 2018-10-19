@@ -46,7 +46,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onAddDataset(ApplicationModel model, FluidDataset fd)
     {
-        nativeAddData(m_ptr, fd);
+        nativeAddData(m_ptr, fd.getPtr());
     }
 
     @Override
@@ -66,7 +66,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     /* \brief Add the dataset into the cpp application
      * \param ptr the ptr associated with the main Argument
      * \param fd the FluidDataset to add*/
-    private native void nativeAddData(long ptr, FluidDataset fd);
+    private native void nativeAddData(long ptr, long fd);
 
     /* \brief Remove the dataset index i into the cpp application
      * \param ptr the ptr associated with the main argument

@@ -32,6 +32,7 @@ namespace sereno
         Material::initMaterial(objMat, cameraMat, mvpMat, invMVPMat);
         glUniform4fv(m_uColor, 1, m_color);
         glUniform1i(m_uUseUniColor, true);
+        glUniform1i(m_uUseTexture, false);
     }
 
     void UniColorMaterial::setColor(const Color& color)
@@ -60,5 +61,6 @@ namespace sereno
         Material::getAttributs();
         m_uColor       = glGetUniformLocation(m_shader->getProgramID(), "uUniColor");
         m_uUseUniColor = glGetUniformLocation(m_shader->getProgramID(), "uUseUniColor");
+        m_uUseTexture  = glGetUniformLocation(m_shader->getProgramID(), "uUseTexture");
     }
 }

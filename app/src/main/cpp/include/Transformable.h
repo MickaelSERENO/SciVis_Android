@@ -1,8 +1,13 @@
 #ifndef DEF_TRANSFORMABLE
 #define DEF_TRANSFORMABLE
 
-#define PI 3.14159 
+#ifndef PI
+#define PI 3.14159
+#endif
+
+#ifndef GLM_FORCE_RADIANS
 #define GLM_FORCE_RADIANS
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> 

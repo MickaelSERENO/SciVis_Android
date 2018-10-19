@@ -4,7 +4,7 @@ namespace sereno
 {
     FluidDataset::FluidDataset(FILE* file)
     {
-#define BUFFER_SIZE 3*12*270
+#define BUFFER_SIZE 3*sizeof(float)*270
         uint8_t buffer[BUFFER_SIZE];
 
         //Read widthxheightxdepth
@@ -18,22 +18,23 @@ namespace sereno
         uint32_t pos = ftell(file);
         fseek(file, 0, SEEK_END);
         uint32_t fileSize = ftell(file);
-        if(fileSize != m_size[0]*m_size[1]*m_size[2]*3*sizeof(float))
+        if(fileSize-pos != m_size[0]*m_size[1]*m_size[2]*3*sizeof(float))
+        {
+            LOG_ERROR("Error : the current file may be broken");
             return;
+        }
         fseek(file, pos, SEEK_SET);
-        m_velocity = (float*)malloc(sizeof(float*)*m_size[0]*m_size[1]*m_size[2]);
+        m_velocity = (float*)malloc(3*sizeof(float*)*m_size[0]*m_size[1]*m_size[2]);
 
         //read data
         //We do not precompute magnitude or so because of memory issue. We prefer using CPU time instead of RAM
-        uint32_t i     = 0;
         uint32_t velID = 0;
-        while(i < fileSize)
+        do
         {
             readSize = fread(buffer, sizeof(uint8_t), BUFFER_SIZE, file);
-            for(uint32_t j = 0; j < readSize; j++, velID++)
-                m_velocity[velID] = uint8ToFloat(buffer+sizeof(float)*j);
-            i+=readSize;
-        }
+            for(uint32_t j = 0; j < readSize; j+=sizeof(float), velID++)
+                m_velocity[velID] = uint8ToFloat(buffer+j);
+        }while(readSize != 0);
 
         m_isValid = true;
 #undef BUFFER_SIZE

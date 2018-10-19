@@ -1,6 +1,10 @@
 #ifndef  MATERIAL_INC
 #define  MATERIAL_INC
 
+#define GLM_FORCE_RADIANS
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Graphics/Shader.h"
 #include "Graphics/GLRenderer.h"
 

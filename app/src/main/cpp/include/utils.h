@@ -3,6 +3,11 @@
 
 #include <strings.h>
 #include <android/log.h>
+#include <cstring>
+
+#ifndef __FILENAME__
+#define __FILENAME__ (strrchr("/" __FILE__, '/') + 1)
+#endif
 
 #ifndef LOG_TAG
 /* \brief The LOG_TAG being displayed in the android logging system. Can be defined before including this file (or using #undef and #define */
@@ -12,13 +17,13 @@
 /* \brief print an INFO in android logger
  * It will use LOG_TAG as the tag (can be defined before importing this file)
  * \param __VA_ARGS__ the arguments to print */
-#define LOG_INFO(...)  __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, __VA_ARGS__) /* <Print an info  on the android log */
+#define LOG_INFO(fmt, ...)  __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print an info  on the android log */
 
 /* \brief print a DEBUG in android logger
  * It will use LOG_TAG as the tag (can be defined before importing this file)
  * \param __VA_ARGS__ the arguments to print */
-#define LOG_ERROR(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__) /* <Print an error on the android log */
-#define LOG_DEBUG(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__) /* <Print a  debug on the android log */
+#define LOG_ERROR(fmt, ...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print an error on the android log */
+#define LOG_DEBUG(fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print a  debug on the android log */
 
 
 /* \brief Set a field of a Java Object from C++ value
@@ -49,7 +54,7 @@
 inline uint32_t uint8ToUint32(uint8_t* data)
 {
     return (data[0] << 24) + (data[1] << 16) +
-           (data[2] << 8 ) + (data[0]);
+           (data[2] << 8 ) + (data[3]);
 }
 
 /* \brief Convert a uint8 ptr (4 value) to a float

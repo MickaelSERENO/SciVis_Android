@@ -17,15 +17,16 @@ namespace sereno
         VFV_SET_CURRENT_DATA /*!< Current Data setted*/
     };
 
+    /* \brief The Event that can be sent from JNI */
     struct VFVEvent
     {
-        VFVEventType type;
+        VFVEventType type; /*!< The type of the event*/
         union
         {
             struct
             {
-                uint32_t      fluidID;
-                FluidDataset* dataset;
+                uint32_t      fluidID; /*!< Indice of this opened file (always incremental)*/
+                FluidDataset* dataset; /*!< The dataset associated*/
             }fluidData;
         };
     };
@@ -59,6 +60,10 @@ namespace sereno
              * \param clbk the new callback to discuss with
              * \param data data to send to this callback*/
             void setCallback(IVFVCallback* clkb);
+
+            /* \brief Poll the next event
+             * \return the next event or NULL if no event exists */
+            VFVEvent* pollEvent();
 
             /* \brief Add a new Dataset in this application
              * \param dataset the dataset to add*/

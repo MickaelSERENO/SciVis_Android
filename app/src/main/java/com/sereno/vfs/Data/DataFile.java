@@ -2,6 +2,7 @@ package com.sereno.vfs.Data;
 
 import android.content.Context;
 import android.service.autofill.Dataset;
+import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class DataFile
     {
         //Read the data files in externalDir/fluidData. All the files are for this moment valid
         //We may further put some filter.
-        File   external      = new File(ctx.getExternalFilesDir(null), "fluidData");
+        File   external      = new File(ctx.getExternalFilesDir(null), "Datas");
         if(external == null || !external.isDirectory())
             return null;
 
@@ -30,9 +31,12 @@ public class DataFile
         ArrayList<DataFile> files = new ArrayList<>();
         for(File f : externalFiles)
             if(f.isFile())
+            {
+                Log.e("Main", "Data file : " + f);
                 files.add(new DataFile(f));
+            }
 
-        return (DataFile[])files.toArray();
+        return (DataFile[])files.toArray(new DataFile[files.size()]);
     }
 
     private File m_file; /*! The data file*/

@@ -32,6 +32,22 @@ namespace sereno
     {
     }
 
+    VFVEvent* VFVData::pollEvent()
+    {
+        VFVEvent* ev = NULL;
+        pthread_mutex_lock(&m_mutex);
+        {
+            if(m_events.size() > 0)
+            {
+                ev = m_events.front();
+                m_events.pop_front();
+            }
+        }
+        pthread_mutex_unlock(&m_mutex);
+
+        return ev;
+    }
+
     void VFVData::addEvent(VFVEvent* ev)
     {
         pthread_mutex_lock(&m_mutex);

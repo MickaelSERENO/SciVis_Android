@@ -13,6 +13,7 @@ namespace sereno
     {
         for(Drawable* d : m_currentDrawable)
             d->draw(m_cameraMatrix);
+        m_currentDrawable.clear();
     }
 
     void Render::addToDraw(Drawable* d)

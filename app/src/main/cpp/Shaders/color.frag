@@ -29,4 +29,6 @@ void main()
 		else if(uMaskColor == textColor)
 			discard;
 	}
+
+	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

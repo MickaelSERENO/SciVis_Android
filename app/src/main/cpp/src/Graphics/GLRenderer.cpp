@@ -136,6 +136,7 @@ namespace sereno
                 goto error;
 
             m_shaders.add(shaders[i], shader);
+            continue;
 error:
             LOG_ERROR("Could not initialize shader %s\n", shaders[i]);
             if(vertShadFile != NULL)
@@ -175,6 +176,7 @@ error:
 
     void GLRenderer::render()
     {
+        Render::render();
         eglMakeCurrent(m_disp, m_surface, m_surface, m_context);
         swapBuffers();
     }

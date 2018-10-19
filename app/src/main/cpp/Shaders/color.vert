@@ -13,7 +13,7 @@ varying vec4 varyPosition;
 
 void main()
 {
-	gl_Position       = uMVP * vec4(vPosition, 1.0);
+	gl_Position       = /*uMVP * */vec4(vPosition, 1.0);
 	varyModelPosition = vec4(vPosition, 1.0);
 	varyPosition      = gl_Position;
 	varyColor         = vColor;

@@ -25,8 +25,9 @@ namespace sereno
             /* \brief Load a mesh from a .3ds file
              * \param path the 3DS file path
              * \return the MeshData*/
-            MeshLoader* loadFrom3DS(const std::string& path);
+            static MeshLoader* loadFrom3DS(const std::string& path);
 
+            /* \brief Destructor */
             virtual ~MeshLoader();
 
             uint32_t  nbSurfaces; /*!< How many surfaces ?*/
