@@ -58,6 +58,9 @@ namespace sereno
 
         eglQuerySurface(m_disp, m_surface, EGL_WIDTH, &m_width);
         eglQuerySurface(m_disp, m_surface, EGL_HEIGHT, &m_height);
+
+        glViewport(0, 0, m_width, m_height);
+        LOG_INFO("Creating surface with width=%d and height=%d\n", m_width, m_height);
     }
 
     bool GLRenderer::initializeContext()

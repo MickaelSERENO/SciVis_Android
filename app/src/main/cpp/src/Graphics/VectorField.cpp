@@ -122,7 +122,7 @@ namespace sereno
         m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
         glBindVertexArrayOES(m_vaoID);
         {
-            glDrawArrays(GL_TRIANGLES, 0, m_nbTriangles);
+            glDrawElements(GL_TRIANGLES, m_nbTriangles, GL_UNSIGNED_INT, 0);
         }
         glBindVertexArrayOES(0);
     }

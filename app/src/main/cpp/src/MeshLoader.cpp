@@ -33,7 +33,7 @@ namespace sereno
         uint32_t* elems  = (uint32_t*)malloc(sizeof(uint32_t)*nbElems*3);
 
         nbElems  = 0;
-        nbPoints = 0;
+        uint32_t nbCurrentPoints = 0;
         SubMeshData* currentData = NULL;
 
         MeshLoader* loader = new MeshLoader();
@@ -43,6 +43,9 @@ namespace sereno
             Lib3dsMesh* subMesh = file3ds->meshes[it];
             const char* oldMaterial = NULL;
 
+            float (*faceNormals)[3] = (float (*)[3])malloc(sizeof(float)*3*3*subMesh->nfaces); //The normals of all the faces
+            lib3ds_mesh_calculate_vertex_normals(subMesh, faceNormals);
+            
             //Fill the elements array and determine when the material changed
             for(uint32_t i = 0; i < subMesh->nfaces; i++, nbElems++)
             {
@@ -76,30 +79,33 @@ namespace sereno
                 currentData->nbVertices += 3;
 
                 for(uint32_t j = 0; j < 3; j++)
+                {
                     elems[j + 3*nbElems] = subMesh->faces[i].index[j];
+                    //Update normals
+                    for(uint32_t k = 0; k < 3; k++)
+                        norms[3*nbCurrentPoints + 3*subMesh->faces[i].index[j]+k] = faceNormals[3*i+j][k];
+                }
             }
+            free(faceNormals);
 
-            //Copy Positions / normals
+            //Copy Positions
             for(uint32_t i = 0; i < subMesh->nvertices; i++)
                 for(uint32_t j = 0; j < 3; j++)
-                {
-                    points[3*i+j + nbPoints*3] = subMesh->vertices[i][j];
-                    norms [3*i+j + nbPoints*3] = 1.0f;//subMesh->normals[i][j];
-                }
+                    points[3*i+j + nbCurrentPoints*3] = subMesh->vertices[i][j];
 
             //Copy Texels
             if(subMesh->texcos)
             {
                 for(uint32_t i = 0; i < subMesh->nvertices; i++)
                     for(uint32_t j = 0; j < 2; j++)
-                        texels[2*i+j + 2*nbPoints] = subMesh->texcos[i][j];
+                        texels[2*i+j + 2*nbCurrentPoints] = subMesh->texcos[i][j];
             }
             else
                 for(uint32_t i = 0; i < subMesh->nvertices; i++)
                     for(uint32_t j = 0; j < 3; j++)
-                        texels[2*i+j + 2*nbPoints] = -1;
+                        texels[2*i+j + 2*nbCurrentPoints] = -1;
 
-            nbPoints += subMesh->nvertices;
+            nbCurrentPoints += subMesh->nvertices;
         }
 
         loader->nbVertices = nbPoints;

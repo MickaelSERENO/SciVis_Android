@@ -31,10 +31,7 @@ public class DataFile
         ArrayList<DataFile> files = new ArrayList<>();
         for(File f : externalFiles)
             if(f.isFile())
-            {
-                Log.e("Main", "Data file : " + f);
                 files.add(new DataFile(f));
-            }
 
         return (DataFile[])files.toArray(new DataFile[files.size()]);
     }

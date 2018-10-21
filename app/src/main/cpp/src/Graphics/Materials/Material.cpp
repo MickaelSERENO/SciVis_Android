@@ -29,17 +29,23 @@ namespace sereno
     void Material::initMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
                                 const glm::mat4& mvpMat, const glm::mat4& invMVPMat)
     {
-        glUniformMatrix4fv(m_uObjMat,    0, false, glm::value_ptr(objMat));
-        glUniformMatrix4fv(m_uCameraMat, 0, false, glm::value_ptr(cameraMat));
-        glUniformMatrix4fv(m_uMVP,       0, false, glm::value_ptr(mvpMat));
-        glUniformMatrix4fv(m_uInvMVP,    0, false, glm::value_ptr(invMVPMat));
+        if(m_shader)
+        {
+            glUniformMatrix4fv(m_uObjMat,    0, false, glm::value_ptr(objMat));
+            glUniformMatrix4fv(m_uCameraMat, 0, false, glm::value_ptr(cameraMat));
+            glUniformMatrix4fv(m_uMVP,       0, false, glm::value_ptr(mvpMat));
+            glUniformMatrix4fv(m_uInvMVP,    0, false, glm::value_ptr(invMVPMat));
+        }
     }
 
     void Material::getAttributs()
     {
-        m_uCameraMat = glGetUniformLocation(m_shader->getProgramID(), "m_uCameraMat");
-        m_uObjMat    = glGetUniformLocation(m_shader->getProgramID(), "m_uObjMat");
-        m_uMVP       = glGetUniformLocation(m_shader->getProgramID(), "m_uMVP");
-        m_uInvMVP    = glGetUniformLocation(m_shader->getProgramID(), "m_uInvMVP");
+        if(m_shader)
+        {
+            m_uCameraMat = glGetUniformLocation(m_shader->getProgramID(), "m_uCameraMat");
+            m_uObjMat    = glGetUniformLocation(m_shader->getProgramID(), "m_uObjMat");
+            m_uMVP       = glGetUniformLocation(m_shader->getProgramID(), "m_uMVP");
+            m_uInvMVP    = glGetUniformLocation(m_shader->getProgramID(), "m_uInvMVP");
+        }
     }
 }

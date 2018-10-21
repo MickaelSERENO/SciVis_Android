@@ -24,9 +24,13 @@ namespace sereno
 
     void MainVFV::run()
     {
+        glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+
         while(true)
         {
-            //Handle events sent from JNI
+            //Handle events sent from JNI for our application (application wise)
             while(VFVEvent* event = m_mainData->pollEvent())
             {
                 switch(event->type)

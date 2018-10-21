@@ -15,20 +15,20 @@ varying vec4 varyPosition;
 
 void main()
 {
-	if(uUseUniColor)
-		gl_FragColor = uUniColor;
-	else
+//	if(uUseUniColor)
+//		gl_FragColor = uUniColor;
+//	else
 		gl_FragColor = varyColor;
 
-	if(uUseTexture)
-	{
-		vec4 textColor = texture2D(uTexture, varyTextureCoord);
+//	if(uUseTexture)
+//	{
+//		vec4 textColor = texture2D(uTexture, varyTextureCoord);
+//
+//		if(uMaskColor[3] == 0.0 && textColor[3] == 0.0)
+//			discard;
+//		else if(uMaskColor == textColor)
+//			discard;
+//	}
 
-		if(uMaskColor[3] == 0.0 && textColor[3] == 0.0)
-			discard;
-		else if(uMaskColor == textColor)
-			discard;
-	}
-
-	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+//	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

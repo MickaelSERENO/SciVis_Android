@@ -72,9 +72,6 @@ namespace sereno
             EGLint m_nbConf = 0; /*!< Number of available EGL configuration */
             EGLint m_format = 0; /*!< EGL_NATIVE_VISUAL_ID value*/
 
-            int m_width  = 0; /*!< The width of the surface (pixels)*/
-            int m_height = 0; /*!< The height of the surface (pixels)*/
-
             bool            m_destroy        = false; /*!< Destroy the surface ?*/
             bool            m_recreate       = false; /*!< Recreate the surface ?*/
             ANativeWindow*  m_window         = NULL;  /*!< The android native window*/
