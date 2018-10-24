@@ -37,6 +37,18 @@ namespace sereno
                     case RESIZE:
                         glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
                         break;
+                    case TOUCH_MOVE:
+                    {
+                        if(m_currentVF)
+                        {
+                            float roll  = event->touchEvent.x - event->touchEvent.oldX;
+                            float pitch = event->touchEvent.y - event->touchEvent.oldY;
+                            m_currentVF->setRotate(Quaternionf(roll, pitch, 0)*m_currentVF->getRotate());
+
+                            LOG_INFO("Rotating about %f %f", pitch, roll);
+                        }
+                        break;
+                    }
                     default:
                         LOG_ERROR("type %d still has to be done\n", event->type);
                         break;

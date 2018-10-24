@@ -76,6 +76,10 @@ namespace sereno
              * \param useScale if set to true, the matrix position will be multiplied by the scale
              * \return the position of the object, considering or not the object scale*/
             virtual glm::vec3 getPosition() const;
+            
+            /* \brief Get the rotation of this transformable
+             * \return a reference to the current Quaternion */
+            virtual const Quaternionf& getRotate() const;
 
             /** \brief Get the origin position of this object
              * \param useScale if set to true, the matrix position will be multiplied by the scale

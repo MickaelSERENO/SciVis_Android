@@ -6,6 +6,8 @@
 #include "Event.h"
 #include "Graphics/GLRenderer.h"
 
+#define MAX_TOUCH_FINGER  10
+
 namespace sereno
 {
     /* \brief Data managed by both Java and C++ regarding GLSurfaceView */
@@ -28,13 +30,27 @@ namespace sereno
              * \param height the surface height */
             void changeSurfaceSize(uint32_t width, uint32_t height);
 
-            /* \brief Add an event 
-             * \param ev the event to add */
-            void addEvent(Event* ev);
+            /* \brief Function to call when the surface received a touch event
+             * \param action the action performed (UP, DOWN, MOVE)
+             * \param finger the finger ID
+             * \param x the x position
+             * \param y the y position */
+            void touchEvent(int action, int finger, float x, float y);
+
+            /* \brief Get a touch finger coordinate state
+             * \param id the id of the finger to look at
+             * \return the touch coordinate or NULL if id is not correct */
+            TouchCoord* getTouchCoord(int id);
 
             const std::string  dataPath; /*!< The data path*/
             GLRenderer         renderer; /*!< The renderer */
         private:
+            /* \brief Add an event 
+             * \param ev the event to add */
+            void addEvent(Event* ev);
+
+            TouchCoord m_touchCoords[MAX_TOUCH_FINGER]; /*!< The coordinate of all the fingers*/
+
             std::deque<Event*> m_events; /*!< Array of events*/
             pthread_mutex_t    m_mutex;  /*!< The mutex for handling communication between Java and Cpp*/
     };

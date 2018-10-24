@@ -61,6 +61,17 @@ extern "C"
      * \param height the surface height*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnSurfaceChanged(JNIEnv* jenv, jobject jobj, 
                                                                                     jlong data, jint jformat, jint width, jint height);
+
+    /* \brief Function called from Java when the Surface received a touch event
+     * \param jenv the JNI environment variable
+     * \param jobj the java object
+     * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData
+     * \param action the type of the action (UP, DOWN, MOVE)
+     * \param finger the finger ID touching
+     * \param x the x position [-1, +1]
+     * \param y the y position [-1, +1]*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnTouchEvent(JNIEnv* jenv, jobject jobj,
+                                                                                jlong data, jint action, jint finger, jfloat x, jfloat y);
 }
 
 #endif

@@ -27,21 +27,21 @@ namespace sereno
              * \param _x the i part
              * \param _y the j part
              * \param _z the k part */
-            Quaternion(T _w, T _x, T _y, T _z) : w(_w), x(_x), y(_y), z(_z)
+            Quaternion(T _x, T _y, T _z, T _w) : w(_w), x(_x), y(_y), z(_z)
             {}
 
             /* \brief Constructor from euler angles in radians
-             * \param pitch the rotation along x axis
-             * \param roll the rotation along y axis 
+             * \param roll the rotation along x axis 
+             * \param pitch the rotation along y axis
              * \param yaw the rotation along z axis*/
             Quaternion(T pitch, T roll, T yaw)
             {
                 T cy = cos(yaw * 0.5);
                 T sy = sin(yaw * 0.5);
-                T cr = cos(pitch * 0.5);
-                T sr = sin(pitch * 0.5);
-                T cp = cos(roll * 0.5);
-                T sp = sin(roll * 0.5);
+                T cr = cos(roll * 0.5);
+                T sr = sin(roll * 0.5);
+                T cp = cos(pitch * 0.5);
+                T sp = sin(pitch * 0.5);
 
                 w = cy * cr * cp + sy * sr * sp;
                 x = cy * sr * cp - sy * cr * sp;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -100,6 +101,37 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         nativeMain(m_internalData, mainLibrary, getMainFunction(), getMainArgument());
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        int width  = getWidth();
+        int height = getHeight();
+
+        for(int i = 0; i < event.getPointerCount(); i++)
+        {
+            int action = 0;
+            switch(event.getAction() & MotionEvent.ACTION_MASK)
+            {
+                case MotionEvent.ACTION_DOWN:
+                    action = 0;
+                    break;
+                case MotionEvent.ACTION_UP:
+                    action = 1;
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    action = 2;
+                    break;
+            }
+            int pID = event.getPointerId(i);
+            float x = 2*event.getX(pID) / width - 1;
+            float y = -2*event.getY(pID) / height + 1;
+
+            nativeOnTouchEvent(m_internalData, action, pID, x, y);
+        }
+        super.onTouchEvent(event);
+        return true;
+    }
+
     protected String getMainLibrary()
     {
         return "native-lib";
@@ -176,6 +208,14 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      * \param width the new surface width
      * \param height the new surface height*/
     private native void nativeOnSurfaceChanged(long data, int format, int width, int height);
+
+    /* \brief ONTouchEvent handled in C++. Send the event in the C++ application. x and y are in OpenGL coordinate system
+     * \param data the C++ internal data pointer
+     * \param action the action to use. 0 == DOWN, 1 == UP, 2 == MOVE
+     * \param finger the finger ID
+     * \param x the x position [-1, +1]
+     * \param y the y position [-1, +1].*/
+    private native void nativeOnTouchEvent(long data, int action, int finger, float x, float y);
 
     static
     {

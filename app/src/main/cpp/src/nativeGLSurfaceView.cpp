@@ -69,3 +69,10 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnSurfaceDestroye
     GLSurfaceViewData* pData    = (GLSurfaceViewData*)data;
     pData->renderer.destroySurface();
 }
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnTouchEvent(JNIEnv* jenv, jobject jobj,
+                                                                            jlong data, jint action, jint finger, jfloat x, jfloat y)
+{
+    GLSurfaceViewData* pData = (GLSurfaceViewData*)data;
+    pData->touchEvent(action, finger, x, y);
+}

@@ -23,7 +23,7 @@ namespace sereno
             
         //Update our matrix
         setScale(glm::vec3(2.0/maxSize));
-        setPosition(glm::vec3(-1.0, -1.0, 0.0));
+        //setPosition(glm::vec3(-1.0, -1.0, 0.0));
 
         //Field parameters + buffers
         uint32_t fieldSize = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2];
@@ -43,9 +43,10 @@ namespace sereno
                 {
                     //Compute transformation matrix
                     glm::mat4 transMat(1.0f);
-                    transMat = glm::translate(transMat, glm::vec3(i, j, k));
+                    transMat = glm::translate(transMat, glm::vec3(i, j, k) -
+                                                        glm::vec3(m_displayableSize[0]/2.0, m_displayableSize[1]/2.0, m_displayableSize[2]/2.0));
                     transMat = transMat * dataset->getRotationQuaternion(i*dataStep, j*dataStep, k*dataStep).getMatrix();
-                    //transMat = glm::scale(transMat, glm::vec3(1.0f, 1.0f, 1.0f));
+                    transMat = glm::scale(transMat, glm::vec3(1.0f, 1.0f, 1.0f));
 
                     glm::mat4 tInvTransMat = glm::transpose(glm::inverse(transMat));
 

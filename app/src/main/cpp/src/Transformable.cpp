@@ -130,6 +130,11 @@ namespace sereno
         return v;
     }
 
+    const Quaternionf& Transformable::getRotate() const
+    {
+        return m_rotate;
+    }
+
     glm::vec3 Transformable::getPositionOrigin() const
     {
         glm::vec3 v = -m_positionOrigin;
