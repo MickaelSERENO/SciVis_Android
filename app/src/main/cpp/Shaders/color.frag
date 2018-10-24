@@ -6,20 +6,13 @@ uniform bool uUseTexture;
 uniform bool uUseUniColor;
 
 uniform sampler2D uTexture;
-uniform vec4 uUniColor;
+uniform vec4      uUniColor;
 
 varying vec2 varyTextureCoord;
 varying vec4 varyColor;
-varying vec4 varyModelPosition;
-varying vec4 varyPosition;
 
 void main()
 {
-//	if(uUseUniColor)
-//		gl_FragColor = uUniColor;
-//	else
-		gl_FragColor = varyColor;
-
 //	if(uUseTexture)
 //	{
 //		vec4 textColor = texture2D(uTexture, varyTextureCoord);
@@ -29,6 +22,10 @@ void main()
 //		else if(uMaskColor == textColor)
 //			discard;
 //	}
+//
+//	if(uUseUniColor)
+//		gl_FragColor = uUniColor;
+//	else
+		gl_FragColor = varyColor;
 
-//	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

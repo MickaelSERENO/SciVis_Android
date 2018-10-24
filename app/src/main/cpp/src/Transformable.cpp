@@ -240,7 +240,7 @@ namespace sereno
         posM = glm::translate(posM, computeDefaultPositionOrigin() + m_positionOrigin*getScale() + m_position);
         
         m_transMatrix = posM * m_rotateMtx;
-        glm::scale(m_transMatrix, m_scale);
+        m_transMatrix = glm::scale(m_transMatrix, m_scale);
 
         for(std::vector<Transformable*>::iterator it = m_childrenTrans.begin(); it != m_childrenTrans.end(); it++)
             if(*it)

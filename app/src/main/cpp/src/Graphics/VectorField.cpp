@@ -13,33 +13,39 @@ namespace sereno
             if(dataset->getGridSize()[i] >= maxVector)
                 maxVector = dataset->getGridSize()[i];
         uint32_t dataStep;
+        uint32_t maxSize = 0;
         dataStep = (maxVector + MAX_VECTOR_ALONG_AXIS-1)/MAX_VECTOR_ALONG_AXIS;
         for(uint32_t i = 0; i < 3; i++)
+        {
             m_displayableSize[i] = MAX_VECTOR_ALONG_AXIS*dataset->getGridSize()[i]/maxVector;
+            maxSize = (maxSize > m_displayableSize[i]) ? maxSize : m_displayableSize[i];
+        }
+            
+        //Update our matrix
+        setScale(glm::vec3(2.0/maxSize));
+        setPosition(glm::vec3(-1.0, -1.0, 0.0));
 
         //Field parameters + buffers
         uint32_t fieldSize = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2];
-        m_nbTriangles = arrowLoader->nbSurfaces*fieldSize;
+        m_nbPoints = 3*arrowLoader->nbVertices*fieldSize;
 
-        float*    fieldVertices  = (float*)   malloc(sizeof(float)   *3*arrowLoader->nbVertices*fieldSize);
-        float*    fieldNormals   = (float*)   malloc(sizeof(float)   *3*arrowLoader->nbVertices*fieldSize);
-        uint32_t* fieldTriangles = (uint32_t*)malloc(sizeof(uint32_t)*3*m_nbTriangles);
+        float* fieldVertices  = (float*)malloc(sizeof(float)*3*arrowLoader->nbVertices*fieldSize);
+        float* fieldNormals   = (float*)malloc(sizeof(float)*3*arrowLoader->nbVertices*fieldSize);
 
-        uint32_t currentFace = 0;
         uint32_t currentVert = 0;
 
         //For each cell
-        for(uint32_t k = 0; k < m_displayableSize[2]; k+=dataStep)
+        for(uint32_t k = 0; k < m_displayableSize[2]; k++)
         {
-            for(uint32_t j = 0; j < m_displayableSize[1]; j+=dataStep)
+            for(uint32_t j = 0; j < m_displayableSize[1]; j++)
             {
-                for(uint32_t i = 0; i < m_displayableSize[0]; i+=dataStep)
+                for(uint32_t i = 0; i < m_displayableSize[0]; i++)
                 {
                     //Compute transformation matrix
                     glm::mat4 transMat(1.0f);
                     transMat = glm::translate(transMat, glm::vec3(i, j, k));
-                    transMat = transMat * dataset->getRotationQuaternion(i, j, k).getMatrix();
-                    transMat = glm::scale(transMat, glm::vec3(1.0f, 1.0f, 1.0f));
+                    transMat = transMat * dataset->getRotationQuaternion(i*dataStep, j*dataStep, k*dataStep).getMatrix();
+                    //transMat = glm::scale(transMat, glm::vec3(1.0f, 1.0f, 1.0f));
 
                     glm::mat4 tInvTransMat = glm::transpose(glm::inverse(transMat));
 
@@ -64,14 +70,8 @@ namespace sereno
                         }
                     }
 
-                    //Save the triangles indices
-                    for(uint32_t faceID = 0; faceID < arrowLoader->nbSurfaces; faceID++)
-                        for(uint32_t v = 0; v < 3; v++)
-                            fieldTriangles[3*(faceID+currentFace)+v] = arrowLoader->surfaces[3*faceID+v];
-
                     //Advance further
                     currentVert+=arrowLoader->nbVertices;
-                    currentFace+=arrowLoader->nbSurfaces;
                 }
             }
         }        
@@ -82,13 +82,9 @@ namespace sereno
         {
             //Init the VBO and EBO
             glGenBuffers(1, &m_vboID);
-            glGenBuffers(1, &m_eboID);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboID);
             glBindBuffer(GL_ARRAY_BUFFER,         m_vboID);
             {
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_nbTriangles*sizeof(uint32_t)*3, fieldTriangles, GL_STATIC_DRAW);
                 glBufferData(GL_ARRAY_BUFFER, sizeof(float)*(3+3)*currentVert, NULL, GL_STATIC_DRAW);
-
                 glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*currentVert*3, fieldVertices);                            //Points
                 glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*currentVert*3, sizeof(float)*currentVert*3, fieldNormals); //Normals
 
@@ -104,12 +100,10 @@ namespace sereno
 
         free(fieldVertices);
         free(fieldNormals);
-        free(fieldTriangles);
     }
 
     VectorField::~VectorField()
     {
-        glDeleteBuffers(1, &m_eboID);
         glDeleteBuffers(1, &m_vboID);
         glDeleteVertexArraysOES(1, &m_vaoID);
     }
@@ -122,7 +116,7 @@ namespace sereno
         m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
         glBindVertexArrayOES(m_vaoID);
         {
-            glDrawElements(GL_TRIANGLES, m_nbTriangles, GL_UNSIGNED_INT, 0);
+            glDrawArrays(GL_TRIANGLES, 0, m_nbPoints);
         }
         glBindVertexArrayOES(0);
     }

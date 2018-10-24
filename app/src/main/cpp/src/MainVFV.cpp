@@ -30,6 +30,19 @@ namespace sereno
 
         while(true)
         {
+            while(Event* event = m_surfaceData->pollEvent())
+            {
+                switch(event->type)
+                {
+                    case RESIZE:
+                        glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
+                        break;
+                    default:
+                        LOG_ERROR("type %d still has to be done\n", event->type);
+                        break;
+                }
+                delete event;
+            }
             //Handle events sent from JNI for our application (application wise)
             while(VFVEvent* event = m_mainData->pollEvent())
             {
@@ -53,9 +66,10 @@ namespace sereno
                         }
                         break;
                     default:
-                        LOG_ERROR("type %d style has to be done\n", event->type);
+                        LOG_ERROR("type %d still has to be done\n", event->type);
                         break;
                 }
+                delete event;
             }
 
             //Draw the scene

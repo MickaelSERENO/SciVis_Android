@@ -134,6 +134,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                 if(m_internalState == InternalState.SURFACE_NOT_INITIALIZED)
                 {
                     m_thread = new Thread(this);
+                    m_thread.setName("NativeThread - getMainFunction()");
                     m_thread.start();
                     m_isCreated = true;
                 }

@@ -30,12 +30,11 @@ namespace sereno
             /* \brief Destructor */
             virtual ~MeshLoader();
 
-            uint32_t  nbSurfaces; /*!< How many surfaces ?*/
-            uint32_t  nbVertices; /*!< How many vertices ?*/
-            float*    vertices;   /*!< Array of vertices. vertices[i] == x, vertices[i+1] == y, vertices[i+2] == z. Size : nbVertices*3*/
-            float*    texels;     /*!< Texels coordinate (UV). Size : nbVertices*2*/
-            float*    normals;    /*!< Normals coordinate. Size : nbVertices*3*/
-            uint32_t* surfaces;   /*!< Array of surface. Each cell corresponds to a vertices indice. Three cells make a triangle. Size : nbSurfaces*3*/
+            uint32_t nbSurfaces; /*!< How many surfaces ?*/
+            uint32_t nbVertices; /*!< How many vertices ?*/
+            float*   vertices;   /*!< Array of vertices. vertices[i] == x, vertices[i+1] == y, vertices[i+2] == z. Size : nbVertices*3*/
+            float*   texels;     /*!< Texels coordinate (UV). Size : nbVertices*2*/
+            float*   normals;    /*!< Normals coordinate. Size : nbVertices*3*/
 
             std::vector<SubMeshData*> subMeshData; /*!< Sub mesh data information*/
     };

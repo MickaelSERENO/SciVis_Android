@@ -30,7 +30,6 @@ namespace sereno
             void draw(const glm::mat4& cameraMat);
 
             GLuint                    m_vboID    = 0;     /*!< The vertex buffer object containing our data (position, UV)*/
-            GLuint                    m_eboID    = 0;     /*!< The element buffer object containing the element call*/
             GLuint                    m_vaoID    = 0;     /*!< The vertex array object*/
             std::vector<SubMeshData*> m_subMeshData;      /*!< The subdata information*/
     };

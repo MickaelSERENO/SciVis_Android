@@ -59,7 +59,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnSurfaceCreated(
 JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnSurfaceChanged(JNIEnv* jenv, jobject jobj, 
                                                                                 jlong data, jint jformat, jint width, jint height)
 {
-    glViewport(0, 0, width, height);
+    GLSurfaceViewData* pData = (GLSurfaceViewData*)data;
+    pData->changeSurfaceSize(width, height);
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnSurfaceDestroyed(JNIEnv* jenv, jobject jobj, 

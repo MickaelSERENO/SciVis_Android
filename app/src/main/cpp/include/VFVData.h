@@ -53,6 +53,8 @@ namespace sereno
             /* \brief Constructor. Initialize everything at default value */
             VFVData();
 
+            ~VFVData();
+
             /* \brief Set the callback interface.
              * The aim is that the JNI application can set arguments and the cpp application can receive through callbacks
              * what has changed. Note that the most part of the communication will not be in the OpenGL thread
@@ -61,7 +63,7 @@ namespace sereno
              * \param data data to send to this callback*/
             void setCallback(IVFVCallback* clkb);
 
-            /* \brief Poll the next event
+            /* \brief Poll the next event. If the event is not null, it has to be freed
              * \return the next event or NULL if no event exists */
             VFVEvent* pollEvent();
 

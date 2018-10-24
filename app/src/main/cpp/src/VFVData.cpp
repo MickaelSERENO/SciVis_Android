@@ -7,6 +7,13 @@ namespace sereno
         m_mutex = PTHREAD_MUTEX_INITIALIZER;
     }
 
+    VFVData::~VFVData()
+    {
+        pthread_mutex_destroy(&m_mutex);
+        for(VFVEvent* ev : m_events)
+            delete ev;
+    }
+
     void VFVData::setCallback(IVFVCallback* clbk)
     {
         m_clbk = clbk;
