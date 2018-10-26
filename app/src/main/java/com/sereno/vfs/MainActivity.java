@@ -10,7 +10,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Spinner;
 
@@ -19,14 +21,16 @@ import com.sereno.vfs.Data.ApplicationModel;
 import com.sereno.vfs.Data.DataFile;
 import com.sereno.vfs.Data.FluidDataset;
 import com.sereno.vfs.Listener.INoticeDialogListener;
+import com.sereno.view.RangeColorView;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
                           implements ApplicationModel.IDataCallback, INoticeDialogListener
 {
-    private ApplicationModel m_model;         /*!< The application data model */
-    private DrawerLayout     m_drawerLayout;  /*!< The root layout. DrawerLayout permit to have a left menu*/
-    private Button           m_deleteDataBtn; /*!< The delete data button*/
+    private ApplicationModel m_model;          /*!< The application data model */
+    private DrawerLayout     m_drawerLayout;   /*!< The root layout. DrawerLayout permit to have a left menu*/
+    private Button           m_deleteDataBtn;  /*!< The delete data button*/
+    private RangeColorView   m_rangeColorView; /*!< The range color view*/
 
     /* \brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -99,23 +103,41 @@ public class MainActivity extends AppCompatActivity
     private void setUpDrawerLayout()
     {
         m_drawerLayout = findViewById(R.id.rootLayout);
-        m_drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener()
-        {
-            @Override
-            public void onDrawerSlide(View drawerView, float slideOffset){}
-
-            @Override
-            public void onDrawerOpened(View drawerView){}
-
-            @Override
-            public void onDrawerClosed(View drawerView){}
-
-            @Override
-            public void onDrawerStateChanged(int newState){}
-        });
 
         VFVSurfaceView surfaceView = findViewById(R.id.mainView);
         m_model.addCallback(surfaceView);
+
+        //Configure the spinner color mode
+        m_rangeColorView = findViewById(R.id.rangeColorView);
+        Spinner colorModeSpinner = findViewById(R.id.colorModeSpinner);
+        colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                m_rangeColorView.setColorMode((int)l);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView)
+            {
+                return;
+            }
+        });
+
+        m_rangeColorView.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                    m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
+                        motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                    m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+                return false;
+            }
+        });
     }
 
     /* \brief Setup the toolbar */

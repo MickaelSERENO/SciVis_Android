@@ -60,14 +60,18 @@ public class LUVColor
      */
     public void setFromXYZ(XYZColor xyz)
     {
+        float un = 4*XYZColor.REFERENCE.x/(XYZColor.REFERENCE.x+15*XYZColor.REFERENCE.y+3*XYZColor.REFERENCE.z);
+        float vn = 9*XYZColor.REFERENCE.y/(XYZColor.REFERENCE.x+15*XYZColor.REFERENCE.y+3*XYZColor.REFERENCE.z);
+
         float y = xyz.y/XYZColor.REFERENCE.y;
+
         if(y < 0.008856f)      //(6/29)**3 =   0.008856
             l = 903.296296f*y; //(29/3)**3 = 903.296296
         else
-            l = 116.0f/(float)(Math.pow(y, 1.0/3.0)) - 16.0f;
+            l = 116.0f*(float)(Math.pow(y, 1.0f/3.0f)) - 16.0f;
 
-        u = 13.0f*l * (4.0f*xyz.x/(-2.0f*xyz.x + 12.0f*xyz.y + 3.0f) - 0.2009f);
-        v = 13.0f*l * (9.0f*xyz.y/(-2.0f*xyz.x + 12.0f*xyz.y + 3.0f) - 0.4610f);
+        u = 13.0f*l * (4.0f*xyz.x/(xyz.x + 15.0f*xyz.y + 3.0f*xyz.z) - un);
+        v = 13.0f*l * (9.0f*xyz.y/(xyz.x + 15.0f*xyz.y + 3.0f*xyz.z) - vn);
 
         a = xyz.a;
     }
@@ -78,8 +82,11 @@ public class LUVColor
      */
     public XYZColor toXYZ()
     {
-        float uprime = u/(13.0f*l) + 0.2009f;
-        float vprime = v/(13.0f*l) + 0.4610f;
+        float un = 4*XYZColor.REFERENCE.x/(XYZColor.REFERENCE.x+15*XYZColor.REFERENCE.y+3*XYZColor.REFERENCE.z);
+        float vn = 9*XYZColor.REFERENCE.y/(XYZColor.REFERENCE.x+15*XYZColor.REFERENCE.y+3*XYZColor.REFERENCE.z);
+
+        float uprime = u/(13.0f*l) + un;
+        float vprime = v/(13.0f*l) + vn;
 
         float z = 0.0f;
         float y = 0.0f;
@@ -108,7 +115,7 @@ public class LUVColor
     }
 
     /* \brief Multiply this color by a factor t components per components
-     * \param t the factor (betwene 0 and 1)
+     * \param t the factor (between 0 and 1)
      * \return the color once multiplied
      */
     public LUVColor multiplyBy(float t)

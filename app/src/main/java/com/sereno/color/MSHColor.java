@@ -60,7 +60,7 @@ public class MSHColor
      */
     public void setFromLAB(LABColor color)
     {
-        m = (float)Math.sqrt(color.l*color.l + color.a*color.a + color.a*color.a);
+        m = (float)Math.sqrt(color.l*color.l + color.a*color.a + color.b*color.b);
         s = (float)Math.acos(color.l/m);
         h = (float)Math.atan2(color.b, color.a);
         a = color.transparency;
@@ -145,14 +145,13 @@ public class MSHColor
         MSHColor m1 = new MSHColor(c1);
         MSHColor m2 = new MSHColor(c2);
 
-        float radDiff = m1.h - m2.h;
-        radDiff = (float)Math.abs(((radDiff + Math.PI) % Math.PI)*2.0 - Math.PI*2.0);
+        float radDiff = Math.abs(m1.h - m2.h);
 
         if(m1.s > 0.05 &&
-                m2.s > 0.05 &&
-                radDiff > Math.PI/3.0f)
+           m2.s > 0.05 &&
+           radDiff > Math.PI/3.0f)
         {
-            float midM = (float)(Math.max(Math.max(m1.m, m2.m), 88));
+            float midM = (float)(Math.max(Math.max(m1.m, m2.m), 98.0f));
             if(interp < 0.5f)
             {
                 m2.m = midM;
@@ -185,7 +184,7 @@ public class MSHColor
      */
     public static float adjustHue(MSHColor color, float m)
     {
-        if(color.h >= m)
+        if(color.m >= m)
             return color.h;
 
         float hSpin = (float)(color.s * Math.sqrt(m*m - color.m*color.m) / (color.m*Math.sin(color.s)));

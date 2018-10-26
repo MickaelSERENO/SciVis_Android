@@ -126,7 +126,7 @@ public class LABColor
      * \param v the value to convert
      * \return  v^(1.0/3.0) if v > 0.008856
      */
-    private float f(float v) {return (float)(v > 0.008856 ? Math.pow(v, 1.0/3.0) : 4.83333f*v + 4.0/29.0);}
+    private float f(float v) {return (float)(v > 0.008856 ? Math.pow(v, 1.0/3.0) : 7.787*v + 16.0f/116.0f);}
 
     /** \brief the inverse function which helps determining the three component value. 0.128418*(v-4.0/29.0) otherwise, thata = 6.0/29.0 -> 3*theta^2 = 0.128418
      * \param v the value to determine

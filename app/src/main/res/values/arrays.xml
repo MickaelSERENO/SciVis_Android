@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="ColorMode">
+    <string-array name="colorMode">
         <item>Rainbow</item>
         <item>Grayscale</item>
         <item>Warm-Cold CIELAB</item>

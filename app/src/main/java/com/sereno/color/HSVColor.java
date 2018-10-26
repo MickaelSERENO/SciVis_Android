@@ -61,9 +61,9 @@ public class HSVColor
     public Color toRGB()
     {
         float c  = v*s;
-        float h2 = h/60.0f;
-        float x  = c*(1-(h2 - h2/2.0f - 1));
-        float m  = v + c;
+        float h2 = (h/60.0f);
+        float x  = c*(1.0f-Math.abs(h2%2.0f - 1.0f));
+        float m  = v - c;
         switch((int)h2)
         {
             case 0:

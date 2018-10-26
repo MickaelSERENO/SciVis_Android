@@ -47,6 +47,7 @@ public class XYZColor
         y = (float)(color.r*0.2126 + color.g*0.7152 + color.b*0.0722);
         z = (float)(color.r*0.0193 + color.g*0.1192 + color.b*0.9505);
         a = color.a;
+
     }
 
     /**
@@ -59,7 +60,8 @@ public class XYZColor
                          Math.min(1.0f, -0.9692f*x + 1.8760f*y + 0.0415f*z),
                          Math.min(1.0f,  0.0556f*x - 0.2040f*y + 1.0572f*z),
                          a);
+
     }
 
-    static final XYZColor REFERENCE = new XYZColor(Color.WHITE);
+    static final XYZColor REFERENCE = new XYZColor(0.9505f, 1.0f, 1.0890f, 1.0f);
 }

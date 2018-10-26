@@ -61,11 +61,14 @@ namespace sereno
                 switch(event->type)
                 {
                     case VFV_ADD_DATA:
-                        m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_arrowMtl, NULL,
-                                                                 event->fluidData.dataset, m_arrowMesh));
-                        if(m_currentVF == NULL)
-                            m_currentVF = m_vectorFields.back();
-                        break;
+                        if(m_arrowMesh)
+                        {
+                            m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_arrowMtl, NULL,
+                                                                     event->fluidData.dataset, m_arrowMesh));
+                            if(m_currentVF == NULL)
+                                m_currentVF = m_vectorFields.back();
+                            break;
+                        }
 
                     case VFV_DEL_DATA:
                         if(m_vectorFields.size() < event->fluidData.fluidID && 

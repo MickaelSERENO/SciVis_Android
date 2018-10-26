@@ -5,10 +5,11 @@ namespace sereno
     MeshLoader* MeshLoader::loadFrom3DS(const std::string& path)
     {
         Lib3dsFile* file3ds = lib3ds_file_open(path.c_str());
-        if(!file3ds->meshes)
+        if(!file3ds || !file3ds->meshes)
         {
             LOG_ERROR("Could not load properly the file %s\n", path.c_str());
-            lib3ds_file_free(file3ds);
+            if(file3ds)
+                lib3ds_file_free(file3ds);
             return NULL;
         }
 

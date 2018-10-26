@@ -156,9 +156,9 @@ namespace sereno
     Color HSVColor::toRGB() const
     {
         float c  = v*s;
-        float h2 = h/60.0f;
-        float x  = c*(1-(h2 - h2/2.0f - 1));
-        float m  = v + c;
+        float h2 = (h/60.0f);
+        float x  = c*(1.0f-fabs(fmod(h2, 2.0f) - 1.0f));
+        float m  = v - c;
         switch((int)h2)
         {
             case 0:
@@ -465,7 +465,7 @@ namespace sereno
         if(y < 0.008856f)      //(6/29)**3 =   0.008856
             l = 903.296296f*y; //(29/3)**3 = 903.296296
         else
-            l = 116.0f/(float)(pow(y, 1.0/3.0)) - 16.0f;
+            l = 116.0f*(float)(pow(y, 1.0/3.0)) - 16.0f;
 
         u = 13.0f*l * (4.0f*xyz.x/(-2.0f*xyz.x + 12.0f*xyz.y + 3.0f) - 0.2009f);
         v = 13.0f*l * (9.0f*xyz.y/(-2.0f*xyz.x + 12.0f*xyz.y + 3.0f) - 0.4610f);
@@ -586,7 +586,7 @@ namespace sereno
 
     void MSHColor::setFromLAB(const LABColor& color)
     {
-        m = (float)sqrt(color.l*color.l + color.a*color.a + color.a*color.a);
+        m = (float)sqrt(color.l*color.l + color.a*color.a + color.b*color.b);
         s = (float)acos(color.l/m);
         h = (float)atan2(color.b, color.a);
         a = color.transparency;
@@ -625,14 +625,13 @@ namespace sereno
         MSHColor m1 = MSHColor(c1);
         MSHColor m2 = MSHColor(c2);
 
-        float radDiff = m1.h - m2.h;
-        radDiff = fabs((float)(fmod(radDiff + M_PI, M_PI)*2.0 - M_PI*2.0));
+        float radDiff = fabs(m1.h - m2.h);
 
         if(m1.s > 0.05 && 
            m2.s > 0.05 && 
            radDiff > M_PI/3.0f)
         {
-            float midM = (float)(fmax(fmax(m1.m, m2.m), 88));
+            float midM = (float)(fmax(fmax(m1.m, m2.m), 98));
             if(interp < 0.5f)
             {
                 m2.m = midM;
@@ -659,7 +658,7 @@ namespace sereno
 
     float MSHColor::adjustHue(const MSHColor& color, float m)
     {
-        if(color.h >= m)
+        if(color.m >= m)
             return color.h;
 
         float hSpin = (float)(color.s * sqrt(m*m - color.m*color.m) / (color.m*sin(color.s)));
