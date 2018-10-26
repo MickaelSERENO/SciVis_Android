@@ -7,7 +7,8 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start">
 
     <!-- Main body Layout of screen (drawer will slide over this) -->
     <GridLayout

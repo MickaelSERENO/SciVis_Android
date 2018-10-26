@@ -129,7 +129,7 @@ namespace sereno
     void HSVColor::setFromRGB(const Color& color)
     {
         float max = (float)fmax(fmax(color.r, color.g), color.b);
-        float min = (float)fmin(fmin(color.r, color.g), color.g);
+        float min = (float)fmin(fmin(color.r, color.g), color.b);
         float c   = max-min;
 
         //Compute the Hue
@@ -589,14 +589,15 @@ namespace sereno
         m = (float)sqrt(color.l*color.l + color.a*color.a + color.a*color.a);
         s = (float)acos(color.l/m);
         h = (float)atan2(color.b, color.a);
+        a = color.transparency;
     }
 
     LABColor MSHColor::toLAB() const
     {
-        float l = (float)(m * cos(s));
-        float a = (float)(m * sin(s) * cos(h));
-        float b = (float)(m * sin(s) * sin(h));
-        return LABColor(l, a, b, a);
+        float l  = (float)(m * cos(s));
+        float _a = (float)(m * sin(s) * cos(h));
+        float b  = (float)(m * sin(s) * sin(h));
+        return LABColor(l, _a, b, a);
     }
 
     void MSHColor::setFromXYZ(const XYZColor& xyz)
@@ -619,7 +620,7 @@ namespace sereno
         return toXYZ().toRGB();
     }
 
-    MSHColor MSHColor::fromColorInterpolation(const Color& c1, const Color& c2, float interp) const
+    MSHColor MSHColor::fromColorInterpolation(const Color& c1, const Color& c2, float interp)
     {
         MSHColor m1 = MSHColor(c1);
         MSHColor m2 = MSHColor(c2);
@@ -656,7 +657,7 @@ namespace sereno
         return m1*(1.0f-interp) + m2*(interp);
     }
 
-    float MSHColor::adjustHue(const MSHColor& color, float m) const
+    float MSHColor::adjustHue(const MSHColor& color, float m)
     {
         if(color.h >= m)
             return color.h;

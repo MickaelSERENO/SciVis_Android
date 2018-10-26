@@ -248,10 +248,10 @@ namespace sereno
              */
             Color    toRGB() const;
 
-            float l;
-            float a;
-            float b;
-            float transparency;
+            float l; /*!< The L component*/
+            float a; /*!< The A component*/
+            float b; /*!< The B component*/
+            float transparency; /*!< The alpha component [0, 1]*/
         private:
             /**
              * \brief  a private function which helps determining the three component value. 7.787*v+16.0/116.0 otherwise. theta = 6.0/29.0 -> theta^3 = 0.008856
@@ -260,7 +260,7 @@ namespace sereno
              */
             float f(float v) const {return (v > 0.008856 ? pow(v, 1.0/3.0) : 4.83333f*v + 4.0/29.0);}
             /** \brief the inverse function which helps determining the three component value. 0.128418*(v-4.0/29.0) otherwise, thata = 6.0/29.0 -> 3*theta^2 = 0.128418
-             * \param vthe value to determine
+             * \param v the value to determine
              * \return v^/3.0 if v > 6.0/29.0*/
             float invF(float v) const {return (v > 6.0/29.0 ? v*v*v : 0.128418*(v - 4.0/29.0));}
     };
@@ -444,15 +444,15 @@ namespace sereno
              *
              * \return  the color once interpolated. The medium color is usually white
              */
-            MSHColor fromColorInterpolation(const Color& c1, const Color& c2, float interp) const;
+            static MSHColor fromColorInterpolation(const Color& c1, const Color& c2, float interp);
 
             /**
              * \brief  Adjust the hue
-             * \param sat The saterated color
+             * \param sat The saturated color
              * \param m The unsaturated M component
              * \return  the hue adjusted 
              */
-            float adjustHue(const MSHColor& sat, float m) const;
+            static float adjustHue(const MSHColor& sat, float m);
             
             float m; /*!< The M component*/
             float s; /*!< The S component*/

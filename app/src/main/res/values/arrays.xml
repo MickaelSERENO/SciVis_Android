@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="ColorMode">
+        <item>Rainbow</item>
+        <item>Grayscale</item>
+        <item>Warm-Cold CIELAB</item>
+        <item>Warm-Cold CIELUV</item>
+        <item>Warm-Cold MSH</item>
+    </string-array>
+</resources>
