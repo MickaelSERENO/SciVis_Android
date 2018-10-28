@@ -42,6 +42,15 @@ extern "C"
      * \param ptr the VFVData ptr
      * \param dataIdx the data index to remove*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx);
+
+    /* \brief Function called from Java in order to change the displayed range color
+     * Note that this function is asynchronous between the main cpp thread and the java UI thread
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param min the minimum range
+     * \param max the maximum range*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max);
 }
 
 #endif

@@ -31,3 +31,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEn
     VFVData* data = (VFVData*)ptr;
     data->removeData(dataIdx);
 }
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max)
+{
+    //TODO
+}

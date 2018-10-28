@@ -55,6 +55,14 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeRemoveData(m_ptr, idx);
     }
 
+    /* \brief Function that set the current range color for the displayed dataset
+     * \param min the minimum value
+     * \param max the maximum value*/
+    public void setCurrentRangeColor(float min, float max)
+    {
+        nativeOnRangeColorChange(m_ptr, min, max);
+    }
+
     /* \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();
@@ -72,4 +80,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * \param ptr the ptr associated with the main argument
      * \param idx the FluidDataset index*/
     private native void nativeRemoveData(long ptr, int idx);
+
+    /* \brief Set the color of the current dataset
+     * \param ptr the ptr associated with the main Argument
+     * \param min the minimum range (0.0, 1.0)
+     * \param max the maximum range (0.0, 1.0)
+     */
+    private native void nativeOnRangeColorChange(long ptr, float min, float max);
 }

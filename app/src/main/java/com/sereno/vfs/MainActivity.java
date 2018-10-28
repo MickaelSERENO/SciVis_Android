@@ -1,8 +1,6 @@
 package com.sereno.vfs;
 
-import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -31,6 +29,7 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout     m_drawerLayout;   /*!< The root layout. DrawerLayout permit to have a left menu*/
     private Button           m_deleteDataBtn;  /*!< The delete data button*/
     private RangeColorView   m_rangeColorView; /*!< The range color view*/
+    private VFVSurfaceView   m_surfaceView;    /*!< The surface view displaying the vector field*/
 
     /* \brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -103,9 +102,8 @@ public class MainActivity extends AppCompatActivity
     private void setUpDrawerLayout()
     {
         m_drawerLayout = findViewById(R.id.rootLayout);
-
-        VFVSurfaceView surfaceView = findViewById(R.id.mainView);
-        m_model.addCallback(surfaceView);
+        m_surfaceView  = findViewById(R.id.mainView);
+        m_model.addCallback(m_surfaceView);
 
         //Configure the spinner color mode
         m_rangeColorView = findViewById(R.id.rangeColorView);
@@ -136,6 +134,15 @@ public class MainActivity extends AppCompatActivity
                         motionEvent.getAction() == MotionEvent.ACTION_MOVE)
                     m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
                 return false;
+            }
+        });
+
+        m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
+        {
+            @Override
+            public void onRangeChange(RangeColorView view, float minVal, float maxVal)
+            {
+                m_surfaceView.setCurrentRangeColor(minVal, maxVal);
             }
         });
     }
