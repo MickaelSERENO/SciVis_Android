@@ -10,7 +10,7 @@ namespace sereno
 
         //Load arrow mesh and material
         m_arrowMesh = MeshLoader::loadFrom3DS(m_surfaceData->dataPath + "/Models/arrow.3ds");
-        m_arrowMtl  = new UniColorMaterial(&surfaceData->renderer, Color::WHITE);
+        m_arrowMtl  = new ColorMaterial(&surfaceData->renderer);
     }
 
     MainVFV::~MainVFV()
@@ -79,6 +79,10 @@ namespace sereno
                                 m_currentVF = NULL;
                             m_vectorFields[event->fluidData.fluidID] = NULL;
                         }
+                        break;
+                    case VFV_COLOR_RANGE_CHANGED:
+                        if(m_currentVF)
+                            m_currentVF->setColorRange(event->colorRange.currentData, event->colorRange.min, event->colorRange.max, event->colorRange.mode);
                         break;
                     default:
                         LOG_ERROR("type %d still has to be done\n", event->type);

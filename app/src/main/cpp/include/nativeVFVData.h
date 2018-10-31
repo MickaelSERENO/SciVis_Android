@@ -49,8 +49,9 @@ extern "C"
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
      * \param min the minimum range
-     * \param max the maximum range*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max);
+     * \param max the maximum range
+     * \param mode the color mode to apply*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode);
 }
 
 #endif

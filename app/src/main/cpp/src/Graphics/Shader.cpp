@@ -119,5 +119,6 @@ namespace sereno
         glBindAttribLocation(m_programID, MATERIAL_VPOSITION, "vPosition");
         glBindAttribLocation(m_programID, MATERIAL_VUV,       "vUV");
         glBindAttribLocation(m_programID, MATERIAL_VNORMAL,   "vNormal");
+        glBindAttribLocation(m_programID, MATERIAL_VCOLOR,    "vColor");
     }
 }

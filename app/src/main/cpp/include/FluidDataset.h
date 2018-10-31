@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <limits>
 #include "utils.h"
 #include "Quaternion.h"
 
@@ -45,7 +46,27 @@ namespace sereno
              * \param y the y coordinate
              * \param z the z coordinate
              * \return the direction encoded in a Quaternion */
-            Quaternionf getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z);
+            Quaternionf getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z) const;
+
+            /* \brief Get the velocity array. Size : getGridSize
+             * \return the velocity array packed in (x, y, z) like : 
+             * for(int k = 0; k < getGridSize[2]; k++)
+             *     for(int j = 0; j < getGridSize[1]; j++)
+             *         for(int i = 0; i < getGridSize[0]; i++)
+             *         {
+             *             float x = m_velocity[3*(i+j*getGriSize[0]+k*getGridSize[1]*getGridSize[2])+0];
+             *             float y = m_velocity[3*(i+j*getGriSize[0]+k*getGridSize[1]*getGridSize[2])+1];
+             *             float z = m_velocity[3*(i+j*getGriSize[0]+k*getGridSize[1]*getGridSize[2])+2];
+             *         } */
+            const float* getVelocity() const {return m_velocity;}
+
+            /* \brief Get the minimum amplitude of this dataset
+             * \return the minimum amplitude */
+            float getMinAmplitude() const {return m_amplitude[0];}
+
+            /* \brief Get the maximum amplitude of this dataset
+             * \return the maximum amplitude */
+            float getMaxAmplitude() const {return m_amplitude[1];}
 
             /* \brief Is this dataset valid ? */
             bool isValid() const {return m_isValid;}
@@ -61,6 +82,7 @@ namespace sereno
             bool     m_isValid  = false;  /*!< Is this dataset in a valid state ?*/
             uint32_t m_size[3];           /*!< The 3D size of the grid*/
             float*   m_velocity = NULL;   /*!< The velocity array of all the grid cell. Access via m_velocity[i + j*width + k*width*height] */ 
+            float    m_amplitude[2];      /*!< The dataset amplitude*/
     };
 }
 

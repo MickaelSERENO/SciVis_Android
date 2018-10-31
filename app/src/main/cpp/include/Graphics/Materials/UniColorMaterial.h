@@ -49,7 +49,6 @@ namespace sereno
 
             float* m_color;
             GLint  m_uColor;
-            GLint  m_uUseUniColor;
             GLint  m_uUseTexture;
     };
 }

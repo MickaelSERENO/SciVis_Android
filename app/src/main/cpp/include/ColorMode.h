@@ -6,11 +6,11 @@ namespace sereno
     /* \brief Corresponds to the color mode available on this program */
     enum ColorMode
     {
-	    RAINBOW,          /*!< Rainbow colormode*/
-        GRAYSCALE,        /*!< Greyscale colormode*/
-        WARM_COLD_CIELAB, /*!< Red to blue (white in the middle) colormode. Based on CIELAB*/
-        WARM_COLD_CIELUV, /*!< Red to blue (white in the middle) colormode. Based on CIELUV*/
-        WARM_COLD_MSH     /*!< Red to blue (white in the middle) colormode. Based on MSH*/
+	    RAINBOW          = 0, /*!< Rainbow colormode*/
+        GRAYSCALE        = 1, /*!< Greyscale colormode*/
+        WARM_COLD_CIELAB = 2, /*!< Red to blue (white in the middle) colormode. Based on CIELAB*/
+        WARM_COLD_CIELUV = 3, /*!< Red to blue (white in the middle) colormode. Based on CIELUV*/
+        WARM_COLD_MSH    = 4  /*!< Red to blue (white in the middle) colormode. Based on MSH*/
     };
 }
 

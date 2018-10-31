@@ -26,16 +26,17 @@ public class RangeColorView extends View
         /* \brief Function called when the range has changed
          * \param view the view calling this method
          * \param minVal the current minimum value (between 0.0 and 1.0)
-         * \param maxVal the current maximum value (between 0.0 and 1.0)*/
-        void onRangeChange(RangeColorView view, float minVal, float maxVal);
+         * \param maxVal the current maximum value (between 0.0 and 1.0)
+         * \param mode the color mode applied*/
+        void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode);
     }
 
     public static final int MAX_PIXELS    = 150; /*!< Maximum height*/
     public static final int TRIANGLE_SIZE = 30;  /*!< The triangles size*/
 
-    public static final int MANIPULATING_NO_VALUE  = 0;
-    public static final int MANIPULATING_MIN_VALUE = 1;
-    public static final int MANIPULATING_MAX_VALUE = 2;
+    public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
+    public static final int MANIPULATING_MIN_VALUE = 1; /*!< Manipulating the minimum value*/
+    public static final int MANIPULATING_MAX_VALUE = 2; /*!< Manipulating the maximum value*/
 
     private Paint m_paint        = new Paint(); /*!< The object configuring the paint of the canvas (color)*/
     private Paint m_handlesPaint = new Paint(); /*!< The paint object permitting to draw the handlers*/
@@ -92,9 +93,6 @@ public class RangeColorView extends View
         {
             float t = (float)(i) / (float)(width);
             Color c = null;
-
-            if(t > 0.5)
-                Log.i("Main", "arg");
 
             switch(m_colorMode)
             {
@@ -157,6 +155,8 @@ public class RangeColorView extends View
     public void setColorMode(int mode)
     {
         m_colorMode = mode;
+        for(OnRangeChangeListener l : m_onRangeChangeListeners)
+            l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
         invalidate();
     }
 
@@ -169,7 +169,7 @@ public class RangeColorView extends View
         m_minValue = Math.min(min, max);
         m_maxValue = Math.max(min, max);
         for(OnRangeChangeListener l : m_onRangeChangeListeners)
-            l.onRangeChange(this, m_minValue, m_maxValue);
+            l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
     }
 
     /* \brief Add an object to the list of listeners to call when the range color has changed
@@ -246,7 +246,7 @@ public class RangeColorView extends View
         if(valueChanged)
         {
             for(OnRangeChangeListener l : m_onRangeChangeListeners)
-                l.onRangeChange(this, m_minValue, m_maxValue);
+                l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
             invalidate();
         }
         return true;
@@ -264,6 +264,7 @@ public class RangeColorView extends View
         int width  = widthSize;
         int height = heightSize;
 
+        /* Try to apply MAX_PIXELS in y axis*/
         switch(heightMode)
         {
             case MeasureSpec.AT_MOST:

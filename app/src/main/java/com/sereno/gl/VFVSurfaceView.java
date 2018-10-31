@@ -57,10 +57,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     /* \brief Function that set the current range color for the displayed dataset
      * \param min the minimum value
-     * \param max the maximum value*/
-    public void setCurrentRangeColor(float min, float max)
+     * \param max the maximum value
+     * \param mode the color mode to apply (see ColorMode)*/
+    public void setCurrentRangeColor(float min, float max, int mode)
     {
-        nativeOnRangeColorChange(m_ptr, min, max);
+        nativeOnRangeColorChange(m_ptr, min, max, mode);
     }
 
     /* \brief Create the argument to send to the main function
@@ -85,6 +86,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * \param ptr the ptr associated with the main Argument
      * \param min the minimum range (0.0, 1.0)
      * \param max the maximum range (0.0, 1.0)
+     * \param mode the color mode to apply (See ColorMode)
      */
-    private native void nativeOnRangeColorChange(long ptr, float min, float max);
+    private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode);
 }

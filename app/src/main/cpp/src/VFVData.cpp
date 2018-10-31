@@ -26,6 +26,9 @@ namespace sereno
         ev->fluidData.fluidID = m_datas.size();
         ev->fluidData.dataset = dataset;
 
+        if(m_currentData == NULL)
+            m_currentData = dataset;
+
         m_datas.push_back(dataset);
         addEvent(ev);
     }
@@ -37,6 +40,18 @@ namespace sereno
 
     void VFVData::setCurrentData(int dataID)
     {
+    }
+
+    void VFVData::onRangeColorChange(float min, float max, ColorMode mode)
+    {
+        VFVEvent* ev               = new VFVEvent;
+        ev->type                   = VFV_COLOR_RANGE_CHANGED;
+        ev->colorRange.min         = min;
+        ev->colorRange.max         = max;
+        ev->colorRange.mode        = mode;
+        ev->colorRange.currentData = m_currentData;
+
+        addEvent(ev);
     }
 
     VFVEvent* VFVData::pollEvent()

@@ -120,7 +120,7 @@ namespace sereno
         }
 
         //Initialize Shaders
-        const char* shaders[] = {"color"};
+        const char* shaders[] = {"color", "uniColor"};
         for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
         {
             Shader* shader = NULL;

@@ -2,10 +2,11 @@ precision mediump float;
 
 uniform vec4 uMaskColor;
 uniform bool uUseTexture;
+
 uniform sampler2D uTexture;
+uniform vec4      uUniColor;
 
 varying vec2 varyTextureCoord;
-varying vec4 varyColor;
 
 void main()
 {
@@ -19,10 +20,11 @@ void main()
 			discard;
         gl_FragColor = textColor;
 	}
+
     else
     {
-        if(varyColor.a == 0.0)
+        if(uUniColor.a == 0.0)
             discard;
-        gl_FragColor = varyColor;
+        gl_FragColor = uUniColor;
     }
 }

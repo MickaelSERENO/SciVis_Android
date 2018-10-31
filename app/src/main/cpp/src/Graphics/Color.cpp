@@ -7,6 +7,8 @@ namespace sereno
     /*-----------------------------------Colors-----------------------------------*/
     /*----------------------------------------------------------------------------*/
 
+    const Color Color::COLD_COLOR  = Color(59.0f/255.0f, 76.0f/255.0f, 192.0f/255.0f, 1.0f);
+    const Color Color::WARM_COLOR  = Color(180.0/255.0f,  4.0f/255.0f,  38.0f/255.0f, 1.0f);
     const Color Color::WHITE       = Color(1.0, 1.0, 1.0, 1.0);
     const Color Color::BLACK       = Color(0.0, 0.0, 0.0, 1.0);
     const Color Color::RED         = Color(1.0, 0.0, 0.0, 1.0);
@@ -180,7 +182,7 @@ namespace sereno
     /*-------------------------------XYZ colorspace-------------------------------*/
     /*----------------------------------------------------------------------------*/
     
-    const XYZColor XYZColor::reference = XYZColor(Color::WHITE);
+    const XYZColor XYZColor::REFERENCE = XYZColor(0.9505f, 1.01f, 1.0890f, 1.0f);
 
     XYZColor::XYZColor(float _x, float _y, float _z, float _a) : x(_x), y(_y), z(_z), a(_a)
     {}
@@ -271,6 +273,10 @@ namespace sereno
     /*---------------------------------LAB Color----------------------------------*/
     /*----------------------------------------------------------------------------*/
 
+    const LABColor LABColor::COLD_COLOR = LABColor(Color::COLD_COLOR);
+    const LABColor LABColor::WHITE      = LABColor(Color::WHITE);
+    const LABColor LABColor::WARM_COLOR = LABColor(Color::WARM_COLOR);
+
     LABColor::LABColor(float _l, float _a, float _b, float _transparency) : l(_l), a(_a), b(_b), transparency(_transparency)
     {}
 
@@ -347,9 +353,9 @@ namespace sereno
 
     void LABColor::setFromXYZ(const XYZColor& xyz)
     {
-        float fX = f(xyz.x/XYZColor::reference.x);
-        float fY = f(xyz.y/XYZColor::reference.y);
-        float fZ = f(xyz.z/XYZColor::reference.z);
+        float fX = f(xyz.x/XYZColor::REFERENCE.x);
+        float fY = f(xyz.y/XYZColor::REFERENCE.y);
+        float fZ = f(xyz.z/XYZColor::REFERENCE.z);
 
         l = 116*fY - 16.0f;
         a = 500*(fX - fY);
@@ -365,9 +371,9 @@ namespace sereno
 
     XYZColor LABColor::toXYZ() const
     {
-        return XYZColor(XYZColor::reference.x * invF((float)((l+16.0)/116.0 + a/500.0)),
-                        XYZColor::reference.y * invF((float)((l+16.0)/116.0)),
-                        XYZColor::reference.z * invF((float)((l+16.0)/116.0 - b/200.0)),
+        return XYZColor(XYZColor::REFERENCE.x * invF((float)((l+16.0)/116.0 + a/500.0)),
+                        XYZColor::REFERENCE.y * invF((float)((l+16.0)/116.0)),
+                        XYZColor::REFERENCE.z * invF((float)((l+16.0)/116.0 - b/200.0)),
                         transparency);
     }
 
@@ -379,6 +385,10 @@ namespace sereno
     /*----------------------------------------------------------------------------*/
     /*----------------------------------LUVColor----------------------------------*/
     /*----------------------------------------------------------------------------*/
+
+    const LUVColor LUVColor::COLD_COLOR = LUVColor(Color::COLD_COLOR);
+    const LUVColor LUVColor::WHITE      = LUVColor(Color::WHITE);
+    const LUVColor LUVColor::WARM_COLOR = LUVColor(Color::WARM_COLOR);
 
     LUVColor::LUVColor(float _l, float _u, float _v, float _a) : l(_l), u(_u), v(_v), a(_a)
     {}
@@ -461,14 +471,18 @@ namespace sereno
 
     void LUVColor::setFromXYZ(const XYZColor& xyz)
     {
-        float y = xyz.y/XYZColor::reference.y; 
+        float un = 4*XYZColor::REFERENCE.x/(XYZColor::REFERENCE.x+15*XYZColor::REFERENCE.y+3*XYZColor::REFERENCE.z);
+        float vn = 9*XYZColor::REFERENCE.y/(XYZColor::REFERENCE.x+15*XYZColor::REFERENCE.y+3*XYZColor::REFERENCE.z);
+
+        float y = xyz.y/XYZColor::REFERENCE.y;
+
         if(y < 0.008856f)      //(6/29)**3 =   0.008856
             l = 903.296296f*y; //(29/3)**3 = 903.296296
         else
-            l = 116.0f*(float)(pow(y, 1.0/3.0)) - 16.0f;
+            l = 116.0f*(float)(pow(y, 1.0f/3.0f)) - 16.0f;
 
-        u = 13.0f*l * (4.0f*xyz.x/(-2.0f*xyz.x + 12.0f*xyz.y + 3.0f) - 0.2009f);
-        v = 13.0f*l * (9.0f*xyz.y/(-2.0f*xyz.x + 12.0f*xyz.y + 3.0f) - 0.4610f);
+        u = 13.0f*l * (4.0f*xyz.x/(xyz.x + 15.0f*xyz.y + 3.0f*xyz.z) - un);
+        v = 13.0f*l * (9.0f*xyz.y/(xyz.x + 15.0f*xyz.y + 3.0f*xyz.z) - vn);
 
         a = xyz.a;
     }
@@ -480,30 +494,37 @@ namespace sereno
 
     XYZColor LUVColor::toXYZ() const
     {
-        float uprime = u/(13.0f*l) + 0.2009f;
-        float vprime = v/(13.0f*l) + 0.4610f;
+
+        float un = 4*XYZColor::REFERENCE.x/(XYZColor::REFERENCE.x+15*XYZColor::REFERENCE.y+3*XYZColor::REFERENCE.z);
+        float vn = 9*XYZColor::REFERENCE.y/(XYZColor::REFERENCE.x+15*XYZColor::REFERENCE.y+3*XYZColor::REFERENCE.z);
+
+        float uprime = u/(13.0f*l) + un;
+        float vprime = v/(13.0f*l) + vn;
 
         float z = 0.0f;
         float y = 0.0f;
         float x = 0.0f;
 
         if(l <= 8.0)
-            y = XYZColor::reference.y*l*(0.001107056f); //0.001107056 = (3.0/29.0)**3
+            y = XYZColor::REFERENCE.y*l*(0.001107056f); //0.001107056 = (3.0/29.0)**3
         else
         {
             float lprime = (l+16.0f)/116.0f;
-            y = XYZColor::reference.y*lprime*lprime*lprime;
+            y = XYZColor::REFERENCE.y*lprime*lprime*lprime;
         }
         x = y*9*uprime/(4*vprime);
         z = y*(12 - 3*uprime - 20*vprime)/(4*vprime);
 
         return XYZColor(x, y, z, a);
-
     }
 
     /*----------------------------------------------------------------------------*/
     /*---------------------------------MSH Color----------------------------------*/
     /*----------------------------------------------------------------------------*/
+
+    const MSHColor MSHColor::COLD_COLOR = MSHColor(Color::COLD_COLOR);
+    const MSHColor MSHColor::WHITE      = MSHColor(Color::WHITE);
+    const MSHColor MSHColor::WARM_COLOR = MSHColor(Color::WARM_COLOR);
 
     MSHColor::MSHColor(float _m, float _s, float _h, float _a) : m(_m), s(_s), h(_h), a(_a)
     {}

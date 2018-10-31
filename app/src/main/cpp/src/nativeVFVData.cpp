@@ -32,7 +32,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEn
     data->removeData(dataIdx);
 }
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max)
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode)
 {
-    //TODO
+    VFVData* data = (VFVData*)ptr;
+    data->onRangeColorChange(min, max, (ColorMode)(mode));
 }

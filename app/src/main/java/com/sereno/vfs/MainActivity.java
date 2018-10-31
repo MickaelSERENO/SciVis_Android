@@ -140,9 +140,9 @@ public class MainActivity extends AppCompatActivity
         m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
         {
             @Override
-            public void onRangeChange(RangeColorView view, float minVal, float maxVal)
+            public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
             {
-                m_surfaceView.setCurrentRangeColor(minVal, maxVal);
+                m_surfaceView.setCurrentRangeColor(minVal, maxVal, mode);
             }
         });
     }

@@ -6,15 +6,17 @@
 #include <pthread.h>
 #include <deque>
 #include "FluidDataset.h"
+#include "ColorMode.h"
 
 namespace sereno
 {
     /* \brief Enumeration representing the possible events from the Model modification */
     enum VFVEventType
     {
-        VFV_ADD_DATA,        /*!< Data added*/
-        VFV_DEL_DATA,        /*!< Data removed*/
-        VFV_SET_CURRENT_DATA /*!< Current Data setted*/
+        VFV_ADD_DATA,            /*!< Data added*/
+        VFV_DEL_DATA,            /*!< Data removed*/
+        VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
+        VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
     };
 
     /* \brief The Event that can be sent from JNI */
@@ -23,11 +25,21 @@ namespace sereno
         VFVEventType type; /*!< The type of the event*/
         union
         {
+            /* \brief fluid data event information (add, del, set current data) */
             struct
             {
                 uint32_t      fluidID; /*!< Indice of this opened file (always incremental)*/
                 FluidDataset* dataset; /*!< The dataset associated*/
             }fluidData;
+
+            /* \brief Color range information */
+            struct
+            {
+                float min;                 /*!< the minimum range (ratio : 0.0, 1.0)*/
+                float max;                 /*!< the maximum range (ratio : 0.0, 1.0)*/
+                ColorMode mode;            /*!< The color mode to apply*/
+                FluidDataset* currentData; /*!< The current dataset*/
+            }colorRange;
         };
     };
 
@@ -75,6 +87,12 @@ namespace sereno
              * \param dataID the id of the dataset to remove*/
             void removeData(int dataID);
 
+            /* \brief Function called when the range color has changed
+             * \param min the minimum range color
+             * \param max the maximum range color 
+             * \param mode the current color mode*/
+            void onRangeColorChange(float min, float max, ColorMode mode);
+
             /* \brief Set the current data displayed in the application
              * \param dataID the dataID*/
             void setCurrentData(int dataID);
@@ -83,10 +101,11 @@ namespace sereno
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
-            std::vector<FluidDataset*> m_datas;          /*!< The data paths */
-            IVFVCallback*              m_clbk    = NULL; /*!< The callback interface */
-            std::deque<VFVEvent*>      m_events;         /*!< The events from Java*/
-            pthread_mutex_t            m_mutex;          /*!< The mutex for handling communication between Java and Cpp*/
+            std::vector<FluidDataset*> m_datas;              /*!< The data paths */
+            FluidDataset*              m_currentData = NULL; /*!< The current data*/
+            IVFVCallback*              m_clbk        = NULL; /*!< The callback interface */
+            std::deque<VFVEvent*>      m_events;             /*!< The events from Java*/
+            pthread_mutex_t            m_mutex;              /*!< The mutex for handling communication between Java and Cpp*/
     };
 }
 

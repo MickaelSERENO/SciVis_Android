@@ -2,7 +2,7 @@
 
 namespace sereno
 {
-    UniColorMaterial::UniColorMaterial(GLRenderer* renderer, const Color& color) : Material(renderer, renderer->getShader("color")), 
+    UniColorMaterial::UniColorMaterial(GLRenderer* renderer, const Color& color) : Material(renderer, renderer->getShader("uniColor")),
                                                                                    m_color(NULL)
     {
         setColor(color);
@@ -11,7 +11,7 @@ namespace sereno
         getAttributs();
     }
 
-    UniColorMaterial::UniColorMaterial(GLRenderer* renderer, const float* color) : Material(renderer, renderer->getShader("color")), 
+    UniColorMaterial::UniColorMaterial(GLRenderer* renderer, const float* color) : Material(renderer, renderer->getShader("uniColor")),
                                                                                    m_color(NULL)
     {
         setColor(color);
@@ -33,7 +33,6 @@ namespace sereno
         if(m_shader)
         {
             glUniform4fv(m_uColor, 1, m_color);
-            glUniform1i(m_uUseUniColor, true);
             glUniform1i(m_uUseTexture, false);
         }
     }
@@ -65,7 +64,6 @@ namespace sereno
         if(m_shader)
         {
             m_uColor       = glGetUniformLocation(m_shader->getProgramID(), "uUniColor");
-            m_uUseUniColor = glGetUniformLocation(m_shader->getProgramID(), "uUseUniColor");
             m_uUseTexture  = glGetUniformLocation(m_shader->getProgramID(), "uUseTexture");
         }
     }

@@ -38,6 +38,9 @@ namespace sereno
             float b; /** <blue component */
             float a; /** <alpha component */
 
+            static const Color COLD_COLOR; /** <The Cold color usually use in visualization */
+            static const Color WARM_COLOR; /** <The Cold color usually use in visualization */
+
             static const Color WHITE;/** <White color */
             static const Color BLACK;/** <Black color */
             static const Color RED;/** <Red color */
@@ -170,13 +173,17 @@ namespace sereno
             float z; /*!< The Z component*/
             float a; /*!< The A component*/
 
-            static const XYZColor reference;
+            static const XYZColor REFERENCE;
     };
 
     /** \brief  The LAB colorspace representation */
     class LABColor
     {
         public:
+            static const LABColor COLD_COLOR; /* !<Cold LAB Color usually use in visualization */
+            static const LABColor WHITE;      /* !<The White LAB Color */
+            static const LABColor WARM_COLOR; /* !<Warm LAB Color usually use in visualization */
+
             /**
              * \brief  Constructor
              * \param _l L component
@@ -258,7 +265,7 @@ namespace sereno
              * \param v the value to convert
              * \return  v^(1.0/3.0) if v > 0.008856 
              */
-            float f(float v) const {return (v > 0.008856 ? pow(v, 1.0/3.0) : 4.83333f*v + 4.0/29.0);}
+            float f(float v) const {return (v > 0.008856 ? pow(v, 1.0/3.0) : 7.787*v + 16.0f/116.0f);}
             /** \brief the inverse function which helps determining the three component value. 0.128418*(v-4.0/29.0) otherwise, thata = 6.0/29.0 -> 3*theta^2 = 0.128418
              * \param v the value to determine
              * \return v^/3.0 if v > 6.0/29.0*/
@@ -269,6 +276,10 @@ namespace sereno
     class LUVColor
     {
         public:
+            static const LUVColor COLD_COLOR; /* !<Cold LUV Color usually use in visualization */
+            static const LUVColor WHITE;      /* !<The White LUV Color */
+            static const LUVColor WARM_COLOR; /* !<Warm LUV Color usually use in visualization */
+
             /**
              * \brief  Constructor
              * \param _l L component 
@@ -344,6 +355,10 @@ namespace sereno
     class MSHColor
     {
         public:
+            static const MSHColor COLD_COLOR; /* !<Cold MSH Color usually use in visualization */
+            static const MSHColor WHITE;      /* !<The White MSH Color */
+            static const MSHColor WARM_COLOR; /* !<Warm MSH Color usually use in visualization */
+
             /**
              * \brief  Constructor
              * \param _m The M component

@@ -9,8 +9,9 @@
 #include "FluidDataset.h"
 #include "MeshLoader.h"
 #include "ColorMode.h"
+#include "Graphics/Color.h"
 
-#define MAX_VECTOR_ALONG_AXIS 30
+#define MAX_VECTOR_ALONG_AXIS 25
 
 namespace sereno
 {
@@ -24,7 +25,7 @@ namespace sereno
              * \param dataset the dataset to load in the graphic card
              * \param arrowLoader the arrow mesh */
             VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent,
-                        FluidDataset* dataset, MeshLoader* arrowLoader);
+                        const FluidDataset* dataset, const MeshLoader* arrowLoader);
 
             /* \brief Destructor*/
             ~VectorField();
@@ -34,14 +35,16 @@ namespace sereno
             void draw(const glm::mat4& cameraMat);
 
             /* \brief Set the color range to display. All the color OUTSIDE [min, max] will be discarded (i.e transparent)
-             * \param min the minimum value
-             * \param max the maximum value */
-            void setColorRange(FluidDataset* dataset, int min, int max, ColorMode colorMode);
+             * \param min the minimum value (ratio : 0.0, 1.0)
+             * \param max the maximum value (ratio : 0.0, 1.0)*/
+            void setColorRange(const FluidDataset* dataset, float min, float max, ColorMode colorMode);
         private:
             GLuint   m_vaoID;              /*!< Vertex Array Object*/
             GLuint   m_vboID;              /*!< Vertex Buffer Object*/
             uint32_t m_displayableSize[3]; /*!< The displayable size (how many vectors are being displayed ?)*/
+            uint32_t m_dataStep;           /*!< The step at reading the data*/
             uint32_t m_nbPoints;           /*!< The number of points to display on screen*/
+            uint32_t m_nbVerticesPerArrow; /*!< The number of vertices per arrow*/
     };
 }
 

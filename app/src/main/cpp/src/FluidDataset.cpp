@@ -2,7 +2,7 @@
 
 namespace sereno
 {
-    FluidDataset::FluidDataset(FILE* file)
+    FluidDataset::FluidDataset(FILE* file) : m_amplitude{std::numeric_limits<float>::max(), 0.0}
     {
 #define BUFFER_SIZE 3*sizeof(float)*270
         uint8_t buffer[BUFFER_SIZE];
@@ -28,13 +28,30 @@ namespace sereno
 
         //read data
         //We do not precompute magnitude or so because of memory issue. We prefer using CPU time instead of RAM
+        //However we store the ampltitude range
         uint32_t velID = 0;
         do
         {
             readSize = fread(buffer, sizeof(uint8_t), BUFFER_SIZE, file);
-            for(uint32_t j = 0; j < readSize; j+=sizeof(float), velID++)
-                m_velocity[velID] = uint8ToFloat(buffer+j);
+            for(uint32_t j = 0; j < readSize; j+=sizeof(float)*3, velID+=3)
+            {
+                float amp = 0.0;
+                for(uint32_t k = 0; k < 3; k++)
+                {
+                    m_velocity[velID+k] = uint8ToFloat(buffer+j+k*sizeof(float));
+                    amp += m_velocity[velID+k]*m_velocity[velID+k];
+                }
+
+                //Update the amplitude. We store the square of the amplitude for better performances (the square root is done only at the end)
+                if(amp < m_amplitude[0])
+                    m_amplitude[0] = amp;
+                else if(amp > m_amplitude[1])
+                    m_amplitude[1] = amp;
+            }
         }while(readSize != 0);
+
+        m_amplitude[0] = sqrt(m_amplitude[0]);
+        m_amplitude[1] = sqrt(m_amplitude[1]);
 
         m_isValid = true;
 #undef BUFFER_SIZE
@@ -95,7 +112,7 @@ namespace sereno
         return data;
     }
 
-    Quaternionf FluidDataset::getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z)
+    Quaternionf FluidDataset::getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z) const
     {
         uint32_t ind = x + m_size[0]*y + m_size[0]*m_size[1]*z;
         float vel[3] = {m_velocity[3*ind], m_velocity[3*ind+1], m_velocity[3*ind+2]};

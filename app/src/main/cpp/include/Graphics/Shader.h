@@ -17,6 +17,7 @@
 #define MATERIAL_VPOSITION 0
 #define MATERIAL_VNORMAL   1
 #define MATERIAL_VUV       2
+#define MATERIAL_VCOLOR    3 
 
 namespace sereno
 {

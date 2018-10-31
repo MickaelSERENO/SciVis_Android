@@ -4,7 +4,7 @@
 #include "GLSurfaceViewData.h"
 #include "VFVData.h"
 #include "Graphics/VectorField.h"
-#include "Graphics/Materials/UniColorMaterial.h"
+#include "Graphics/Materials/ColorMaterial.h"
 
 namespace sereno
 {
@@ -36,7 +36,7 @@ namespace sereno
             VFVData*           m_mainData;    /*!< The main data*/
 
             MeshLoader*                m_arrowMesh;           /*!< The arrow mesh for the vector fields*/
-            UniColorMaterial*          m_arrowMtl;            /*!< The arrow material for the vector fields*/
+            ColorMaterial*             m_arrowMtl;            /*!< The arrow material for the vector fields*/
             std::vector<VectorField*>  m_vectorFields;        /*!< The loaded vector fields*/
             VectorField*               m_currentVF    = NULL; /*!< The current Vector Field being displayed*/
     };
