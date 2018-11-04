@@ -9,10 +9,10 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-/* \brief The GLSurface object, represent an OpenGL Surface associated with an OpenGL Context*/
+/** \brief The GLSurface object, represent an OpenGL Surface associated with an OpenGL Context*/
 public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable
 {
-    /* \brief Represents the possible InternalState of this GLSurface*/
+    /** \brief Represents the possible InternalState of this GLSurface*/
     public enum InternalState
     {
         SURFACE_NOT_INITIALIZED,
@@ -21,12 +21,12 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         SURFACE_DESTROYED
     }
 
-    protected Thread        m_thread        = null;                                  /*!< Represents the Drawing thread*/
-    protected Boolean       m_isCreated     = false;                                 /*!< Is the surface created ?*/
-    protected InternalState m_internalState = InternalState.SURFACE_NOT_INITIALIZED; /*!< The InternalState of the application*/
-    protected long          m_internalData  = 0;                                     /*!< Pointer to a C++ object permitting to send data to the main thread*/
+    protected Thread        m_thread        = null;                                  /**!< Represents the Drawing thread*/
+    protected Boolean       m_isCreated     = false;                                 /**!< Is the surface created ?*/
+    protected InternalState m_internalState = InternalState.SURFACE_NOT_INITIALIZED; /**!< The InternalState of the application*/
+    protected long          m_internalData  = 0;                                     /**!< Pointer to a C++ object permitting to send data to the main thread*/
 
-    /* \brief Initialize the view*/
+    /** \brief Initialize the view*/
     public void init(Context context)
     {
         getHolder().addCallback(this);
@@ -51,7 +51,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         init(context);
     }
 
-    /* \brief Finalize method. Close the thread*/
+    /** \brief Finalize method. Close the thread*/
     public void finalize() throws Throwable
     {
         try
@@ -137,21 +137,21 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         return "native-lib";
     }
 
-    /* \brief Function which has for aim to be overrided. Defines the main function for this SurfaceView
+    /** \brief Function which has for aim to be overrided. Defines the main function for this SurfaceView
      * \return the name of the main function */
     protected String getMainFunction()
     {
         return "GLSurface_main";
     }
 
-    /* \brief Function which has for aim to be overrided.
+    /** \brief Function which has for aim to be overrided.
      * \return the cpp argument to send to the main function*/
     protected long getMainArgument()
     {
         return 0;
     }
 
-    /* \brief Set the internal state of this object
+    /** \brief Set the internal state of this object
      * \param state the new internal state*/
     private void setInternalState(InternalState state)
     {
@@ -183,33 +183,33 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         m_internalState = state;
     }
 
-    /* \brief Permit to init the internal data of this view. This data will mostly contain events sent from Java
+    /** \brief Permit to init the internal data of this view. This data will mostly contain events sent from Java
      * \return C++ pointer*/
     private native long nativeInitInternalData(String internalData);
 
-    /* \brief Main C++ function being called
+    /** \brief Main C++ function being called
      * \param data the internal data to pass on
      * \param mainLibrary the main library to read containing the main function
      * \param mainFunc the name of the mainFunction. Must have the following proptotype : void mainFunc(long data, long arg)
      * \param arg the argument to pass*/
     private native void nativeMain(long data, String mainLibrary, String mainFunc, long arg);
 
-    /* \brief OnSurfaceDestroyed handled in C++
+    /** \brief OnSurfaceDestroyed handled in C++
      * \param data the C++ internal data*/
     private native void nativeOnSurfaceDestroyed(long data);
 
-    /* \brief OnCreateSurface handled in C++
+    /** \brief OnCreateSurface handled in C++
      * \param data the C++ internal data*/
     private native void nativeOnSurfaceCreated(long data, Surface surface);
 
-    /* \brief OnSurfaceChanged handled in C++
+    /** \brief OnSurfaceChanged handled in C++
      * \param data the C++ internal data
      * \param format the new surface format
      * \param width the new surface width
      * \param height the new surface height*/
     private native void nativeOnSurfaceChanged(long data, int format, int width, int height);
 
-    /* \brief ONTouchEvent handled in C++. Send the event in the C++ application. x and y are in OpenGL coordinate system
+    /** \brief ONTouchEvent handled in C++. Send the event in the C++ application. x and y are in OpenGL coordinate system
      * \param data the C++ internal data pointer
      * \param action the action to use. 0 == DOWN, 1 == UP, 2 == MOVE
      * \param finger the finger ID

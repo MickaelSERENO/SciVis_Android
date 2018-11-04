@@ -19,6 +19,15 @@ namespace sereno
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
     };
 
+    /* \brief Color range information */
+    struct ColorRangeEvent
+    {
+        float min;                 /*!< the minimum range (ratio : 0.0, 1.0)*/
+        float max;                 /*!< the maximum range (ratio : 0.0, 1.0)*/
+        ColorMode mode;            /*!< The color mode to apply*/
+        FluidDataset* currentData; /*!< The current dataset*/
+    };
+
     /* \brief The Event that can be sent from JNI */
     struct VFVEvent
     {
@@ -28,18 +37,9 @@ namespace sereno
             /* \brief fluid data event information (add, del, set current data) */
             struct
             {
-                uint32_t      fluidID; /*!< Indice of this opened file (always incremental)*/
                 FluidDataset* dataset; /*!< The dataset associated*/
             }fluidData;
-
-            /* \brief Color range information */
-            struct
-            {
-                float min;                 /*!< the minimum range (ratio : 0.0, 1.0)*/
-                float max;                 /*!< the maximum range (ratio : 0.0, 1.0)*/
-                ColorMode mode;            /*!< The color mode to apply*/
-                FluidDataset* currentData; /*!< The current dataset*/
-            }colorRange;
+            ColorRangeEvent colorRange; /*!< Color range event information */
         };
     };
 

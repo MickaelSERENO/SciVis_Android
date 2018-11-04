@@ -121,4 +121,11 @@ namespace sereno
 
         return Quaternionf(pitch, roll, 0);
     }
+
+    void FluidDataset::setColor(float min, float max, ColorMode mode)
+    {
+        m_colorMode = mode;
+        m_minClamp  = min;
+        m_maxClamp  = max;
+    }
 }

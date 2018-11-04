@@ -2,10 +2,10 @@ package com.sereno.color;
 
 public class XYZColor
 {
-    float x; /*!< The X component*/
-    float y; /*!< The Y component*/
-    float z; /*!< The Z component*/
-    float a; /*!< The A component*/
+    float x; /**!< The X component*/
+    float y; /**!< The Y component*/
+    float z; /**!< The Z component*/
+    float a; /**!< The A component*/
 
     /**
      * \brief  Constructor

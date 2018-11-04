@@ -5,8 +5,12 @@
     <string name="amplitudeRange">Clamp Amplitude</string>
     <string name="vorticity">Vorticity</string>
     <string name="colorMode">Color Mode</string>
-    <string name="open_dataset">Open Dataset</string>
+    <string name="openDataset">Open Dataset</string>
     <string name="open">Open</string>
     <string name="cancel">Cancel</string>
     <string name="errorDatasets">No datasets available</string>
+    <string name="connect">Connect</string>
+    <string name="options">Options</string>
+    <string name="serverIP">Server IP</string>
+    <string name="hololensIP">Hololens IP</string>
 </resources>

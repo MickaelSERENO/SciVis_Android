@@ -2,10 +2,10 @@ package com.sereno.color;
 
 public class MSHColor
 {
-    public float m; /*!< m component*/
-    public float s; /*!< s component*/
-    public float h; /*!< h component*/
-    public float a; /*!< alpha component*/
+    public float m; /**!< m component*/
+    public float s; /**!< s component*/
+    public float h; /**!< h component*/
+    public float a; /**!< alpha component*/
 
     /**
      * \brief  Constructor
@@ -114,7 +114,7 @@ public class MSHColor
         return toLAB().toXYZ();
     }
 
-    /* \brief Multiply this color by a factor t components per components
+    /** \brief Multiply this color by a factor t components per components
      * \param t the factor (betwene 0 and 1)
      * \return the color once multiplied
      */
@@ -123,7 +123,7 @@ public class MSHColor
         return new MSHColor(m*t, s*t, h*t, a*t);
     }
 
-    /*\brief Add components per components this color by another
+    /**\brief Add components per components this color by another
      * \param c the Color to add
      * \return the addition components per components*/
     public MSHColor addBy(MSHColor c)

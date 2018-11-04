@@ -2,10 +2,10 @@ package com.sereno.color;
 
 public class LABColor
 {
-    public float l; /*!< The L component*/
-    public float a; /*!< The A component*/
-    public float b; /*!< The B component*/
-    public float transparency; /*!< The alpha component [0, 1]*/
+    public float l; /**!< The L component*/
+    public float a; /**!< The A component*/
+    public float b; /**!< The B component*/
+    public float transparency; /**!< The alpha component [0, 1]*/
 
     /**
      * \brief  Constructor
@@ -93,7 +93,7 @@ public class LABColor
         return toXYZ().toRGB();
     }
 
-    /* \brief Multiply this color by a factor t components per components
+    /** \brief Multiply this color by a factor t components per components
      * \param t the factor (betwene 0 and 1)
      * \return the color once multiplied
      */
@@ -102,7 +102,7 @@ public class LABColor
         return new LABColor(l*t, a*t, b*t, transparency*t);
     }
 
-    /*\brief Add components per components this color by another
+    /**\brief Add components per components this color by another
      * \param c the Color to add
      * \return the addition components per components*/
     public LABColor addBy(LABColor c)
@@ -110,7 +110,7 @@ public class LABColor
         return new LABColor(l+c.l, a+c.a, b+c.b, transparency+c.transparency);
     }
 
-    /*\brief Linear interpolation
+    /**\brief Linear interpolation
      * \param c1 left color (t=0)
      * \param c2 right color (t=1)
      * \param t the advancement (t between 0 and 1)

@@ -2,10 +2,10 @@ package com.sereno.color;
 
 public class Color
 {
-    public float r; /*!< Red component [0, 1]*/
-    public float g; /*!< Green component [0, 1]*/
-    public float b; /*!< Blue component [0, 1]*/
-    public float a; /*!< Alpha component [0, 1]*/
+    public float r; /**!< Red component [0, 1]*/
+    public float g; /**!< Green component [0, 1]*/
+    public float b; /**!< Blue component [0, 1]*/
+    public float a; /**!< Alpha component [0, 1]*/
 
     /** \brief Create a color
      * red, green, blue and alpha must to be between 0.0f and 1.0f

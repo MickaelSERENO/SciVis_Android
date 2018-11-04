@@ -2,12 +2,12 @@ package com.sereno.color;
 
 public class HSVColor
 {
-    public float h; /*!< The Hue between 0 and 360°*/
-    public float s; /*!< The Saturation*/
-    public float v; /*!< The value*/
-    public float a; /*!< The alpha*/
+    public float h; /**!< The Hue between 0 and 360°*/
+    public float s; /**!< The Saturation*/
+    public float v; /**!< The value*/
+    public float a; /**!< The alpha*/
 
-    /* \brief Constructor
+    /** \brief Constructor
      * \param _h the hue
      * \param _s the saturation
      * \param _v the value
@@ -20,14 +20,14 @@ public class HSVColor
         a = _a;
     }
 
-    /* \brief Constructor
+    /** \brief Constructor
      * \param c the color to convert */
     public HSVColor(Color c)
     {
         setFromRGB(c);
     }
 
-    /* \brief Set the HSV colorspace value from RGB colorspace value
+    /** \brief Set the HSV colorspace value from RGB colorspace value
      * \param color the color to convert*/
     public void setFromRGB(Color color)
     {
@@ -56,7 +56,7 @@ public class HSVColor
         v = max;
     }
 
-    /* \brief Convert from the HSV colorspace to the RGB colorspace
+    /** \brief Convert from the HSV colorspace to the RGB colorspace
      * \return the color in RGB space */
     public Color toRGB()
     {

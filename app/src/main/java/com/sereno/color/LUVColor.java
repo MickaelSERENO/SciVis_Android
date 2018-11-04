@@ -2,10 +2,10 @@ package com.sereno.color;
 
 public class LUVColor
 {
-    public float l; /*!< The L component*/
-    public float u; /*!< The U component*/
-    public float v; /*!< The V component*/
-    public float a; /*!< The alpha component*/
+    public float l; /**!< The L component*/
+    public float u; /**!< The U component*/
+    public float v; /**!< The V component*/
+    public float a; /**!< The alpha component*/
 
     /**
      * \brief  Constructor
@@ -114,7 +114,7 @@ public class LUVColor
         return toXYZ().toRGB();
     }
 
-    /* \brief Multiply this color by a factor t components per components
+    /** \brief Multiply this color by a factor t components per components
      * \param t the factor (between 0 and 1)
      * \return the color once multiplied
      */
@@ -123,7 +123,7 @@ public class LUVColor
         return new LUVColor(l*t, u*t, v*t, a*t);
     }
 
-    /*\brief Add components per components this color by another
+    /**\brief Add components per components this color by another
      * \param c the Color to add
      * \return the addition components per components*/
     public LUVColor addBy(LUVColor c)
@@ -131,7 +131,7 @@ public class LUVColor
         return new LUVColor(l+c.l, u+c.u, v+c.v, a+c.a);
     }
 
-    /*\brief Linear interpolation
+    /**\brief Linear interpolation
      * \param c1 left color (t=0)
      * \param c2 right color (t=1)
      * \param t the advancement (t between 0 and 1)

@@ -35,7 +35,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeDeleteMainArgs(m_ptr);
     }
 
-    /* \brief Function which has for aim to be overrided.
+    /** \brief Function which has for aim to be overrided.
      * \return the cpp argument to send to the main function*/
     @Override
     protected long getMainArgument()
@@ -55,7 +55,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeRemoveData(m_ptr, idx);
     }
 
-    /* \brief Function that set the current range color for the displayed dataset
+    /** \brief Function that set the current range color for the displayed dataset
      * \param min the minimum value
      * \param max the maximum value
      * \param mode the color mode to apply (see ColorMode)*/
@@ -64,25 +64,25 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeOnRangeColorChange(m_ptr, min, max, mode);
     }
 
-    /* \brief Create the argument to send to the main function
+    /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();
 
-    /* \brief Delete the arguments sent to the main function
+    /** \brief Delete the arguments sent to the main function
      * \param ptr the ptr to delete*/
     private native long nativeDeleteMainArgs(long ptr);
 
-    /* \brief Add the dataset into the cpp application
+    /** \brief Add the dataset into the cpp application
      * \param ptr the ptr associated with the main Argument
      * \param fd the FluidDataset to add*/
     private native void nativeAddData(long ptr, long fd);
 
-    /* \brief Remove the dataset index i into the cpp application
+    /** \brief Remove the dataset index i into the cpp application
      * \param ptr the ptr associated with the main argument
      * \param idx the FluidDataset index*/
     private native void nativeRemoveData(long ptr, int idx);
 
-    /* \brief Set the color of the current dataset
+    /** \brief Set the color of the current dataset
      * \param ptr the ptr associated with the main Argument
      * \param min the minimum range (0.0, 1.0)
      * \param max the maximum range (0.0, 1.0)

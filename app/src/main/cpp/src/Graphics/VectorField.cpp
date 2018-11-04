@@ -3,14 +3,13 @@
 namespace sereno
 {
     VectorField::VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent, 
-                             const FluidDataset* dataset, const MeshLoader* arrowLoader) : GameObject(parent, renderer, mtl)
+                             FluidDataset* dataset, const MeshLoader* arrowLoader) : GameObject(parent, renderer, mtl), m_model(dataset)
     {
         //Field variables
         const float*    vel      = dataset->getVelocity();
         const uint32_t* gridSize = dataset->getGridSize();
         float           minAmp   = dataset->getMinAmplitude();
         float           maxAmp   = dataset->getMaxAmplitude();
-
 
         //Determine the displayable size
         //The displayable size is useful since we cannot represent every value in the screen
@@ -119,7 +118,7 @@ namespace sereno
         }
         glBindVertexArrayOES(0);
 
-        setColorRange(dataset, 0.0f, 1.0f, RAINBOW);
+        setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
 
         free(fieldVertices);
         free(fieldNormals);
@@ -144,16 +143,16 @@ namespace sereno
         glBindVertexArrayOES(0);
     }
 
-    void VectorField::setColorRange(const FluidDataset* dataset, float min, float max, ColorMode colorMode)
+    void VectorField::setColorRange(float min, float max, ColorMode colorMode)
     {
         uint32_t     size   = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2]*m_nbVerticesPerArrow;
         float*       color  = (float*)malloc(4*sizeof(float)*size);
 
         //Store fluid dataset constants
-        const float*    vel      = dataset->getVelocity();
-        const uint32_t* gridSize = dataset->getGridSize();
-        float           minAmp   = dataset->getMinAmplitude();
-        float           maxAmp   = dataset->getMaxAmplitude();
+        const float*    vel      = m_model->getVelocity();
+        const uint32_t* gridSize = m_model->getGridSize();
+        float           minAmp   = m_model->getMinAmplitude();
+        float           maxAmp   = m_model->getMaxAmplitude();
 
         //Set the color for every vector
         for(uint32_t k = 0; k < m_displayableSize[2]; k++)

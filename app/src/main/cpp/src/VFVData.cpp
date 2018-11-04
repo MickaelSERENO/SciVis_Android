@@ -22,14 +22,17 @@ namespace sereno
     void VFVData::addData(FluidDataset* dataset)
     {
         VFVEvent* ev = new VFVEvent;
-        ev->type = VFV_ADD_DATA;
-        ev->fluidData.fluidID = m_datas.size();
         ev->fluidData.dataset = dataset;
 
-        if(m_currentData == NULL)
-            m_currentData = dataset;
+        pthread_mutex_lock(&m_mutex);
+        {
+            ev->type = VFV_ADD_DATA;
+            if(m_currentData == NULL)
+                m_currentData = dataset;
 
-        m_datas.push_back(dataset);
+            m_datas.push_back(dataset);
+        }
+        pthread_mutex_unlock(&m_mutex);
         addEvent(ev);
     }
 
@@ -50,6 +53,13 @@ namespace sereno
         ev->colorRange.max         = max;
         ev->colorRange.mode        = mode;
         ev->colorRange.currentData = m_currentData;
+
+        pthread_mutex_lock(&m_mutex);
+        {
+            if(m_currentData)
+                m_currentData->setColor(min, max, mode);
+        }
+        pthread_mutex_unlock(&m_mutex);
 
         addEvent(ev);
     }

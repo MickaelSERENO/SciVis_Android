@@ -16,7 +16,7 @@ import com.sereno.vfs.Listener.INoticeDialogListener;
 /* \brief Dialog fragment for the opening of a new dataset */
 public class OpenDatasetDialogFragment extends DialogFragment
 {
-    private INoticeDialogListener m_listener       = null; /*!< The Notice Dialog Listener object to call when the user has finished with the dialog*/
+    private INoticeDialogListener m_listener       = null; /**!< The Notice Dialog Listener object to call when the user has finished with the dialog*/
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
@@ -25,7 +25,7 @@ public class OpenDatasetDialogFragment extends DialogFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         //Create the AlertDialog object and return it
-        View view = getActivity().getLayoutInflater().inflate(R.layout.open_dataset_dialog, null);
+        View view = getActivity().getLayoutInflater().inflate(R.layout.open_connection_dialog, null);
         builder.setView(view);
         boolean viewInitialized = setupLayout(view);
 
@@ -49,7 +49,7 @@ public class OpenDatasetDialogFragment extends DialogFragment
                         m_listener.onDialogPositiveClick(OpenDatasetDialogFragment.this, getView());
                 }
             });
-            builder.setMessage(R.string.open_dataset);
+            builder.setMessage(R.string.openDataset);
         }
         else
             builder.setMessage(R.string.errorDatasets);
@@ -58,14 +58,14 @@ public class OpenDatasetDialogFragment extends DialogFragment
         return dialog;
     }
 
-    /* \brief set the INoticeDialogListener associated with this object
+    /** \brief set the INoticeDialogListener associated with this object
      * \param listener the new INoticeDialogListener*/
     public void setNoticeDialogListener(INoticeDialogListener listener)
     {
         m_listener = listener;
     }
 
-    /* \brief setup the layout of the dialog
+    /** \brief setup the layout of the dialog
      * \return true if the layout can be set up correctly. If no datasets, this function returns false*/
     private boolean setupLayout(View view)
     {

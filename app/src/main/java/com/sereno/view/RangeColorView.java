@@ -150,7 +150,7 @@ public class RangeColorView extends View
         }
     }
 
-    /* \brief Set the color mode of this View
+    /** \brief Set the color mode of this View
      * \param mode the color mode (See ColorMode class)*/
     public void setColorMode(int mode)
     {
@@ -160,7 +160,7 @@ public class RangeColorView extends View
         invalidate();
     }
 
-    /* \brief Set the range color. If min > max, we invert the value
+    /** \brief Set the range color. If min > max, we invert the value
      * \param min the minimum range
      * \param max the maximum range
      */
@@ -172,14 +172,14 @@ public class RangeColorView extends View
             l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
     }
 
-    /* \brief Add an object to the list of listeners to call when the range color has changed
+    /** \brief Add an object to the list of listeners to call when the range color has changed
      * \param l the new listener to add*/
     public void addOnRangeChangeListener(OnRangeChangeListener l)
     {
         m_onRangeChangeListeners.add(l);
     }
 
-    /* \brief Remove an existing object to the list of listeners to call when the range color has changed
+    /** \brief Remove an existing object to the list of listeners to call when the range color has changed
      * \param l the old listener to remove*/
     public void removeOnRangeChangeListener(OnRangeChangeListener l)
     {
