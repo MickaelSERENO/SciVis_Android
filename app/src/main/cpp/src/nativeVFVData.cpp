@@ -1,4 +1,5 @@
 #include "nativeVFVData.h"
+#include <memory>
 
 using namespace sereno;
 
@@ -20,10 +21,10 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeSetCurrentData(J
     data->setCurrentData(dataIdx);
 }
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddData(JNIEnv* env, jobject instance, jlong ptr, jlong jData)
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddBinaryDataset(JNIEnv* env, jobject instance, jlong ptr, jlong jData)
 {
     VFVData* data = (VFVData*)ptr;
-    data->addData((FluidDataset*)jData);
+    data->addBinaryData(*((std::shared_ptr<BinaryDataset>*)jData));
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx)

@@ -6,6 +6,8 @@
 #include "Graphics/VectorField.h"
 #include "Graphics/Materials/ColorMaterial.h"
 
+#include <memory>
+
 namespace sereno
 {
     class MainVFV : public IVFVCallback

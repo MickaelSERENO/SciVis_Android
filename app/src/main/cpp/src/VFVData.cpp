@@ -19,14 +19,13 @@ namespace sereno
         m_clbk = clbk;
     }
 
-    void VFVData::addData(FluidDataset* dataset)
+    void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset)
     {
-        VFVEvent* ev = new VFVEvent;
-        ev->fluidData.dataset = dataset;
+        VFVEvent* ev = new VFVEvent(VFV_ADD_BINARY_DATA);
+        ev->binaryData.dataset = dataset;
 
         pthread_mutex_lock(&m_mutex);
         {
-            ev->type = VFV_ADD_DATA;
             if(m_currentData == NULL)
                 m_currentData = dataset;
 
@@ -47,8 +46,7 @@ namespace sereno
 
     void VFVData::onRangeColorChange(float min, float max, ColorMode mode)
     {
-        VFVEvent* ev               = new VFVEvent;
-        ev->type                   = VFV_COLOR_RANGE_CHANGED;
+        VFVEvent* ev               = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
         ev->colorRange.min         = min;
         ev->colorRange.max         = max;
         ev->colorRange.mode        = mode;
@@ -82,6 +80,7 @@ namespace sereno
 
     void VFVData::addEvent(VFVEvent* ev)
     {
+        LOG_INFO("New event added\n");
         pthread_mutex_lock(&m_mutex);
             m_events.push_back(ev);
         pthread_mutex_unlock(&m_mutex);

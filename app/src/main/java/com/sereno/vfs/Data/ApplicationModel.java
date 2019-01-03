@@ -10,14 +10,14 @@ public class ApplicationModel
     {
         /** \brief Function called when a dataset has been added (the call if after the addition)
          * \param d the dataset to add*/
-        void onAddDataset(ApplicationModel model, FluidDataset d);
+        void onAddBinaryDataset(ApplicationModel model, BinaryDataset d);
 
         /** \brief Function called when a dataset is about to be deleted. The call is done before the true deletion
          * \param idx the dataset index to remove*/
         void onDeleteDataset(ApplicationModel model, int idx);
     }
 
-    private ArrayList<FluidDataset>  m_datasets;  /**!< The open datasets */
+    private ArrayList<Dataset>       m_datasets;  /**!< The open datasets */
     private ArrayList<IDataCallback> m_listeners; /**!< The known listeners to call when the model changed*/
 
     /** \brief Basic constructor, initialize the data at its default state */
@@ -34,23 +34,22 @@ public class ApplicationModel
         m_listeners.add(clbk);
     }
 
-    /** \brief Add a FluidDataset to our model
+    /** \brief Add a BinaryDataset to our model
      *  \param dataset the dataset to add*/
-    public void addFluidDataset(FluidDataset dataset)
+    public void addBinaryDataset(BinaryDataset dataset)
     {
         m_datasets.add(dataset);
         for(IDataCallback clbk : m_listeners)
-            clbk.onAddDataset(this, dataset);
+            clbk.onAddBinaryDataset(this, dataset);
     }
 
-    public void deleteFluidDataset(int idx)
+    public void deleteBinaryDataset(int idx)
     {
         for(IDataCallback clbk : m_listeners)
             clbk.onDeleteDataset(this, idx);
-        //TODO
     }
 
     /** \brief Get the fluid datasets available
      * \return a List of the datasets*/
-    public ArrayList<FluidDataset> getFluidDatasets() {return m_datasets;}
+    public ArrayList<Dataset> getDatasets() {return m_datasets;}
 }

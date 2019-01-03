@@ -69,12 +69,4 @@ public class DataFile
         else
             return "";
     }
-
-    /** \brief Parse the data and save it to a Dataset object
-     * \return the parsed dataset*/
-    public Dataset parseData()
-    {
-        //TODO parse the data
-        return null;
-    }
 }

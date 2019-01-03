@@ -20,7 +20,8 @@ import android.widget.Spinner;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfs.Data.ApplicationModel;
 import com.sereno.vfs.Data.DataFile;
-import com.sereno.vfs.Data.FluidDataset;
+import com.sereno.vfs.Data.BinaryDataset;
+import com.sereno.vfs.Data.Dataset;
 import com.sereno.vfs.Listener.INoticeDialogListener;
 import com.sereno.view.RangeColorView;
 
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity
      * \param model the model which fired this call
      * \param d the new dataset added*/
     @Override
-    public void onAddDataset(ApplicationModel model, FluidDataset d)
+    public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
     }
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDeleteDataset(ApplicationModel model, int idx)
     {
-        if(m_model.getFluidDatasets().size() == 1)
+        if(m_model.getDatasets().size() == 1)
             m_deleteDataBtn.setVisibility(View.INVISIBLE);
     }
 
@@ -197,9 +198,15 @@ public class MainActivity extends AppCompatActivity
             {
                 Spinner dataSpinner = view.findViewById(R.id.openDatasetSpinner);
                 DataFile df         = (DataFile)dataSpinner.getSelectedItem();
-                FluidDataset fd     = new FluidDataset(df.getFile());
 
-                m_model.addFluidDataset(fd);
+                String fileName = df.getFile().getName();
+
+                //Binary dataset
+                if(fileName.endsWith(".data"))
+                {
+                    BinaryDataset fd = new BinaryDataset(df.getFile());
+                    m_model.addBinaryDataset(fd);
+                }
             }
 
             @Override

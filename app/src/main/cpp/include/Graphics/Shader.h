@@ -44,23 +44,28 @@ namespace sereno
             int getFragID() const;
 
             /** \brief create a shader from a vertex and a fragment file.
-             * \param vertexFile the vertex file.
-             * \param fragmentFile the fragment file.
+             * \param vertFile the vertex file.
+             * \param fragFile the fragment file.
+             * \param geomFile the geometry file. Can be NULL, in this case we do not compile a geometry shader
              *
              * \return the Shader constructed or NULL if error*/
-            static Shader* loadFromFiles(FILE* vertexFile, FILE* fragFile);
+            static Shader* loadFromFiles(FILE* vertexFile, FILE* fragFile, FILE* geomFile = NULL);
 
             /** \brief create a shader from a vertex and a fragment string.
-             * \param vertexString the vertex string.
-             * \param fragmentString the fragment string.
+             * \param vertString the vertex string.
+             * \param fragString the fragment string.
+             * \param geomString the geometry string. Can be empty (in this case we do not compile a geometry shader)
              *
              * \return the Shader constructed or NULL if error
              * */
-            static Shader* loadFromStrings(const std::string& vertexString, const std::string& fragString);
+            static Shader* loadFromStrings(const std::string& vertexString, const std::string& fragString, const std::string& geomString="");
         private:
             GLuint m_programID; /*!< The shader   program ID*/
             GLuint m_vertexID;  /*!< The vertex   shader  ID*/
             GLuint m_fragID;    /*!< The fragment shader  ID*/
+            GLuint m_geomID;    /*!< The geometry shader  ID*/
+
+            bool m_hasGeom = false; /*!< Have we used a geometry shader ?*/
 
             void bindAttributes();
 

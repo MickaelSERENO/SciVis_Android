@@ -5,7 +5,8 @@
 #include <vector>
 #include <pthread.h>
 #include <deque>
-#include "FluidDataset.h"
+#include <memory>
+#include "Datasets/BinaryDataset.h"
 #include "ColorMode.h"
 
 namespace sereno
@@ -13,7 +14,7 @@ namespace sereno
     /* \brief Enumeration representing the possible events from the Model modification */
     enum VFVEventType
     {
-        VFV_ADD_DATA,            /*!< Data added*/
+        VFV_ADD_BINARY_DATA,     /*!< Data added*/
         VFV_DEL_DATA,            /*!< Data removed*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
@@ -22,25 +23,54 @@ namespace sereno
     /* \brief Color range information */
     struct ColorRangeEvent
     {
-        float min;                 /*!< the minimum range (ratio : 0.0, 1.0)*/
-        float max;                 /*!< the maximum range (ratio : 0.0, 1.0)*/
-        ColorMode mode;            /*!< The color mode to apply*/
-        FluidDataset* currentData; /*!< The current dataset*/
+        float min;                            /*!< the minimum range (ratio : 0.0, 1.0)*/
+        float max;                            /*!< the maximum range (ratio : 0.0, 1.0)*/
+        ColorMode mode;                       /*!< The color mode to apply*/
+        std::shared_ptr<Dataset> currentData; /*!< The current dataset*/
+    };
+
+    /* \brief binary data event information (add) */
+    struct BinaryDataEvent
+    {
+        std::shared_ptr<BinaryDataset> dataset; /*!< The dataset associated*/
+    };
+
+    /** \brief  general dataset event information (delete, set current data) */
+    struct DatasetEvent
+    {
+        std::shared_ptr<Dataset> dataset; /*!< The dataset associated */
     };
 
     /* \brief The Event that can be sent from JNI */
     struct VFVEvent
     {
-        VFVEventType type; /*!< The type of the event*/
         union
         {
-            /* \brief fluid data event information (add, del, set current data) */
-            struct
-            {
-                FluidDataset* dataset; /*!< The dataset associated*/
-            }fluidData;
+            DatasetEvent    dataset;    /*!< General dataset event*/
+            BinaryDataEvent binaryData; /*!< Binary  dataset event*/
             ColorRangeEvent colorRange; /*!< Color range event information */
         };
+
+        VFVEvent(VFVEventType t) : type(t)
+        {
+            if(type == VFV_ADD_BINARY_DATA)
+                new(&binaryData) BinaryDataEvent;
+            else if(type == VFV_COLOR_RANGE_CHANGED)
+                new(&colorRange) ColorRangeEvent;
+        }
+
+        ~VFVEvent()
+        {
+            if(type == VFV_ADD_BINARY_DATA)
+                binaryData.~BinaryDataEvent();
+            else if(type == VFV_COLOR_RANGE_CHANGED)
+                colorRange.~ColorRangeEvent();
+        }
+
+        VFVEventType getType() {return type;}
+
+        private:
+            VFVEventType type; /*!< The type of the event*/
     };
 
 
@@ -81,7 +111,7 @@ namespace sereno
 
             /* \brief Add a new Dataset in this application
              * \param dataset the dataset to add*/
-            void addData(FluidDataset* dataset);
+            void addBinaryData(std::shared_ptr<BinaryDataset> dataset);
 
             /* \brief Remove the dataset "dataID"
              * \param dataID the id of the dataset to remove*/
@@ -101,11 +131,11 @@ namespace sereno
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
-            std::vector<FluidDataset*> m_datas;              /*!< The data paths */
-            FluidDataset*              m_currentData = NULL; /*!< The current data*/
-            IVFVCallback*              m_clbk        = NULL; /*!< The callback interface */
-            std::deque<VFVEvent*>      m_events;             /*!< The events from Java*/
-            pthread_mutex_t            m_mutex;              /*!< The mutex for handling communication between Java and Cpp*/
+            std::vector<std::shared_ptr<Dataset>> m_datas;              /*!< The data paths */
+            std::shared_ptr<Dataset>              m_currentData = NULL; /*!< The current data*/
+            IVFVCallback*                         m_clbk        = NULL; /*!< The callback interface */
+            std::deque<VFVEvent*>                 m_events;             /*!< The events from Java*/
+            pthread_mutex_t                       m_mutex;              /*!< The mutex for handling communication between Java and Cpp*/
     };
 }
 

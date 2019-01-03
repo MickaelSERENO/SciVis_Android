@@ -10,14 +10,18 @@ namespace sereno
         glDeleteProgram(m_programID);
         glDeleteShader(m_vertexID);
         glDeleteShader(m_fragID);
+        if(m_hasGeom)
+            glDeleteShader(m_geomID);
     }
 
-    Shader* Shader::loadFromFiles(FILE* vertexFile, FILE* fragFile)
+    Shader* Shader::loadFromFiles(FILE* vertexFile, FILE* fragFile, FILE* geomFile)
     {
         uint32_t vertexFileSize = 0;
         uint32_t fragFileSize   = 0;
+        uint32_t geomFileSize   = 0;
         char* vertexCodeC;
         char* fragCodeC;
+        char* geomCodeC = NULL;
 
         /* Determine the vertex and fragment shader sizes */
         fseek(vertexFile, 0, SEEK_END);
@@ -28,6 +32,13 @@ namespace sereno
         fragFileSize = ftell(fragFile);
         fseek(fragFile, 0, SEEK_SET);
 
+        if(geomFile)
+        {
+            fseek(geomFile, 0, SEEK_END);
+            geomFileSize = ftell(geomFile);
+            fseek(geomFile, 0, SEEK_SET);
+        }
+
         vertexCodeC = (char*)malloc(vertexFileSize+1);
         fragCodeC   = (char*)malloc(fragFileSize+1);
 
@@ -37,21 +48,41 @@ namespace sereno
         fread(fragCodeC, 1, fragFileSize, fragFile);
         fragCodeC[fragFileSize] = '\0';
 
+        if(geomFile)
+        {
+            geomCodeC = (char*)malloc(geomFileSize+1);
+            fread(geomCodeC, 1, geomFileSize, geomFile);
+            geomCodeC[geomFileSize] = '\0';
+        }
+
         /* Return the shader and free everything*/
-        Shader* s = loadFromStrings(std::string(vertexCodeC), std::string(fragCodeC));
+        Shader* s = loadFromStrings(std::string(vertexCodeC), std::string(fragCodeC), 
+                                    (geomCodeC ? std::string(geomCodeC) : ""));
 
         free(vertexCodeC);
         free(fragCodeC);
+        if(geomCodeC)
+            free(geomCodeC);
 
         return s;
     }
 
-    Shader* Shader::loadFromStrings(const std::string& vertexString, const std::string& fragString)
+    Shader* Shader::loadFromStrings(const std::string& vertexString, const std::string& fragString, const std::string& geomString)
     {
         Shader* shader = new Shader();
         shader->m_programID = glCreateProgram();
         shader->m_vertexID = loadShader(vertexString, GL_VERTEX_SHADER);
         shader->m_fragID = loadShader(fragString, GL_FRAGMENT_SHADER);
+
+#if 0
+        //Load geometry shader
+        if(geomString.size() != 0)
+        {
+            shader->m_geomID = loadShader(geomString, GL_GEOMETRY_SHADER);
+            glAttachShader(shader->m_programID, shader->m_geomID);
+            shader->m_hasGeom = true;
+        }
+#endif
 
         glAttachShader(shader->m_programID, shader->m_vertexID);
         glAttachShader(shader->m_programID, shader->m_fragID);

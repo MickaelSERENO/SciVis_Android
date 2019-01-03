@@ -25,7 +25,7 @@ public class OpenDatasetDialogFragment extends DialogFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         //Create the AlertDialog object and return it
-        View view = getActivity().getLayoutInflater().inflate(R.layout.open_connection_dialog, null);
+        View view = getActivity().getLayoutInflater().inflate(R.layout.open_dataset_dialog, null);
         builder.setView(view);
         boolean viewInitialized = setupLayout(view);
 

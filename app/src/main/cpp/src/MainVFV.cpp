@@ -29,7 +29,7 @@ namespace sereno
         glEnable(GL_CULL_FACE);
 
         //List of dataset modified
-        std::vector<FluidDataset*> modelChanged;
+        std::vector<std::shared_ptr<Dataset>> modelChanged;
 
         //Should we update the color ?
         //We do not keep WHICH dataset has seen its color changed, in most condition it is the CURRENT DATA which has seen its color changed
@@ -69,13 +69,13 @@ namespace sereno
             //Handle events sent from JNI for our application (application wise)
             while(VFVEvent* event = m_mainData->pollEvent())
             {
-                switch(event->type)
+                switch(event->getType())
                 {
-                    case VFV_ADD_DATA:
+                    case VFV_ADD_BINARY_DATA:
                         if(m_arrowMesh)
                         {
                             m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_arrowMtl, NULL,
-                                                                     event->fluidData.dataset, m_arrowMesh));
+                                                                     event->binaryData.dataset, m_arrowMesh));
                             if(m_currentVF == NULL)
                                 m_currentVF      = m_vectorFields.back();
                             break;
@@ -83,11 +83,11 @@ namespace sereno
 
                     case VFV_DEL_DATA:
                         {
-                            if(m_currentVF->getModel() == event->fluidData.dataset)
+                            if(m_currentVF->getModel() == event->dataset.dataset)
                                 m_currentVF = NULL;
 
                             for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
-                                if((*it)->getModel() == event->fluidData.dataset)
+                                if((*it)->getModel() == event->dataset.dataset)
                                 {
                                     delete (*it);
                                     m_vectorFields.erase(it);
@@ -100,7 +100,7 @@ namespace sereno
                         updateColor = true;
                         break;
                     default:
-                        LOG_ERROR("type %d still has to be done\n", event->type);
+                        LOG_ERROR("type %d still has to be done\n", event->getType());
                         break;
                 }
                 delete event;
@@ -109,13 +109,13 @@ namespace sereno
             if(m_currentVF != NULL)
             {
                 //Apply the model changement (rotation + color)
-                for(FluidDataset* fd : modelChanged)
+                for(std::shared_ptr<Dataset>& dataset : modelChanged)
                 {
-                    if(m_currentVF->getModel() == fd)
+                    if(m_currentVF->getModel() == dataset)
                     {
                         if(updateColor)
-                            m_currentVF->setColorRange(fd->getMinClamping(), fd->getMaxClamping(), fd->getColorMode());
-                        m_currentVF->setRotate(fd->getGlobalRotate());
+                            m_currentVF->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
+                        m_currentVF->setRotate(dataset->getGlobalRotate());
                         break;
                     }
                 }

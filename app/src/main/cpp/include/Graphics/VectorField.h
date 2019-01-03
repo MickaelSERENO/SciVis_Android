@@ -5,8 +5,9 @@
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <memory>
 #include "Graphics/GameObject.h"
-#include "FluidDataset.h"
+#include "Datasets/BinaryDataset.h"
 #include "MeshLoader.h"
 #include "ColorMode.h"
 #include "Graphics/Color.h"
@@ -25,14 +26,14 @@ namespace sereno
              * \param dataset the dataset to load in the graphic card
              * \param arrowLoader the arrow mesh */
             VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent,
-                        FluidDataset* dataset, const MeshLoader* arrowLoader);
+                        std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader);
 
             /* \brief Destructor*/
             ~VectorField();
 
             /* \brief Get the model bound to this vector field
              * \return the model of this VectorField*/
-            FluidDataset* getModel() const {return m_model;}
+            std::shared_ptr<BinaryDataset> getModel() const {return m_model;}
 
             /* \brief Draw on screen the vector field.
              * \param cameraMat the camera matrix */
@@ -43,13 +44,14 @@ namespace sereno
              * \param max the maximum value (ratio : 0.0, 1.0)*/
             void setColorRange(float min, float max, ColorMode colorMode);
         private:
-            FluidDataset* m_model = NULL; /*!< The fluid dataset model*/
-            GLuint        m_vaoID;              /*!< Vertex Array Object*/
-            GLuint        m_vboID;              /*!< Vertex Buffer Object*/
-            uint32_t      m_displayableSize[3]; /*!< The displayable size (how many vectors are being displayed ?)*/
-            uint32_t      m_dataStep;           /*!< The step at reading the data*/
-            uint32_t      m_nbPoints;           /*!< The number of points to display on screen*/
-            uint32_t      m_nbVerticesPerArrow; /*!< The number of vertices per arrow*/
+            std::shared_ptr<BinaryDataset> m_model = NULL; /*!< The fluid dataset model*/
+
+            GLuint        m_vaoID;                         /*!< Vertex Array Object*/
+            GLuint        m_vboID;                         /*!< Vertex Buffer Object*/
+            uint32_t      m_displayableSize[3];            /*!< The displayable size (how many vectors are being displayed ?)*/
+            uint32_t      m_dataStep;                      /*!< The step at reading the data*/
+            uint32_t      m_nbPoints;                      /*!< The number of points to display on screen*/
+            uint32_t      m_nbVerticesPerArrow;            /*!< The number of vertices per arrow*/
     };
 }
 

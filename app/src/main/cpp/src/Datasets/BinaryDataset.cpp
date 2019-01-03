@@ -1,8 +1,8 @@
-#include "FluidDataset.h"
+#include "Datasets/BinaryDataset.h"
 
 namespace sereno
 {
-    FluidDataset::FluidDataset(FILE* file) : m_amplitude{std::numeric_limits<float>::max(), 0.0}
+    BinaryDataset::BinaryDataset(FILE* file) : Dataset()
     {
 #define BUFFER_SIZE 3*sizeof(float)*270
         uint8_t buffer[BUFFER_SIZE];
@@ -57,12 +57,12 @@ namespace sereno
 #undef BUFFER_SIZE
     }
 
-    FluidDataset::FluidDataset(const FluidDataset& copy)
+    BinaryDataset::BinaryDataset(const BinaryDataset& copy) : Dataset(copy)
     {
         *this = copy;
     }
 
-    FluidDataset::FluidDataset(FluidDataset&& mvt)
+    BinaryDataset::BinaryDataset(BinaryDataset&& mvt) : Dataset(mvt)
     {
         for(uint8_t i = 0; i < 3; i++)
             m_size[i] = mvt.m_size[i];
@@ -72,7 +72,7 @@ namespace sereno
         mvt.m_velocity = NULL;
     }
 
-    FluidDataset& FluidDataset::operator=(const FluidDataset& copy)
+    BinaryDataset& BinaryDataset::operator=(const BinaryDataset& copy)
     {
         if(this == &copy)
             return *this;
@@ -86,20 +86,20 @@ namespace sereno
         return *this;
     }
 
-    FluidDataset::~FluidDataset()
+    BinaryDataset::~BinaryDataset()
     {
         if(m_velocity)
             free(m_velocity);
     }
 
-    FluidDataset* FluidDataset::readFromFilePath(const std::string& path)
+    BinaryDataset* BinaryDataset::readFromFilePath(const std::string& path)
     {
         //Open and check the file
         FILE* file = fopen(path.c_str(), "r");
         if(file == NULL)
             return NULL;
 
-        FluidDataset* data = new FluidDataset(file);
+        BinaryDataset* data = new BinaryDataset(file);
 
         //Check if the data is valid or not
         if(!data->isValid())
@@ -112,7 +112,7 @@ namespace sereno
         return data;
     }
 
-    Quaternionf FluidDataset::getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z) const
+    Quaternionf BinaryDataset::getRotationQuaternion(uint32_t x, uint32_t y, uint32_t z) const
     {
         uint32_t ind = x + m_size[0]*y + m_size[0]*m_size[1]*z;
         float vel[3] = {m_velocity[3*ind], m_velocity[3*ind+1], m_velocity[3*ind+2]};
@@ -122,10 +122,4 @@ namespace sereno
         return Quaternionf(pitch, roll, 0);
     }
 
-    void FluidDataset::setColor(float min, float max, ColorMode mode)
-    {
-        m_colorMode = mode;
-        m_minClamp  = min;
-        m_maxClamp  = max;
-    }
 }

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 
 import com.sereno.vfs.Data.ApplicationModel;
-import com.sereno.vfs.Data.FluidDataset;
+import com.sereno.vfs.Data.BinaryDataset;
 
 public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback
 {
@@ -44,9 +44,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddDataset(ApplicationModel model, FluidDataset fd)
+    public void onAddBinaryDataset(ApplicationModel model, BinaryDataset fd)
     {
-        nativeAddData(m_ptr, fd.getPtr());
+        nativeAddBinaryDataset(m_ptr, fd.getPtr());
     }
 
     @Override
@@ -74,12 +74,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     /** \brief Add the dataset into the cpp application
      * \param ptr the ptr associated with the main Argument
-     * \param fd the FluidDataset to add*/
-    private native void nativeAddData(long ptr, long fd);
+     * \param fd the BinaryDataset to add*/
+    private native void nativeAddBinaryDataset(long ptr, long fd);
 
     /** \brief Remove the dataset index i into the cpp application
      * \param ptr the ptr associated with the main argument
-     * \param idx the FluidDataset index*/
+     * \param idx the BinaryDataset index*/
     private native void nativeRemoveData(long ptr, int idx);
 
     /** \brief Set the color of the current dataset

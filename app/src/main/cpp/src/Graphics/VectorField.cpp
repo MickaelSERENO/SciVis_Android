@@ -3,7 +3,7 @@
 namespace sereno
 {
     VectorField::VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent, 
-                             FluidDataset* dataset, const MeshLoader* arrowLoader) : GameObject(parent, renderer, mtl), m_model(dataset)
+                             std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader) : GameObject(parent, renderer, mtl), m_model(dataset)
     {
         //Field variables
         const float*    vel      = dataset->getVelocity();
