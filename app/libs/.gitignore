@@ -1,2 +1,3 @@
 gdbserver,
 gdb.setup
+libserenoVTKParser.so

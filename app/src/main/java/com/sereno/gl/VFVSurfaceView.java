@@ -1,6 +1,7 @@
 package com.sereno.gl;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
 import com.sereno.vfs.Data.ApplicationModel;
@@ -64,6 +65,13 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeOnRangeColorChange(m_ptr, min, max, mode);
     }
 
+    /** \brief get a snapshot from the main rendering thread.
+     * \return the bitmap corresponding to the onscreen rendering*/
+    public Bitmap fillSnapshot()
+    {
+        return nativeGetSnapshot(m_ptr);
+    }
+
     /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();
@@ -89,4 +97,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * \param mode the color mode to apply (See ColorMode)
      */
     private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode);
+
+    /** \brief get the bitmap snapshot from the main rendering frame
+     * \param ptr the ptr associated with the main argument
+     * \param Bitmap the bitmap generated*/
+    private native Bitmap nativeGetSnapshot(long ptr);
 }

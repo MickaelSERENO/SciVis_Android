@@ -4,7 +4,8 @@ namespace sereno
 {
     VFVData::VFVData()
     {
-        m_mutex = PTHREAD_MUTEX_INITIALIZER;
+        m_mutex         = PTHREAD_MUTEX_INITIALIZER;
+        m_snapshotMutex = PTHREAD_MUTEX_INITIALIZER;
     }
 
     VFVData::~VFVData()

@@ -51,9 +51,10 @@ if(${ANDROID_ABI} STREQUAL "arm" OR ${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${A
 endif()
 
 #Check module in PKG
-find_package(PkgConfig    REQUIRED)
-PKG_CHECK_MODULES(LIB3DS  REQUIRED lib3ds)
-PKG_CHECK_MODULES(GLM     REQUIRED glm)
+find_package(PkgConfig              REQUIRED)
+PKG_CHECK_MODULES(LIB3DS            REQUIRED lib3ds)
+PKG_CHECK_MODULES(GLM               REQUIRED glm)
+PKG_CHECK_MODULES(SERENO_VTK_PARSER REQUIRED serenoVTKParser)
 
 #Find android internal libraries
 find_library(log-lib     log)
@@ -61,12 +62,23 @@ find_library(android-lib android)
 find_library(egl-lib     EGL)
 find_library(gles-lib    GLESv2)
 
+#######################
 #Add external libraries
+#######################
+
+#3ds lib
 findSO(3DS_SO LIB3DS)
 add_library(3ds-lib SHARED IMPORTED)
 set_target_properties(3ds-lib PROPERTIES
         IMPORTED_LOCATION "${3DS_SO}")
 
+#sereno vtk parser
+findSO(SERENO_VTK_PARSER_SO SERENO_VTK_PARSER)
+MESSAGE(STATUS ${SERENO_VTK_PARSER_SO})
+add_library(sereno_vtk_parser-lib SHARED IMPORTED)
+set_target_properties(sereno_vtk_parser-lib PROPERTIES
+        IMPORTED_LOCATION "${SERENO_VTK_PARSER_SO}")
+
 add_library(native-lib SHARED ${SOURCES} ${HEADERS})
-target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS})
-target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})
+target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS})
+target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})

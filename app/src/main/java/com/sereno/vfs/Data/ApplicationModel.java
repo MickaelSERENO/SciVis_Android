@@ -1,5 +1,7 @@
 package com.sereno.vfs.Data;
 
+import android.graphics.Bitmap;
+
 import java.util.ArrayList;
 
 /** \brief The Model component on the MVC architecture */

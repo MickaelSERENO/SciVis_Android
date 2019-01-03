@@ -52,6 +52,13 @@ extern "C"
      * \param max the maximum range
      * \param mode the color mode to apply*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode);
+
+    /* \brief Function called from Java in order to get a snapshot from the main rendering frame
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \return the android.graphics.Bitmap snapshot object */
+    JNIEXPORT jobject JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeGetSnapshot(JNIEnv* env, jobject instance, jlong ptr);
 }
 
 #endif

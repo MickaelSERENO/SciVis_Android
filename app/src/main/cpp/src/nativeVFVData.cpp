@@ -38,3 +38,32 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChan
     VFVData* data = (VFVData*)ptr;
     data->onRangeColorChange(min, max, (ColorMode)(mode));
 }
+
+JNIEXPORT jobject JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeGetSnapshot(JNIEnv* env, jobject instance, jlong ptr)
+{
+    VFVData* data = (VFVData*)ptr;
+
+    //Get JNI data
+    jclass    bmpCls        = env->FindClass("android/graphics/Bitmap");
+    jclass    bmpConfCls    = env->FindClass("androd/graphics/Bitmap$Config");
+    jfieldID  bmpConfARGBID = env->GetStaticFieldID(bmpConfCls, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
+    jobject   bmpConfARGB   = env->GetStaticObjectField(bmpConfCls, bmpConfARGBID);
+    jmethodID createBmpID   = env->GetStaticMethodID(bmpCls, "createBitmap", "([IIILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+
+    //Create the bitmap
+    data->lockSnapshot();
+        //If no data, no object shall be returned
+        if(data->getSnapshotPixels() == NULL)
+            return NULL;
+
+        //Create the java array
+        uint32_t  size   = data->getSnapshotWidth()*data->getSnapshotHeight();
+        jintArray pixels = env->NewIntArray(size);
+        env->SetIntArrayRegion(pixels, 0, size, (const jint*)data->getSnapshotPixels());
+        
+        //Create and fill the bitmap
+        jobject   bmp    = env->CallStaticObjectMethod(bmpCls, createBmpID, pixels, data->getSnapshotWidth(), data->getSnapshotHeight(), bmpConfARGB);
+    data->unlockSnapshot();
+
+    return bmp;
+}
