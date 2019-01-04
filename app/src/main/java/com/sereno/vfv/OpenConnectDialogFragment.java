@@ -1,4 +1,4 @@
-package com.sereno.vfs;
+package com.sereno.vfv;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,7 +7,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 
-import com.sereno.vfs.Listener.INoticeDialogListener;
+import com.sereno.vfv.Listener.INoticeDialogListener;
 
 /* \brief Dialog fragment for setting the network connection */
 public class OpenConnectDialogFragment extends DialogFragment
@@ -48,7 +48,7 @@ public class OpenConnectDialogFragment extends DialogFragment
     }
 
     /** \brief set the INoticeDialogListener associated with this object
-     * \param listener the new INoticeDialogListener*/
+     * @param listener the new INoticeDialogListener*/
     public void setNoticeDialogListener(INoticeDialogListener listener)
     {
         m_listener = listener;

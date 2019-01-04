@@ -3,7 +3,9 @@
 
 #include <strings.h>
 #include <android/log.h>
+#include <jni.h>
 #include <cstring>
+#include <vector>
 
 #ifndef __FILENAME__
 #define __FILENAME__ (strrchr("/" __FILE__, '/') + 1)
@@ -47,6 +49,23 @@
 #define GET_JNI_FIELD(obj, name, type, signature, value) \
 	jfieldID name##_fid = jenv->GetFieldID(cls, #name, signature); \
 	value = env->Get##type##Field(obj, name##_fid);
+
+/**
+ * \brief  Convert a jlongArray to a std::vector element
+ * @tparam T the element in the jlongArray
+ * \param env the jni environment
+ * \param arr the array to read
+ * \return   the std::vector<T*> object*/
+template <typename T>
+inline std::vector<T*> jlongArrayToVector(JNIEnv* env, jlongArray arr)
+{
+    T** values = (T**)env->GetLongArrayElements(arr, NULL);
+    auto nbElem = env->GetArrayLength(arr);
+    std::vector<T*> res(nbElem);
+    for(int i = 0; i < nbElem; i++)
+        res[i] = values[i];
+    return res;
+}
 
 /* \brief Convert a uint8 ptr (4 value) to a uint32_t
  * \param data the uint8_t ptr

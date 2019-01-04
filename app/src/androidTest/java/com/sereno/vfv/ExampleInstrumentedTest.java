@@ -1,4 +1,4 @@
-package com.sereno.vfs;
+package com.sereno.vfv;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

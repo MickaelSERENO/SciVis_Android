@@ -1,4 +1,4 @@
-package com.sereno.vfs;
+package com.sereno.vfv;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,8 +9,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
-import com.sereno.vfs.Data.DataFile;
-import com.sereno.vfs.Listener.INoticeDialogListener;
+import com.sereno.vfv.Data.DataFile;
+import com.sereno.vfv.Listener.INoticeDialogListener;
 
 
 /* \brief Dialog fragment for the opening of a new dataset */
@@ -59,7 +59,7 @@ public class OpenDatasetDialogFragment extends DialogFragment
     }
 
     /** \brief set the INoticeDialogListener associated with this object
-     * \param listener the new INoticeDialogListener*/
+     * @param listener the new INoticeDialogListener*/
     public void setNoticeDialogListener(INoticeDialogListener listener)
     {
         m_listener = listener;

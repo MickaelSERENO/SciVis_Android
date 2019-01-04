@@ -1,4 +1,4 @@
-#include "Graphics/VectorField.h"
+#include "Graphics/SciVis/VectorField.h"
 
 namespace sereno
 {
@@ -8,8 +8,8 @@ namespace sereno
         //Field variables
         const float*    vel      = dataset->getVelocity();
         const uint32_t* gridSize = dataset->getGridSize();
-        float           minAmp   = dataset->getMinAmplitude();
-        float           maxAmp   = dataset->getMaxAmplitude();
+        float           minAmp   = dataset->getSubDataset(0)->getMinAmplitude();
+        float           maxAmp   = dataset->getSubDataset(0)->getMaxAmplitude();
 
         //Determine the displayable size
         //The displayable size is useful since we cannot represent every value in the screen
@@ -118,7 +118,7 @@ namespace sereno
         }
         glBindVertexArrayOES(0);
 
-        setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
+        setColorRange(dataset->getSubDataset(0)->getMinClamping(), dataset->getSubDataset(0)->getMaxClamping(), dataset->getSubDataset(0)->getColorMode());
 
         free(fieldVertices);
         free(fieldNormals);
@@ -151,8 +151,8 @@ namespace sereno
         //Store fluid dataset constants
         const float*    vel      = m_model->getVelocity();
         const uint32_t* gridSize = m_model->getGridSize();
-        float           minAmp   = m_model->getMinAmplitude();
-        float           maxAmp   = m_model->getMaxAmplitude();
+        float           minAmp   = m_model->getSubDataset(0)->getMinAmplitude();
+        float           maxAmp   = m_model->getSubDataset(0)->getMaxAmplitude();
 
         //Set the color for every vector
         for(uint32_t k = 0; k < m_displayableSize[2]; k++)

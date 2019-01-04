@@ -1,66 +1,56 @@
 #ifndef  DATASET_INC
 #define  DATASET_INC
 
-#include <limits>
-#include <stdint.h>
-#include "Quaternion.h"
-#include "ColorMode.h"
+#include "Datasets/SubDataset.h"
+#include <vector>
+#include <cstdint>
 
 namespace sereno
 {
-    /** \brief  Represent a dataset. Aims to be derived */
+    /** \brief  Dataset class. */
     class Dataset
     {
         public:
-            /** \brief  Constructor */
-            Dataset();
+            /** \brief  Default constructor */
+            Dataset(){}
 
-            virtual ~Dataset(){}
+            /* \brief  Copy constructor
+             * \param copy argument to copy*/
+            Dataset(const Dataset& copy);
 
-            /** \brief Set the color of this dataset at rendering time
-             * \param mode the color mode to apply
-             * \param min the minimum clamping
-             * \param max the maximum clamping*/
-            void setColor(float min, float max, ColorMode mode);
+            /* \brief  Movement constructor
+             * \param mvt the object to move */
+            Dataset(Dataset&& mvt);
 
-            /* \brief Set the global rotation of this fluid dataset
-             * \param quat the global rotation quaternion to apply */
-            void setGlobalRotate(const Quaternionf& quat) {m_rotation = quat;}
+            /* \brief  Copy operator
+             * \param copy the argument to copy
+             * \return   *this */
+            Dataset& operator=(const Dataset& copy);
 
-            /* \brief Get the global rotation quaternion of this dataset
-             * \return a reference to the global rotation quaternion of this dataset */
-            const Quaternionf& getGlobalRotate() const {return m_rotation;}
+            /** \brief  Destructor */
+            virtual ~Dataset();
 
-            /* \brief Get the minimum clamping value in ratio (0.0, 1.0)
-             * \return the minimum clamping value */
-            float     getMinClamping() const {return m_minClamp;}
-
-            /* \brief Get the maximum clamping value in ratio (0.0, 1.0)
-             * \return the maximum clamping value */
-            float     getMaxClamping() const {return m_maxClamp;}
-
-            /* \brief Get the color mode currently in application
-             * \return the color mode */
-            ColorMode getColorMode() const {return m_colorMode;}
-
-            /* \brief Get the minimum amplitude of this dataset
-             * \return the minimum amplitude */
-            float getMinAmplitude() const {return m_amplitude[0];}
-
-            /* \brief Get the maximum amplitude of this dataset
-             * \return the maximum amplitude */
-            float getMaxAmplitude() const {return m_amplitude[1];}
-
-            /* \brief Is this dataset valid ? */
-            bool isValid() const {return m_isValid;}
-
+            SubDataset* getSubDataset(uint32_t i) {return (i < m_subDatasets.size()) ? m_subDatasets[i] : NULL;}
         protected:
-            bool        m_isValid  = false;    /*!< Is this dataset in a valid state ?*/
-            ColorMode   m_colorMode = RAINBOW; /*!< The color mode of this dataset*/
-            float       m_minClamp  = 0.0f;    /*!< The minimum color clamping*/
-            float       m_maxClamp  = 1.0f;    /*!< The maximum color clamping (ratio : 0.0f 1.0)*/
-            float       m_amplitude[2];        /*!< The dataset amplitude*/
-            Quaternionf m_rotation;            /*!< The quaternion rotation*/
+            /**
+             * \brief  Set the subdataset amplitude using friendship
+             * \param dataset the subdataset to modify
+             * \param amplitude the new amplitude array
+             */
+            void setSubDatasetAmplitude(SubDataset* dataset, float* amplitude)
+            {
+                dataset->m_amplitude[0] = amplitude[0];
+                dataset->m_amplitude[1] = amplitude[1];
+            }
+
+            /** \brief  Set the subdataset validity using friendship
+             * \param dataset the subdataset to modify
+             * \param isValid the new validity*/
+            void setSubDatasetValidity(SubDataset* dataset, bool isValid)
+            {
+                dataset->m_isValid = isValid;
+            }
+            std::vector<SubDataset*> m_subDatasets; /*!< Array of sub datasets*/
     };
 }
 

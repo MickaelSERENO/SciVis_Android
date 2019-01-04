@@ -1,8 +1,6 @@
-package com.sereno.vfs.Data;
+package com.sereno.vfv.Data;
 
 import android.content.Context;
-import android.service.autofill.Dataset;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,7 +13,7 @@ public class DataFile
     /** \brief Return in an array all the available datasets
      * \return an array of DataFile containing description of datasets. They are not yet opened.
      * Use parseData on each to parse the data
-     * \param ctx the context permitting to read internal storage*/
+     * @param ctx the context permitting to read internal storage*/
     public static DataFile[] getAvailableDatasets(Context ctx)
     {
         //Read the data files in externalDir/fluidData. All the files are for this moment valid
@@ -39,14 +37,14 @@ public class DataFile
     private File m_file; /**! The data file*/
 
     /** \brief Constructor
-     * \param path the dataset path file*/
+     * @param path the dataset path file*/
     public DataFile(String path)
     {
         m_file = new File(path);
     }
 
     /** \brief Constructor
-     * \param f the file containing the interesting data*/
+     * @param f the file containing the interesting data*/
     public DataFile(File f)
     {
         m_file = f;

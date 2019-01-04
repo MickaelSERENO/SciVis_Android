@@ -26,10 +26,15 @@ namespace sereno
         fseek(file, pos, SEEK_SET);
         m_velocity = (float*)malloc(3*sizeof(float*)*m_size[0]*m_size[1]*m_size[2]);
 
+        //Only one sub dataset available
+        SubDataset* subData = new SubDataset(this);
+        m_subDatasets.push_back(subData);
+
         //read data
         //We do not precompute magnitude or so because of memory issue. We prefer using CPU time instead of RAM
         //However we store the ampltitude range
         uint32_t velID = 0;
+        float amplitude[2] = {std::numeric_limits<float>::max(), std::numeric_limits<float>::min()};
         do
         {
             readSize = fread(buffer, sizeof(uint8_t), BUFFER_SIZE, file);
@@ -43,17 +48,17 @@ namespace sereno
                 }
 
                 //Update the amplitude. We store the square of the amplitude for better performances (the square root is done only at the end)
-                if(amp < m_amplitude[0])
-                    m_amplitude[0] = amp;
-                else if(amp > m_amplitude[1])
-                    m_amplitude[1] = amp;
+                if(amp < amplitude[0])
+                    amplitude[0] = amp;
+                else if(amp > amplitude[1])
+                    amplitude[1] = amp;
             }
         }while(readSize != 0);
 
-        m_amplitude[0] = sqrt(m_amplitude[0]);
-        m_amplitude[1] = sqrt(m_amplitude[1]);
-
-        m_isValid = true;
+        amplitude[0] = sqrt(amplitude[0]);
+        amplitude[1] = sqrt(amplitude[1]);
+        setSubDatasetAmplitude(subData, amplitude);
+        setSubDatasetValidity(subData, true);
 #undef BUFFER_SIZE
     }
 
@@ -66,8 +71,6 @@ namespace sereno
     {
         for(uint8_t i = 0; i < 3; i++)
             m_size[i] = mvt.m_size[i];
-        m_isValid = mvt.m_isValid;
-
         m_velocity = mvt.m_velocity;
         mvt.m_velocity = NULL;
     }
@@ -79,7 +82,6 @@ namespace sereno
 
         for(uint8_t i = 0; i < 3; i++)
             m_size[i] = copy.m_size[i];
-        m_isValid = copy.m_isValid;
         uint32_t s = sizeof(float*)*m_size[0]*m_size[1]*m_size[2];
         m_velocity = (float*)malloc(s);
         memcpy(m_velocity, copy.m_velocity,s);
@@ -90,6 +92,8 @@ namespace sereno
     {
         if(m_velocity)
             free(m_velocity);
+        for(auto d : m_subDatasets)
+            delete d;
     }
 
     BinaryDataset* BinaryDataset::readFromFilePath(const std::string& path)
@@ -102,7 +106,7 @@ namespace sereno
         BinaryDataset* data = new BinaryDataset(file);
 
         //Check if the data is valid or not
-        if(!data->isValid())
+        if(!data->getSubDataset(0)->isValid())
         {
             delete data;
             data = NULL;

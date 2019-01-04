@@ -1,4 +1,4 @@
-package com.sereno.vfs;
+package com.sereno.vfv;
 
 import android.view.View;
 
@@ -7,7 +7,7 @@ public abstract class OnClickListenerDialogInterface implements android.content.
     private View m_view = null; /**!< The view associated with this dialog interface*/
 
     /** \brief Constructor. Associated a view with a dialog interface
-     * \param v the view to associate*/
+     * @param v the view to associate*/
     public OnClickListenerDialogInterface(View v)
     {
         m_view = v;

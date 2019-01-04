@@ -1,6 +1,11 @@
 #include "nativeGLSurfaceView.h"
 
-using namespace sereno;
+#include <dlfcn.h>
+#include <unistd.h>
+#include <android/native_window.h>
+#include <android/native_window_jni.h>
+#include <string>
+#include "utils.h"
 
 JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(JNIEnv* jenv, jobject jobj, jstring dataPath)
 {

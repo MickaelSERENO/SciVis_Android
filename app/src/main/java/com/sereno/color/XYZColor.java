@@ -9,10 +9,10 @@ public class XYZColor
 
     /**
      * \brief  Constructor
-     * \param _x x component
-     * \param _y y component
-     * \param _z z component
-     * \param _a a component
+     * @param _x x component
+     * @param _y y component
+     * @param _z z component
+     * @param _a a component
      */
     public XYZColor(float _x, float _y, float _z, float _a)
     {
@@ -24,7 +24,7 @@ public class XYZColor
 
     /**
      * \brief  Convert a RGB color to a XYZ color object
-     * \param color the color to convert
+     * @param color the color to convert
      */
     public XYZColor(Color color)
     {
@@ -39,7 +39,7 @@ public class XYZColor
 
     /**
      * \brief  Convert a RGB color
-     * \param color the object to convert
+     * @param color the object to convert
      */
     public void setFromRGB(Color color)
     {

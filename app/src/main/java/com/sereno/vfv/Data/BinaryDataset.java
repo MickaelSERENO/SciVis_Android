@@ -1,4 +1,4 @@
-package com.sereno.vfs.Data;
+package com.sereno.vfv.Data;
 
 import java.io.File;
 
@@ -7,7 +7,7 @@ public class BinaryDataset extends Dataset
 {
     /**\brief Constructor
      * Read the data contained in file.
-     * \param file the file to read at*/
+     * @param file the file to read at*/
     public BinaryDataset(File file)
     {
         this(file.getAbsolutePath());
@@ -15,7 +15,7 @@ public class BinaryDataset extends Dataset
 
     /**\brief Constructor
      * Read the data contained in file.
-     * \param path the path to read at*/
+     * @param path the path to read at*/
     public BinaryDataset(String path)
     {
         super(nativeInitPtr(path));
@@ -35,17 +35,17 @@ public class BinaryDataset extends Dataset
     }
 
     /** \brief Get the C++ pointer handler of the BinaryDataset
-     * \param m_ptr the pointer handler*/
+     * @param m_ptr the pointer handler*/
     public long getPtr() {return m_ptr;}
 
     /** \brief native function. Initialized the C++ pointer of this object
-     * \param path the path of the dataset to read at
+     * @param path the path of the dataset to read at
      * \return the C++ ptr as a long*/
     private native static long nativeInitPtr(String path);
 
     /** \brief Get the 3D grid size of the dataset index idx
-     * \param ptr the C++ ptr generated using initPtr
-     * \param idx the dataset index
+     * @param ptr the C++ ptr generated using initPtr
+     * @param idx the dataset index
      * \return the 3D grid size*/
     private native static int[] nativeGetSize(long ptr);
 }

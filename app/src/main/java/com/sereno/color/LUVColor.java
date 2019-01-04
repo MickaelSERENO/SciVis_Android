@@ -9,9 +9,9 @@ public class LUVColor
 
     /**
      * \brief  Constructor
-     * \param _l L component
-     * \param _u U component
-     * \param _v V component
+     * @param _l L component
+     * @param _u U component
+     * @param _v V component
      */
     public LUVColor(float _l, float _u, float _v, float _a)
     {
@@ -23,7 +23,7 @@ public class LUVColor
 
     /**
      * \brief  Constructor. Convert a RGB Color to a LUV Color
-     * \param color the RGB Color to convert
+     * @param color the RGB Color to convert
      */
     public LUVColor(Color color)
     {
@@ -32,7 +32,7 @@ public class LUVColor
 
     /**
      * \brief  Constructor. Convert a XYZ Color to a XYZ Color
-     * \param color the XYZ Color to convert
+     * @param color the XYZ Color to convert
      */
     public LUVColor(XYZColor color)
     {
@@ -47,7 +47,7 @@ public class LUVColor
 
     /**
      * \brief  Convert a RGB Value
-     * \param color the value to convert
+     * @param color the value to convert
      */
     public void setFromRGB(Color color)
     {
@@ -56,7 +56,7 @@ public class LUVColor
 
     /**
      * \brief  Convert a XYZ Value
-     * \param xyz the xyz value to convert
+     * @param xyz the xyz value to convert
      */
     public void setFromXYZ(XYZColor xyz)
     {
@@ -115,7 +115,7 @@ public class LUVColor
     }
 
     /** \brief Multiply this color by a factor t components per components
-     * \param t the factor (between 0 and 1)
+     * @param t the factor (between 0 and 1)
      * \return the color once multiplied
      */
     public LUVColor multiplyBy(float t)
@@ -124,7 +124,7 @@ public class LUVColor
     }
 
     /**\brief Add components per components this color by another
-     * \param c the Color to add
+     * @param c the Color to add
      * \return the addition components per components*/
     public LUVColor addBy(LUVColor c)
     {
@@ -132,9 +132,9 @@ public class LUVColor
     }
 
     /**\brief Linear interpolation
-     * \param c1 left color (t=0)
-     * \param c2 right color (t=1)
-     * \param t the advancement (t between 0 and 1)
+     * @param c1 left color (t=0)
+     * @param c2 right color (t=1)
+     * @param t the advancement (t between 0 and 1)
      * \return new LUVColor
      */
     public static LUVColor lerp(LUVColor c1, LUVColor c2, float t)

@@ -3,10 +3,12 @@
 
 #include "GLSurfaceViewData.h"
 #include "VFVData.h"
-#include "Graphics/VectorField.h"
+#include "Graphics/SciVis/VectorField.h"
 #include "Graphics/Materials/ColorMaterial.h"
 
 #include <memory>
+
+#define MAX_SNAPSHOT_COUNTER 5
 
 namespace sereno
 {
@@ -41,6 +43,10 @@ namespace sereno
             ColorMaterial*             m_arrowMtl;              /*!< The arrow material for the vector fields*/
             std::vector<VectorField*>  m_vectorFields;          /*!< The loaded vector fields*/
             VectorField*               m_currentVF      = NULL; /*!< The current Vector Field being displayed*/
+            uint32_t                   m_snapshotCnt    = 0;    /*!< The snapshot counter*/
+            uint32_t*                  m_snapshotPixels = NULL; /*!< The snapshot pixels*/
+            uint32_t                   m_snapshotWidth  = 0;    /*!< The snapshot width*/
+            uint32_t                   m_snapshotHeight = 0;    /*!< The snapshot height*/
     };
 }
 #endif

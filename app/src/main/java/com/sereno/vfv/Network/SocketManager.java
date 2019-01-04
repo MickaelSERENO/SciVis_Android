@@ -1,8 +1,8 @@
-package com.sereno.vfs.Network;
+package com.sereno.vfv.Network;
 
 import android.util.Log;
 
-import com.sereno.vfs.MainActivity;
+import com.sereno.vfv.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

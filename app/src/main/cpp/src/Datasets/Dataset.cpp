@@ -1,14 +1,25 @@
 #include "Datasets/Dataset.h"
+#include <utility>
 
 namespace sereno
 {
-    Dataset::Dataset() :  m_amplitude{std::numeric_limits<float>::max(), std::numeric_limits<float>::min()}
-    {}
-
-    void Dataset::setColor(float min, float max, ColorMode mode)
+    Dataset::Dataset(const Dataset& copy)
     {
-        m_colorMode = mode;
-        m_minClamp  = min;
-        m_maxClamp  = max;
+        *this = copy;
     }
+
+    Dataset::Dataset(Dataset&& mvt)
+    {
+        m_subDatasets = std::move(mvt.m_subDatasets);
+    }
+
+    Dataset& Dataset::operator=(const Dataset& copy)
+    {
+        if(this == &copy)
+            return *this;
+        m_subDatasets = std::move(copy.m_subDatasets);
+        return *this;
+    }
+
+    Dataset::~Dataset(){}
 }

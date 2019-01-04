@@ -9,10 +9,10 @@ public class MSHColor
 
     /**
      * \brief  Constructor
-     * \param _m The M component
-     * \param _s The S component
-     * \param _h The H component
-     * \param _a The alpha component
+     * @param _m The M component
+     * @param _s The S component
+     * @param _h The H component
+     * @param _a The alpha component
      */
     public MSHColor(float _m, float _s, float _h, float _a)
     {
@@ -24,7 +24,7 @@ public class MSHColor
 
     /**
      * \brief  Constructor. Convert a LAB Color value to MSH color value
-     * \param color the value to convert
+     * @param color the value to convert
      */
     public MSHColor(LABColor color)
     {
@@ -33,7 +33,7 @@ public class MSHColor
 
     /**
      * \brief  Constructor. Convert a XYZ Color value to MSH color value
-     * \param color the value to convert
+     * @param color the value to convert
      */
     public MSHColor(XYZColor color)
     {
@@ -42,7 +42,7 @@ public class MSHColor
 
     /**
      * \brief  Constructor. Convert a RGB Color value to MSH color value
-     * \param color the value to convert
+     * @param color the value to convert
      */
     public MSHColor(Color color)
     {
@@ -56,7 +56,7 @@ public class MSHColor
 
     /**
      * \brief  Convert a LAB color value to MSH color value
-     * \param color the color to convert
+     * @param color the color to convert
      */
     public void setFromLAB(LABColor color)
     {
@@ -68,7 +68,7 @@ public class MSHColor
 
     /**
      * \brief  Convert a RGB color value to MSH color value
-     * \param color the color to convert
+     * @param color the color to convert
      */
     public void setFromRGB(Color color)
     {
@@ -77,7 +77,7 @@ public class MSHColor
 
     /**
      * \brief  Convert a XYZ color value to MSH color value
-     * \param xyz the color to convert
+     * @param xyz the color to convert
      */
     public void setFromXYZ(XYZColor xyz)
     {
@@ -115,7 +115,7 @@ public class MSHColor
     }
 
     /** \brief Multiply this color by a factor t components per components
-     * \param t the factor (betwene 0 and 1)
+     * @param t the factor (betwene 0 and 1)
      * \return the color once multiplied
      */
     public MSHColor multiplyBy(float t)
@@ -124,7 +124,7 @@ public class MSHColor
     }
 
     /**\brief Add components per components this color by another
-     * \param c the Color to add
+     * @param c the Color to add
      * \return the addition components per components*/
     public MSHColor addBy(MSHColor c)
     {
@@ -134,9 +134,9 @@ public class MSHColor
     /**
      * \brief  Interpolate from c1 to c2 at step interp (between 0 and 1)
      *
-     * \param c1 the left color (interp = 0)
-     * \param c2 the right color (interp = 1)
-     * \param interp the step
+     * @param c1 the left color (interp = 0)
+     * @param c2 the right color (interp = 1)
+     * @param interp the step
      *
      * \return  the color once interpolated. The medium color is usually white
      */
@@ -178,8 +178,8 @@ public class MSHColor
 
     /**
      * \brief  Adjust the hue
-     * \param sat The saturated color
-     * \param m The unsaturated M component
+     * @param sat The saturated color
+     * @param m The unsaturated M component
      * \return  the hue adjusted
      */
     public static float adjustHue(MSHColor color, float m)

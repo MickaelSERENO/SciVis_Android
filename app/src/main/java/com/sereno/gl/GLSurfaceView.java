@@ -152,7 +152,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     }
 
     /** \brief Set the internal state of this object
-     * \param state the new internal state*/
+     * @param state the new internal state*/
     private void setInternalState(InternalState state)
     {
         if(state == m_internalState)
@@ -188,33 +188,33 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     private native long nativeInitInternalData(String internalData);
 
     /** \brief Main C++ function being called
-     * \param data the internal data to pass on
-     * \param mainLibrary the main library to read containing the main function
-     * \param mainFunc the name of the mainFunction. Must have the following proptotype : void mainFunc(long data, long arg)
-     * \param arg the argument to pass*/
+     * @param data the internal data to pass on
+     * @param mainLibrary the main library to read containing the main function
+     * @param mainFunc the name of the mainFunction. Must have the following proptotype : void mainFunc(long data, long arg)
+     * @param arg the argument to pass*/
     private native void nativeMain(long data, String mainLibrary, String mainFunc, long arg);
 
     /** \brief OnSurfaceDestroyed handled in C++
-     * \param data the C++ internal data*/
+     * @param data the C++ internal data*/
     private native void nativeOnSurfaceDestroyed(long data);
 
     /** \brief OnCreateSurface handled in C++
-     * \param data the C++ internal data*/
+     * @param data the C++ internal data*/
     private native void nativeOnSurfaceCreated(long data, Surface surface);
 
     /** \brief OnSurfaceChanged handled in C++
-     * \param data the C++ internal data
-     * \param format the new surface format
-     * \param width the new surface width
-     * \param height the new surface height*/
+     * @param data the C++ internal data
+     * @param format the new surface format
+     * @param width the new surface width
+     * @param height the new surface height*/
     private native void nativeOnSurfaceChanged(long data, int format, int width, int height);
 
     /** \brief ONTouchEvent handled in C++. Send the event in the C++ application. x and y are in OpenGL coordinate system
-     * \param data the C++ internal data pointer
-     * \param action the action to use. 0 == DOWN, 1 == UP, 2 == MOVE
-     * \param finger the finger ID
-     * \param x the x position [-1, +1]
-     * \param y the y position [-1, +1].*/
+     * @param data the C++ internal data pointer
+     * @param action the action to use. 0 == DOWN, 1 == UP, 2 == MOVE
+     * @param finger the finger ID
+     * @param x the x position [-1, +1]
+     * @param y the y position [-1, +1].*/
     private native void nativeOnTouchEvent(long data, int action, int finger, float x, float y);
 
     static

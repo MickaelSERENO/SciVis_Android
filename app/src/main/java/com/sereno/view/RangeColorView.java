@@ -24,10 +24,10 @@ public class RangeColorView extends View
     public interface OnRangeChangeListener
     {
         /* \brief Function called when the range has changed
-         * \param view the view calling this method
-         * \param minVal the current minimum value (between 0.0 and 1.0)
-         * \param maxVal the current maximum value (between 0.0 and 1.0)
-         * \param mode the color mode applied*/
+         * @param view the view calling this method
+         * @param minVal the current minimum value (between 0.0 and 1.0)
+         * @param maxVal the current maximum value (between 0.0 and 1.0)
+         * @param mode the color mode applied*/
         void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode);
     }
 
@@ -49,7 +49,7 @@ public class RangeColorView extends View
 
     private ArrayList<OnRangeChangeListener> m_onRangeChangeListeners = new ArrayList<>(); /*!< Listeners to call when the range has changed*/
 
-    /** @brief Constructor with the view's context as parameter
+    /** @brief Constructor with the view's context as @parameter
      *
      * @param c the Context associated with the view
      */
@@ -59,7 +59,7 @@ public class RangeColorView extends View
         init();
     }
 
-    /** @brief Constructor with the view's context as parameter and the XML data
+    /** @brief Constructor with the view's context as @parameter and the XML data
      *
      * @param c the Context associated with the view
      * @param a the XML attributes of the view
@@ -71,7 +71,7 @@ public class RangeColorView extends View
         init();
     }
 
-    /** @brief Constructor with the view's context as parameter and the XML data
+    /** @brief Constructor with the view's context as @parameter and the XML data
      *
      * @param c the Context associated with the view
      * @param a the XML attributes of the view*/
@@ -151,7 +151,7 @@ public class RangeColorView extends View
     }
 
     /** \brief Set the color mode of this View
-     * \param mode the color mode (See ColorMode class)*/
+     * @param mode the color mode (See ColorMode class)*/
     public void setColorMode(int mode)
     {
         m_colorMode = mode;
@@ -161,8 +161,8 @@ public class RangeColorView extends View
     }
 
     /** \brief Set the range color. If min > max, we invert the value
-     * \param min the minimum range
-     * \param max the maximum range
+     * @param min the minimum range
+     * @param max the maximum range
      */
     public void setRange(float min, float max)
     {
@@ -173,14 +173,14 @@ public class RangeColorView extends View
     }
 
     /** \brief Add an object to the list of listeners to call when the range color has changed
-     * \param l the new listener to add*/
+     * @param l the new listener to add*/
     public void addOnRangeChangeListener(OnRangeChangeListener l)
     {
         m_onRangeChangeListeners.add(l);
     }
 
     /** \brief Remove an existing object to the list of listeners to call when the range color has changed
-     * \param l the old listener to remove*/
+     * @param l the old listener to remove*/
     public void removeOnRangeChangeListener(OnRangeChangeListener l)
     {
         m_onRangeChangeListeners.remove(l);

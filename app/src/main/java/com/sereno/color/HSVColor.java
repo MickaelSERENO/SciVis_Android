@@ -8,10 +8,10 @@ public class HSVColor
     public float a; /**!< The alpha*/
 
     /** \brief Constructor
-     * \param _h the hue
-     * \param _s the saturation
-     * \param _v the value
-     * \param _a the alpha */
+     * @param _h the hue
+     * @param _s the saturation
+     * @param _v the value
+     * @param _a the alpha */
     public HSVColor(float _h, float _s, float _v, float _a)
     {
         h = _h;
@@ -21,14 +21,14 @@ public class HSVColor
     }
 
     /** \brief Constructor
-     * \param c the color to convert */
+     * @param c the color to convert */
     public HSVColor(Color c)
     {
         setFromRGB(c);
     }
 
     /** \brief Set the HSV colorspace value from RGB colorspace value
-     * \param color the color to convert*/
+     * @param color the color to convert*/
     public void setFromRGB(Color color)
     {
         float max = (float)Math.max(Math.max(color.r, color.g), color.b);

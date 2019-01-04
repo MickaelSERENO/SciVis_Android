@@ -9,10 +9,10 @@ public class Color
 
     /** \brief Create a color
      * red, green, blue and alpha must to be between 0.0f and 1.0f
-     * \param _r red component
-     * \param _g green component
-     * \param _b blue component
-     * \param _a alpha component*/
+     * @param _r red component
+     * @param _g green component
+     * @param _b blue component
+     * @param _a alpha component*/
     public Color(float _r, float _g, float _b, float _a)
     {
         r = _r;

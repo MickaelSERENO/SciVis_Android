@@ -1,9 +1,7 @@
-package com.sereno.vfs;
+package com.sereno.vfv;
 
 import android.app.DialogFragment;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -18,12 +16,17 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 import com.sereno.gl.VFVSurfaceView;
-import com.sereno.vfs.Data.ApplicationModel;
-import com.sereno.vfs.Data.DataFile;
-import com.sereno.vfs.Data.BinaryDataset;
-import com.sereno.vfs.Data.Dataset;
-import com.sereno.vfs.Listener.INoticeDialogListener;
+import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.DataFile;
+import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.VTKDataset;
+import com.sereno.vfv.Data.VTKFieldValue;
+import com.sereno.vfv.Data.VTKParser;
+import com.sereno.vfv.Listener.INoticeDialogListener;
+import com.sereno.vfv.Listener.INotiveVTKDialogListener;
 import com.sereno.view.RangeColorView;
+
+import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     /** \brief Function called when the options items from the Toolbar are selected
-     * \param item the MenuItem selected*/
+     * @param item the MenuItem selected*/
     public boolean onOptionsItemSelected(MenuItem item)
     {
         switch (item.getItemId())
@@ -96,24 +99,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     /** \brief Function called when the model has added a new dataset
-     * \param model the model which fired this call
-     * \param d the new dataset added*/
+     * @param model the model which fired this call
+     * @param d the new dataset added*/
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
     }
 
-    /** \brief Function called when the model is deleting a new dataset
-     * \param model the model which fired this call
-     * \param idx the index dataset being destroyed*/
     @Override
-    public void onDeleteDataset(ApplicationModel model, int idx)
+    public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
-        if(m_model.getDatasets().size() == 1)
-            m_deleteDataBtn.setVisibility(View.INVISIBLE);
-    }
 
+    }
     /** \brief Set up the drawer layout (root layout)*/
     private void setUpDrawerLayout()
     {
@@ -206,6 +204,35 @@ public class MainActivity extends AppCompatActivity
                 {
                     BinaryDataset fd = new BinaryDataset(df.getFile());
                     m_model.addBinaryDataset(fd);
+                }
+
+                //VTK dataset
+                else if(fileName.endsWith(".vtk"))
+                {
+                    VTKParser            parser    = new VTKParser(df.getFile());
+                    OpenVTKDatasetDialog vtkDialog = new OpenVTKDatasetDialog(MainActivity.this, parser);
+                    vtkDialog.open(new INotiveVTKDialogListener()
+                    {
+                        @Override
+                        public void onDialogPositiveClick(OpenVTKDatasetDialog dialog)
+                        {
+                            //Get under Array shape the pt and cells field values desired
+                            ArrayList<VTKFieldValue> ptValuesList = dialog.getSelectedPtFieldValues();
+                            VTKFieldValue[] ptValues = new VTKFieldValue[ptValuesList.size()];
+                            ptValues = ptValuesList.toArray(ptValues);
+                            ArrayList<VTKFieldValue> cellValuesList = dialog.getSelectedCellFieldValues();
+                            VTKFieldValue[] cellValues = new VTKFieldValue[cellValuesList.size()];
+                            cellValues = cellValuesList.toArray(cellValues);
+
+                            //Add into the model
+                            m_model.addVTKDataset(new VTKDataset(dialog.getVTKParser(), ptValues, cellValues));
+                        }
+
+                        @Override
+                        public void onDialogNegativeClick(OpenVTKDatasetDialog dialog) {}
+                    });
+
+                    //m_model.addVTKDataset(parser);
                 }
             }
 

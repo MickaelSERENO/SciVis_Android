@@ -2,12 +2,7 @@
 #define  NATIVEGLSURFACEVIEW_INC
 
 #include <jni.h>
-#include <dlfcn.h>
-#include <unistd.h>
-#include <android/native_window.h>
-#include <android/native_window_jni.h>
-#include <string>
-#include "utils.h"
+
 #include "GLSurfaceViewData.h"
 
 using namespace sereno;

@@ -6,7 +6,9 @@
 #include <pthread.h>
 #include <deque>
 #include <memory>
+#include <cstdint>
 #include "Datasets/BinaryDataset.h"
+#include "Datasets/VTKDataset.h"
 #include "ColorMode.h"
 
 namespace sereno
@@ -14,7 +16,8 @@ namespace sereno
     /* \brief Enumeration representing the possible events from the Model modification */
     enum VFVEventType
     {
-        VFV_ADD_BINARY_DATA,     /*!< Data added*/
+        VFV_ADD_BINARY_DATA,     /*!< Binary Data added*/
+        VFV_ADD_VTK_DATA,        /*!< VTK Data added*/
         VFV_DEL_DATA,            /*!< Data removed*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
@@ -26,6 +29,7 @@ namespace sereno
         float min;                            /*!< the minimum range (ratio : 0.0, 1.0)*/
         float max;                            /*!< the maximum range (ratio : 0.0, 1.0)*/
         ColorMode mode;                       /*!< The color mode to apply*/
+        uint32_t  subDataID;                  /*!< The sub dataset ID*/
         std::shared_ptr<Dataset> currentData; /*!< The current dataset*/
     };
 
@@ -35,7 +39,13 @@ namespace sereno
         std::shared_ptr<BinaryDataset> dataset; /*!< The dataset associated*/
     };
 
-    /** \brief  general dataset event information (delete, set current data) */
+    /* \brief VTK data event information (add) */
+    struct VTKDataEvent
+    {
+        std::shared_ptr<VTKDataset> dataset; /*!< The dataset associated*/
+    };
+
+    /** \brief general dataset event information (delete, set current data) */
     struct DatasetEvent
     {
         std::shared_ptr<Dataset> dataset; /*!< The dataset associated */
@@ -48,6 +58,7 @@ namespace sereno
         {
             DatasetEvent    dataset;    /*!< General dataset event*/
             BinaryDataEvent binaryData; /*!< Binary  dataset event*/
+            VTKDataEvent    vtkData;    /*!< VTK    dataset event*/
             ColorRangeEvent colorRange; /*!< Color range event information */
         };
 
@@ -55,6 +66,8 @@ namespace sereno
         {
             if(type == VFV_ADD_BINARY_DATA)
                 new(&binaryData) BinaryDataEvent;
+            else if(type == VFV_ADD_VTK_DATA)
+                new(&vtkData) VTKDataEvent;
             else if(type == VFV_COLOR_RANGE_CHANGED)
                 new(&colorRange) ColorRangeEvent;
         }
@@ -63,10 +76,14 @@ namespace sereno
         {
             if(type == VFV_ADD_BINARY_DATA)
                 binaryData.~BinaryDataEvent();
+            else if(type == VFV_ADD_VTK_DATA)
+                vtkData.~VTKDataEvent();
             else if(type == VFV_COLOR_RANGE_CHANGED)
                 colorRange.~ColorRangeEvent();
         }
 
+        /* \brief  Get the type of this event
+         * \return the type of this event */
         VFVEventType getType() {return type;}
 
         private:
@@ -109,9 +126,13 @@ namespace sereno
              * \return the next event or NULL if no event exists */
             VFVEvent* pollEvent();
 
-            /* \brief Add a new Dataset in this application
-             * \param dataset the dataset to add*/
+            /* \brief Add a new Binary Dataset in this application
+             * \param dataset the Binary dataset to add*/
             void addBinaryData(std::shared_ptr<BinaryDataset> dataset);
+
+            /* \brief  Add a new VTK Dataset in this application
+             * \param dataset the VTK dataset to add*/
+            void addVTKData(std::shared_ptr<VTKDataset> dataset);
 
             /* \brief Remove the dataset "dataID"
              * \param dataID the id of the dataset to remove*/
@@ -133,6 +154,14 @@ namespace sereno
             /* \brief Unlock the snapshot update from the main thread */
             void unlockSnapshot() {pthread_mutex_lock(&m_snapshotMutex);}
 
+            /**
+             * \brief  Set the snapshot pixels
+             * \param pixels the pixels
+             * \param width the snapshot width
+             * \param height the snapshot height
+             */
+            void setSnapshotPixels(uint32_t* pixels, uint32_t width, uint32_t height);
+
             /* \brief Get the snapshot pixels ARGB8888. Use getSnapshotWidth and getSnapshotHeight in order to get the correct layout
              * \return the snapshot pixels. */
             const uint32_t* getSnapshotPixels() const {return m_snapshotPixels;}
@@ -149,16 +178,17 @@ namespace sereno
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
-            std::vector<std::shared_ptr<Dataset>> m_datas;    /*!< The data paths */
+            std::vector<std::shared_ptr<Dataset>> m_datas;       /*!< The data paths */
 
-            std::shared_ptr<Dataset> m_currentData    = NULL; /*!< The current data*/
-            IVFVCallback*            m_clbk           = NULL; /*!< The callback interface */
-            std::deque<VFVEvent*>    m_events;                /*!< The events from Java*/
-            pthread_mutex_t          m_mutex;                 /*!< The mutex for handling communication between Java and Cpp*/
+            std::shared_ptr<Dataset> m_currentData       = NULL; /*!< The current data*/
+            int                      m_currentSubDataIdx = -1;   /*!< The current subdata index*/
+            IVFVCallback*            m_clbk              = NULL; /*!< The callback interface */
+            std::deque<VFVEvent*>    m_events;                   /*!< The events from Java*/
+            pthread_mutex_t          m_mutex;                    /*!< The mutex for handling communication between Java and Cpp*/
             uint32_t                 m_snapshotWidth;
             uint32_t                 m_snapshotHeight;
-            uint32_t*                m_snapshotPixels = NULL; /*!< The snapshot pixels*/
-            pthread_mutex_t          m_snapshotMutex;         /*!< The mutex for handling the snapshot generation*/
+            uint32_t*                m_snapshotPixels = NULL;    /*!< The snapshot pixels*/
+            pthread_mutex_t          m_snapshotMutex;            /*!< The mutex for handling the snapshot generation*/
     };
 }
 

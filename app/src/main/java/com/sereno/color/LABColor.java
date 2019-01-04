@@ -9,10 +9,10 @@ public class LABColor
 
     /**
      * \brief  Constructor
-     * \param _l L component
-     * \param _a A component
-     * \param _b B component
-     * \param _transparency Transparency component
+     * @param _l L component
+     * @param _a A component
+     * @param _b B component
+     * @param _transparency Transparency component
      */
     public LABColor(float _l, float _a, float _b, float _transparency)
     {
@@ -24,7 +24,7 @@ public class LABColor
 
     /**
      * \brief  Convert a XYZ color to LABColor
-     * \param color the color to convert
+     * @param color the color to convert
      */
     public LABColor(XYZColor color)
     {
@@ -33,7 +33,7 @@ public class LABColor
 
     /**
      * \brief  Convert a RGB color to LABColor
-     * \param color the color to convert
+     * @param color the color to convert
      */
     public LABColor(Color color)
     {
@@ -48,7 +48,7 @@ public class LABColor
 
     /**
      * \brief  Convert a RGB Color and store the result in this object
-     * \param color the RGB Color object
+     * @param color the RGB Color object
      */
     public void setFromRGB(Color color)
     {
@@ -57,7 +57,7 @@ public class LABColor
 
     /**
      * \brief  Convert a XYZ Color and store the result in this object
-     * \param xyz the XYZ Color object
+     * @param xyz the XYZ Color object
      */
     public void setFromXYZ(XYZColor xyz)
     {
@@ -94,7 +94,7 @@ public class LABColor
     }
 
     /** \brief Multiply this color by a factor t components per components
-     * \param t the factor (betwene 0 and 1)
+     * @param t the factor (betwene 0 and 1)
      * \return the color once multiplied
      */
     public LABColor multiplyBy(float t)
@@ -103,7 +103,7 @@ public class LABColor
     }
 
     /**\brief Add components per components this color by another
-     * \param c the Color to add
+     * @param c the Color to add
      * \return the addition components per components*/
     public LABColor addBy(LABColor c)
     {
@@ -111,9 +111,9 @@ public class LABColor
     }
 
     /**\brief Linear interpolation
-     * \param c1 left color (t=0)
-     * \param c2 right color (t=1)
-     * \param t the advancement (t between 0 and 1)
+     * @param c1 left color (t=0)
+     * @param c2 right color (t=1)
+     * @param t the advancement (t between 0 and 1)
      * \return new LABColor
      */
     public static LABColor lerp(LABColor c1, LABColor c2, float t)
@@ -123,13 +123,13 @@ public class LABColor
 
     /**
      * \brief  a private function which helps determining the three component value. 7.787*v+16.0/116.0 otherwise. theta = 6.0/29.0 -> theta^3 = 0.008856
-     * \param v the value to convert
+     * @param v the value to convert
      * \return  v^(1.0/3.0) if v > 0.008856
      */
     private float f(float v) {return (float)(v > 0.008856 ? Math.pow(v, 1.0/3.0) : 7.787*v + 16.0f/116.0f);}
 
     /** \brief the inverse function which helps determining the three component value. 0.128418*(v-4.0/29.0) otherwise, thata = 6.0/29.0 -> 3*theta^2 = 0.128418
-     * \param v the value to determine
+     * @param v the value to determine
      * \return v^/3.0 if v > 6.0/29.0*/
     private float invF(float v)  {return (float)(v > 6.0/29.0 ? v*v*v : 0.128418*(v - 4.0/29.0));}
 }

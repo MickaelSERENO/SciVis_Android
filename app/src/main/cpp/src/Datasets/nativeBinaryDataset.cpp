@@ -1,9 +1,11 @@
 #include "Datasets/nativeBinaryDataset.h"
+
 #include <memory>
+#include "Datasets/BinaryDataset.h"
 
 using namespace sereno;
 
-JNIEXPORT jlong      JNICALL Java_com_sereno_vfs_Data_BinaryDataset_nativeInitPtr(JNIEnv* jenv, jclass jcls, jstring path)
+JNIEXPORT jlong      JNICALL Java_com_sereno_vfv_Data_BinaryDataset_nativeInitPtr(JNIEnv* jenv, jclass jcls, jstring path)
 {
     const char* strPath = jenv->GetStringUTFChars(path, 0);
     std::shared_ptr<BinaryDataset>* fd = new std::shared_ptr<BinaryDataset>(BinaryDataset::readFromFilePath(strPath));
@@ -11,7 +13,7 @@ JNIEXPORT jlong      JNICALL Java_com_sereno_vfs_Data_BinaryDataset_nativeInitPt
     return (jlong)(fd);
 }
 
-JNIEXPORT jintArray JNICALL Java_com_sereno_vfs_Data_BinaryDataset_nativeGetSize(JNIEnv* jenv, jclass jcls, jlong jptr)
+JNIEXPORT jintArray JNICALL Java_com_sereno_vfv_Data_BinaryDataset_nativeGetSize(JNIEnv* jenv, jclass jcls, jlong jptr)
 {
     std::shared_ptr<BinaryDataset>* fd = (std::shared_ptr<BinaryDataset>*)jptr;
     jintArray     retval = jenv->NewIntArray(3);

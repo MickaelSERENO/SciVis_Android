@@ -1,5 +1,7 @@
 #include "nativeVFVData.h"
+
 #include <memory>
+#include "VFVData.h"
 
 using namespace sereno;
 
@@ -25,6 +27,14 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddBinaryDataset
 {
     VFVData* data = (VFVData*)ptr;
     data->addBinaryData(*((std::shared_ptr<BinaryDataset>*)jData));
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jlong ptr, jlong parserPtr, jlongArray ptFieldValues, jlongArray cellFieldValues)
+{
+    VFVData* data = (VFVData*)ptr;
+    std::shared_ptr<VTKParser>* parser = (std::shared_ptr<VTKParser>*)(ptr);
+    data->addVTKData(std::shared_ptr<VTKDataset>(new VTKDataset(*parser, jlongArrayToVector<VTKFieldValue>(env, ptFieldValues), 
+                                                                jlongArrayToVector<VTKFieldValue>(env, cellFieldValues)))); 
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx)

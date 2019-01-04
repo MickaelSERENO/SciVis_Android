@@ -1,4 +1,4 @@
-package com.sereno.vfs;
+package com.sereno.vfv;
 
 import org.junit.Test;
 

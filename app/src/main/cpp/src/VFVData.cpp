@@ -28,10 +28,33 @@ namespace sereno
         pthread_mutex_lock(&m_mutex);
         {
             if(m_currentData == NULL)
-                m_currentData = dataset;
+            {
+                m_currentData       = dataset;
+                m_currentSubDataIdx = 0;
+            }
 
             m_datas.push_back(dataset);
         }
+        pthread_mutex_unlock(&m_mutex);
+        addEvent(ev);
+    }
+
+    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset)
+    {
+        VFVEvent* ev = new VFVEvent(VFV_ADD_VTK_DATA);
+        ev->vtkData.dataset = dataset;
+
+        pthread_mutex_lock(&m_mutex);
+        {
+            if(m_currentData == NULL)
+            {
+                m_currentData       = dataset;
+                m_currentSubDataIdx = 0;
+            }
+
+            m_datas.push_back(dataset);
+        }
+
         pthread_mutex_unlock(&m_mutex);
         addEvent(ev);
     }
@@ -43,20 +66,24 @@ namespace sereno
 
     void VFVData::setCurrentData(int dataID)
     {
+        //TODO
     }
 
     void VFVData::onRangeColorChange(float min, float max, ColorMode mode)
     {
-        VFVEvent* ev               = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
-        ev->colorRange.min         = min;
-        ev->colorRange.max         = max;
-        ev->colorRange.mode        = mode;
-        ev->colorRange.currentData = m_currentData;
-
+        VFVEvent* ev = NULL;
         pthread_mutex_lock(&m_mutex);
         {
             if(m_currentData)
-                m_currentData->setColor(min, max, mode);
+            {
+                ev = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
+                ev->colorRange.min  = min;
+                ev->colorRange.max  = max;
+                ev->colorRange.mode = mode;
+                ev->colorRange.currentData = m_currentData;
+                ev->colorRange.subDataID   = m_currentSubDataIdx;
+                m_currentData->getSubDataset(m_currentSubDataIdx)->setColor(min, max, mode);
+            }
         }
         pthread_mutex_unlock(&m_mutex);
 
@@ -85,5 +112,14 @@ namespace sereno
         pthread_mutex_lock(&m_mutex);
             m_events.push_back(ev);
         pthread_mutex_unlock(&m_mutex);
+    }
+
+    void VFVData::setSnapshotPixels(uint32_t* pixels, uint32_t width, uint32_t height)
+    {
+        pthread_mutex_lock(&m_snapshotMutex);
+            m_snapshotPixels = pixels;
+            m_snapshotWidth  = width;
+            m_snapshotHeight = height;
+        pthread_mutex_unlock(&m_snapshotMutex);
     }
 }
