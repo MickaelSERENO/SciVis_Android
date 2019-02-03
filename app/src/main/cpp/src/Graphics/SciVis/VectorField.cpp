@@ -3,13 +3,14 @@
 namespace sereno
 {
     VectorField::VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent, 
-                             std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader) : GameObject(parent, renderer, mtl), m_model(dataset)
+                             const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader) : 
+        SciVis(parent, renderer, mtl, dataset->getSubDataset(0)), m_binaryDataset(dataset)
     {
         //Field variables
         const float*    vel      = dataset->getVelocity();
         const uint32_t* gridSize = dataset->getGridSize();
-        float           minAmp   = dataset->getSubDataset(0)->getMinAmplitude();
-        float           maxAmp   = dataset->getSubDataset(0)->getMaxAmplitude();
+        float           minAmp   = m_model->getMinAmplitude();
+        float           maxAmp   = m_model->getMaxAmplitude();
 
         //Determine the displayable size
         //The displayable size is useful since we cannot represent every value in the screen
@@ -118,7 +119,7 @@ namespace sereno
         }
         glBindVertexArrayOES(0);
 
-        setColorRange(dataset->getSubDataset(0)->getMinClamping(), dataset->getSubDataset(0)->getMaxClamping(), dataset->getSubDataset(0)->getColorMode());
+        setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
 
         free(fieldVertices);
         free(fieldNormals);
@@ -149,10 +150,10 @@ namespace sereno
         float*       color  = (float*)malloc(4*sizeof(float)*size);
 
         //Store fluid dataset constants
-        const float*    vel      = m_model->getVelocity();
-        const uint32_t* gridSize = m_model->getGridSize();
-        float           minAmp   = m_model->getSubDataset(0)->getMinAmplitude();
-        float           maxAmp   = m_model->getSubDataset(0)->getMaxAmplitude();
+        const float*    vel      = m_binaryDataset->getVelocity();
+        const uint32_t* gridSize = m_binaryDataset->getGridSize();
+        float           minAmp   = m_binaryDataset->getSubDataset(0)->getMinAmplitude();
+        float           maxAmp   = m_binaryDataset->getSubDataset(0)->getMaxAmplitude();
 
         //Set the color for every vector
         for(uint32_t k = 0; k < m_displayableSize[2]; k++)

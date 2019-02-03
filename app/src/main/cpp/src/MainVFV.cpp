@@ -36,7 +36,7 @@ namespace sereno
         glEnable(GL_CULL_FACE);
 
         //List of dataset modified
-        std::vector<SubDataset*> modelChanged;
+        std::vector<const SubDataset*> modelChanged;
 
         //Should we update the color ?
         //We do not keep WHICH dataset has seen its color changed, in most condition it is the CURRENT DATA which has seen its color changed
@@ -67,8 +67,8 @@ namespace sereno
                         {
                             float roll  = event->touchEvent.x - event->touchEvent.oldX;
                             float pitch = event->touchEvent.y - event->touchEvent.oldY;
-                            modelChanged.push_back(m_currentVF->getModel()->getSubDataset(0));
-                            m_currentVF->getModel()->getSubDataset(0)->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVF->getRotate());
+                            modelChanged.push_back(m_currentVF->getModel());
+                            m_currentVF->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVF->getRotate());
 
                             LOG_INFO("Rotating about %f %f", pitch, roll);
                         }
@@ -98,12 +98,12 @@ namespace sereno
 
                     case VFV_DEL_DATA:
                         {
-                            if(m_currentVF->getModel() == event->dataset.dataset)
+                            if(m_currentVF->getModel()->getParent() == event->dataset.dataset.get())
                                 m_currentVF = NULL;
 
                             //Check vector field
                             for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
-                                if((*it)->getModel() == event->dataset.dataset)
+                                if((*it)->getModel()->getParent() == event->dataset.dataset.get())
                                 {
                                     delete (*it);
                                     m_vectorFields.erase(it);
@@ -127,7 +127,7 @@ namespace sereno
                 //Apply the model changement (rotation + color)
                 for(auto dataset : modelChanged)
                 {
-                    if(m_currentVF->getModel().get() == dataset->getParent())
+                    if(m_currentVF->getModel() == dataset)
                     {
                         if(updateColor)
                             m_currentVF->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
