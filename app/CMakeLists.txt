@@ -60,7 +60,7 @@ PKG_CHECK_MODULES(SERENO_VTK_PARSER REQUIRED serenoVTKParser)
 find_library(log-lib     log)
 find_library(android-lib android)
 find_library(egl-lib     EGL)
-find_library(gles-lib    GLESv2)
+find_library(gles-lib    GLESv3)
 
 #######################
 #Add external libraries

@@ -63,6 +63,10 @@ namespace sereno
             /** \brief  Get the parent dataset
              * \return  the parent dataset */
             const Dataset* getParent() const {return m_parent;}
+
+            /** \brief Set the sub dataset amplitude
+             * \param amp the new amplitude*/
+            void setAmplitude(float* amp) {m_amplitude[0] = amp[0]; m_amplitude[1] = amp[1];}
         protected:
             bool        m_isValid  = false;    /*!< Is this dataset in a valid state ?*/
             ColorMode   m_colorMode = RAINBOW; /*!< The color mode of this dataset*/

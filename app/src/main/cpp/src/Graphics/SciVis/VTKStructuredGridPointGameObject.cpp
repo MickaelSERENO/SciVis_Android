@@ -40,15 +40,14 @@ namespace sereno
         //We will use a geometry shader for creating the cubes, permitting to have a better density (less memory taken)
         //Also the size is normalized (i.e the maximum length is 1) and centered
         size_t nbValues  = m_dimensions[0]*m_dimensions[1]*m_dimensions[2];
-        float  minPos[3] = {(float)((m_dimensions[0]/2.0) * ptsDesc.size[0] / m_dimensions[0] * ptsDesc.spacing[0]),
-                            (float)((m_dimensions[1]/2.0) * ptsDesc.size[1] / m_dimensions[1] * ptsDesc.spacing[1]),
-                            (float)((m_dimensions[2]/2.0) * ptsDesc.size[2] / m_dimensions[2] * ptsDesc.spacing[2])};
 
-        float  maxPos[3] = {(float)((m_dimensions[0]-1+m_dimensions[0]/2.0) * ptsDesc.size[0] / m_dimensions[0] * ptsDesc.spacing[0]),
-                            (float)((m_dimensions[1]-1+m_dimensions[1]/2.0) * ptsDesc.size[1] / m_dimensions[1] * ptsDesc.spacing[1]),
-                            (float)((m_dimensions[2]-1+m_dimensions[2]/2.0) * ptsDesc.size[2] / m_dimensions[2] * ptsDesc.spacing[2])};
+        float  maxAxis   = std::max(ptsDesc.spacing[0]*ptsDesc.size[0],
+                                    std::max(ptsDesc.spacing[1]*ptsDesc.size[1],
+                                             ptsDesc.spacing[2]*ptsDesc.size[2]));
 
-        float  maxAxis   = std::max(maxPos[0]-minPos[0], std::max(maxPos[1]-minPos[1], maxPos[2]-minPos[2]));
+        for(uint32_t i = 0; i < 3; i++)
+            m_spacing[i] = ptsDesc.size[i]*ptsDesc.spacing[i]/m_dimensions[i]/maxAxis;
+
         float* pts = (float*)malloc(sizeof(float)*nbValues*3);
 
         for(uint32_t k = 0; k < m_dimensions[2]; k++)
@@ -56,9 +55,9 @@ namespace sereno
                 for(uint32_t i = 0; i < m_dimensions[0]; i++)
                 {
                     size_t id = 3*(i + j*m_dimensions[0] + k*m_dimensions[0]*m_dimensions[1]);
-                    pts[id + 0] = (i-m_dimensions[0]/2.0)*ptsDesc.size[0]/m_dimensions[0]*ptsDesc.spacing[0]/maxAxis;
-                    pts[id + 1] = (j-m_dimensions[1]/2.0)*ptsDesc.size[1]/m_dimensions[1]*ptsDesc.spacing[1]/maxAxis;
-                    pts[id + 2] = (k-m_dimensions[2]/2.0)*ptsDesc.size[2]/m_dimensions[2]*ptsDesc.spacing[2]/maxAxis;
+                    float pos[3] = {(float)i, (float)j, (float)k};
+                    for(uint32_t l = 0; l < 3; l++)
+                        pts[id + l] = (pos[l]-m_dimensions[l]/2.0)*m_spacing[l];
                 }
 
         //Creates the VBO
@@ -77,7 +76,7 @@ namespace sereno
         glDeleteBuffers(1, &m_vboID);
     }
 
-    VTKStructuredGridPointGameObject::VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, const VTKFieldValue* ptFieldValue, SubDataset* subDataset) : SciVis(parent, renderer, mtl, subDataset), m_gridPointVBO(gridPointVBO), m_maxVal(std::numeric_limits<float>::min()), m_minVal(std::numeric_limits<float>::max()), m_propID(propID)
+    VTKStructuredGridPointGameObject::VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, const VTKFieldValue* ptFieldValue, SubDataset* subDataset) : SciVis(parent, renderer, mtl, subDataset), m_gridPointVBO(gridPointVBO), m_maxVal(-std::numeric_limits<float>::max()), m_minVal(std::numeric_limits<float>::max()), m_propID(propID)
     {
         const VTKStructuredPoints& ptsDesc = m_gridPointVBO->m_vtkParser->getStructuredPointsDescriptor();
 
@@ -85,13 +84,17 @@ namespace sereno
         uint8_t* vals = (uint8_t*)m_gridPointVBO->m_vtkParser->parseAllFieldValues(ptFieldValue);
         for(uint32_t i = 0; i < ptFieldValue->nbTuples; i++)
         {
-            m_maxVal = std::max(m_maxVal, uint8ToFloat(vals + i*ptFieldValue->nbValuePerTuple));
-            m_minVal = std::min(m_minVal, uint8ToFloat(vals + i*ptFieldValue->nbValuePerTuple));
+            float val = readParsedVTKValue<double>(vals + i*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
+                                                   ptFieldValue->format);
+            m_maxVal = std::max(m_maxVal, val);
+            m_minVal = std::min(m_minVal, val);
         }
+        float amp[2] = {m_maxVal, m_minVal};
+        subDataset->setAmplitude(amp);
 
         //Store the interesting values
         size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
-        m_vals = (float*)malloc(sizeof(float)*4*nbValues);
+        m_vals = (float*)malloc(sizeof(float)*nbValues);
         for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
             for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
                 for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
@@ -102,16 +105,44 @@ namespace sereno
                     size_t srcID  = i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0] +
                                     j*ptsDesc.size[1]/m_gridPointVBO->m_dimensions[1]*ptsDesc.size[0] + 
                                     k*ptsDesc.size[2]/m_gridPointVBO->m_dimensions[2]*ptsDesc.size[1]*ptsDesc.size[0];
-                    m_vals[destID] = uint8ToFloat(vals + ptFieldValue->nbValuePerTuple*srcID);
+                    m_vals[destID] = readParsedVTKValue<double>(vals + srcID*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
+                                                                ptFieldValue->format);
                 }
         free(vals);
         setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
+
+        //Set VAO
+        glGenVertexArrays(1, &m_vaoID);
+        glBindVertexArray(m_vaoID);
+            glBindBuffer(GL_ARRAY_BUFFER, m_gridPointVBO->m_vboID);
+
+            glVertexAttribPointer(MATERIAL_VPOSITION, 3, GL_FLOAT, 0, 0, (void*)(0));
+            glVertexAttribPointer(MATERIAL_VCOLOR, 4, GL_FLOAT, 0, 0, (void*)((4*propID+3)*nbValues*sizeof(float)));
+
+            glEnableVertexAttribArray(MATERIAL_VPOSITION);
+            glEnableVertexAttribArray(MATERIAL_VCOLOR);
+        glBindVertexArray(0);
     }
 
     VTKStructuredGridPointGameObject::~VTKStructuredGridPointGameObject()
     {
-        glDeleteVertexArraysOES(1, &m_vaoID);
+        glDeleteVertexArrays(1, &m_vaoID);
         free(m_vals);
+    }
+
+    void VTKStructuredGridPointGameObject::draw(const glm::mat4& cameraMat)
+    {
+        glm::mat4 mat    = getMatrix();
+        glm::mat4 mvp    = cameraMat*mat;
+        glm::mat4 invMVP = glm::inverse(mvp);
+        m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
+        glBindVertexArray(m_vaoID);
+        {
+            size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
+            setScale(glm::vec3(0.5, 0.5, 0.5));
+            glDrawArrays(GL_POINTS, 0, nbValues);
+        }
+        glBindVertexArray(0);
     }
 
     void VTKStructuredGridPointGameObject::setColorRange(float min, float max, ColorMode colorMode)
@@ -125,9 +156,9 @@ namespace sereno
             float t = (m_vals[i]-m_minVal)/(m_maxVal-m_minVal);
 
             //Test if inside the min-max range.
-            if(t < max || t > min)
+            if(t > max || t < min)
                 for(uint32_t j = 0; j < 4; j++)
-                    colors[i*4+j] = 0;
+                    colors[i*4+j] = 1.0f;
             else
             {
                 Color c = SciVis_computeColor(colorMode, t);
@@ -142,5 +173,23 @@ namespace sereno
             glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*nbValues*(3+4*m_propID), sizeof(float)*nbValues*4, colors);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         free(colors);
+    }
+
+    VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity) : dataset(d)
+    {
+        //Create every objects
+        //No parent assigned yet
+        vbo         = new VTKStructuredGridPointVBO(renderer, d->getParser(), d->getPtFieldValues().size(), desiredDensity);
+        gameObjects = (VTKStructuredGridPointGameObject**)malloc(sizeof(VTKStructuredGridPointGameObject*)*d->getPtFieldValues().size());
+        for(uint32_t i = 0; i < d->getPtFieldValues().size(); i++)
+            gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i));
+    }
+
+    VTKStructuredGridPointSciVis::~VTKStructuredGridPointSciVis()
+    {
+        for(uint32_t i = 0; i < dataset->getPtFieldValues().size(); i++)
+            delete gameObjects[i];
+        delete gameObjects;
+        delete vbo;
     }
 }

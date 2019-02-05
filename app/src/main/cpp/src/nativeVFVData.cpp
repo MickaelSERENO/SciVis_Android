@@ -32,7 +32,7 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddBinaryDataset
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jlong ptr, jlong parserPtr, jlongArray ptFieldValues, jlongArray cellFieldValues)
 {
     VFVData* data = (VFVData*)ptr;
-    std::shared_ptr<VTKParser>* parser = (std::shared_ptr<VTKParser>*)(ptr);
+    std::shared_ptr<VTKParser>* parser = (std::shared_ptr<VTKParser>*)(parserPtr);
     data->addVTKData(std::shared_ptr<VTKDataset>(new VTKDataset(*parser, jlongArrayToVector<VTKFieldValue>(env, ptFieldValues), 
                                                                 jlongArrayToVector<VTKFieldValue>(env, cellFieldValues)))); 
 }

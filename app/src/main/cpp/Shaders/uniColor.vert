@@ -1,9 +1,10 @@
+#version 300 es
 precision mediump float;
 
-attribute vec3 vPosition;
-attribute vec2 vTextureCoord;
+in vec3 vPosition;
+in vec2 vTextureCoord;
 
-varying vec2 varyTextureCoord;
+out vec2 varyTextureCoord;
 uniform mat4 uMVP;
 
 void main()

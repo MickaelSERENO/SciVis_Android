@@ -3,11 +3,12 @@
 
 #define GL_GLEXT_PROTOTYPES
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
 #include "Graphics/SciVis/SciVis.h"
 #include "Graphics/GLRenderer.h"
 #include "Graphics/Materials/Material.h"
+#include "Datasets/VTKDataset.h"
 #include "VTKParser.h"
 
 namespace sereno
@@ -27,10 +28,23 @@ namespace sereno
 
             /** \brief  Destructor, destroy the VBO */
             ~VTKStructuredGridPointVBO();
+
+            /**
+             * \brief  Get the spacing between each point
+             * \return the spacing between each point (3 float values)
+             */
+            const float*    getSpacing() {return m_spacing;}
+
+            /**
+             * \brief  Get the grid dimensions
+             * \return the grid dimensions (3 integer values)
+             */
+            const uint32_t* getDimensions() {return m_dimensions;}
         private:
             std::shared_ptr<VTKParser> m_vtkParser; /*!< The VTKParser in use*/
             GLuint   m_vboID;                       /*!< The VBO generated. Will be shared among VTKStructuredGridGameObject objects*/
             uint32_t m_dimensions[3];               /*!< The dimension in use*/
+            float    m_spacing[3];                  /*!< The space between each point*/
             friend class VTKStructuredGridPointGameObject;
     };
 
@@ -47,7 +61,10 @@ namespace sereno
              * \param subDataset the subDataset to use */
             VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, const VTKFieldValue* ptFieldValue, SubDataset* subDataset);
 
+            /** \brief  Destructor */
             ~VTKStructuredGridPointGameObject();
+
+            void draw(const glm::mat4& cameraMat);
 
             void setColorRange(float min, float max, ColorMode colorMode);
         private:
@@ -57,6 +74,24 @@ namespace sereno
             float    m_minVal;                         /*!< The property min value*/
             uint32_t m_propID;                         /*!< The property ID*/
             GLuint   m_vaoID;                          /*!< VAO*/
+    };
+
+    /** \brief  Structure regrouping every information needed for VTKStructuredGridPoint visualization */
+    struct VTKStructuredGridPointSciVis
+    {
+        /**
+         * \brief  Constructor
+         *
+         * \param d the dataset to use
+         */
+        VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity);
+
+        /** \brief  Destructor */
+        ~VTKStructuredGridPointSciVis();
+
+        VTKStructuredGridPointVBO*         vbo;         /*!< The VBO to use*/
+        std::shared_ptr<VTKDataset>        dataset;     /*!< The dataset bind*/
+        VTKStructuredGridPointGameObject** gameObjects; /*!< The gameObjects created. No parent assigned yet*/
     };
 }
 

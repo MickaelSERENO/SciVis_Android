@@ -2,8 +2,9 @@
 #define  GLRENDERER_INC
 
 #include <pthread.h>
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <android/native_window.h>
 #include <utils.h>
 

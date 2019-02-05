@@ -4,11 +4,14 @@
 #include "GLSurfaceViewData.h"
 #include "VFVData.h"
 #include "Graphics/SciVis/VectorField.h"
+#include "Graphics/SciVis/VTKStructuredGridPointGameObject.h"
 #include "Graphics/Materials/ColorMaterial.h"
+#include "Graphics/Materials/ColorGridMaterial.h"
 
 #include <memory>
 
-#define MAX_SNAPSHOT_COUNTER 5
+#define MAX_SNAPSHOT_COUNTER             5
+#define VTK_STRUCTURED_POINT_VIS_DENSITY 64
 
 namespace sereno
 {
@@ -41,8 +44,13 @@ namespace sereno
 
             MeshLoader*                m_arrowMesh;             /*!< The arrow mesh for the vector fields*/
             ColorMaterial*             m_arrowMtl;              /*!< The arrow material for the vector fields*/
+            ColorGridMaterial*         m_colorGridMtl;          /*!< The color grid material for the VTK StructuredGridPoints*/
             std::vector<VectorField*>  m_vectorFields;          /*!< The loaded vector fields*/
-            VectorField*               m_currentVF      = NULL; /*!< The current Vector Field being displayed*/
+
+            std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
+
+            std::vector<SciVis*>       m_sciVis;                /*!< List of visualization*/
+            SciVis*                    m_currentVis     = NULL; /*!< The current visualization*/
             uint32_t                   m_snapshotCnt    = 0;    /*!< The snapshot counter*/
             uint32_t*                  m_snapshotPixels = NULL; /*!< The snapshot pixels*/
             uint32_t                   m_snapshotWidth  = 0;    /*!< The snapshot width*/

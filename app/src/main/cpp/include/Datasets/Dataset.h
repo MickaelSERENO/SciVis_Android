@@ -30,7 +30,18 @@ namespace sereno
             /** \brief  Destructor */
             virtual ~Dataset();
 
+            /**
+             * \brief  Get the subdataset indice i
+             * \param i the indice of the subdataset required
+             * \return  subDatasets[i] or NULL if i is out of range
+             */
             SubDataset* getSubDataset(uint32_t i) {return (i < m_subDatasets.size()) ? m_subDatasets[i] : NULL;}
+
+            /**
+             * \brief  Get the number of subdatasets this dataset possesses
+             * \return  the number of subdataset this dataset possesses 
+             */
+            uint32_t getNbSubDatasets() const {return m_subDatasets.size();}
         protected:
             /**
              * \brief  Set the subdataset amplitude using friendship

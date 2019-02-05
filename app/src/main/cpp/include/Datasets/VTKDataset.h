@@ -21,6 +21,18 @@ namespace sereno
              */
             VTKDataset(std::shared_ptr<VTKParser>& parser, const std::vector<VTKFieldValue*>& ptFieldValues, 
                                      const std::vector<VTKFieldValue*>& cellFieldValues);
+
+            /**
+             * \brief  Get the VTKParser
+             * \return  the VTKParser object 
+             */
+            const std::shared_ptr<VTKParser> getParser() const {return m_parser;}
+
+            /**
+             * \brief  Get the point field values
+             * \return   the VTKFieldValue* objects
+             */
+            const std::vector<VTKFieldValue*>& getPtFieldValues() const {return m_ptFieldValues;}
         private:
             std::vector<VTKFieldValue*> m_ptFieldValues;   /*!< The point field values*/
             std::vector<VTKFieldValue*> m_cellFieldValues; /*!< The cell  field values*/

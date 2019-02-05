@@ -40,7 +40,7 @@ def List getCMakeArgument()
 {
     File cmakeFile = new File(projectDir.absolutePath + '/cmakeArguments')
     if(cmakeFile.exists())
-        return cmakeFile.getText().split(/,/) as List
+        return (cmakeFile.getText() + ',-DANDROID_PLATFORM=android-21').split(/,/) as List
     return []
 }
 

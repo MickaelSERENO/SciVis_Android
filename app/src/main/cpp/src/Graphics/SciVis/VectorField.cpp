@@ -96,8 +96,8 @@ namespace sereno
         }        
 
         //Load VAO - VBO - EBO
-        glGenVertexArraysOES(1, &m_vaoID);
-        glBindVertexArrayOES(m_vaoID);
+        glGenVertexArrays(1, &m_vaoID);
+        glBindVertexArray(m_vaoID);
         {
             //Init the VBO and EBO
             glGenBuffers(1, &m_vboID);
@@ -118,7 +118,7 @@ namespace sereno
                 glEnableVertexAttribArray(MATERIAL_VCOLOR);
             }
         }
-        glBindVertexArrayOES(0);
+        glBindVertexArray(0);
 
         setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
 
@@ -129,7 +129,7 @@ namespace sereno
     VectorField::~VectorField()
     {
         glDeleteBuffers(1, &m_vboID);
-        glDeleteVertexArraysOES(1, &m_vaoID);
+        glDeleteVertexArrays(1, &m_vaoID);
     }
 
     void VectorField::draw(const glm::mat4& cameraMat)
@@ -138,11 +138,11 @@ namespace sereno
         glm::mat4 mvp    = cameraMat*mat;
         glm::mat4 invMVP = glm::inverse(mvp);
         m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
-        glBindVertexArrayOES(m_vaoID);
+        glBindVertexArray(m_vaoID);
         {
             glDrawArrays(GL_TRIANGLES, 0, m_nbPoints);
         }
-        glBindVertexArrayOES(0);
+        glBindVertexArray(0);
     }
 
     void VectorField::setColorRange(float min, float max, ColorMode colorMode)

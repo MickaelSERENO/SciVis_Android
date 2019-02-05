@@ -178,7 +178,7 @@ namespace sereno
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
-            std::vector<std::shared_ptr<Dataset>> m_datas;       /*!< The data paths */
+            std::vector<std::shared_ptr<Dataset>> m_datas;    /*!< The data paths */
 
             std::shared_ptr<Dataset> m_currentData       = NULL; /*!< The current data*/
             int                      m_currentSubDataIdx = -1;   /*!< The current subdata index*/
@@ -187,7 +187,7 @@ namespace sereno
             pthread_mutex_t          m_mutex;                    /*!< The mutex for handling communication between Java and Cpp*/
             uint32_t                 m_snapshotWidth;
             uint32_t                 m_snapshotHeight;
-            uint32_t*                m_snapshotPixels = NULL;    /*!< The snapshot pixels*/
+            uint32_t*                m_snapshotPixels    = NULL; /*!< The snapshot pixels*/
             pthread_mutex_t          m_snapshotMutex;            /*!< The mutex for handling the snapshot generation*/
     };
 }
