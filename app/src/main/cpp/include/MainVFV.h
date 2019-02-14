@@ -11,7 +11,7 @@
 #include <memory>
 
 #define MAX_SNAPSHOT_COUNTER             5
-#define VTK_STRUCTURED_POINT_VIS_DENSITY 64
+#define VTK_STRUCTURED_POINT_VIS_DENSITY 128
 
 namespace sereno
 {

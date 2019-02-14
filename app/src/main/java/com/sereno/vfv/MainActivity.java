@@ -231,8 +231,6 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onDialogNegativeClick(OpenVTKDatasetDialog dialog) {}
                     });
-
-                    //m_model.addVTKDataset(parser);
                 }
             }
 

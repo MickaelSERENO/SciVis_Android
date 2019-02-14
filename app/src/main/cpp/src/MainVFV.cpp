@@ -145,6 +145,7 @@ namespace sereno
                         if(updateColor)
                             m_currentVis->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
                         m_currentVis->setRotate(dataset->getGlobalRotate());
+                        updateColor = false;
                         break;
                     }
                 }

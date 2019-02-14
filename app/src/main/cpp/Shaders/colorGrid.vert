@@ -1,9 +1,9 @@
 #version 300 es
-precision mediump float;
+
+precision lowp float;
 
 in vec3 vPosition;
 in vec4 vColor;
-
 
 out VS_OUT
 {

@@ -1,6 +1,8 @@
 #version 300 es
 #extension GL_OES_geometry_shader : enable
 
+precision lowp float;
+
 layout(points) in;
 layout(triangle_strip, max_vertices = 14) out;
 
