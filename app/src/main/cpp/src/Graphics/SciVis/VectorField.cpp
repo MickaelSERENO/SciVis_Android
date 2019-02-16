@@ -4,8 +4,8 @@
 namespace sereno
 {
     VectorField::VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent, 
-                             const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader) : 
-        SciVis(parent, renderer, mtl, dataset->getSubDataset(0)), m_binaryDataset(dataset)
+                             const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader, GLuint tfTexture, uint8_t tfTextureDim) : 
+        SciVis(parent, renderer, mtl, dataset->getSubDataset(0), tfTexture, tfTextureDim), m_binaryDataset(dataset)
     {
         //Field variables
         const float*    vel      = dataset->getVelocity();

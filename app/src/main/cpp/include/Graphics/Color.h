@@ -33,6 +33,26 @@ namespace sereno
              * \param array array which components will be saved. */
             void getFloatArray(float* array) const;
 
+            /**
+             * \brief  Get the color component rgba based on an index. If x >=3, returns alpha component
+             * \param x the indice to fetch. 0 == r, 1 == g, 2==b, x >=3 == a
+             * \return the component reference value  
+             */
+            float& operator[] (int x)
+            {
+                switch(x)
+                {
+                    case 0:
+                        return r;
+                    case 1:
+                        return g;
+                    case 2:
+                        return b;
+                    default:
+                        return a;
+                }
+            }
+
             float r; /** <red component */
             float g; /** <green component */
             float b; /** <blue component */

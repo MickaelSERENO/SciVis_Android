@@ -58,8 +58,13 @@ namespace sereno
              * \param parent the GameObject parent
              * \param propID the property ID in the VBO (useful for writting at the correct place)
              * \param ptFieldValue the point field value to use
-             * \param subDataset the subDataset to use */
-            VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, const VTKFieldValue* ptFieldValue, SubDataset* subDataset);
+             * \param subDataset the subDataset to use 
+             * \param tfTexture the transfert function texture to apply
+             * \param tfTextureDim the transfert function texture dimension*/
+            VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, 
+                                             VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, 
+                                             const VTKFieldValue* ptFieldValue, SubDataset* subDataset, 
+                                             GLuint tfTexture, uint8_t tfTextureDim);
 
             /** \brief  Destructor */
             ~VTKStructuredGridPointGameObject();
@@ -82,9 +87,14 @@ namespace sereno
         /**
          * \brief  Constructor
          *
+         * \param renderer The OpenGL Context object
+         * \param mtl The material to use
          * \param d the dataset to use
-         */
-        VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity);
+         * \param desiredDensity the desired displayed density
+         * \param tfTexture the transfert function texture to apply
+         * \param tfTextureDim the transfert function texture dimension*/
+        VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, 
+                                     uint32_t desiredDensity, GLuint tfTexture, uint8_t tfTextureDim);
 
         /** \brief  Destructor */
         ~VTKStructuredGridPointSciVis();

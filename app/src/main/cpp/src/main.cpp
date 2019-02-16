@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include <stdio.h>
 #include "utils.h"
+#include "Graphics/SciVis/TransfertFunction/TransfertFunction.h"
+#include "Graphics/SciVis/TransfertFunction/GTF.h"
 
 using namespace sereno;
 

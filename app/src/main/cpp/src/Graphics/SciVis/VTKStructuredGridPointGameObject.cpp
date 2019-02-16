@@ -76,7 +76,13 @@ namespace sereno
         glDeleteBuffers(1, &m_vboID);
     }
 
-    VTKStructuredGridPointGameObject::VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, const VTKFieldValue* ptFieldValue, SubDataset* subDataset) : SciVis(parent, renderer, mtl, subDataset), m_gridPointVBO(gridPointVBO), m_maxVal(-std::numeric_limits<float>::max()), m_minVal(std::numeric_limits<float>::max()), m_propID(propID)
+    VTKStructuredGridPointGameObject::VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, 
+                                                                       VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, 
+                                                                       const VTKFieldValue* ptFieldValue, SubDataset* subDataset, 
+                                                                       GLuint tfTexture, uint8_t tfTextureDim) : 
+        SciVis(parent, renderer, mtl, subDataset, tfTexture, tfTextureDim), 
+        m_gridPointVBO(gridPointVBO), m_maxVal(-std::numeric_limits<float>::max()), m_minVal(std::numeric_limits<float>::max()), 
+        m_propID(propID)
     {
         const VTKStructuredPoints& ptsDesc = m_gridPointVBO->m_vtkParser->getStructuredPointsDescriptor();
 
@@ -175,14 +181,15 @@ namespace sereno
         free(colors);
     }
 
-    VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity) : dataset(d)
+    VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, 
+                                                               uint32_t desiredDensity, GLuint tfTexture, uint8_t tfTextureDim) : dataset(d)
     {
         //Create every objects
         //No parent assigned yet
         vbo         = new VTKStructuredGridPointVBO(renderer, d->getParser(), d->getPtFieldValues().size(), desiredDensity);
         gameObjects = (VTKStructuredGridPointGameObject**)malloc(sizeof(VTKStructuredGridPointGameObject*)*d->getPtFieldValues().size());
         for(uint32_t i = 0; i < d->getPtFieldValues().size(); i++)
-            gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i));
+            gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i), tfTexture, tfTextureDim);
     }
 
     VTKStructuredGridPointSciVis::~VTKStructuredGridPointSciVis()

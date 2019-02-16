@@ -91,7 +91,7 @@ namespace sereno
                         if(m_arrowMesh)
                         {
                             m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_arrowMtl, NULL,
-                                                                     event->binaryData.dataset, m_arrowMesh));
+                                                                     event->binaryData.dataset, m_arrowMesh, 0, 0));
                             m_sciVis.push_back(m_vectorFields.back());
                             if(m_currentVis == NULL)
                                 m_currentVis = m_sciVis[0];
@@ -99,7 +99,7 @@ namespace sereno
                         }
 
                     case VFV_ADD_VTK_DATA:
-                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY));
+                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 0, 0));
                         m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
                         for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
                             m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);

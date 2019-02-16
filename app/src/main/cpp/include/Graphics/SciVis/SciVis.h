@@ -18,8 +18,10 @@ namespace sereno
              * \param renderer the GLRenderer containing the OpenGL Context
              * \param mtl the material to use
              * \paremt model the model to use
-             */
-            SciVis(GameObject* parent, GLRenderer* renderer, Material* mtl, SubDataset* model) : GameObject(parent, renderer, mtl), m_model(model) {}
+             * \param tfTexture the transfert function texture to apply
+             * \param tfTextureDim the transfert function texture dimension*/
+            SciVis(GameObject* parent, GLRenderer* renderer, Material* mtl, SubDataset* model, GLuint tfTexture, uint8_t tfTextureDim) : 
+                GameObject(parent, renderer, mtl), m_model(model), m_tfTexture(tfTexture), m_tfTextureDim(tfTextureDim) {}
 
             /** \brief  Virtual destructor */
             virtual ~SciVis() {};
@@ -36,6 +38,8 @@ namespace sereno
             SubDataset* getModel() {return m_model;}
         protected:
             SubDataset* m_model = NULL; /*!< The model bound to this visualization*/
+            GLuint      m_tfTexture;
+            uint8_t     m_tfTextureDim;
     };
 }
 
