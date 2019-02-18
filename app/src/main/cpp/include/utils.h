@@ -7,6 +7,15 @@
 #include <cstring>
 #include <vector>
 
+#define ENUM_BODY(name, value)                  \
+    name value,
+
+#define DEFINE_ENUM(name, list)                 \
+    typedef enum name                           \
+    {                                           \
+        list(ENUM_BODY)                         \
+    }name;
+
 #ifndef __FILENAME__
 #define __FILENAME__ (strrchr("/" __FILE__, '/') + 1)
 #endif
@@ -84,5 +93,39 @@ inline float uint8ToFloat(uint8_t* data)
     uint32_t t = uint8ToUint32(data);
     return *(float*)&t;
 }
+
+
+#if __cplusplus > 201703L
+    /**
+     * \brief  Create meta nested for loop. The most outer part of the for loop is at indice==Dim-1 
+     *
+     * @tparam Dim the dimension of the for loop
+     * @tparam Callable the functor class callable
+     * \param start array of where to start along each dimension
+     * \param end array of where to finish along each dimension
+     * \param c the function to call
+     *
+     * \return   
+     */
+    template<size_t Dim, class Callable>
+    constexpr void metaForLoop(const size_t* start, const size_t* end, Callable&& c)
+    {
+        static_assert(Dim > 0);
+
+        for(size_t i = start[Dim]; i != end[Dim]; i++)
+        {
+            if constexpr(Dim == 1)
+                c(i);
+            else
+            {
+                auto bindAnArgument = [i, &c](auto... args)
+                {
+                    c(i, args...);
+                };
+                meta_for_loop<Dim-1>(begin, end, bindAnArgument);
+            }
+        }
+    }
+#endif
 
 #endif

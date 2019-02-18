@@ -60,7 +60,6 @@ namespace sereno
 
     void UniColorMaterial::getAttributs()
     {
-        Material::getAttributs();
         if(m_shader)
         {
             m_uColor       = glGetUniformLocation(m_shader->getProgramID(), "uUniColor");

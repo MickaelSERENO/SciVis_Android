@@ -74,15 +74,13 @@ namespace sereno
         shader->m_vertexID = loadShader(vertexString, GL_VERTEX_SHADER);
         shader->m_fragID = loadShader(fragString, GL_FRAGMENT_SHADER);
 
-#if 0
         //Load geometry shader
         if(geomString.size() != 0)
         {
-            shader->m_geomID = loadShader(geomString, GL_GEOMETRY_SHADER);
+            shader->m_geomID = loadShader(geomString, GL_GEOMETRY_SHADER_OES);
             glAttachShader(shader->m_programID, shader->m_geomID);
             shader->m_hasGeom = true;
         }
-#endif
 
         glAttachShader(shader->m_programID, shader->m_vertexID);
         glAttachShader(shader->m_programID, shader->m_fragID);
@@ -148,8 +146,11 @@ namespace sereno
     void Shader::bindAttributes()
     {
         glBindAttribLocation(m_programID, MATERIAL_VPOSITION, "vPosition");
-        glBindAttribLocation(m_programID, MATERIAL_VUV,       "vUV");
         glBindAttribLocation(m_programID, MATERIAL_VNORMAL,   "vNormal");
         glBindAttribLocation(m_programID, MATERIAL_VCOLOR,    "vColor");
+        glBindAttribLocation(m_programID, MATERIAL_VUV0,      "vUV0");
+        glBindAttribLocation(m_programID, MATERIAL_VUV1,      "vUV1");
+        glBindAttribLocation(m_programID, MATERIAL_VUV2,      "vUV2");
+        glBindAttribLocation(m_programID, MATERIAL_VUV3,      "vUV3");
     }
 }

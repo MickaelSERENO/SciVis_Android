@@ -9,8 +9,13 @@ namespace sereno
             mainData->setCallback(this);
 
         //Load arrow mesh and material
-        m_arrowMesh = MeshLoader::loadFrom3DS(m_surfaceData->dataPath + "/Models/arrow.3ds");
-        m_arrowMtl  = new ColorMaterial(&surfaceData->renderer);
+        m_arrowMesh    = MeshLoader::loadFrom3DS(m_surfaceData->dataPath + "/Models/arrow.3ds");
+        m_vfMtl        = new Material(&surfaceData->renderer, surfaceData->renderer.getShader("vectorField"));
+        m_colorGridMtl = new ColorGridMaterial(&surfaceData->renderer);
+
+        uint32_t texSize[2] = {256, 256};
+        for(uint32_t i = 0; i < SciVisTFEnum_End; i++)
+            m_sciVisTFs.push_back(sciVisTFGenTexture((SciVisTFEnum)i, texSize));
     }
 
     MainVFV::~MainVFV()
@@ -18,8 +23,10 @@ namespace sereno
         for(VectorField* vf : m_vectorFields)
             if(vf)
                 delete vf;
+        for(GLuint tex : m_sciVisTFs)
+            glDeleteTextures(1, &tex);
         delete m_arrowMesh;
-        delete m_arrowMtl;
+        delete m_vfMtl;
     }
 
     void MainVFV::run()
@@ -36,7 +43,7 @@ namespace sereno
         glEnable(GL_CULL_FACE);
 
         //List of dataset modified
-        std::vector<SubDataset*> modelChanged;
+        std::vector<const SubDataset*> modelChanged;
 
         //Should we update the color ?
         //We do not keep WHICH dataset has seen its color changed, in most condition it is the CURRENT DATA which has seen its color changed
@@ -63,12 +70,12 @@ namespace sereno
                         break;
                     case TOUCH_MOVE:
                     {
-                        if(m_currentVF)
+                        if(m_currentVis)
                         {
                             float roll  = event->touchEvent.x - event->touchEvent.oldX;
                             float pitch = event->touchEvent.y - event->touchEvent.oldY;
-                            modelChanged.push_back(m_currentVF->getModel()->getSubDataset(0));
-                            m_currentVF->getModel()->getSubDataset(0)->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVF->getRotate());
+                            modelChanged.push_back(m_currentVis->getModel());
+                            m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
 
                             LOG_INFO("Rotating about %f %f", pitch, roll);
                         }
@@ -89,24 +96,38 @@ namespace sereno
                     case VFV_ADD_BINARY_DATA:
                         if(m_arrowMesh)
                         {
-                            m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_arrowMtl, NULL,
-                                                                     event->binaryData.dataset, m_arrowMesh));
-                            if(m_currentVF == NULL)
-                                m_currentVF      = m_vectorFields.back();
+                            m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
+                                                                     event->binaryData.dataset, m_arrowMesh, 
+                                                                     m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
+                            m_sciVis.push_back(m_vectorFields.back());
+                            if(m_currentVis == NULL)
+                                m_currentVis = m_sciVis[0];
                             break;
                         }
 
+                    case VFV_ADD_VTK_DATA:
+                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 
+                                                                                             m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
+                        m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
+                        for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
+                            m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
+                        if(m_currentVis == NULL)
+                            m_currentVis = m_sciVis[0];
+                        break;
+
                     case VFV_DEL_DATA:
                         {
-                            if(m_currentVF->getModel() == event->dataset.dataset)
-                                m_currentVF = NULL;
+                            //Check if the current sci vis is being deleted
+                            if(m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
+                                m_currentVis = NULL;
 
                             //Check vector field
                             for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
-                                if((*it)->getModel() == event->dataset.dataset)
+                                if((*it)->getModel()->getParent() == event->dataset.dataset.get())
                                 {
                                     delete (*it);
                                     m_vectorFields.erase(it);
+                                    break;
                                 }
                         }
                         break;
@@ -122,16 +143,17 @@ namespace sereno
                 delete event;
             }
 
-            if(m_currentVF != NULL)
+            if(m_currentVis != NULL)
             {
                 //Apply the model changement (rotation + color)
                 for(auto dataset : modelChanged)
                 {
-                    if(m_currentVF->getModel().get() == dataset->getParent())
+                    if(m_currentVis->getModel() == dataset)
                     {
                         if(updateColor)
-                            m_currentVF->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
-                        m_currentVF->setRotate(dataset->getGlobalRotate());
+                            m_currentVis->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
+                        m_currentVis->setRotate(dataset->getGlobalRotate());
+                        updateColor = false;
                         break;
                     }
                 }
@@ -140,8 +162,8 @@ namespace sereno
             //Draw the scene
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if(m_currentVF != NULL)
-                m_currentVF->update(&m_surfaceData->renderer);
+            if(m_currentVis != NULL)
+                m_currentVis->update(&m_surfaceData->renderer);
 
             if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
             {

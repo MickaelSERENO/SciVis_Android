@@ -1,3 +1,4 @@
+#version 300 es
 precision mediump float;
 
 uniform vec4 uMaskColor;
@@ -6,25 +7,26 @@ uniform bool uUseTexture;
 uniform sampler2D uTexture;
 uniform vec4      uUniColor;
 
-varying vec2 varyTextureCoord;
+in vec2 varyUV;
+out vec4 fragColor;
 
 void main()
 {
 	if(uUseTexture)
 	{
-		vec4 textColor = texture2D(uTexture, varyTextureCoord);
+		vec4 textColor = texture2D(uTexture, varyUV);
 
 		if(uMaskColor[3] == 0.0 && textColor[3] == 0.0)
 			discard;
 		else if(uMaskColor == textColor)
 			discard;
-        gl_FragColor = textColor;
+        fragColor = textColor;
 	}
 
     else
     {
         if(uUniColor.a == 0.0)
             discard;
-        gl_FragColor = uUniColor;
+        fragColor = uUniColor;
     }
 }

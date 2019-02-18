@@ -68,18 +68,19 @@ namespace sereno
         //Initialize the egl context
         const EGLint attribs[] = 
         {
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
             EGL_BLUE_SIZE, 8,
             EGL_GREEN_SIZE, 8,
             EGL_RED_SIZE, 8,
             EGL_ALPHA_SIZE, 8,
+            EGL_DEPTH_SIZE, 24,
             EGL_NONE
         };
 
         const EGLint eglAttribs[] =
         {
-            EGL_CONTEXT_CLIENT_VERSION, 2,
+            EGL_CONTEXT_CLIENT_VERSION, 3,
             EGL_NONE
         };
 
@@ -120,7 +121,8 @@ namespace sereno
         }
 
         //Initialize Shaders
-        const char* shaders[] = {"color", "uniColor"};
+        const char* shaders[] = {"color", "uniColor", "colorGrid", "vectorField"};
+        const bool  hasGeom[] = {false, false, true, false};
         for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
         {
             Shader* shader = NULL;
@@ -129,11 +131,20 @@ namespace sereno
 
             FILE* vertShadFile = fopen(vertDataPath.c_str(), "r");
             FILE* fragShadFile = fopen(fragDataPath.c_str(), "r");
+            FILE* geomShadFile = NULL;
 
             if(vertShadFile == NULL || fragShadFile == NULL)
                 goto error;
 
-            shader = Shader::loadFromFiles(vertShadFile, fragShadFile);
+            if(hasGeom[i])
+            {
+                std::string geomDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i] + ".geom";
+                geomShadFile = fopen(geomDataPath.c_str(), "r");
+                if(geomShadFile == NULL)
+                    goto error;
+            }
+
+            shader = Shader::loadFromFiles(vertShadFile, fragShadFile, geomShadFile);
 
             if(shader == NULL)
                 goto error;
@@ -146,6 +157,8 @@ error:
                 fclose(vertShadFile);
             if(fragShadFile != NULL)
                 fclose(fragShadFile);
+            if(geomShadFile != NULL)
+                fclose(geomShadFile);
             if(shader != NULL)
                 delete shader;
         }

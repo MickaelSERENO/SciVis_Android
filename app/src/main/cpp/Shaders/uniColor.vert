@@ -1,13 +1,14 @@
+#version 300 es
 precision mediump float;
 
-attribute vec3 vPosition;
-attribute vec2 vTextureCoord;
+in vec3 vPosition;
+in vec2 vUV0;
 
-varying vec2 varyTextureCoord;
+out vec2 varyUV;
 uniform mat4 uMVP;
 
 void main()
 {
-	varyTextureCoord  = vTextureCoord;
-	gl_Position       = uMVP*vec4(vPosition, 1.0);
+	varyUV      = vUV0;
+	gl_Position = uMVP*vec4(vPosition, 1.0);
 }

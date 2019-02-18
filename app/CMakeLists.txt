@@ -63,7 +63,7 @@ PKG_CHECK_MODULES(SERENO_VTK_PARSER REQUIRED serenoVTKParser)
 find_library(log-lib     log)
 find_library(android-lib android)
 find_library(egl-lib     EGL)
-find_library(gles-lib    GLESv2)
+find_library(gles-lib    GLESv3)
 
 #######################
 #Add external libraries
@@ -85,3 +85,7 @@ set_target_properties(sereno_vtk_parser-lib PROPERTIES
 add_library(native-lib SHARED ${SOURCES} ${HEADERS})
 target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS})
 target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})
+
+include(AndroidNdkGdb)
+android_ndk_gdb_enable()
+android_ndk_gdb_debuggable(native-lib)

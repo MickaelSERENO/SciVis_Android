@@ -5,8 +5,9 @@
 
 #define GL_GLEXT_PROTOTYPES
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
+#include <GLES2/gl2ext.h> //Extension for ES 2.0/3.0
 #include <iostream>
 #include <string>
 #include <map>
@@ -14,10 +15,13 @@
 #include <stdlib.h>
 #include "utils.h"
 
-#define MATERIAL_VPOSITION 0
-#define MATERIAL_VNORMAL   1
-#define MATERIAL_VUV       2
-#define MATERIAL_VCOLOR    3 
+#define MATERIAL_VPOSITION    0
+#define MATERIAL_VNORMAL      1
+#define MATERIAL_VCOLOR       2 
+#define MATERIAL_VUV0         3
+#define MATERIAL_VUV1         4
+#define MATERIAL_VUV2         5
+#define MATERIAL_VUV3         6
 
 namespace sereno
 {
