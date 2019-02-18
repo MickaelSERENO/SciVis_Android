@@ -46,8 +46,11 @@ FILE(GLOB_RECURSE SOURCES src/main/cpp/src/*.cpp)
 FILE(GLOB_RECURSE HEADERS src/main/cpp/include/*.h)
 
 #Search for pkgconfig external libraries
+MESSAGE(STATUS "Compiling for ${ANDROID_ABI}")
 if(${ANDROID_ABI} STREQUAL "arm" OR ${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${ANDROID_ABI} STREQUAL "armeabi")
     set(ENV{PKG_CONFIG_PATH} "${CMAKE_PREFIX_PATH_ARM}")
+elseif(${ANDROID_ABI} STREQUAL "x86")
+    set(ENV{PKG_CONFIG_PATH} "${CMAKE_PREFIX_PATH_X86}")
 endif()
 
 #Check module in PKG

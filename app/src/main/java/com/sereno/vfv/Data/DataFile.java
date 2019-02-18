@@ -1,6 +1,9 @@
 package com.sereno.vfv.Data;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.sereno.vfv.MainActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,6 +21,8 @@ public class DataFile
     {
         //Read the data files in externalDir/fluidData. All the files are for this moment valid
         //We may further put some filter.
+        Log.i(MainActivity.TAG, "External files dir : " + ctx.getExternalFilesDir(null));
+
         File   external      = new File(ctx.getExternalFilesDir(null), "Datas");
         if(external == null || !external.isDirectory())
             return null;

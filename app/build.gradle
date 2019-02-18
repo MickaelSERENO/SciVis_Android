@@ -13,7 +13,7 @@ android {
                 println("Use cmakeArguments for adding arguments to this script. Use ',' for separating the arguments !")
                 getCMakeArgument().each {arguments.add(it.trim())}
                 cppFlags "-std=c++14 -frtti -fexceptions"
-                abiFilters 'armeabi-v7a'
+                abiFilters 'armeabi-v7a','x86'
             }
         }
     }
