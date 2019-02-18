@@ -10,8 +10,12 @@ namespace sereno
 
         //Load arrow mesh and material
         m_arrowMesh    = MeshLoader::loadFrom3DS(m_surfaceData->dataPath + "/Models/arrow.3ds");
-        m_arrowMtl     = new ColorMaterial(&surfaceData->renderer);
+        m_vfMtl        = new Material(&surfaceData->renderer, surfaceData->renderer.getShader("vectorField"));
         m_colorGridMtl = new ColorGridMaterial(&surfaceData->renderer);
+
+        uint32_t texSize[2] = {256, 256};
+        for(uint32_t i = 0; i < SciVisTFEnum_End; i++)
+            m_sciVisTFs.push_back(sciVisTFGenTexture((SciVisTFEnum)i, texSize));
     }
 
     MainVFV::~MainVFV()
@@ -19,8 +23,10 @@ namespace sereno
         for(VectorField* vf : m_vectorFields)
             if(vf)
                 delete vf;
+        for(GLuint tex : m_sciVisTFs)
+            glDeleteTextures(1, &tex);
         delete m_arrowMesh;
-        delete m_arrowMtl;
+        delete m_vfMtl;
     }
 
     void MainVFV::run()
@@ -90,8 +96,9 @@ namespace sereno
                     case VFV_ADD_BINARY_DATA:
                         if(m_arrowMesh)
                         {
-                            m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_arrowMtl, NULL,
-                                                                     event->binaryData.dataset, m_arrowMesh, 0, 0));
+                            m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
+                                                                     event->binaryData.dataset, m_arrowMesh, 
+                                                                     m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
                             m_sciVis.push_back(m_vectorFields.back());
                             if(m_currentVis == NULL)
                                 m_currentVis = m_sciVis[0];
@@ -99,7 +106,8 @@ namespace sereno
                         }
 
                     case VFV_ADD_VTK_DATA:
-                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 0, 0));
+                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 
+                                                                                             m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
                         m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
                         for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
                             m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);

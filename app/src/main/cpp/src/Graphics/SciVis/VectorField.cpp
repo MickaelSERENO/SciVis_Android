@@ -110,12 +110,12 @@ namespace sereno
                 //Set vertex attrib
                 glVertexAttribPointer(MATERIAL_VPOSITION, 3, GL_FLOAT, 0, 0, (void*)(0));
                 glVertexAttribPointer(MATERIAL_VNORMAL,   3, GL_FLOAT, 0, 0, (void*)(sizeof(float)*currentVert*3));
-                glVertexAttribPointer(MATERIAL_VCOLOR,    4, GL_FLOAT, 0, 0, (void*)(sizeof(float)*currentVert*6));
+                glVertexAttribPointer(MATERIAL_VUV0,      1, GL_FLOAT, 0, 0, (void*)(sizeof(float)*currentVert*6));
 
                 //Enable
                 glEnableVertexAttribArray(MATERIAL_VPOSITION);
                 glEnableVertexAttribArray(MATERIAL_VNORMAL);
-                glEnableVertexAttribArray(MATERIAL_VCOLOR);
+                glEnableVertexAttribArray(MATERIAL_VUV0);
             }
         }
         glBindVertexArray(0);
@@ -138,6 +138,7 @@ namespace sereno
         glm::mat4 mvp    = cameraMat*mat;
         glm::mat4 invMVP = glm::inverse(mvp);
         m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
+        m_mtl->bindTexture(m_tfTexture, m_tfTextureDim, 0);
         glBindVertexArray(m_vaoID);
         {
             glDrawArrays(GL_TRIANGLES, 0, m_nbPoints);
@@ -147,8 +148,8 @@ namespace sereno
 
     void VectorField::setColorRange(float min, float max, ColorMode colorMode)
     {
-        uint32_t     size   = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2]*m_nbVerticesPerArrow;
-        float*       color  = (float*)malloc(4*sizeof(float)*size);
+        uint32_t     size    = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2]*m_nbVerticesPerArrow;
+        float*       propVal = (float*)malloc(sizeof(float)*size);
 
         //Store fluid dataset constants
         const float*    vel      = m_binaryDataset->getVelocity();
@@ -156,7 +157,7 @@ namespace sereno
         float           minAmp   = m_binaryDataset->getSubDataset(0)->getMinAmplitude();
         float           maxAmp   = m_binaryDataset->getSubDataset(0)->getMaxAmplitude();
 
-        //Set the color for every vector
+        //Set the property value for every vector
         for(uint32_t k = 0; k < m_displayableSize[2]; k++)
         {
             for(uint32_t j = 0; j < m_displayableSize[1]; j++)
@@ -164,9 +165,9 @@ namespace sereno
                 for(uint32_t i = 0; i < m_displayableSize[0]; i++)
                 {
                     //Determine the amplitude of this value
-                    uint32_t colPos = i+j*m_displayableSize[0]+k*m_displayableSize[0]*m_displayableSize[1];
-                    uint32_t velPos = m_dataStep*(i + j*gridSize[0] + k*gridSize[1]*gridSize[0]);
-                    float    amp    = 0.0;
+                    uint32_t propPos = i+j*m_displayableSize[0]+k*m_displayableSize[0]*m_displayableSize[1];
+                    uint32_t velPos  = m_dataStep*(i + j*gridSize[0] + k*gridSize[1]*gridSize[0]);
+                    float    amp     = 0.0;
 
                     for(uint32_t l = 0; l < 3; l++)
                         amp += vel[3*velPos+l]*vel[3*velPos+l];
@@ -176,33 +177,20 @@ namespace sereno
                     
                     //Clamp
                     if(t < min || t > max)
-                    {
                         for(uint32_t v = 0; v < m_nbVerticesPerArrow; v++)
-                            for(uint32_t l = 0; l < 4; l++)
-                                color[m_nbVerticesPerArrow*4*colPos + 4*v + l] = 0.0;
-                    }
+                            propVal[m_nbVerticesPerArrow*propPos+v] = -1.0f;
 
-                    //If inside the range, determine the color based on the color mode and on t (ratio)
+                    //If inside the range, set the property value
                     else
-                    {
-                        Color c = SciVis_computeColor(colorMode, t);
-
-                        //Store the color
                         for(uint32_t v = 0; v < m_nbVerticesPerArrow; v++)
-                        {
-                            color[4*m_nbVerticesPerArrow*colPos + v*4 + 0] = c.r;
-                            color[4*m_nbVerticesPerArrow*colPos + v*4 + 1] = c.g;
-                            color[4*m_nbVerticesPerArrow*colPos + v*4 + 2] = c.b;
-                            color[4*m_nbVerticesPerArrow*colPos + v*4 + 3] = 1.0f;
-                        }
-                    }
+                            propVal[m_nbVerticesPerArrow*propPos+v] = t;
                 }
             }
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vboID),
-            glBufferSubData(GL_ARRAY_BUFFER, 6*sizeof(float)*size, 4*sizeof(float)*size, color);
+            glBufferSubData(GL_ARRAY_BUFFER, 6*sizeof(float)*size, sizeof(float)*size, propVal);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        free(color);
+        free(propVal);
     }
 }

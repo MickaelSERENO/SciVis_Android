@@ -3,7 +3,9 @@
 namespace sereno
 {
     Material::Material(GLRenderer* glRenderer, Shader* shader) : m_glRenderer(glRenderer), m_shader(shader)
-    {}
+    {
+        getAttributs();
+    }
 
     Material::~Material()
     {}
@@ -38,6 +40,19 @@ namespace sereno
         }
     }
 
+    void Material::bindTexture(GLuint textureID, uint8_t textureDim, uint8_t id)
+    {
+        if(id < MATERIAL_MAXTEXTURE && m_shader)
+        {
+            glActiveTexture(GL_TEXTURE0+id);
+            if(textureDim == 1 || textureDim == 2)
+                glBindTexture(GL_TEXTURE_2D, textureID);
+            else if(textureDim == 3)
+                glBindTexture(GL_TEXTURE_3D, textureID);
+            glUniform1i(m_uTextures[id], id);
+        }
+    }
+
     void Material::getAttributs()
     {
         if(m_shader)
@@ -46,6 +61,11 @@ namespace sereno
             m_uObjMat    = glGetUniformLocation(m_shader->getProgramID(), "uObjMat");
             m_uMVP       = glGetUniformLocation(m_shader->getProgramID(), "uMVP");
             m_uInvMVP    = glGetUniformLocation(m_shader->getProgramID(), "uInvMVP");
+            for(uint32_t i = 0; i < MATERIAL_MAXTEXTURE; i++)
+            {
+                LOG_ERROR("%s", ("uTexture"+std::to_string(i)).c_str());
+                m_uTextures[i] = glGetUniformLocation(m_shader->getProgramID(), ("uTexture"+std::to_string(i)).c_str());
+            }
         }
     }
 }

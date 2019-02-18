@@ -26,7 +26,6 @@ namespace sereno
 
     void ColorMaterial::getAttributs()
     {
-        Material::getAttributs();
         if(m_shader)
         {
             m_uUseUniColor = glGetUniformLocation(m_shader->getProgramID(), "uUseUniColor");

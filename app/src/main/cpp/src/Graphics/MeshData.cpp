@@ -18,11 +18,11 @@ namespace sereno
 
                 //Set vertex attrib
                 glVertexAttribPointer(MATERIAL_VPOSITION,   3, GL_FLOAT, 0, 0, (void*)(0));
-                glVertexAttribPointer(MATERIAL_VUV,         2, GL_FLOAT, 0, 0, (void*)(sizeof(float)*loader->nbVertices*3));
+                glVertexAttribPointer(MATERIAL_VUV0,        2, GL_FLOAT, 0, 0, (void*)(sizeof(float)*loader->nbVertices*3));
 
                 //Enable
                 glEnableVertexAttribArray(MATERIAL_VPOSITION);
-                glEnableVertexAttribArray(MATERIAL_VUV);
+                glEnableVertexAttribArray(MATERIAL_VUV0);
             }
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }

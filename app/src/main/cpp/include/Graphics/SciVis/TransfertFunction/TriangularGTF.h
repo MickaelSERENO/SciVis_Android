@@ -1,23 +1,26 @@
-#ifndef  GTF_INC
-#define  GTF_INC
+#ifndef  TRIANGULARGTF_INC
+#define  TRIANGULARGTF_INC
+
 
 #include "Graphics/SciVis/TransfertFunction/TransfertFunction.h"
 #include "Graphics/SciVis/TransfertFunction/TFColor.h"
 #include "Graphics/SciVis/SciVisColor.h"
 #include <algorithm>
 
+
 namespace sereno
 {
-    /** \brief  The Gaussian Transfer Function
+    /** \brief  Triangular Gaussian Transfert Function. The
      *
-     * @tparam Dim The dimension of the data
-     * @tparam Mode The color mode to apply*/
+     * @tparam Dim
+     * @tparam Mode */
     template<uint8_t Dim, ColorMode Mode>
-    class GTF : public TF<Dim>, public TFColor<Mode>
+    class TriangularGTF : public TF<Dim>, public TFColor<Mode>
     {
+        static_assert(Dim >= 2, "Needs at least two dimensions (the last one is for the gradient)");
         public:
             /** \brief  Constructor. Set scale at 1.0f, center at 0.0 and alphaMax at 1.0 */
-            GTF() : TF<Dim>(), m_alphaMax(1.0f)
+            TriangularGTF() : TF<Dim>(), m_alphaMax(1.0f)
             {
                 for(uint8_t i = 0; i < Dim; i++)
                 {
@@ -27,24 +30,29 @@ namespace sereno
             }
 
             /**
-             * \brief  Compute the alpha component of the transfer function
+             * \brief  Compute the alpha component of the transfer function. The last value "ind" if for the gradient magnitude
              * The algorithm comes from "Gaussian Transfert Function for Multiple-Field Volume Visualization" by Kniss et al. in 2003 (IEEE Vis)
              *
-             * \param ind the current Dim indice (i, j, k, ...)
+             * \param ind the current Dim indice (i, j, k, ...). The last one is the gradient
              *
              * \return   the alpha computed
              */
             uint8_t computeAlpha(float* ind) const
             {
-                float r[Dim] = {0};
-                float rMag = 0;
-                for(uint32_t i = 0; i < Dim; i++)
+                if(ind[Dim-1] == 0)
+                    return 0;
+
+                float r0 = 1.f/ind[Dim-1];
+                float r1[Dim-1] = {0};
+                float r1Mag = 0;
+
+                for(uint32_t i = 0; i < Dim-1; i++)
                 {
-                    r[i] = m_scale[i]*(ind[i] - m_center[i]);
-                    rMag += r[i]*r[i];
+                    r1[i] = r0*m_scale[i]*(ind[i] - m_center[i]);
+                    r1Mag += r1[i]*r1[i];
                 }
 
-                return std::min(m_alphaMax*exp(-r)*255, 255.0f);
+                return std::min(m_alphaMax*exp(-r1Mag)*255, 255.0f);
             }
 
             /**
@@ -66,17 +74,17 @@ namespace sereno
             const float getAlphaMax() const {return m_alphaMax;}
 
             /**
-             * \brief  Set the scaling along each axis of the GTF
-             * \param scale the scaling along each axis of the GTF
+             * \brief  Set the scaling along each axis of the TriangularGTF
+             * \param scale the scaling along each axis of the TriangularGTF
              */
             void setScale(float* scale) {for(uint8_t i = 0; i < Dim; i++) m_scale[i] = scale[i];}
             /**
-             * \brief  Set the center of the GTF
-             * \param center the center of the GTF
+             * \brief  Set the center of the TriangularGTF
+             * \param center the center of the TriangularGTF
              */
             void setCenter(float* center) {for(uint8_t i = 0; i < Dim; i++) m_center[i] = center[i];}
             /**
-             * \brief  Set the alpha max of the GTF
+             * \brief  Set the alpha max of the TriangularGTF
              * \param alphaMax the alpha max
              */
             void setAlphaMax(float alphaMax) {m_alphaMax = alphaMax;}

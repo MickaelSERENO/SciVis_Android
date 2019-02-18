@@ -146,8 +146,11 @@ namespace sereno
     void Shader::bindAttributes()
     {
         glBindAttribLocation(m_programID, MATERIAL_VPOSITION, "vPosition");
-        glBindAttribLocation(m_programID, MATERIAL_VUV,       "vUV");
         glBindAttribLocation(m_programID, MATERIAL_VNORMAL,   "vNormal");
         glBindAttribLocation(m_programID, MATERIAL_VCOLOR,    "vColor");
+        glBindAttribLocation(m_programID, MATERIAL_VUV0,      "vUV0");
+        glBindAttribLocation(m_programID, MATERIAL_VUV1,      "vUV1");
+        glBindAttribLocation(m_programID, MATERIAL_VUV2,      "vUV2");
+        glBindAttribLocation(m_programID, MATERIAL_VUV3,      "vUV3");
     }
 }

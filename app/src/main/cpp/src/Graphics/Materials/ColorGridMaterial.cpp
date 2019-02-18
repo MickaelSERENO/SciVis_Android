@@ -22,7 +22,6 @@ namespace sereno
 
     void ColorGridMaterial::getAttributs()
     {
-        Material::getAttributs();
         if(m_shader)
             m_uSpacing = glGetUniformLocation(m_shader->getProgramID(), "uSpacing");
     }

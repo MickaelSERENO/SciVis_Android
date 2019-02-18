@@ -82,3 +82,7 @@ set_target_properties(sereno_vtk_parser-lib PROPERTIES
 add_library(native-lib SHARED ${SOURCES} ${HEADERS})
 target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS})
 target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})
+
+include(AndroidNdkGdb)
+android_ndk_gdb_enable()
+android_ndk_gdb_debuggable(native-lib)

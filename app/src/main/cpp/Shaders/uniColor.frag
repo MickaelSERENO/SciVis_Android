@@ -7,14 +7,14 @@ uniform bool uUseTexture;
 uniform sampler2D uTexture;
 uniform vec4      uUniColor;
 
-in vec2 varyTextureCoord;
+in vec2 varyUV;
 out vec4 fragColor;
 
 void main()
 {
 	if(uUseTexture)
 	{
-		vec4 textColor = texture2D(uTexture, varyTextureCoord);
+		vec4 textColor = texture2D(uTexture, varyUV);
 
 		if(uMaskColor[3] == 0.0 && textColor[3] == 0.0)
 			discard;

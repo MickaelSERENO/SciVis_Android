@@ -8,6 +8,8 @@
 #include "Graphics/Shader.h"
 #include "Graphics/GLRenderer.h"
 
+#define MATERIAL_MAXTEXTURE 10
+
 namespace sereno
 {
     /* \brief Material class.*/
@@ -34,6 +36,13 @@ namespace sereno
              * \param invMVPMat inverse(invMVPMat)*/
             void bindMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
                               const glm::mat4& mvpMat, const glm::mat4& invMVPMat);
+
+            /**
+             * \brief  Bind a texture to this material
+             * \param textureID the texture to bind
+             * \param textureDim the texture dimension (1, 2 or 3. 1 and 2 are used as GL_TEXTURE_2D)
+             * \param id the texture ID (GL_TEXTURE0, GL_TEXTURE1, etc.). Must be inferior than MATERIAL_MAXTEXTURE*/
+            void bindTexture(GLuint textureID, uint8_t textureDim, uint8_t id);
         protected:
             /* \brief Initialize the internal state of the Material
              * We ask so many matrix (which some can be calculated) for performance issue (not recomputing these in the material and in the object calling this method)
@@ -45,7 +54,7 @@ namespace sereno
                                       const glm::mat4& mvpMat, const glm::mat4& invMVPMat);
             
             /* \brief Get the material attributs from the shader. Mostly these attributes are uniform location */
-            virtual void getAttributs();
+            void getAttributs();
 
             Shader*     m_shader;     /*!< The Shader used by this Material*/
             GLRenderer* m_glRenderer; /*!< The OpenGL Context renderer. Note that the object will slightly being modified. 
@@ -55,6 +64,7 @@ namespace sereno
             GLint       m_uObjMat;    /*!< The uniform ID of uObjMat*/
             GLint       m_uMVP;       /*!< The uniform ID of uMVP*/
             GLint       m_uInvMVP;    /*!< The uniform ID of uInvMVP*/
+            GLint       m_uTextures[MATERIAL_MAXTEXTURE]; /*!< The uniform IDs of uTexture<i>*/
     };
 }
 
