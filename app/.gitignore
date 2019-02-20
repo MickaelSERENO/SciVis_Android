@@ -1,2 +1,5 @@
 /build
 cmake.gradle
+gdb.setyp
+gdbserver
+obj
