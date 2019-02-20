@@ -39,15 +39,13 @@ namespace sereno
              * \param tfTexture the new transfer function texture dimension*/
             virtual void setTFTextureDimension(uint8_t tfTextureDim) {m_tfTextureDim = tfTextureDim;}
 
-            /**
-             * \brief  Get the SubDataset model in use
-             * \return  The SubDataset model 
-             */
+            /* \brief  Get the SubDataset model in use
+             * \return  The SubDataset model */
             SubDataset* getModel() {return m_model;}
         protected:
-            SubDataset* m_model = NULL; /*!< The model bound to this visualization*/
-            GLuint      m_tfTexture;
-            uint8_t     m_tfTextureDim;
+            SubDataset* m_model          = NULL; /*!< The model bound to this visualization*/
+            GLuint      m_tfTexture;             /*!< The transfer function texture*/
+            uint8_t     m_tfTextureDim;          /*!< The transfer function dimension*/
     };
 }
 

@@ -9,9 +9,13 @@ public class ApplicationModel
     public interface IDataCallback
     {
         /** @brief Function called when a dataset has been added (the call if after the addition)
+         * @param model the app data
          * @param d the dataset to add*/
         void onAddBinaryDataset(ApplicationModel model, BinaryDataset d);
 
+        /** @brief Function called when a VTK dataset has been added (the call if after the addition)
+         * @param model the app data
+         * @param d the dataset to add*/
         void onAddVTKDataset(ApplicationModel model, VTKDataset d);
     }
 

@@ -14,12 +14,16 @@ public abstract class Dataset
     }
 
     @Override
-    public void finalize() throws Throwable
+    protected void finalize() throws Throwable
     {
         m_ptr = 0;
         nativeDelPtr(m_ptr);
         super.finalize();
     }
+
+    /** \brief Get the C++ pointer handler of the BinaryDataset
+     * @param m_ptr the pointer handler*/
+    public long getPtr() {return m_ptr;}
 
     /** Delete a native pointer
      * @param ptr the native pointer to destroy*/

@@ -52,7 +52,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     }
 
     /** \brief Finalize method. Close the thread*/
-    public void finalize() throws Throwable
+    protected void finalize() throws Throwable
     {
         try
         {

@@ -19,7 +19,7 @@ public class VTKParser
     }
 
     @Override
-    public void finalize() throws Throwable
+    protected void finalize() throws Throwable
     {
         nativeDelPtr(m_ptr);
         super.finalize();

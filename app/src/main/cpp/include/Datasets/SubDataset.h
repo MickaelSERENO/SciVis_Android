@@ -67,14 +67,44 @@ namespace sereno
             /** \brief Set the sub dataset amplitude
              * \param amp the new amplitude*/
             void setAmplitude(float* amp) {m_amplitude[0] = amp[0]; m_amplitude[1] = amp[1];}
+
+            /**
+             * \brief  Set the snapshot from this scientific visualization
+             *
+             * \param width  the snapshot width
+             * \param height the snapshot height
+             * \param pixels a pointer to the snapshot RGBA pixels. Size: width*height
+             */
+            void setSnapshot(uint32_t width, uint32_t height, uint32_t** pixels)
+            {
+                m_snapshotWidth  = width;
+                m_snapshotHeight = height;
+                m_snapshotPixels = pixels; 
+            }
+
+            /* \brief Get the snapshot image width 
+             * \return the snapshot image width*/
+            uint32_t getSnapshotWidth() const {return m_snapshotWidth;}
+
+            /* \brief Get the snapshot image height 
+             * \return the snapshot image height*/
+            uint32_t getSnapshotHeight() const {return m_snapshotHeight;}
+
+            /* \brief Get the snapshot pixels ARGB8888. Use getSnapshotWidth and getSnapshotHeight in order to get the correct layout
+             * \return A pointer to the snapshot array. */
+            uint32_t* const* const getSnapshotPixels() const {return m_snapshotPixels;}
         protected:
-            bool        m_isValid  = false;    /*!< Is this dataset in a valid state ?*/
-            ColorMode   m_colorMode = RAINBOW; /*!< The color mode of this dataset*/
-            float       m_minClamp  = 0.0f;    /*!< The minimum color clamping*/
-            float       m_maxClamp  = 1.0f;    /*!< The maximum color clamping (ratio : 0.0f 1.0)*/
-            float       m_amplitude[2];        /*!< The dataset amplitude*/
-            Quaternionf m_rotation;            /*!< The quaternion rotation*/
-            Dataset*    m_parent = NULL;       /*!< The parent dataset*/
+            bool        m_isValid        = false;   /*!< Is this dataset in a valid state ?*/
+            ColorMode   m_colorMode      = RAINBOW; /*!< The color mode of this dataset*/
+            float       m_minClamp       = 0.0f;    /*!< The minimum color clamping*/
+            float       m_maxClamp       = 1.0f;    /*!< The maximum color clamping (ratio : 0.0f 1.0)*/
+            float       m_amplitude[2];             /*!< The dataset amplitude*/
+            Quaternionf m_rotation;                 /*!< The quaternion rotation*/
+            Dataset*    m_parent         = NULL;    /*!< The parent dataset*/
+
+            uint32_t    m_snapshotWidth  = 0;       /*!< The snapshot width*/
+            uint32_t    m_snapshotHeight = 0;       /*!< The snapshot height*/
+            uint32_t**  m_snapshotPixels = NULL;    /*!< Pointer to the array storing the snapshot pixels in ARGB888*/
 
         friend class Dataset;
     };

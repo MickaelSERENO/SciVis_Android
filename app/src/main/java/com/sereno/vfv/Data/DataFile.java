@@ -23,7 +23,7 @@ public class DataFile
         //We may further put some filter.
         Log.i(MainActivity.TAG, "External files dir : " + ctx.getExternalFilesDir(null));
 
-        File   external      = new File(ctx.getExternalFilesDir(null), "Datas");
+        File external      = new File(ctx.getExternalFilesDir(null), "Datas");
         if(external == null || !external.isDirectory())
             return null;
 

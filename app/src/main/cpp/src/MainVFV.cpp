@@ -33,12 +33,6 @@ namespace sereno
     {
         glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
 
-        //Initialize the snapshot pixels
-        m_snapshotWidth  = m_surfaceData->renderer.getWidth();
-        m_snapshotHeight = m_surfaceData->renderer.getHeight();
-        m_snapshotPixels = (uint32_t*)malloc(sizeof(uint32_t*)*m_snapshotWidth*m_snapshotHeight);
-        memset(m_snapshotPixels, 0, sizeof(uint32_t*)*m_snapshotWidth*m_snapshotHeight);
-
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
@@ -58,15 +52,8 @@ namespace sereno
                 switch(event->type)
                 {
                     case RESIZE:
-                        //Redo the viewport and the snapshot pixels sizes
+                        //Redo the viewport
                         glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
-                        free(m_snapshotPixels);
-
-                        m_snapshotWidth  = event->sizeEvent.width;
-                        m_snapshotHeight = event->sizeEvent.height;
-                        m_snapshotPixels = (uint32_t*)malloc(sizeof(uint32_t*)*m_snapshotWidth*m_snapshotHeight);
-                        memset(m_snapshotPixels, 0, sizeof(uint32_t*)*m_snapshotWidth*m_snapshotHeight);
-                        m_snapshotCnt = 0; //Reset the counter. By doing this we normally do not need any synchronization (we are good for MAX_SNAPSHOT_COUNTER frame, hence can have again a resize event if needed)
                         break;
                     case TOUCH_MOVE:
                     {
@@ -93,20 +80,28 @@ namespace sereno
             {
                 switch(event->getType())
                 {
+                    //Add binary dataset
                     case VFV_ADD_BINARY_DATA:
                         if(m_arrowMesh)
                         {
+                            //Create the visualization
                             m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
                                                                      event->binaryData.dataset, m_arrowMesh, 
                                                                      m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
                             m_sciVis.push_back(m_vectorFields.back());
                             m_sciVisDefaultTF.insert(SciVisPair(m_vectorFields.back(), RAINBOW_DefaultTF));
+
+                            //Set state
                             m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_DefaultTF]);
+                            m_snapshotsPixels.insert(std::pair<SciVis*, uint32_t*>(m_sciVis.back(), NULL));
+                            m_sciVis.back()->getModel()->setSnapshot(0, 0, &m_snapshotsPixels[m_sciVis.back()]);
+
                             if(m_currentVis == NULL)
                                 m_currentVis = m_sciVis[0];
                             break;
                         }
 
+                    //Add VTK Dataset
                     case VFV_ADD_VTK_DATA:
                         m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 
                                                                                              m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
@@ -120,7 +115,11 @@ namespace sereno
                         {
                             m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
                             m_sciVisDefaultTF.insert(SciVisPair(m_sciVis.back(), RAINBOW_TriangularGTF));
+
+                            //Set internal state
                             m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
+                            m_snapshotsPixels.insert(std::pair<SciVis*, uint32_t*>(m_sciVis.back(), NULL));
+                            m_sciVis.back()->getModel()->setSnapshot(0, 0, &m_snapshotsPixels[m_sciVis.back()]);
                         }
                         if(m_currentVis == NULL)
                             m_currentVis = m_sciVis[0];
@@ -179,11 +178,25 @@ namespace sereno
             if(m_currentVis != NULL)
                 m_currentVis->update(&m_surfaceData->renderer);
 
+            if(m_currentVis)
+                m_snapshotCnt++;
+
+            //Set the snapshot
             if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
             {
+                //Enlarge the pixel array
+                uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
+                uint32_t snapHeight = m_surfaceData->renderer.getHeight();
+                if(m_currentVis->getModel()->getSnapshotWidth() != m_surfaceData->renderer.getWidth() || m_currentVis->getModel()->getSnapshotHeight() != m_surfaceData->renderer.getHeight())
+                {
+                    if(m_snapshotsPixels[m_currentVis])
+                        free(m_snapshotsPixels[m_currentVis]);
+                    m_snapshotsPixels[m_currentVis] = (uint32_t*)malloc(snapWidth*snapHeight*sizeof(uint32_t));
+                }
+                //Read pixels
+                glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_BYTE, m_snapshotsPixels[m_currentVis]);
+                m_currentVis->getModel()->setSnapshot(snapWidth, snapHeight, &m_snapshotsPixels[m_currentVis]);
                 m_snapshotCnt = 0;
-                glReadPixels(0, 0, m_snapshotWidth, m_snapshotHeight, GL_RGBA, GL_BYTE, m_snapshotPixels);
-                m_mainData->setSnapshotPixels(m_snapshotPixels, m_snapshotWidth, m_snapshotHeight);
             }
             m_surfaceData->renderer.render();
         }

@@ -22,7 +22,7 @@ public class BinaryDataset extends Dataset
     }
 
     @Override
-    public void finalize() throws Throwable
+    protected void finalize() throws Throwable
     {
         super.finalize();
     }
@@ -33,10 +33,6 @@ public class BinaryDataset extends Dataset
     {
         return nativeGetSize(m_ptr);
     }
-
-    /** \brief Get the C++ pointer handler of the BinaryDataset
-     * @param m_ptr the pointer handler*/
-    public long getPtr() {return m_ptr;}
 
     /** \brief native function. Initialized the C++ pointer of this object
      * @param path the path of the dataset to read at

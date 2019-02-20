@@ -4,8 +4,7 @@ namespace sereno
 {
     VFVData::VFVData()
     {
-        m_mutex         = PTHREAD_MUTEX_INITIALIZER;
-        m_snapshotMutex = PTHREAD_MUTEX_INITIALIZER;
+        m_mutex = PTHREAD_MUTEX_INITIALIZER;
     }
 
     VFVData::~VFVData()
@@ -112,14 +111,5 @@ namespace sereno
         pthread_mutex_lock(&m_mutex);
             m_events.push_back(ev);
         pthread_mutex_unlock(&m_mutex);
-    }
-
-    void VFVData::setSnapshotPixels(uint32_t* pixels, uint32_t width, uint32_t height)
-    {
-        pthread_mutex_lock(&m_snapshotMutex);
-            m_snapshotPixels = pixels;
-            m_snapshotWidth  = width;
-            m_snapshotHeight = height;
-        pthread_mutex_unlock(&m_snapshotMutex);
     }
 }

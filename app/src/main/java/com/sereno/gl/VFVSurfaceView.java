@@ -32,7 +32,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void finalize() throws Throwable
+    protected void finalize() throws Throwable
     {
         super.finalize();
         nativeDeleteMainArgs(m_ptr);
@@ -55,16 +55,8 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
-        //Constructed native pointer arrays
-        long[] ptFieldValues   = new long[d.getSelectedPtFieldValues().length];
-        long[] cellFieldValues = new long[d.getSelectedCellFieldValues().length];
-        for(int i = 0; i < ptFieldValues.length; i++)
-            ptFieldValues[i] = d.getSelectedPtFieldValues()[i].getPtr();
-        for(int i = 0; i < cellFieldValues.length; i++)
-            cellFieldValues[i] = d.getSelectedCellFieldValues()[i].getPtr();
-
         //C++ callback
-        nativeAddVTKDataset(m_ptr, d.getParser().getPtr(), ptFieldValues, cellFieldValues);
+        nativeAddVTKDataset(m_ptr, d.getPtr());
     }
 
     /** \brief Function that set the current range color for the displayed dataset
@@ -74,13 +66,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void setCurrentRangeColor(float min, float max, int mode)
     {
         nativeOnRangeColorChange(m_ptr, min, max, mode);
-    }
-
-    /** \brief get a snapshot from the main rendering thread.
-     * \return the bitmap corresponding to the onscreen rendering*/
-    public Bitmap fillSnapshot()
-    {
-        return nativeGetSnapshot(m_ptr);
     }
 
     /** \brief Create the argument to send to the main function
@@ -98,10 +83,8 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     /** @brief Add a VTKParser into the cpp application
      * @param ptr the ptr associated with the main Argument
-     * @param parserPtr the VTKParser pointer
-     * @param ptFieldValuesPtr the point VTKFieldValues to take account of
-     * @param cellFieldValuesPtr the cell VTKFieldValues to take account of*/
-    private native void nativeAddVTKDataset(long ptr, long parserPtr, long[] ptFieldValuesPtr, long[] cellFieldValuesPtr);
+     * @param vtkDataPtr the vtk dataset C++ pointer object*/
+    private native void nativeAddVTKDataset(long ptr, long vtkDataPtr);
 
     /** \brief Remove the dataset index i into the cpp application
      * @param ptr the ptr associated with the main argument
@@ -115,9 +98,4 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param mode the color mode to apply (See ColorMode)
      */
     private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode);
-
-    /** \brief get the bitmap snapshot from the main rendering frame
-     * @param ptr the ptr associated with the main argument
-     * @param Bitmap the bitmap generated*/
-    private native Bitmap nativeGetSnapshot(long ptr);
 }

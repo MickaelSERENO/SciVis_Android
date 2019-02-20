@@ -130,12 +130,10 @@ namespace sereno
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
             std::map<SciVis*, SciVisTFEnum>            m_sciVisDefaultTF;         /*!< Mapping between SciVis and starting of TF used (e.g., RAINBOW_GTF for all GTF TFs)*/
 
-            std::vector<SciVis*>       m_sciVis;                /*!< List of visualization*/
-            SciVis*                    m_currentVis     = NULL; /*!< The current visualization*/
-            uint32_t                   m_snapshotCnt    = 0;    /*!< The snapshot counter*/
-            uint32_t*                  m_snapshotPixels = NULL; /*!< The snapshot pixels*/
-            uint32_t                   m_snapshotWidth  = 0;    /*!< The snapshot width*/
-            uint32_t                   m_snapshotHeight = 0;    /*!< The snapshot height*/
+            std::vector<SciVis*>         m_sciVis;                 /*!< List of visualization*/
+            SciVis*                      m_currentVis      = NULL; /*!< The current visualization*/
+            uint32_t                     m_snapshotCnt     = 0;    /*!< The snapshot counter*/
+            std::map<SciVis*, uint32_t*> m_snapshotsPixels;        /*!< The snapshot pixels per Scientific Visualization*/
 
             typedef std::pair<SciVis*, SciVisTFEnum> SciVisPair;
     };

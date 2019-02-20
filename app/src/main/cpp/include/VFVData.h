@@ -148,12 +148,6 @@ namespace sereno
              * \param dataID the dataID*/
             void setCurrentData(int dataID);
 
-            /* \brief lock the snapshot update from the main thread */
-            void lockSnapshot() {pthread_mutex_lock(&m_snapshotMutex);}
-
-            /* \brief Unlock the snapshot update from the main thread */
-            void unlockSnapshot() {pthread_mutex_lock(&m_snapshotMutex);}
-
             /**
              * \brief  Set the snapshot pixels
              * \param pixels the pixels
@@ -161,18 +155,6 @@ namespace sereno
              * \param height the snapshot height
              */
             void setSnapshotPixels(uint32_t* pixels, uint32_t width, uint32_t height);
-
-            /* \brief Get the snapshot pixels ARGB8888. Use getSnapshotWidth and getSnapshotHeight in order to get the correct layout
-             * \return the snapshot pixels. */
-            const uint32_t* getSnapshotPixels() const {return m_snapshotPixels;}
-
-            /* \brief Get the snapshot image width 
-             * \return the snapshot image width*/
-            uint32_t getSnapshotWidth() const {return m_snapshotWidth;}
-
-            /* \brief Get the snapshot image height 
-             * \return the snapshot image height*/
-            uint32_t getSnapshotHeight() const {return m_snapshotHeight;}
         private:
             /* \brief Add an event 
              * \param ev the event to add */
@@ -185,10 +167,6 @@ namespace sereno
             IVFVCallback*            m_clbk              = NULL; /*!< The callback interface */
             std::deque<VFVEvent*>    m_events;                   /*!< The events from Java*/
             pthread_mutex_t          m_mutex;                    /*!< The mutex for handling communication between Java and Cpp*/
-            uint32_t                 m_snapshotWidth;
-            uint32_t                 m_snapshotHeight;
-            uint32_t*                m_snapshotPixels    = NULL; /*!< The snapshot pixels*/
-            pthread_mutex_t          m_snapshotMutex;            /*!< The mutex for handling the snapshot generation*/
     };
 }
 

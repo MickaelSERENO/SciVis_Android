@@ -39,10 +39,8 @@ extern "C"
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
-     * \param parserPtr the VTKParser native ptr
-     * \param ptFieldValues the point VTKFieldValue to take account of
-     * \param cellieldValues the cell VTKFieldValue to take account of*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jlong ptr, jlong parserPtr, jlongArray ptFieldValues, jlongArray cellFieldValues);
+     * \param jData the VTKDataset native pointer*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jlong ptr, jlong jData);
 
     /* \brief Function called from Java in order to remove an existing data on the cpp memory application
      * Note that this function is asynchronous between the main cpp thread and the java UI thread
@@ -62,12 +60,13 @@ extern "C"
      * \param mode the color mode to apply*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode);
 
-    /* \brief Function called from Java in order to get a snapshot from the main rendering frame
+    /**
+     * \brief  Poll a native event from C++ for the UI
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
-     * \return the android.graphics.Bitmap snapshot object */
-    JNIEXPORT jobject JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeGetSnapshot(JNIEnv* env, jobject instance, jlong ptr);
+     * \return native pointer to pass to NativeEvent java constructor*/
+    JNIEXPORT jlong JNICALL_Java_com_sereno_gl_VFVSurfaceView_nativePollEvent(JNIEnv* env, jobject instance, jlong ptr);
 }
 
 #endif
