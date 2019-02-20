@@ -100,6 +100,8 @@ namespace sereno
                                                                      event->binaryData.dataset, m_arrowMesh, 
                                                                      m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
                             m_sciVis.push_back(m_vectorFields.back());
+                            m_sciVisDefaultTF.insert(SciVisPair(m_vectorFields.back(), RAINBOW_DefaultTF));
+                            m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_DefaultTF]);
                             if(m_currentVis == NULL)
                                 m_currentVis = m_sciVis[0];
                             break;
@@ -109,8 +111,17 @@ namespace sereno
                         m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 
                                                                                              m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
                         m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
+                        float dim[3];
+                        for(uint8_t i = 0; i < 3; i++)
+                            dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i];
+                        m_colorGridMtl->setDimension(dim);
+
                         for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
+                        {
                             m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
+                            m_sciVisDefaultTF.insert(SciVisPair(m_sciVis.back(), RAINBOW_TriangularGTF));
+                            m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
+                        }
                         if(m_currentVis == NULL)
                             m_currentVis = m_sciVis[0];
                         break;
@@ -143,15 +154,18 @@ namespace sereno
                 delete event;
             }
 
-            if(m_currentVis != NULL)
+            //Apply the model changement (rotation + color)
+            for(auto& dataset : modelChanged)
             {
-                //Apply the model changement (rotation + color)
-                for(auto dataset : modelChanged)
+                for(auto sciVis : m_sciVis)
                 {
-                    if(m_currentVis->getModel() == dataset)
+                    if(sciVis->getModel() == dataset)
                     {
                         if(updateColor)
+                        {
                             m_currentVis->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
+                            m_currentVis->setTFTexture(m_sciVisTFs[dataset->getColorMode() + m_sciVisDefaultTF[sciVis]]);
+                        }
                         m_currentVis->setRotate(dataset->getGlobalRotate());
                         updateColor = false;
                         break;

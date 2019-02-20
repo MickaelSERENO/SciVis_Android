@@ -101,10 +101,15 @@ namespace sereno
                 T xzT = 2*x*z;
                 T yzT = 2*y*z;
 
-                return glm::tmat4x4<T>(1 - 2*yy - 2*zz, xyT - wzT,     xzT + wyT,     0,
-                                       xyT + wzT,       1-2*xx - 2*zz, yzT - wxT,     0,
-                                       xzT - wyT,       yzT + wxT,     1-2*xx - 2*yy, 0,
+                return glm::tmat4x4<T>(1 - 2*yy - 2*zz, xyT + wzT,     xzT - wyT,     0,
+                                       xyT - wzT,       1-2*xx - 2*zz, yzT + wxT,     0,
+                                       xzT + wyT,       yzT - wxT,     1-2*xx - 2*yy, 0,
                                        0,               0,             0,             1);
+
+//                return glm::tmat4x4<T>(1 - 2*yy - 2*zz, xyT - wzT,     xzT + wyT,     0,
+//                                       xyT + wzT,       1-2*xx - 2*zz, yzT - wxT,     0,
+//                                       xzT - wyT,       yzT + wxT,     1-2*xx - 2*yy, 0,
+//                                       0,               0,             0,             1);
             }
     };
 

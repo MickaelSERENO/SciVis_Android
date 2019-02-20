@@ -21,8 +21,8 @@ namespace sereno
             {
                 for(uint8_t i = 0; i < Dim; i++)
                 {
-                    m_scale[i] = 1.0f;
-                    m_center[i] = 0.0f;
+                    m_scale[i] = 0.5f;
+                    m_center[i] = 0.5f;
                 }
             }
 

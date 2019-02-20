@@ -1,11 +1,13 @@
 #include "Graphics/SciVis/VTKStructuredGridPointGameObject.h"
 #include "Graphics/SciVis/SciVisColor.h"
+#include "Graphics/SciVis/VolumeRenderingPlaneAlgorithm.h"
 #include <algorithm>
 #include <cstdlib>
 #include <limits>
 
 namespace sereno
 {
+
     /**
      * \brief  Determine the dimensions of a VTKStructuredGrid with a desired density
      *
@@ -36,39 +38,18 @@ namespace sereno
         const VTKStructuredPoints& ptsDesc = m_vtkParser->getStructuredPointsDescriptor();
         VTKStructuredPoint_getDimensions(ptsDesc, desiredDensity, m_dimensions);
 
-        //Store the points
-        //We will use a geometry shader for creating the cubes, permitting to have a better density (less memory taken)
-        //Also the size is normalized (i.e the maximum length is 1) and centered
-        size_t nbValues  = m_dimensions[0]*m_dimensions[1]*m_dimensions[2];
-
+        //Determine the new spacing
         float  maxAxis   = std::max(ptsDesc.spacing[0]*ptsDesc.size[0],
                                     std::max(ptsDesc.spacing[1]*ptsDesc.size[1],
                                              ptsDesc.spacing[2]*ptsDesc.size[2]));
-
         for(uint32_t i = 0; i < 3; i++)
             m_spacing[i] = ptsDesc.size[i]*ptsDesc.spacing[i]/m_dimensions[i]/maxAxis;
 
-        float* pts = (float*)malloc(sizeof(float)*nbValues*3);
-
-        for(uint32_t k = 0; k < m_dimensions[2]; k++)
-            for(uint32_t j = 0; j < m_dimensions[1]; j++)
-                for(uint32_t i = 0; i < m_dimensions[0]; i++)
-                {
-                    size_t id = 3*(i + j*m_dimensions[0] + k*m_dimensions[0]*m_dimensions[1]);
-                    float pos[3] = {(float)i, (float)j, (float)k};
-                    for(uint32_t l = 0; l < 3; l++)
-                        pts[id + l] = (pos[l]-m_dimensions[l]/2.0)*m_spacing[l];
-                }
-
-        //Creates the VBO
+        //We use a ray marching algorithm, so we only need the window size
         glGenBuffers(1, &m_vboID);
         glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float)*nbValues*(3+4*nbPtFields), NULL, GL_DYNAMIC_DRAW);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*nbValues*3, pts);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6*2, NULL, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        //Free the allocated memory
-        free(pts);
     }
 
     VTKStructuredGridPointVBO::~VTKStructuredGridPointVBO()
@@ -115,19 +96,27 @@ namespace sereno
                                                                 ptFieldValue->format);
                 }
         free(vals);
-        setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
 
         //Set VAO
         glGenVertexArrays(1, &m_vaoID);
         glBindVertexArray(m_vaoID);
             glBindBuffer(GL_ARRAY_BUFFER, m_gridPointVBO->m_vboID);
-
-            glVertexAttribPointer(MATERIAL_VPOSITION, 3, GL_FLOAT, 0, 0, (void*)(0));
-            glVertexAttribPointer(MATERIAL_VCOLOR, 4, GL_FLOAT, 0, 0, (void*)((4*propID+3)*nbValues*sizeof(float)));
-
+            glVertexAttribPointer(MATERIAL_VPOSITION, 2, GL_FLOAT, 0, 0, (void*)(0));
             glEnableVertexAttribArray(MATERIAL_VPOSITION);
-            glEnableVertexAttribArray(MATERIAL_VCOLOR);
         glBindVertexArray(0);
+
+        //Create 3D texture
+        glGenTextures(1, &m_texture);
+        glBindTexture(GL_TEXTURE_3D, m_texture);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER_OES);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER_OES);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER_OES);
+            setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
+        glBindTexture(GL_TEXTURE_3D, 0);
+
+        setScale(glm::vec3(0.5, 0.5, 0.5));
     }
 
     VTKStructuredGridPointGameObject::~VTKStructuredGridPointGameObject()
@@ -140,45 +129,172 @@ namespace sereno
     {
         glm::mat4 mat    = getMatrix();
         glm::mat4 mvp    = cameraMat*mat;
+
+        
+        /*----------------------------------------------------------------------------*/
+        /*--------Determine the 4 rectangle points where the cube is on screen--------*/
+        /*----------------------------------------------------------------------------*/
+
+        glm::vec4 points[8];
+        points[0] = glm::vec4(0.f, 0.f, 0.f, 1.0f);
+        points[1] = glm::vec4(1.0, 0.f, 0.f, 1.0f);
+        points[2] = glm::vec4(0.f, 1.0, 0.f, 1.0f);
+        points[3] = glm::vec4(0.f, 0.f, 1.0, 1.0f);
+        points[4] = glm::vec4(1.0, 1.0, 0.f, 1.0f);
+        points[5] = glm::vec4(1.0, 0.f, 1.0, 1.0f);
+        points[6] = glm::vec4(0.f, 1.0, 1.0, 1.0f);
+        points[7] = glm::vec4(1.0, 1.0, 1.0, 1.0f);
+
+        for(uint8_t i = 0; i < 8; i++)
+        {
+            points[i] = mvp*points[i];
+            points[i]/=points[i].w;
+        }
+
+        glm::vec2 minPos = points[0];
+        glm::vec2 maxPos = minPos;
+
+        for(uint8_t i = 1; i < 8; i++)
+        {
+            minPos.x = std::min(minPos.x, points[i].x);
+            minPos.y = std::min(minPos.y, points[i].y);
+
+            maxPos.x = std::max(maxPos.x, points[i].x);
+            maxPos.y = std::max(maxPos.y, points[i].y);
+        }
+
+        float vboData[6*2] = {minPos.x, minPos.y,
+                              maxPos.x, maxPos.y,
+                              minPos.x, maxPos.y,
+                              minPos.x, minPos.y,
+                              maxPos.x, minPos.y,
+                              maxPos.x, maxPos.y};
+
+        /*----------------------------------------------------------------------------*/
+        /*---------------------------------Update VBO---------------------------------*/
+        /*----------------------------------------------------------------------------*/
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_gridPointVBO->m_vboID);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vboData), vboData);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        /*----------------------------------------------------------------------------*/
+        /*------------------------------------Draw------------------------------------*/
+        /*----------------------------------------------------------------------------*/
+
         glm::mat4 invMVP = glm::inverse(mvp);
         m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
+        m_mtl->bindTexture(m_texture,   3, 0);
+        m_mtl->bindTexture(m_tfTexture, 2, 1);
+
+        glDepthMask(false);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBindVertexArray(m_vaoID);
         {
-            size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
-            setScale(glm::vec3(0.5, 0.5, 0.5));
-            glDrawArrays(GL_POINTS, 0, nbValues);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
         }
         glBindVertexArray(0);
+        glDepthMask(true);
+        glDisable(GL_BLEND);
     }
 
     void VTKStructuredGridPointGameObject::setColorRange(float min, float max, ColorMode colorMode)
     {
         size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
 
-        //Update the color. The values are already stored in m_vals.
-        float* colors   = (float*)malloc(sizeof(float)*nbValues*4);
+        //Update the values of the 3D texture
+        //Store scalar and gradient magnitude values
+        float* vals = (float*)malloc(sizeof(float)*nbValues*2);
+
+        //Compute scalar
         for(uint32_t i = 0; i < nbValues; i++)
         {
             float t = (m_vals[i]-m_minVal)/(m_maxVal-m_minVal);
 
             //Test if inside the min-max range.
             if(t > max || t < min)
-                for(uint32_t j = 0; j < 4; j++)
-                    colors[i*4+j] = 1.0f;
+                vals[2*i] = -1.0f;
             else
-            {
-                Color c = SciVis_computeColor(colorMode, t);
-                colors[i*4+0] = c.r;
-                colors[i*4+1] = c.g;
-                colors[i*4+2] = c.b;
-                colors[i*4+3] = c.a;
-            }
+                vals[2*i] = t;
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_gridPointVBO->m_vboID);
-            glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*nbValues*(3+4*m_propID), sizeof(float)*nbValues*4, colors);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        free(colors);
+        /*----------------------------------------------------------------------------*/
+        /*--------------------------Compute gradient values---------------------------*/
+        /*----------------------------------------------------------------------------*/
+
+        //Central difference used
+
+        float maxGrad = 0.0f;
+
+        for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
+            for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
+                for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
+                {
+                    uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
+                                   k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                    float    x1  = vals[2*(ind-1)];
+                    float    x2  = vals[2*(ind+1)];
+                    float    y1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0])];
+                    float    y2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0])];
+                    float    z1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
+                    float    z2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
+
+                    vals[2*ind+1] = (x1-x2)*(x1-x2)/m_gridPointVBO->m_spacing[0]+
+                                    (y1-y2)*(y1-y2)/m_gridPointVBO->m_spacing[1]+
+                                    (z1-z2)*(z1-z2)/m_gridPointVBO->m_spacing[2];
+                    maxGrad = std::max(vals[2*ind+1], maxGrad);
+                }
+
+        //Normalize the gradient
+        for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
+            for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
+                for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
+                {
+                    uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
+                                   k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                    vals[2*ind+1] /= maxGrad;
+                }
+
+        /*----------------------------------------------------------------------------*/
+        /*---------------Compute gradient values for Edge (grad = 0.0f)---------------*/
+        /*----------------------------------------------------------------------------*/
+
+        //for k = 0 and k = max
+        for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+            for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+            {
+                uint32_t offset = (m_gridPointVBO->m_dimensions[2]-1)*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                vals[2*(i+j*m_gridPointVBO->m_dimensions[0])+1]        = 0.0f;
+                vals[2*(i+j*m_gridPointVBO->m_dimensions[0]+offset)+1] = 0.0f;
+            }
+
+        //for j = 0 and j = max
+        for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
+            for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+            {
+                uint32_t offset = (m_gridPointVBO->m_dimensions[1]-1)*m_gridPointVBO->m_dimensions[0];
+                vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
+                vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+            }
+
+        //for i = 0 and i = max
+        for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
+            for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+            {
+                uint32_t offset = m_gridPointVBO->m_dimensions[0]-1;
+                vals[2*(j*m_gridPointVBO->m_dimensions[0]+
+                        k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
+                vals[2*(j*m_gridPointVBO->m_dimensions[0]+
+                        k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+            }
+
+        glBindTexture(GL_TEXTURE_3D, m_texture);
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32F,
+                         m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2], 
+                         0, GL_RG, GL_FLOAT, vals);
+        glBindBuffer(GL_TEXTURE_3D, 0);
+        free(vals);
     }
 
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, 

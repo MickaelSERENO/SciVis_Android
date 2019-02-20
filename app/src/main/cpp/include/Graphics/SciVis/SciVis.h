@@ -31,6 +31,14 @@ namespace sereno
              * \param max the maximum value (ratio : 0.0, 1.0)*/
             virtual void setColorRange(float min, float max, ColorMode colorMode) = 0;
 
+            /* \brief  Set the Transfer Function texture
+             * \param tfTexture the new transfer function texture*/
+            virtual void setTFTexture(GLuint tfTexture) {m_tfTexture = tfTexture;}
+
+            /* \brief  Set the Transfer Function texture dimension
+             * \param tfTexture the new transfer function texture dimension*/
+            virtual void setTFTextureDimension(uint8_t tfTextureDim) {m_tfTextureDim = tfTextureDim;}
+
             /**
              * \brief  Get the SubDataset model in use
              * \return  The SubDataset model 

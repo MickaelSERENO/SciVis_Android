@@ -122,11 +122,16 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                     action = 2;
                     break;
             }
-            int pID = event.getPointerId(i);
-            float x = 2*event.getX(pID) / width - 1;
-            float y = -2*event.getY(pID) / height + 1;
 
-            nativeOnTouchEvent(m_internalData, action, pID, x, y);
+
+            int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_ID_MASK) >> MotionEvent.ACTION_POINTER_ID_SHIFT;
+            int pID = event.findPointerIndex(pointerIndex);
+            if(pID != -1)
+            {
+                float x = 2*event.getX(pID) / width - 1;
+                float y = -2*event.getY(pID) / height + 1;
+                nativeOnTouchEvent(m_internalData, action, pID, x, y);
+            }
         }
         super.onTouchEvent(event);
         return true;
