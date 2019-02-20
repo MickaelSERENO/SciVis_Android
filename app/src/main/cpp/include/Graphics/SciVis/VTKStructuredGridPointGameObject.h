@@ -3,6 +3,8 @@
 
 #define GL_GLEXT_PROTOTYPES
 
+#define DIM_PER_PLANE (1.0f/512.0f)
+
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 #include "Graphics/SciVis/SciVis.h"
@@ -45,6 +47,7 @@ namespace sereno
             GLuint   m_vboID;                       /*!< The VBO generated. Will be shared among VTKStructuredGridGameObject objects*/
             uint32_t m_dimensions[3];               /*!< The dimension in use*/
             float    m_spacing[3];                  /*!< The space between each point*/
+            uint32_t m_nbPlanes;                    /*!< The number of planes this object can handle */
             friend class VTKStructuredGridPointGameObject;
     };
 
@@ -75,6 +78,7 @@ namespace sereno
         private:
             VTKStructuredGridPointVBO* m_gridPointVBO; /*!< The Grid point VBO associated with this data*/
             float*   m_vals;                           /*!< The property captured value*/
+            GLuint   m_texture;                        /*!< The 3D texture containing the dataset values*/
             float    m_maxVal;                         /*!< The property max value*/
             float    m_minVal;                         /*!< The property min value*/
             uint32_t m_propID;                         /*!< The property ID*/

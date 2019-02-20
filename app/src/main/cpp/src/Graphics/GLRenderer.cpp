@@ -122,7 +122,7 @@ namespace sereno
 
         //Initialize Shaders
         const char* shaders[] = {"color", "uniColor", "colorGrid", "vectorField"};
-        const bool  hasGeom[] = {false, false, true, false};
+        const bool  hasGeom[] = {false, false, false, false};
         for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
         {
             Shader* shader = NULL;
