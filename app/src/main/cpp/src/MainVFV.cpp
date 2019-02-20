@@ -112,9 +112,10 @@ namespace sereno
                                                                                              m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
                         m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
                         float dim[3];
-                        for(uint32_t i = 0; i < 3; i++)
-                            dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i] * m_vtkStructuredGridPoints.back()->vbo->getSpacing()[i];
+                        for(uint8_t i = 0; i < 3; i++)
+                            dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i];
                         m_colorGridMtl->setDimension(dim);
+
                         for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
                         {
                             m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);

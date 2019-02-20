@@ -3,7 +3,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 
-#define DIM_PER_PLANE (1.0f/512.0f)
+#define DIM_PER_PLANE (1.0f/256.0f)
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
