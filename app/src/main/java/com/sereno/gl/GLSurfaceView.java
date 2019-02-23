@@ -57,7 +57,10 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         try
         {
             if(m_thread != null)
+            {
+                nativeCloseEvent(m_internalData);
                 m_thread.join();
+            }
         }
         catch(InterruptedException e)
         {
@@ -191,6 +194,10 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     /** \brief Permit to init the internal data of this view. This data will mostly contain events sent from Java
      * \return C++ pointer*/
     private native long nativeInitInternalData(String internalData);
+
+    /** @brief Close the rendering thread
+     * @param data the native pointer object*/
+    private native void nativeCloseEvent(long data);
 
     /** \brief Main C++ function being called
      * @param data the internal data to pass on

@@ -7,6 +7,7 @@
 #include <deque>
 #include <memory>
 #include <cstdint>
+#include <jni.h>
 #include "Datasets/BinaryDataset.h"
 #include "Datasets/VTKDataset.h"
 #include "ColorMode.h"
@@ -90,7 +91,6 @@ namespace sereno
             VFVEventType type; /*!< The type of the event*/
     };
 
-
     /* \brief Callback interface for communication between JNI and CPP applications 
      * Note that the most part of the communication will not be in the OpenGL thread*/
     class IVFVCallback
@@ -109,8 +109,9 @@ namespace sereno
     class VFVData
     {
         public:
-            /* \brief Constructor. Initialize everything at default value */
-            VFVData();
+            /* \brief Constructor. Initialize everything at default value 
+             * \param instance the java object calling this constructor*/
+            VFVData(jobject instance);
 
             ~VFVData();
 
@@ -148,13 +149,12 @@ namespace sereno
              * \param dataID the dataID*/
             void setCurrentData(int dataID);
 
-            /**
-             * \brief  Set the snapshot pixels
-             * \param pixels the pixels
+            /* \brief Send a new snapshot available event to the Java UI 
              * \param width the snapshot width
              * \param height the snapshot height
-             */
-            void setSnapshotPixels(uint32_t* pixels, uint32_t width, uint32_t height);
+             * \param pixels the snapshot pixels
+             * \param subDataset the subDataset bound to this snapshot*/
+            void sendNewSnapshotEvent(JNIEnv* jenv, uint32_t width, uint32_t height, uint32_t* pixels, SubDataset* subDataset);
         private:
             /* \brief Add an event 
              * \param ev the event to add */
@@ -162,6 +162,7 @@ namespace sereno
 
             std::vector<std::shared_ptr<Dataset>> m_datas;    /*!< The data paths */
 
+            jobject                  m_javaObj;                  /*!< The java object linked to this model object*/
             std::shared_ptr<Dataset> m_currentData       = NULL; /*!< The current data*/
             int                      m_currentSubDataIdx = -1;   /*!< The current subdata index*/
             IVFVCallback*            m_clbk              = NULL; /*!< The callback interface */

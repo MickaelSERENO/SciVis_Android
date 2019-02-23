@@ -1,6 +1,8 @@
 package com.sereno.vfv;
 
 import android.app.DialogFragment;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -13,18 +15,26 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
+import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
 import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
 import com.sereno.view.RangeColorView;
+import com.sereno.view.TreeView;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -39,14 +49,18 @@ public class MainActivity extends AppCompatActivity
     private Button           m_deleteDataBtn;  /*!< The delete data button*/
     private RangeColorView   m_rangeColorView; /*!< The range color view*/
     private VFVSurfaceView   m_surfaceView;    /*!< The surface view displaying the vector field*/
+    private TreeView         m_previewLayout;  /*!< The preview layout*/
+    private Bitmap           m_noSnapshotBmp;  /*!< The bitmap used when no preview is available*/
 
-    /** \brief OnCreate function. Called when the activity is on creation*/
+    /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        m_noSnapshotBmp = BitmapFactory.decodeResource(getResources(), R.drawable.no_snapshot);
 
         m_model = new ApplicationModel();
+        m_model.addCallback(this);
         setContentView(R.layout.main_activity);
 
         //Set up all internal components
@@ -55,7 +69,7 @@ public class MainActivity extends AppCompatActivity
         setUpHiddenMenu();
     }
 
-    /** \brief Function called when the options items from the Toolbar are selected
+    /** @brief Function called when the options items from the Toolbar are selected
      * @param item the MenuItem selected*/
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -105,18 +119,23 @@ public class MainActivity extends AppCompatActivity
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
+        addDatasetPreview(d);
     }
 
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
-
+        addDatasetPreview(d);
     }
+
     /** \brief Set up the drawer layout (root layout)*/
     private void setUpDrawerLayout()
     {
-        m_drawerLayout = findViewById(R.id.rootLayout);
-        m_surfaceView  = findViewById(R.id.mainView);
+        ImageView noSnapshotView = new ImageView(this);
+
+        m_drawerLayout  = findViewById(R.id.rootLayout);
+        m_surfaceView   = findViewById(R.id.mainView);
+        m_previewLayout = findViewById(R.id.previewLayout);
         m_model.addCallback(m_surfaceView);
 
         //Configure the spinner color mode
@@ -195,7 +214,7 @@ public class MainActivity extends AppCompatActivity
             public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
             {
                 Spinner dataSpinner = view.findViewById(R.id.openDatasetSpinner);
-                DataFile df         = (DataFile)dataSpinner.getSelectedItem();
+                final DataFile df   = (DataFile)dataSpinner.getSelectedItem();
 
                 String fileName = df.getFile().getName();
 
@@ -225,7 +244,7 @@ public class MainActivity extends AppCompatActivity
                             cellValues = cellValuesList.toArray(cellValues);
 
                             //Add into the model
-                            m_model.addVTKDataset(new VTKDataset(dialog.getVTKParser(), ptValues, cellValues));
+                            m_model.addVTKDataset(new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName()));
                         }
 
                         @Override
@@ -241,5 +260,13 @@ public class MainActivity extends AppCompatActivity
             }
         });
         dialogFragment.show(getFragmentManager(), "dialog");
+    }
+
+    private void addDatasetPreview(Dataset d)
+    {
+        TextView   dataText = new TextView(this);
+        dataText.setText(d.getName());
+        Tree<View> dataView = new Tree<View>(dataText);
+        m_previewLayout.getData().addChild(dataView, -1);
     }
 }

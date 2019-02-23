@@ -10,15 +10,16 @@ public class BinaryDataset extends Dataset
      * @param file the file to read at*/
     public BinaryDataset(File file)
     {
-        this(file.getAbsolutePath());
+        this(file.getAbsolutePath(), file.getName());
     }
 
     /**\brief Constructor
      * Read the data contained in file.
-     * @param path the path to read at*/
-    public BinaryDataset(String path)
+     * @param path the path to read at
+     * @param name  the java name of this Dataset*/
+    public BinaryDataset(String path, String name)
     {
-        super(nativeInitPtr(path));
+        super(nativeInitPtr(path), name);
     }
 
     @Override

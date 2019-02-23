@@ -2,9 +2,10 @@
 
 namespace sereno
 {
-    VFVData::VFVData()
+    VFVData::VFVData(jobject javaObj)
     {
         m_mutex = PTHREAD_MUTEX_INITIALIZER;
+        m_javaObj = javaObj;
     }
 
     VFVData::~VFVData()

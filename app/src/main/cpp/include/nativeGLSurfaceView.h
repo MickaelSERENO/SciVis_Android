@@ -67,6 +67,12 @@ extern "C"
      * \param y the y position [-1, +1]*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnTouchEvent(JNIEnv* jenv, jobject jobj,
                                                                                 jlong data, jint action, jint finger, jfloat x, jfloat y);
+
+    /* \brief  Close the object
+     * \param jenv the java environment
+     * \param jobj the object calling this function
+     * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData */
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeCloseEvent(JNIEnv* jenv, jobject jobj, jlong data);
 }
 
 #endif

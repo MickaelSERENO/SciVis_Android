@@ -44,7 +44,7 @@ namespace sereno
         //If not, we update something for nothing, but the visualization is not broken (because bound to the model which is set in the Java thread)
         bool updateColor = false;
 
-        while(true)
+        while(!m_surfaceData->isClosed())
         {
             //Handles event received from the surface view 
             while(Event* event = m_surfaceData->pollEvent())

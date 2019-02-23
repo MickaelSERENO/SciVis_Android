@@ -15,12 +15,13 @@ public class VTKDataset extends Dataset
     /** @brief Constructor
      * @param parser The VTKParser containing VTK information
      * @param ptValues the point VTKFieldValue to take account here
-     * @param cellValues the cell VTKFieldValue to take account here*/
-    public VTKDataset(VTKParser parser, VTKFieldValue[] ptValues, VTKFieldValue[] cellValues)
+     * @param cellValues the cell VTKFieldValue to take account here
+     * @param name  the java name of this Dataset*/
+    public VTKDataset(VTKParser parser, VTKFieldValue[] ptValues, VTKFieldValue[] cellValues, String name)
     {
         super(nativeInitPtr(parser.getPtr(),
                             getFieldValueNativePointers(ptValues),
-                            getFieldValueNativePointers(cellValues)));
+                            getFieldValueNativePointers(cellValues)), name);
         m_parser     = parser;
         m_ptValues   = ptValues;
         m_cellValues = cellValues;

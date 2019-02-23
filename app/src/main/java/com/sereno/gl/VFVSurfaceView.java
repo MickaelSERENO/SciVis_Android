@@ -7,7 +7,6 @@ import android.util.AttributeSet;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.VTKDataset;
-import com.sereno.vfv.Data.VTKFieldValue;
 
 public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback
 {

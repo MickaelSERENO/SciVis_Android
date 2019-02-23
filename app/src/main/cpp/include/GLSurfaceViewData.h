@@ -42,6 +42,13 @@ namespace sereno
              * \return the touch coordinate or NULL if id is not correct */
             TouchCoord* getTouchCoord(int id);
 
+            /** \brief  Close the surface view */
+            void closeEvent() {m_isClosed = true;}
+
+            /* \brief  Is the surface view closed?
+             * \return  true if closed, false otherwise */
+            bool isClosed() const {return m_isClosed;}
+
             const std::string  dataPath; /*!< The data path*/
             GLRenderer         renderer; /*!< The renderer */
         private:
@@ -51,8 +58,9 @@ namespace sereno
 
             TouchCoord m_touchCoords[MAX_TOUCH_FINGER]; /*!< The coordinate of all the fingers*/
 
-            std::deque<Event*> m_events; /*!< Array of events*/
-            pthread_mutex_t    m_mutex;  /*!< The mutex for handling communication between Java and Cpp*/
+            std::deque<Event*> m_events;           /*!< Array of events*/
+            pthread_mutex_t    m_mutex;            /*!< The mutex for handling communication between Java and Cpp*/
+            bool               m_isClosed = false; /*!< Is the surface view closed ?*/
     };
 }
 
