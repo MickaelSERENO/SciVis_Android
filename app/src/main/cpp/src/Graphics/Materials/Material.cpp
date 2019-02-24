@@ -62,10 +62,7 @@ namespace sereno
             m_uMVP       = glGetUniformLocation(m_shader->getProgramID(), "uMVP");
             m_uInvMVP    = glGetUniformLocation(m_shader->getProgramID(), "uInvMVP");
             for(uint32_t i = 0; i < MATERIAL_MAXTEXTURE; i++)
-            {
-                LOG_ERROR("%s", ("uTexture"+std::to_string(i)).c_str());
                 m_uTextures[i] = glGetUniformLocation(m_shader->getProgramID(), ("uTexture"+std::to_string(i)).c_str());
-            }
         }
     }
 }

@@ -3,8 +3,10 @@
 
 #include <limits>
 #include <stdint.h>
+#include <memory>
 #include "Quaternion.h"
 #include "ColorMode.h"
+#include "Datasets/Snapshot.h"
 
 namespace sereno
 {
@@ -70,29 +72,16 @@ namespace sereno
 
             /**
              * \brief  Set the snapshot from this scientific visualization
-             *
-             * \param width  the snapshot width
-             * \param height the snapshot height
-             * \param pixels a pointer to the snapshot RGBA pixels. Size: width*height
+             * \param snapshot the snapshot object
              */
-            void setSnapshot(uint32_t width, uint32_t height, uint32_t** pixels)
+            void setSnapshot(std::shared_ptr<Snapshot> snapshot)
             {
-                m_snapshotWidth  = width;
-                m_snapshotHeight = height;
-                m_snapshotPixels = pixels; 
+                m_snapshot = snapshot;
             }
 
-            /* \brief Get the snapshot image width 
-             * \return the snapshot image width*/
-            uint32_t getSnapshotWidth() const {return m_snapshotWidth;}
-
-            /* \brief Get the snapshot image height 
-             * \return the snapshot image height*/
-            uint32_t getSnapshotHeight() const {return m_snapshotHeight;}
-
-            /* \brief Get the snapshot pixels ARGB8888. Use getSnapshotWidth and getSnapshotHeight in order to get the correct layout
-             * \return A pointer to the snapshot array. */
-            uint32_t* const* const getSnapshotPixels() const {return m_snapshotPixels;}
+            /* \brief Get the snapshot pixels ARGB8888. 
+             * \return A pointer to the snapshot structure. */
+            Snapshot* getSnapshot() const {return m_snapshot.get();}
         protected:
             bool        m_isValid        = false;   /*!< Is this dataset in a valid state ?*/
             ColorMode   m_colorMode      = RAINBOW; /*!< The color mode of this dataset*/
@@ -104,7 +93,8 @@ namespace sereno
 
             uint32_t    m_snapshotWidth  = 0;       /*!< The snapshot width*/
             uint32_t    m_snapshotHeight = 0;       /*!< The snapshot height*/
-            uint32_t**  m_snapshotPixels = NULL;    /*!< Pointer to the array storing the snapshot pixels in ARGB888*/
+
+            std::shared_ptr<Snapshot> m_snapshot;   /*!< The snapshot structure*/
 
         friend class Dataset;
     };

@@ -11,3 +11,15 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeDelPtr(JNIEnv* jen
     delete d;
 }
 
+
+JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetNbSubDatasets(JNIEnv* jenv, jclass jcls, jlong ptr)
+{
+    std::shared_ptr<Dataset>* d = (std::shared_ptr<Dataset>*)ptr;
+    return (*d)->getNbSubDatasets();
+}
+
+JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jint i)
+{
+    std::shared_ptr<Dataset>* d = (std::shared_ptr<Dataset>*)ptr;
+    return (jlong)(*d)->getSubDataset(i);
+}

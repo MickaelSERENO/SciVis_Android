@@ -6,9 +6,11 @@ import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.Dataset;
+import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 
-public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback
+public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback
 {
     private long m_ptr;
 
@@ -49,6 +51,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset fd)
     {
         nativeAddBinaryDataset(m_ptr, fd.getPtr());
+        onAddDataset(model, fd);
     }
 
     @Override
@@ -56,15 +59,19 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         //C++ callback
         nativeAddVTKDataset(m_ptr, d.getPtr());
+        onAddDataset(model, d);
     }
 
-    /** \brief Function that set the current range color for the displayed dataset
-     * @param min the minimum value
-     * @param max the maximum value
-     * @param mode the color mode to apply (see ColorMode)*/
-    public void setCurrentRangeColor(float min, float max, int mode)
+    public void onAddDataset(ApplicationModel model, Dataset d)
     {
-        nativeOnRangeColorChange(m_ptr, min, max, mode);
+        for(int i = 0; i < d.getNbSubDataset(); i++)
+            d.getSubDataset(i).addListener(this);
+    }
+
+    @Override
+    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    {
+        nativeOnRangeColorChange(m_ptr, min, max, mode, sd.getNativePtr());
     }
 
     /** \brief Create the argument to send to the main function
@@ -95,6 +102,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param min the minimum range (0.0, 1.0)
      * @param max the maximum range (0.0, 1.0)
      * @param mode the color mode to apply (See ColorMode)
-     */
-    private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode);
+     * @param sdPtr the SubDataset native pointer*/
+    private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode, long sdPtr);
 }

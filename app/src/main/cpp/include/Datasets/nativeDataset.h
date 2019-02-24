@@ -10,6 +10,21 @@ extern "C"
      * \param jobj the Java Object calling this function
      * \param ptr the Dataset ptr */
 	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeDelPtr(JNIEnv* jenv, jclass jcls, jlong ptr);
+
+    /* \brief  Get the number of sub datasets the Dataset "ptr" owns
+     * \param jenv the JNIEnvironment
+     * \param jobj the Java Object calling this function
+     * \param ptr the Dataset ptr 
+     * \return  ptr->getNbSubDatasets() */
+	JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetNbSubDatasets(JNIEnv* jenv, jclass jcls, jlong ptr);
+
+    /* \brief  Get the native pointer of the SubDataset #i
+     * \param jenv the JNIEnvironment
+     * \param jobj the Java Object calling this function
+     * \param ptr the Dataset ptr 
+     * \param i the indice of the subdataset prompted
+     * \return the native pointer of the SubDataset. 0 if i is invalid*/
+    JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jint i);
 }
 
 #endif   /* ----- #ifndef NATIVEDATASET_INC  ----- */

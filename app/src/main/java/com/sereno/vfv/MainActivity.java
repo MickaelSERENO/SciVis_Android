@@ -21,11 +21,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.sereno.Tree;
+import com.sereno.color.ColorMode;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
+import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
@@ -44,13 +46,14 @@ public class MainActivity extends AppCompatActivity
 {
     public static final String TAG="VFV";
 
-    private ApplicationModel m_model;          /*!< The application data model */
-    private DrawerLayout     m_drawerLayout;   /*!< The root layout. DrawerLayout permit to have a left menu*/
-    private Button           m_deleteDataBtn;  /*!< The delete data button*/
-    private RangeColorView   m_rangeColorView; /*!< The range color view*/
-    private VFVSurfaceView   m_surfaceView;    /*!< The surface view displaying the vector field*/
-    private TreeView         m_previewLayout;  /*!< The preview layout*/
-    private Bitmap           m_noSnapshotBmp;  /*!< The bitmap used when no preview is available*/
+    private ApplicationModel m_model;             /*!< The application data model */
+    private DrawerLayout     m_drawerLayout;      /*!< The root layout. DrawerLayout permit to have a left menu*/
+    private Button           m_deleteDataBtn;     /*!< The delete data button*/
+    private RangeColorView   m_rangeColorView;    /*!< The range color view*/
+    private VFVSurfaceView   m_surfaceView;       /*!< The surface view displaying the vector field*/
+    private TreeView         m_previewLayout;     /*!< The preview layout*/
+    private Bitmap           m_noSnapshotBmp;     /*!< The bitmap used when no preview is available*/
+    private SubDataset       m_currentSubDataset; /*!< The current application sub dataset*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -119,13 +122,13 @@ public class MainActivity extends AppCompatActivity
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
-        addDatasetPreview(d);
+        addDataset(d);
     }
 
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
-        addDatasetPreview(d);
+        addDataset(d);
     }
 
     /** \brief Set up the drawer layout (root layout)*/
@@ -167,15 +170,6 @@ public class MainActivity extends AppCompatActivity
                         motionEvent.getAction() == MotionEvent.ACTION_MOVE)
                     m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
                 return false;
-            }
-        });
-
-        m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
-        {
-            @Override
-            public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
-            {
-                m_surfaceView.setCurrentRangeColor(minVal, maxVal, mode);
             }
         });
     }
@@ -262,11 +256,35 @@ public class MainActivity extends AppCompatActivity
         dialogFragment.show(getFragmentManager(), "dialog");
     }
 
-    private void addDatasetPreview(Dataset d)
+    private void addDataset(Dataset d)
     {
+        //Add the preview
         TextView   dataText = new TextView(this);
         dataText.setText(d.getName());
         Tree<View> dataView = new Tree<View>(dataText);
         m_previewLayout.getData().addChild(dataView, -1);
+
+        for(int i = 0; i < d.getNbSubDataset(); i++)
+        {
+            //Set the color range listener
+            final SubDataset sd = d.getSubDataset(i);
+            m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
+            {
+                @Override
+                public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
+                {
+                    sd.setRangeColor(minVal, maxVal, mode);
+                }
+            });
+            m_rangeColorView.setRange(0.0f, 1.0f);
+            m_rangeColorView.setColorMode(ColorMode.RAINBOW);
+
+            //Add the snap image
+            ImageView snapImg = new ImageView(this);
+            snapImg.setAdjustViewBounds(true);
+            snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            snapImg.setImageResource(R.drawable.no_snapshot);
+            dataView.addChild(new Tree<View>(snapImg), -1);
+        }
     }
 }

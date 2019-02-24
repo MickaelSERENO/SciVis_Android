@@ -42,8 +42,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JN
     data->addVTKData(*((std::shared_ptr<VTKDataset>*)jData));
 }
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode)
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode, jlong sd)
 {
     VFVData* data = (VFVData*)ptr;
-    data->onRangeColorChange(min, max, (ColorMode)(mode));
+    data->onRangeColorChange(min, max, (ColorMode)(mode), (SubDataset*)sd);
 }

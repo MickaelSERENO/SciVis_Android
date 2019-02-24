@@ -133,7 +133,7 @@ namespace sereno
             std::vector<SciVis*>         m_sciVis;                 /*!< List of visualization*/
             SciVis*                      m_currentVis      = NULL; /*!< The current visualization*/
             uint32_t                     m_snapshotCnt     = 0;    /*!< The snapshot counter*/
-            std::map<SciVis*, uint32_t*> m_snapshotsPixels;        /*!< The snapshot pixels per Scientific Visualization*/
+            std::map<SciVis*, std::shared_ptr<Snapshot>> m_snapshots; /*!< The snapshot pixels per Scientific Visualization*/
 
             typedef std::pair<SciVis*, SciVisTFEnum> SciVisPair;
     };

@@ -27,11 +27,10 @@ namespace sereno
     /* \brief Color range information */
     struct ColorRangeEvent
     {
-        float min;                            /*!< the minimum range (ratio : 0.0, 1.0)*/
-        float max;                            /*!< the maximum range (ratio : 0.0, 1.0)*/
-        ColorMode mode;                       /*!< The color mode to apply*/
-        uint32_t  subDataID;                  /*!< The sub dataset ID*/
-        std::shared_ptr<Dataset> currentData; /*!< The current dataset*/
+        float min;      /*!< the minimum range (ratio : 0.0, 1.0)*/
+        float max;      /*!< the maximum range (ratio : 0.0, 1.0)*/
+        ColorMode mode; /*!< The color mode to apply*/
+        SubDataset* sd; /*!< The subdataset changing*/       
     };
 
     /* \brief binary data event information (add) */
@@ -142,8 +141,9 @@ namespace sereno
             /* \brief Function called when the range color has changed
              * \param min the minimum range color
              * \param max the maximum range color 
-             * \param mode the current color mode*/
-            void onRangeColorChange(float min, float max, ColorMode mode);
+             * \param mode the current color mode
+             * \param data the SubDataset changing*/
+            void onRangeColorChange(float min, float max, ColorMode mode, SubDataset* data);
 
             /* \brief Set the current data displayed in the application
              * \param dataID the dataID*/
@@ -163,8 +163,6 @@ namespace sereno
             std::vector<std::shared_ptr<Dataset>> m_datas;    /*!< The data paths */
 
             jobject                  m_javaObj;                  /*!< The java object linked to this model object*/
-            std::shared_ptr<Dataset> m_currentData       = NULL; /*!< The current data*/
-            int                      m_currentSubDataIdx = -1;   /*!< The current subdata index*/
             IVFVCallback*            m_clbk              = NULL; /*!< The callback interface */
             std::deque<VFVEvent*>    m_events;                   /*!< The events from Java*/
             pthread_mutex_t          m_mutex;                    /*!< The mutex for handling communication between Java and Cpp*/

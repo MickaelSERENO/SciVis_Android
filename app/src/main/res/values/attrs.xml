@@ -2,6 +2,7 @@
 <resources>
     <declare-styleable name="TreeView">
         <attr name="leftOffsetPerLevel" format="integer"/>
-        <attr name="topOffsetPerChild" format="integer"/>
+        <attr name="topOffsetPerChild"  format="integer"/>
+        <attr name="strokeWidth"        format="integer"/>
     </declare-styleable>
 </resources>

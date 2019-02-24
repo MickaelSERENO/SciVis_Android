@@ -37,8 +37,9 @@
             android:layout_columnWeight="1"
             android:layout_width="300px"
             android:layout_height="300px"
-            CustomView:topOffsetPerChild="25"
-            CustomView:leftOffsetPerLevel="10"
+            CustomView:topOffsetPerChild="10"
+            CustomView:leftOffsetPerLevel="25"
+            CustomView:strokeWidth="3"
             android:textAlignment="center"/>
 
         <!-- Records -->

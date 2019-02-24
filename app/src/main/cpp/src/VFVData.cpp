@@ -27,12 +27,6 @@ namespace sereno
 
         pthread_mutex_lock(&m_mutex);
         {
-            if(m_currentData == NULL)
-            {
-                m_currentData       = dataset;
-                m_currentSubDataIdx = 0;
-            }
-
             m_datas.push_back(dataset);
         }
         pthread_mutex_unlock(&m_mutex);
@@ -46,12 +40,6 @@ namespace sereno
 
         pthread_mutex_lock(&m_mutex);
         {
-            if(m_currentData == NULL)
-            {
-                m_currentData       = dataset;
-                m_currentSubDataIdx = 0;
-            }
-
             m_datas.push_back(dataset);
         }
 
@@ -69,21 +57,13 @@ namespace sereno
         //TODO
     }
 
-    void VFVData::onRangeColorChange(float min, float max, ColorMode mode)
+    void VFVData::onRangeColorChange(float min, float max, ColorMode mode, SubDataset* sd)
     {
         VFVEvent* ev = NULL;
         pthread_mutex_lock(&m_mutex);
         {
-            if(m_currentData)
-            {
-                ev = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
-                ev->colorRange.min  = min;
-                ev->colorRange.max  = max;
-                ev->colorRange.mode = mode;
-                ev->colorRange.currentData = m_currentData;
-                ev->colorRange.subDataID   = m_currentSubDataIdx;
-                m_currentData->getSubDataset(m_currentSubDataIdx)->setColor(min, max, mode);
-            }
+            ev = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
+            ev->colorRange.sd = sd;
         }
         pthread_mutex_unlock(&m_mutex);
 

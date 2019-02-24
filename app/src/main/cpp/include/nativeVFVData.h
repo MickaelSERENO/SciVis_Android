@@ -57,8 +57,9 @@ extern "C"
      * \param ptr the VFVData ptr
      * \param min the minimum range
      * \param max the maximum range
-     * \param mode the color mode to apply*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode);
+     * \param mode the color mode to apply
+     * \param sd the SubDataset being modified*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode, jlong sd);
 
     /**
      * \brief  Poll a native event from C++ for the UI

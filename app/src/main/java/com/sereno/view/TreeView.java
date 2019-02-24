@@ -47,9 +47,12 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
     /** @brief The top offset to apply per level in the tree view*/
     private int m_topOffsetPerChild  = 0;
 
+    private int m_strokeWidth = 1;
+
     /** @brief The internal tree data*/
     private Tree<View> m_tree;
 
+    /** @brief The Paint used when drawing*/
     private Paint m_paint;
 
     /** @brief Constructor with the view's context as @parameter
@@ -89,12 +92,15 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         TypedArray ta = getContext().obtainStyledAttributes(a, R.styleable.TreeView);
         m_leftOffsetPerLevel = ta.getInt(R.styleable.TreeView_leftOffsetPerLevel, 10);
         m_topOffsetPerChild  = ta.getInt(R.styleable.TreeView_topOffsetPerChild,  15);
+        m_strokeWidth        = ta.getInt(R.styleable.TreeView_strokeWidth, 1);
         ta.recycle();
 
         m_tree = new Tree<>(null);
         m_tree.addListener(this);
         setWillNotDraw(false);
+
         m_paint = new Paint();
+        setStrokeWidth(m_strokeWidth);
     }
 
     @Override
@@ -178,7 +184,7 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
 
             // These are the far left and right edges in which we are performing layout.
             int leftPos  = getPaddingLeft()+leftMargin;
-            int rightPos = right - left - getPaddingRight();
+            int rightPos = right - left - leftMargin - getPaddingRight();
 
             // These are the top and bottom edges in which we are performing layout.
             final int parentTop = getPaddingTop()+topMargin;
@@ -188,12 +194,11 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
             child.layout(leftPos, parentTop, Math.min(leftPos + width, rightPos), Math.min(parentTop + height, parentBottom));
         }
 
-
+        topMargin = topMargin + height + (child != null ? m_topOffsetPerChild : 0);
         for(Tree<View> l : leaf.getChildren())
-            height += onLayoutLeaf(b, leftMargin + (child != null ? m_leftOffsetPerLevel : 0),
-                                   topMargin + height + (child != null ? m_topOffsetPerChild : 0),
-                                   left, top, right, bottom, l);
-        return height;
+            topMargin = onLayoutLeaf(b, leftMargin + (child != null ? m_leftOffsetPerLevel : 0),
+                                     topMargin, left, top, right, bottom, l);
+        return topMargin;
     }
 
     @Override
@@ -201,26 +206,6 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
     {
         onLayoutLeaf(b, 0, 0, left,
                      top, right, bottom, m_tree);
-    }
-
-    /** @brief Dispatch the draw calls to the leaves. Do that only if the leaf is visible (or is null)
-     * @param canvas the canvas
-     * @param tree  the current leaf to look at*/
-    public void dispatchDrawLeaf(Canvas canvas, Tree<View> tree)
-    {
-        if(tree.value == null || tree.value.getVisibility() == View.VISIBLE || tree.value.getVisibility() == View.INVISIBLE)
-        {
-            if (tree.value != null)
-                tree.value.draw(canvas);
-            for (Tree<View> t : tree.getChildren())
-                dispatchDrawLeaf(canvas, t);
-        }
-    }
-
-    @Override
-    public void dispatchDraw(Canvas canvas)
-    {
-        dispatchDrawLeaf(canvas, m_tree);
     }
 
     @Override
@@ -238,26 +223,28 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
             if(tree.value != null && t.value != null)
             {
                 canvas.drawLine(tree.value.getX() + 5, tree.value.getY() + tree.value.getHeight(),
-                        tree.value.getX() + 5, t.value.getY() + tree.value.getHeight() / 2, m_paint);
-                canvas.drawLine(tree.value.getX() + 5, t.value.getY() + tree.value.getHeight() / 2,
-                        t.value.getX(), t.value.getY() + tree.value.getHeight() / 2, m_paint);
+                        tree.value.getX() + 5, t.value.getY() + t.value.getHeight() / 2, m_paint);
+                canvas.drawLine(tree.value.getX() + 5, t.value.getY() + t.value.getHeight() / 2,
+                        t.value.getX(), t.value.getY() + t.value.getHeight() / 2, m_paint);
             }
             drawLeaf(canvas, t);
         }
     }
 
-    @Override
-    public void onAddChild(Tree<View> parent, Tree<View> child)
+    public void recursiveOnAddChildren(Tree<View> child)
     {
         if(child.value != null)
             addView(child.value);
         child.addListener(this);
+
         for(Tree<View> v : child.getChildren())
-        {
-            if (v.value != null)
-                addView(v.value);
-            v.addListener(this);
-        }
+            recursiveOnAddChildren(v);
+    }
+
+    @Override
+    public void onAddChild(Tree<View> parent, Tree<View> child)
+    {
+        recursiveOnAddChildren(child);
         invalidate();
     }
 
@@ -273,6 +260,15 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
                 removeView(v.value);
             v.removeListener(this);
         }
+        invalidate();
+    }
+
+    /** @brief Set the stroke width of this TreeView
+     * @param strokeWidth the stroke width*/
+    public void setStrokeWidth(int strokeWidth)
+    {
+        m_strokeWidth = strokeWidth;
+        m_paint.setStrokeWidth(strokeWidth);
         invalidate();
     }
 

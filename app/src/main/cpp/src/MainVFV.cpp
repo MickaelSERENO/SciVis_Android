@@ -93,8 +93,9 @@ namespace sereno
 
                             //Set state
                             m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_DefaultTF]);
-                            m_snapshotsPixels.insert(std::pair<SciVis*, uint32_t*>(m_sciVis.back(), NULL));
-                            m_sciVis.back()->getModel()->setSnapshot(0, 0, &m_snapshotsPixels[m_sciVis.back()]);
+                            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
+                            m_snapshots.insert(snap);
+                            m_sciVis.back()->getModel()->setSnapshot(snap.second);
 
                             if(m_currentVis == NULL)
                                 m_currentVis = m_sciVis[0];
@@ -118,8 +119,9 @@ namespace sereno
 
                             //Set internal state
                             m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
-                            m_snapshotsPixels.insert(std::pair<SciVis*, uint32_t*>(m_sciVis.back(), NULL));
-                            m_sciVis.back()->getModel()->setSnapshot(0, 0, &m_snapshotsPixels[m_sciVis.back()]);
+                            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
+                            m_snapshots.insert(snap);
+                            m_sciVis.back()->getModel()->setSnapshot(snap.second);
                         }
                         if(m_currentVis == NULL)
                             m_currentVis = m_sciVis[0];
@@ -143,7 +145,7 @@ namespace sereno
                         break;
                     case VFV_COLOR_RANGE_CHANGED:
                         //Change color event. The color will be changed ONCE below (only once because it is heavy to change the color multiple times. We do it once before rendering)
-                        modelChanged.push_back(event->colorRange.currentData->getSubDataset(event->colorRange.subDataID));
+                        modelChanged.push_back(event->colorRange.sd);
                         updateColor = true;
                         break;
                     default:
@@ -187,15 +189,16 @@ namespace sereno
                 //Enlarge the pixel array
                 uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
                 uint32_t snapHeight = m_surfaceData->renderer.getHeight();
-                if(m_currentVis->getModel()->getSnapshotWidth() != m_surfaceData->renderer.getWidth() || m_currentVis->getModel()->getSnapshotHeight() != m_surfaceData->renderer.getHeight())
+                Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
+                if(curSnapshot == NULL || curSnapshot->width != snapWidth |- curSnapshot->height != snapHeight) 
                 {
-                    if(m_snapshotsPixels[m_currentVis])
-                        free(m_snapshotsPixels[m_currentVis]);
-                    m_snapshotsPixels[m_currentVis] = (uint32_t*)malloc(snapWidth*snapHeight*sizeof(uint32_t));
+                    Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight*4));
+                    m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
+                    curSnapshot = newSnapshot;
                 }
                 //Read pixels
-                glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_BYTE, m_snapshotsPixels[m_currentVis]);
-                m_currentVis->getModel()->setSnapshot(snapWidth, snapHeight, &m_snapshotsPixels[m_currentVis]);
+                glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_BYTE, curSnapshot->pixels);
+                m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
                 m_snapshotCnt = 0;
             }
             m_surfaceData->renderer.render();
