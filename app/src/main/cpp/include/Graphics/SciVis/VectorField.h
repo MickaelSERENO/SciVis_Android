@@ -6,11 +6,11 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 #include <memory>
-#include "Graphics/SciVis/SciVis.h"
+#include "SciVis.h"
 #include "Datasets/BinaryDataset.h"
 #include "MeshLoader.h"
 #include "ColorMode.h"
-#include "Graphics/Color.h"
+#include "Color.h"
 
 #define MAX_VECTOR_ALONG_AXIS 25
 

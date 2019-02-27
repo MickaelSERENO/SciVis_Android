@@ -1,5 +1,4 @@
 #include "Graphics/SciVis/VectorField.h"
-#include "Graphics/SciVis/SciVisColor.h"
 
 namespace sereno
 {

@@ -1,7 +1,7 @@
 #ifndef DEF_MATERIAL_INCLUDE
 #define DEF_MATERIAL_INCLUDE
 
-#include "Graphics/Color.h"
+#include "Color.h"
 #include "Graphics/Materials/Material.h"
 
 namespace sereno

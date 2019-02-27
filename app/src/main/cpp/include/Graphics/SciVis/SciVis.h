@@ -3,7 +3,7 @@
 
 #include "Datasets/SubDataset.h"
 #include "Graphics/GameObject.h"
-#include "Graphics/Color.h"
+#include "Color.h"
 #include "ColorMode.h"
 
 namespace sereno

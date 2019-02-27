@@ -58,6 +58,8 @@ find_package(PkgConfig              REQUIRED)
 PKG_CHECK_MODULES(LIB3DS            REQUIRED lib3ds)
 PKG_CHECK_MODULES(GLM               REQUIRED glm)
 PKG_CHECK_MODULES(SERENO_VTK_PARSER REQUIRED serenoVTKParser)
+PKG_CHECK_MODULES(SERENO_MATH       REQUIRED serenoMath)
+PKG_CHECK_MODULES(SERENO_SCI_VIS    REQUIRED serenoSciVis)
 
 #Find android internal libraries
 find_library(log-lib     log)
@@ -82,9 +84,26 @@ add_library(sereno_vtk_parser-lib SHARED IMPORTED)
 set_target_properties(sereno_vtk_parser-lib PROPERTIES
         IMPORTED_LOCATION "${SERENO_VTK_PARSER_SO}")
 
+#sereno math
+findSO(SERENO_MATH_SO SERENO_MATH)
+MESSAGE(STATUS ${SERENO_MATH_SO})
+add_library(sereno_math-lib SHARED IMPORTED)
+set_target_properties(sereno_math-lib PROPERTIES
+        IMPORTED_LOCATION "${SERENO_MATH_SO}")
+
+#sereno sciVis
+findSO(SERENO_SCI_VIS_SO SERENO_SCI_VIS)
+MESSAGE(STATUS ${SERENO_SCI_VIS_SO})
+add_library(sereno_sci_vis-lib SHARED IMPORTED)
+set_target_properties(sereno_sci_vis-lib PROPERTIES
+        IMPORTED_LOCATION "${SERENO_SCI_VIS_SO}")
+
+#Add our library
 add_library(native-lib SHARED ${SOURCES} ${HEADERS})
-target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS})
-target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})
+add_definitions(-DSNAPSHOT)
+target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS} ${SERENO_MATH_CFLAGS} ${SERENO_SCI_VIS_CFLAGS})
+target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib sereno_math-lib sereno_sci_vis-lib
+                      ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})
 
 include(AndroidNdkGdb)
 android_ndk_gdb_enable()

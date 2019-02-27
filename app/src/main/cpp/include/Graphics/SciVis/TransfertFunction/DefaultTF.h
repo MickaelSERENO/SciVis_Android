@@ -1,7 +1,7 @@
 #ifndef  DEFAULTTF_INC
 #define  DEFAULTTF_INC
 
-#include "Graphics/SciVis/SciVisColor.h"
+#include "SciVisColor.h"
 #include "Graphics/SciVis/TransfertFunction/TFColor.h"
 #include <cstdint>
 

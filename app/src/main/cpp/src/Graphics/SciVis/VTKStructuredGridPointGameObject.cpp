@@ -1,5 +1,5 @@
 #include "Graphics/SciVis/VTKStructuredGridPointGameObject.h"
-#include "Graphics/SciVis/SciVisColor.h"
+#include "SciVisColor.h"
 #include "Graphics/SciVis/VolumeRenderingPlaneAlgorithm.h"
 #include <algorithm>
 #include <cstdlib>

@@ -4,7 +4,7 @@
 
 #include "Graphics/SciVis/TransfertFunction/TransfertFunction.h"
 #include "Graphics/SciVis/TransfertFunction/TFColor.h"
-#include "Graphics/SciVis/SciVisColor.h"
+#include "SciVisColor.h"
 #include <algorithm>
 
 

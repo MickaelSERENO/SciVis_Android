@@ -3,7 +3,7 @@
 
 #include "Graphics/SciVis/TransfertFunction/TransfertFunction.h"
 #include "Graphics/SciVis/TransfertFunction/TFColor.h"
-#include "Graphics/SciVis/SciVisColor.h"
+#include "SciVisColor.h"
 #include <algorithm>
 
 namespace sereno
@@ -44,7 +44,7 @@ namespace sereno
                     rMag += r[i]*r[i];
                 }
 
-                return std::min(m_alphaMax*exp(-r)*255, 255.0f);
+                return std::min(m_alphaMax*exp(-rMag)*255, 255.0f);
             }
 
             /**

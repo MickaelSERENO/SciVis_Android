@@ -1,7 +1,7 @@
 #ifndef  TFCOLOR_INC
 #define  TFCOLOR_INC
 
-#include "Graphics/SciVis/SciVisColor.h"
+#include "SciVisColor.h"
 #include <cstdint>
 
 namespace sereno
