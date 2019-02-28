@@ -35,17 +35,21 @@ import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
 import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
+import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
+import com.sereno.vfv.Network.EmptyMessage;
+import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.view.RangeColorView;
 import com.sereno.view.TreeView;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback
 {
     public static final String TAG="VFV";
 
@@ -58,6 +62,8 @@ public class MainActivity extends AppCompatActivity
     private Bitmap           m_noSnapshotBmp;     /*!< The bitmap used when no preview is available*/
     private SubDataset       m_currentSubDataset; /*!< The current application sub dataset*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
+    private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
+
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -70,6 +76,7 @@ public class MainActivity extends AppCompatActivity
         m_model.addCallback(this);
         m_socket = new SocketManager(m_model.getConfiguration().getServerIP(),
                                      m_model.getConfiguration().getServerPort());
+        m_socket.getMessageBuffer().addListener(this);
 
         setContentView(R.layout.main_activity);
 
@@ -181,6 +188,27 @@ public class MainActivity extends AppCompatActivity
 
         if(subDatasetID != -1 && parent != null)
             m_socket.push(SocketManager.createRotationEvent(parent, subDatasetID, dataset.getRotation()));
+    }
+
+    @Override
+    public void onEmptyMessage(EmptyMessage msg)
+    {
+    }
+
+    @Override
+    public void onAcknowledgeAddDatasetMessage(AcknowledgeAddDatasetMessage msg)
+    {
+        switch(msg.getType())
+        {
+            case MessageBuffer.GET_ADD_DATASET_ACKNOWLEDGE:
+            {
+                Dataset d = m_pendingDataset.poll();
+                d.setID(msg.getID());
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     /** \brief Set up the drawer layout (root layout)*/
@@ -311,6 +339,7 @@ public class MainActivity extends AppCompatActivity
     private void addDataset(Dataset d)
     {
         //Add the preview
+        m_pendingDataset.add(d);
         TextView   dataText = new TextView(this);
         dataText.setText(d.getName());
         Tree<View> dataView = new Tree<View>(dataText);
@@ -321,7 +350,7 @@ public class MainActivity extends AppCompatActivity
             //Set the color range listener
             final SubDataset sd = d.getSubDataset(i);
             sd.addListener(this);
-            
+
             m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
             {
                 @Override

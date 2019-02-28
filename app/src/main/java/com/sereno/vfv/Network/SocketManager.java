@@ -9,6 +9,7 @@ import com.sereno.vfv.MainActivity;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -17,7 +18,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 
-public class SocketManager implements Runnable
+public class SocketManager
 {
     /** The connection timeout in milliseconds*/
     public static final int    CONNECT_TIMEOUT    = 100;
@@ -25,6 +26,7 @@ public class SocketManager implements Runnable
     public static final int    FAIL_CONNECT_SLEEP = 200;
     /** How many milliseconds the thread has to sleep before resending data ?*/
     public static final int    THREAD_SLEEP       = 1000/90;
+    public static final int    READ_TIMEOUT       = 5;
 
     /* ************************************************************ */
     /* ******************Recognizable server type****************** */
@@ -43,7 +45,7 @@ public class SocketManager implements Runnable
     /** The output stream of the socket*/
     private DataOutputStream m_output;
     /** The input stream of the socket*/
-    private BufferedReader   m_input;
+    private InputStream      m_input;
 
     /** The ip of the server*/
     private String m_serverIP;
@@ -51,7 +53,8 @@ public class SocketManager implements Runnable
     private int    m_serverPort;
 
     /** The socket's thread*/
-    private Thread  m_thread;
+    private Thread  m_writeThread;
+    private Thread  m_readThread;
     /** Is the socket closed ?*/
     private boolean m_isClosed = false;
 
@@ -61,80 +64,89 @@ public class SocketManager implements Runnable
     /** Is the hololens bound to this tablet?*/
     private boolean m_isBoundToHololens = false;
 
+    /** The read byte buffer*/
+    private ByteBuffer m_readBuffer = ByteBuffer.allocate(8192);
+
+    /** The message buffer being used*/
+    private MessageBuffer m_msgBuffer = new MessageBuffer();
+
     /** The queue buffer storing data to SEND*/
     private ArrayDeque<byte[]> m_queueSendBuf = new ArrayDeque<>();
 
+    /** Runnable writing to the socket. It also tries to reconnect to the server every time*/
+    private Runnable m_writeThreadRunnable = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            while(!m_isClosed)
+            {
+                //Connect the socket
+                boolean isConnected = m_socket.isConnected();
+                synchronized (this)
+                {
+                    if (!isConnected)
+
+                    {
+                        Log.i(MainActivity.TAG, "Trying to reconnect at " + m_serverIP + ":" + m_serverPort + "\n");
+                        isConnected = connect();
+                    }
+                }
+
+                //If not connected, sleep longer
+                if(!isConnected)
+                {
+                    try {Thread.sleep(SocketManager.FAIL_CONNECT_SLEEP);} catch (Exception e) {}
+                    continue;
+                }
+
+                if(!checkWritting())
+                    continue;
+
+                try{Thread.sleep(SocketManager.THREAD_SLEEP);} catch (Exception e) {}
+            }
+        }
+    };
+
+    /** Runnable reading the socket*/
+    private Runnable m_readThreadRunnable = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            byte[] buf = new byte[1024];
+
+            while(!m_isClosed)
+            {
+                try
+                {
+                    //Read the data
+                    int readSize = m_input.read(buf);
+                    if(readSize > 0)
+                    {
+                        m_readBuffer.put(buf, 0, readSize);
+                        m_msgBuffer.push(m_readBuffer);
+                    }
+                }
+                catch(IOException io)
+                {
+                    Log.e(MainActivity.TAG, "IO exception...");
+                }
+            }
+        }
+    };
+
     public SocketManager(String ip, int port)
     {
-        m_socket     = new Socket();
-        m_serverIP   = ip;
-        m_serverPort = port;
-        m_thread     = new Thread(this);
-        m_thread.start();
-    }
+        m_readBuffer.order(ByteOrder.BIG_ENDIAN);
+        m_socket      = new Socket();
+        m_serverIP    = ip;
+        m_serverPort  = port;
+        m_writeThread = new Thread(m_writeThreadRunnable);
+        m_writeThread.start();
 
-    /** Connect to the server and send the data periodically.*/
-    public void run()
-    {
-        while(!m_isClosed)
-        {
-            //Connect the socket
-            boolean isConnected = m_socket.isConnected();
-            synchronized (this)
-            {
-                if (!isConnected)
-
-                {
-                    Log.i(MainActivity.TAG, "Trying to reconnect at " + m_serverIP + ":" + m_serverPort + "\n");
-                    isConnected = this.connect();
-                }
-            }
-
-            //If not connected, sleep longer
-            if(!isConnected)
-            {
-                try {m_thread.sleep(FAIL_CONNECT_SLEEP);} catch (Exception e) {}
-                continue;
-            }
-
-            //Send the data. Synchronize the object first
-            synchronized(this)
-            {
-                //Send TABLET_IDENT
-                if(m_isBoundToHololens == false && m_hololensIP != null)
-                {
-                    try
-                    {
-                        m_output.write(getIdentData());
-                        m_output.flush();
-                        m_isBoundToHololens = true;
-                    }
-                    catch(final IOException e)
-                    {
-                        close();
-                        continue;
-                    }
-                }
-
-                //Send other buffers. These buffer are generate from the static method this class provides
-                while(!m_queueSendBuf.isEmpty())
-                {
-                    byte[] d = m_queueSendBuf.poll();
-                    try
-                    {
-                        m_output.write(d);
-                        m_output.flush();
-                    }
-                    catch(final Exception e)
-                    {
-                        close();
-                        break;
-                    }
-                }
-            }
-
-            try{m_thread.sleep(THREAD_SLEEP);} catch (Exception e) {}
-        }
+        m_readThread = new Thread(m_readThreadRunnable);
+        m_readThread.start();
     }
 
     /** \brief Set the server address
@@ -154,8 +166,10 @@ public class SocketManager implements Runnable
     /** Stop the thread*/
     public void stopThread()
     {
+        close();
         m_isClosed = true;
-        try{m_thread.join();} catch (Exception e){}
+        try{m_writeThread.join();} catch (Exception e){}
+        try{m_readThread.join();} catch (Exception e){}
     }
 
     /** Close the socket*/
@@ -178,12 +192,23 @@ public class SocketManager implements Runnable
     /* *******************Setters / Getters************************ */
     /* ************************************************************ */
 
+    /** Get the Message Buffer parsing the incoming data
+     * @return The Message Buffer parsing the incoming data. Useful for listening to new events*/
+    public MessageBuffer getMessageBuffer()
+    {
+        return m_msgBuffer;
+    }
+
+    /** Set the Hololens IP bound to the Tablet
+     * @param hololensIP the hololens IP bound to the tablet. Will be resent at each disconnection*/
     public synchronized void setHololensIP(String hololensIP)
     {
         m_hololensIP        = hololensIP;
         m_isBoundToHololens = false;
     }
 
+    /** Push a new value to write to the server
+     * @param data array of bytes to write to the server*/
     public synchronized void push(byte[] data)
     {
         m_queueSendBuf.add(data);
@@ -208,9 +233,10 @@ public class SocketManager implements Runnable
             synchronized(this)
             {
                 m_socket.connect(new InetSocketAddress(m_serverIP, m_serverPort), CONNECT_TIMEOUT);
+                m_socket.setSoTimeout(READ_TIMEOUT);
             }
             m_output = new DataOutputStream(m_socket.getOutputStream());
-            m_input  = new BufferedReader(new InputStreamReader(m_socket.getInputStream()));
+            m_input  = m_socket.getInputStream();
 
             //Send an ident without hololens information
             ByteBuffer buf = ByteBuffer.allocate(2+4);
@@ -244,10 +270,53 @@ public class SocketManager implements Runnable
         return buf.array();
     }
 
+    /** Check the writting part of the client
+     * @return true if no error occured, false otherwise*/
+    private synchronized boolean checkWritting()
+    {
+        //Send TABLET_IDENT
+        if(m_isBoundToHololens == false && m_hololensIP != null)
+        {
+            try
+            {
+                m_output.write(getIdentData());
+                m_output.flush();
+                m_isBoundToHololens = true;
+            }
+            catch(final IOException e)
+            {
+                close();
+                return false;
+            }
+        }
+
+        //Send other buffers. These buffer are generate from the static method this class provides
+        while(!m_queueSendBuf.isEmpty())
+        {
+            byte[] d = m_queueSendBuf.poll();
+            try
+            {
+                m_output.write(d);
+                m_output.flush();
+            }
+            catch(final Exception e)
+            {
+                close();
+                return false;
+            }
+        }
+        return true;
+    }
+
     /* ************************************************************ */
     /* *****************Create buffers - static******************** */
     /* ************************************************************ */
 
+    /** Create a Rotation event data to send to the server
+     * @param dataset The Dataset which possesses the SubDataset being rotated
+     * @param subID The SubDataset ID being rotated
+     * @param qArr the array of the new quaternion to send (w, i, j, k)
+     * @return array of byte to send to push*/
     public static byte[] createRotationEvent(Dataset dataset, int subID, float[] qArr)
     {
         ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4);
@@ -263,6 +332,9 @@ public class SocketManager implements Runnable
         return buf.array();
     }
 
+    /** Create a Add VTK Dataset Event to send to the server
+     * @param d the VTK Dataset being added
+     * @return array of byte to send to push*/
     public static byte[] createAddVTKDatasetEvent(VTKDataset d)
     {
         ByteBuffer buf = ByteBuffer.allocate(2+3*4+
