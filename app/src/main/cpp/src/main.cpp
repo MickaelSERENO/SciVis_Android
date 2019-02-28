@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include "utils.h"
+#include "jniData.h"
 #include "Graphics/SciVis/TransfertFunction/TransfertFunction.h"
 #include "Graphics/SciVis/TransfertFunction/GTF.h"
 
@@ -69,7 +70,18 @@ int startLogger()
 
 void GLSurface_main(GLSurfaceViewData* data, void* arg)
 {
+    int getEnvStat = javaVM->GetEnv((void **)&jniMainThread, JNI_VERSION_1_6);
+    if(getEnvStat == JNI_EDETACHED)
+    {
+        if(javaVM->AttachCurrentThread(&jniMainThread, NULL) != 0)
+            std::cerr << "Failed to attach" << std::endl;
+    }
+    else if(getEnvStat == JNI_EVERSION)
+        std::cerr << "GetEnv: version not supported" << std::endl;
+
     startLogger();
     MainVFV mainVFV(data, (VFVData*)arg);
     mainVFV.run();
+
+    javaVM->DetachCurrentThread();
 }

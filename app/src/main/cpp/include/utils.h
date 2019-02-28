@@ -34,6 +34,7 @@
  * It will use LOG_TAG as the tag (can be defined before importing this file)
  * \param __VA_ARGS__ the arguments to print */
 #define LOG_ERROR(fmt, ...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print an error on the android log */
+#define LOG_WARNING(fmt, ...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print an error on the android log */
 #define LOG_DEBUG(fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print a  debug on the android log */
 
 

@@ -6,11 +6,15 @@
 namespace sereno
 {
     extern JavaVM* javaVM;
+    extern JNIEnv* jniMainThread;
+    extern jclass    jSurfaceViewClass;
+    extern jmethodID jSurfaceView_onRotationEvent;
 }
 
 extern "C"
 {
-    jint JNI_Onload(JavaVM* vm, void* reserved);
+    jint JNI_OnLoad(JavaVM* vm, void* reserved);
+    void JNI_OnUnload(JavaVM *vm, void *reserved);
 }
 
 #endif

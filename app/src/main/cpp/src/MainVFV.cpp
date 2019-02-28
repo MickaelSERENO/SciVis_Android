@@ -1,4 +1,5 @@
 #include "MainVFV.h"
+#include "jniData.h"
 
 namespace sereno
 {
@@ -63,13 +64,14 @@ namespace sereno
                             float pitch = event->touchEvent.y - event->touchEvent.oldY;
                             modelChanged.push_back(m_currentVis->getModel());
                             m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
+                            m_mainData->sendRotationEvent(jniMainThread, m_currentVis->getModel(), roll, pitch, 0);
 
                             LOG_INFO("Rotating about %f %f", pitch, roll);
                         }
                         break;
                     }
                     default:
-                        LOG_ERROR("type %d still has to be done\n", event->type);
+                        LOG_WARNING("type %d still has to be done\n", event->type);
                         break;
                 }
                 delete event;

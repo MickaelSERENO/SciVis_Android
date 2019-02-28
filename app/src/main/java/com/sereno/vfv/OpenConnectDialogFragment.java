@@ -21,7 +21,7 @@ public class OpenConnectDialogFragment extends DialogFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         //Create the AlertDialog object and return it
-        View view = getActivity().getLayoutInflater().inflate(R.layout.open_dataset_dialog, null);
+        View view = getActivity().getLayoutInflater().inflate(R.layout.open_connection_dialog, null);
         builder.setView(view);
 
         //Set the message, button and layout

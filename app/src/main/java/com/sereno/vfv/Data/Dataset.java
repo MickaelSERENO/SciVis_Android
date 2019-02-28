@@ -5,6 +5,9 @@ import java.util.ArrayList;
 /** The Dataset abstract class*/
 public abstract class Dataset
 {
+    /** What is the next ID to apply ?*/
+    private static int NEXT_ID = 0;
+
     /** The native C++ handle*/
     protected long m_ptr;
 
@@ -14,6 +17,9 @@ public abstract class Dataset
     /** The sub datasets of this object*/
     protected ArrayList<SubDataset> m_subDatasets = new ArrayList<>();
 
+    /** The current ID of this Dataset*/
+    protected int m_id = 0;
+
     /** The constructor. Private because the class is abstract
      * @param ptr the native C++ handle created in derived class. The handle must inherits from Dataset C++ object
      * @param name  the java name of this Dataset*/
@@ -21,6 +27,9 @@ public abstract class Dataset
     {
         m_ptr  = ptr;
         m_name = name;
+        m_id   = NEXT_ID;
+
+        NEXT_ID++;
 
         for(int i = 0; i < getNbSubDataset(); i++)
             m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i)));
@@ -53,6 +62,10 @@ public abstract class Dataset
     {
         return m_subDatasets.get(i);
     }
+
+    /** @brief Get the ID of this Dataset. The ID is shared with the Server
+     * @return the Dataset ID*/
+    public int getID(){return m_id;}
 
     /** Delete a native pointer
      * @param ptr the native pointer to destroy*/

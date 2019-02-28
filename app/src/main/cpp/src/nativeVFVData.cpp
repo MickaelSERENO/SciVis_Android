@@ -7,13 +7,14 @@ using namespace sereno;
 
 JNIEXPORT jlong JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeCreateMainArgs(JNIEnv *env, jobject instance)
 {
-    VFVData* data = new VFVData(instance);
+    VFVData* data = new VFVData(env->NewGlobalRef(instance));
     return (jlong)data;
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeDeleteMainArgs(JNIEnv *env, jobject instance, jlong ptr)
 {
-    VFVData* data = new VFVData(instance);
+    VFVData* data = (VFVData*)ptr;
+    env->DeleteGlobalRef(data->getJavaObj());
     delete data;
 }
 

@@ -39,6 +39,16 @@ public class VTKDataset extends Dataset
      * @return a VTKFieldValue array*/
     public VTKFieldValue[] getSelectedCellFieldValues() {return m_cellValues;}
 
+    /** Get the point field value indice in the VTKParser used with this Dataset
+     * @param value the value to compare
+     * @return the indice in the VTKParser bound to this VTKDataset. -1 == error*/
+    public int getPtFieldValueIndice(VTKFieldValue value) {return nativeGetPtFieldValueIndice(m_ptr, value.getPtr());}
+
+    /** Get the cell field value indice in the VTKParser used with this Dataset
+     * @param value the value to compare
+     * @return the indice in the VTKParser bound to this VTKDataset. -1 == error*/
+    public int getCellFieldValueIndice(VTKFieldValue value) {return nativeGetCellFieldValueIndice(m_ptr, value.getPtr());}
+
     /** @brief get the field value pointers in a long array
      * @param values the cell values to convert
      * @return the long array containing native pointers*/
@@ -57,4 +67,16 @@ public class VTKDataset extends Dataset
      * @param cellFieldValuesPtr the cell VTKFieldValues to take account of
      * @return a native pointer*/
     private static native long nativeInitPtr(long parserPtr, long[] ptFieldValuesPtr, long[] cellFieldValuesPtr);
+
+    /** Get the point field value indice in the VTKParser used with this Dataset
+     * @param ptr the native ptr of this Dataset
+     * @param valuePtr the value pointer to compare
+     * @return the indice in the VTKParser bound to this VTKDataset. -1 == error*/
+    private native int nativeGetPtFieldValueIndice(long ptr, long valuePtr);
+
+    /** Get the cell field value indice in the VTKParser used with this Dataset
+     * @param ptr the native ptr of this Dataset
+     * @param valuePtr the value pointer to compare
+     * @return the indice in the VTKParser bound to this VTKDataset. -1 == error*/
+    private native int nativeGetCellFieldValueIndice(long ptr, long valuePtr);
 }

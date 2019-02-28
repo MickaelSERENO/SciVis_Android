@@ -1,10 +1,13 @@
+#include <jniData.h>
 #include "VFVData.h"
 #include "utils.h"
+#include "../../../../../../../../../../../home/mickael/.local/android/x86/include/Datasets/SubDataset.h"
 
 namespace sereno
 {
     VFVData::VFVData(jobject javaObj)
     {
+
         m_mutex = PTHREAD_MUTEX_INITIALIZER;
         m_javaObj = javaObj;
     }
@@ -93,5 +96,20 @@ namespace sereno
         pthread_mutex_lock(&m_mutex);
             m_events.push_back(ev);
         pthread_mutex_unlock(&m_mutex);
+    }
+
+
+    /*----------------------------------------------------------------------------*/
+    /*----------------------------Send events to Java-----------------------------*/
+    /*----------------------------------------------------------------------------*/
+
+    void VFVData::sendRotationEvent(JNIEnv* env, SubDataset* sd, float roll, float pitch, float yaw)
+    {
+        jvalue val[] = {{.j = (long)sd},
+                        {.f = roll},
+                        {.f = pitch},
+                        {.f = yaw}};
+
+        env->CallVoidMethodA(m_javaObj, jSurfaceView_onRotationEvent, val);
     }
 }

@@ -8,7 +8,6 @@
         android:id="@+id/options_item"
         app:showAsAction="always"
         android:icon="@drawable/overflow_icon">
-
         <menu>
             <item android:id="@+id/connect_item"
                 app:showAsAction="ifRoom"

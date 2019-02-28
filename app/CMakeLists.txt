@@ -105,6 +105,17 @@ target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SEREN
 target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib sereno_math-lib sereno_sci_vis-lib
                       ${log-lib} ${egl-lib} ${gles-lib} ${android-lib})
 
+#Copy .so
+if(ANDROID)
+    add_custom_target(COPY_SO ALL)
+    add_dependencies(COPY_SO native-lib)
+    add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SERENO_SCI_VIS_SO}    ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
+    add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SERENO_MATH_SO}       ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
+    add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SERENO_VTK_PARSER_SO} ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
+    add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${3DS_SO}               ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
+endif()
+
+#Gdb
 include(AndroidNdkGdb)
 android_ndk_gdb_enable()
 android_ndk_gdb_debuggable(native-lib)

@@ -9,12 +9,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -33,6 +35,7 @@ import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
 import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
+import com.sereno.vfv.Network.SocketManager;
 import com.sereno.view.RangeColorView;
 import com.sereno.view.TreeView;
 
@@ -42,7 +45,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback
+                          implements ApplicationModel.IDataCallback, VFVSurfaceView.VFVSurfaceViewListener
 {
     public static final String TAG="VFV";
 
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     private TreeView         m_previewLayout;     /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp;     /*!< The bitmap used when no preview is available*/
     private SubDataset       m_currentSubDataset; /*!< The current application sub dataset*/
+    private SocketManager    m_socket;            /*!< Connection with the server application*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -62,8 +66,11 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         m_noSnapshotBmp = BitmapFactory.decodeResource(getResources(), R.drawable.no_snapshot);
 
-        m_model = new ApplicationModel();
+        m_model = new ApplicationModel(this);
         m_model.addCallback(this);
+        m_socket = new SocketManager(m_model.getConfiguration().getServerIP(),
+                                     m_model.getConfiguration().getServerPort());
+
         setContentView(R.layout.main_activity);
 
         //Set up all internal components
@@ -92,14 +99,13 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
                     {
-
+                        EditText txt = view.findViewById(R.id.hololensIP);
+                        m_socket.setHololensIP(txt.getText().toString());
                     }
 
                     @Override
                     public void onDialogNegativeClick(DialogFragment dialogFrag, View view)
-                    {
-
-                    }
+                    {}
                 });
                 dialogFragment.show(getFragmentManager(), "dialog");
                 return true;
@@ -115,9 +121,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    /** \brief Function called when the model has added a new dataset
-     * @param model the model which fired this call
-     * @param d the new dataset added*/
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
@@ -129,6 +132,51 @@ public class MainActivity extends AppCompatActivity
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
         addDataset(d);
+        m_socket.push(SocketManager.createAddVTKDatasetEvent(d));
+    }
+
+    @Override
+    public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
+    {
+        Dataset parent       = null;
+        int     subDatasetID = -1;
+
+        //Fetch to which Dataset this SubDataset belongs to
+        for(VTKDataset d : m_model.getVTKDatasets())
+        {
+            if(parent != null)
+                break;
+            for(int i = 0; i < d.getNbSubDataset(); i++)
+            {
+                if(d.getSubDataset(i).getNativePtr() == dataset.getNativePtr())
+                {
+                    parent       = d;
+                    subDatasetID = i;
+                }
+            }
+        }
+
+        if(parent == null)
+        {
+            for(BinaryDataset d : m_model.getBinaryDatasets())
+            {
+                if(parent != null)
+                    break;
+
+                for(int i = 0; i < d.getNbSubDataset(); i++)
+                {
+                    if(d.getSubDataset(i).getNativePtr() == dataset.getNativePtr())
+                    {
+                        parent       = d;
+                        subDatasetID = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(subDatasetID != -1 && parent != null)
+            m_socket.push(SocketManager.createRotationEvent(parent, subDatasetID, dataset.getRotation()));
     }
 
     /** \brief Set up the drawer layout (root layout)*/
@@ -140,6 +188,7 @@ public class MainActivity extends AppCompatActivity
         m_surfaceView   = findViewById(R.id.mainView);
         m_previewLayout = findViewById(R.id.previewLayout);
         m_model.addCallback(m_surfaceView);
+        m_surfaceView.addListener(this);
 
         //Configure the spinner color mode
         m_rangeColorView = findViewById(R.id.rangeColorView);

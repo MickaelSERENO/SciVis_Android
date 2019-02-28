@@ -155,17 +155,29 @@ namespace sereno
              * \param pixels the snapshot pixels
              * \param subDataset the subDataset bound to this snapshot*/
             void sendNewSnapshotEvent(JNIEnv* jenv, uint32_t width, uint32_t height, uint32_t* pixels, SubDataset* subDataset);
+
+            /* \brief  Send a rotation event. Must be called after subDataset has been rotated
+             * \param jenv the java environment
+             * \param subDataset the subDataset being modified. 
+             * \param roll the roll (y axis) rotation
+             * \param pitch the pitch (x axis) rotation
+             * \param yaw the yaw (z axis) rotation*/
+            void sendRotationEvent(JNIEnv* jenv, SubDataset* subDataset, float roll, float pitch, float yaw);
+
+            /* \brief Get the Java object bound to this model
+             * \return the Java object*/
+            jobject getJavaObj() {return m_javaObj;}
         private:
             /* \brief Add an event 
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
-            std::vector<std::shared_ptr<Dataset>> m_datas;    /*!< The data paths */
+            std::vector<std::shared_ptr<Dataset>> m_datas; /*!< The data paths */
 
-            jobject                  m_javaObj;                  /*!< The java object linked to this model object*/
-            IVFVCallback*            m_clbk              = NULL; /*!< The callback interface */
-            std::deque<VFVEvent*>    m_events;                   /*!< The events from Java*/
-            pthread_mutex_t          m_mutex;                    /*!< The mutex for handling communication between Java and Cpp*/
+            jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
+            IVFVCallback*            m_clbk    = NULL; /*!< The callback interface */
+            std::deque<VFVEvent*>    m_events;         /*!< The events from Java*/
+            pthread_mutex_t          m_mutex;          /*!< The mutex for handling communication between Java and Cpp*/
     };
 }
 

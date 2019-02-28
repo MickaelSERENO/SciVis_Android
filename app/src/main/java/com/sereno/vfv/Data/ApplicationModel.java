@@ -1,5 +1,8 @@
 package com.sereno.vfv.Data;
 
+import android.content.Context;
+
+import java.io.File;
 import java.util.ArrayList;
 
 /** @brief The Model component on the MVC architecture */
@@ -22,13 +25,16 @@ public class ApplicationModel
     private ArrayList<VTKDataset>    m_vtkDatasets;    /**!< The vtk dataset */
     private ArrayList<BinaryDataset> m_binaryDatasets; /**!< The open datasets */
     private ArrayList<IDataCallback> m_listeners;      /**!< The known listeners to call when the model changed*/
+    private Configuration            m_config;         /**!< The configuration object*/
 
     /** @brief Basic constructor, initialize the data at its default state */
-    public ApplicationModel()
+    public ApplicationModel(Context ctx)
     {
         m_vtkDatasets    = new ArrayList<>();
         m_binaryDatasets = new ArrayList<>();
         m_listeners      = new ArrayList<>();
+
+        readConfig(ctx);
     }
 
     /** @brief Add a callback object to call when the model changed
@@ -54,5 +60,31 @@ public class ApplicationModel
         m_vtkDatasets.add(dataset);
         for(IDataCallback clbk : m_listeners)
             clbk.onAddVTKDataset(this, dataset);
+    }
+
+    /** @brief Get the Configuration object
+     * @return the Configuration object*/
+    public Configuration getConfiguration()
+    {
+        return m_config;
+    }
+
+    /** @brief Get a list of VTK Datasets
+     * @return the list of VTK Datasets opened*/
+    public ArrayList<VTKDataset> getVTKDatasets() {return m_vtkDatasets;}
+
+    /** @brief Get a list of Binary Datasets
+     * @return the list of Binary Datasets opened*/
+    public ArrayList<BinaryDataset> getBinaryDatasets() {return m_binaryDatasets;}
+
+    /** @brief Read the configuration file
+     * @param ctx The Context object*/
+    private void readConfig(Context ctx)
+    {
+        File configFile = new File(ctx.getExternalFilesDir(null), "config.json");
+        if(configFile == null)
+            m_config = new Configuration();
+        else
+            m_config = new Configuration(configFile);
     }
 }

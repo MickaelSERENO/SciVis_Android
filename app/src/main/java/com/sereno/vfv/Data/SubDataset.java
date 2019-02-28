@@ -9,8 +9,15 @@ import java.util.List;
 
 public class SubDataset
 {
+    /** @brief Callback interface called when the SubDataset is modified*/
     public interface ISubDatasetCallback
     {
+        /** @brief On range color change callback, called when the color changed
+         * @param sd the SubDataset being modified
+         * @param min the minimum clamping color (normalized : between 0.0f and 1.0f)
+         * @param max the maximum clamping color (normalized : between 0.0f and 1.0f)
+         * @param mode the ColorMode
+         */
         void onRangeColorChange(SubDataset sd, float min, float max, int mode);
     }
 
@@ -68,6 +75,10 @@ public class SubDataset
         return nativeGetSnapshot(m_ptr);
     }
 
+    /** @brief Get the rotation quaternion components. In order: w, i, j, k
+     * @return the rotation quaternion components*/
+    public float[] getRotation() {return nativeGetRotation(m_ptr);}
+
     /** @brief Get the native pointer of the SubDataset
      * @return the native pointer*/
     public long getNativePtr()
@@ -105,6 +116,10 @@ public class SubDataset
      * @param ptr the native pointer
      * @return the snapshot of the subdataset*/
     private native Bitmap nativeGetSnapshot(long ptr);
+
+    /** @brief Get the rotation quaternion components. In order: w, i, j, k
+     * @return the rotation quaternion components*/
+    private native float[] nativeGetRotation(long ptr);
 
     /** @brief Native code to set the range color of this SubDataset being displayed
      * @param ptr the native pointer

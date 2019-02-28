@@ -10,9 +10,26 @@ import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 
+import java.util.ArrayList;
+
 public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback
 {
+    /** @brief Listener interface for VFVSurfaceView*/
+    public interface VFVSurfaceViewListener
+    {
+        /** @brief Method called when a new rotation on the current SubDataset is performed
+         * @param dataset the dataset being rotated (called AFTER rotation is performed)
+         * @param dRoll the delta roll applied
+         * @param dPitch the delta pitch applied
+         * @param dYaw the delta yaw applied*/
+        void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw);
+    }
+
+    /** The native C++ pointer*/
     private long m_ptr;
+
+    /** List of listeners to call when the state changed*/
+    private ArrayList<VFVSurfaceViewListener> m_listeners = new ArrayList<>();
 
     public VFVSurfaceView(Context context)
     {
@@ -30,6 +47,20 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         super(context, attrs, defStyle);
         m_ptr = nativeCreateMainArgs();
+    }
+
+    /** @brief Add the Listener l in the listener list
+     * @param l the listener to add*/
+    public void addListener(VFVSurfaceViewListener l)
+    {
+        m_listeners.add(l);
+    }
+
+    /** @brief Remove the Listener l in the listener list
+     * @param l the listener to remove*/
+    public void removeListener(VFVSurfaceViewListener l)
+    {
+        m_listeners.remove(l);
     }
 
     @Override
@@ -72,6 +103,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
     {
         nativeOnRangeColorChange(m_ptr, min, max, mode, sd.getNativePtr());
+    }
+
+    /** @brief Function called from C++ code when a rotation is performed
+     * @param sdPtr the SubDataset C++ native pointer being rotated (already rotated)
+     * @param dRoll the delta roll applied
+     * @param dPitch the delta pitch applied
+     * @param dYaw the delta yaw applied*/
+    public void onRotationEvent(long sdPtr, float dRoll, float dPitch, float dYaw)
+    {
+        SubDataset sd = new SubDataset(sdPtr);
+        for(VFVSurfaceViewListener l : m_listeners)
+            l.onRotationEvent(sd, dRoll, dPitch, dYaw);
     }
 
     /** \brief Create the argument to send to the main function
