@@ -7,8 +7,13 @@ namespace sereno
 {
     extern JavaVM* javaVM;
     extern JNIEnv* jniMainThread;
-    extern jclass    jSurfaceViewClass;
-    extern jmethodID jSurfaceView_onRotationEvent;
+
+    extern jclass    jDatasetClass;
+    extern jmethodID jDataset_getNbSubDataset;
+    extern jmethodID jDataset_getSubDataset;
+
+    extern jclass    jSubDatasetClass;
+    extern jmethodID jSubDataset_onRotationEvent;
 }
 
 extern "C"

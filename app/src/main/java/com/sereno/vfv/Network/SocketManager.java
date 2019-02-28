@@ -125,10 +125,10 @@ public class SocketManager implements Runnable
                         m_output.write(d);
                         m_output.flush();
                     }
-                    catch(final IOException e)
+                    catch(final Exception e)
                     {
                         close();
-                        continue;
+                        break;
                     }
                 }
             }
@@ -211,6 +211,14 @@ public class SocketManager implements Runnable
             }
             m_output = new DataOutputStream(m_socket.getOutputStream());
             m_input  = new BufferedReader(new InputStreamReader(m_socket.getInputStream()));
+
+            //Send an ident without hololens information
+            ByteBuffer buf = ByteBuffer.allocate(2+4);
+            buf.order(ByteOrder.BIG_ENDIAN);
+            buf.putShort(IDENT_TABLET);
+            buf.putInt(0);
+            m_output.write(buf.array());
+            m_output.flush();
         }
         catch(Exception e)
         {

@@ -5,6 +5,7 @@
 #include <vector>
 #include <pthread.h>
 #include <deque>
+#include <map>
 #include <memory>
 #include <cstdint>
 #include <jni.h>
@@ -127,12 +128,14 @@ namespace sereno
             VFVEvent* pollEvent();
 
             /* \brief Add a new Binary Dataset in this application
-             * \param dataset the Binary dataset to add*/
-            void addBinaryData(std::shared_ptr<BinaryDataset> dataset);
+             * \param dataset the Binary dataset to add
+             * \param jSubDatasets the java dataset objects*/
+            void addBinaryData(std::shared_ptr<BinaryDataset> dataset, const std::vector<jobject>& jSubDatasets);
 
             /* \brief  Add a new VTK Dataset in this application
-             * \param dataset the VTK dataset to add*/
-            void addVTKData(std::shared_ptr<VTKDataset> dataset);
+             * \param dataset the VTK dataset to add
+             * \param jSubDatasets the java dataset objects*/
+            void addVTKData(std::shared_ptr<VTKDataset> dataset,  const std::vector<jobject>& jSubDatasets);
 
             /* \brief Remove the dataset "dataID"
              * \param dataID the id of the dataset to remove*/
@@ -172,7 +175,8 @@ namespace sereno
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
-            std::vector<std::shared_ptr<Dataset>> m_datas; /*!< The data paths */
+            std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
+            std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
 
             jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
             IVFVCallback*            m_clbk    = NULL; /*!< The callback interface */

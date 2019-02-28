@@ -3,6 +3,7 @@ package com.sereno.vfv.Data;
 import android.graphics.Bitmap;
 
 import com.sereno.color.ColorMode;
+import com.sereno.gl.VFVSurfaceView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,14 @@ public class SubDataset
          * @param mode the ColorMode
          */
         void onRangeColorChange(SubDataset sd, float min, float max, int mode);
+
+
+        /** @brief Method called when a new rotation on the current SubDataset is performed
+         * @param dataset the dataset being rotated (called AFTER rotation is performed)
+         * @param dRoll the delta roll applied
+         * @param dPitch the delta pitch applied
+         * @param dYaw the delta yaw applied*/
+        void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw);
     }
 
     /** The native C++ handle*/
@@ -95,6 +104,17 @@ public class SubDataset
         nativeSetRangeColor(m_ptr, min, max, mode);
         for(ISubDatasetCallback clbk : m_listeners)
             clbk.onRangeColorChange(this, min, max, mode);
+    }
+
+
+    /** @brief Function called from C++ code when a rotation is performed
+     * @param dRoll the delta roll applied
+     * @param dPitch the delta pitch applied
+     * @param dYaw the delta yaw applied*/
+    public void onRotationEvent(float dRoll, float dPitch, float dYaw)
+    {
+        for(ISubDatasetCallback l : m_listeners)
+            l.onRotationEvent(this, dRoll, dPitch, dYaw);
     }
 
     /** @brief Native code telling is this SubDataset is in a valid state

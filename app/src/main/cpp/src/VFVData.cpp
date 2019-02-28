@@ -17,6 +17,13 @@ namespace sereno
         pthread_mutex_destroy(&m_mutex);
         for(VFVEvent* ev : m_events)
             delete ev;
+        for(auto& it : m_jSubDatasetMap)
+        {
+            JNIEnv* env;
+            if (javaVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK)
+                return;
+            env->DeleteGlobalRef(it.second);
+        }
     }
 
     void VFVData::setCallback(IVFVCallback* clbk)
@@ -24,7 +31,7 @@ namespace sereno
         m_clbk = clbk;
     }
 
-    void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset)
+    void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset, const std::vector<jobject>& jSubDatasets)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_BINARY_DATA);
         ev->binaryData.dataset = dataset;
@@ -32,12 +39,14 @@ namespace sereno
         pthread_mutex_lock(&m_mutex);
         {
             m_datas.push_back(dataset);
+            for(int i = 0; i < jSubDatasets.size(); i++)
+                m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
         pthread_mutex_unlock(&m_mutex);
         addEvent(ev);
     }
 
-    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset)
+    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset, const std::vector<jobject>& jSubDatasets)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_VTK_DATA);
         ev->vtkData.dataset = dataset;
@@ -45,6 +54,8 @@ namespace sereno
         pthread_mutex_lock(&m_mutex);
         {
             m_datas.push_back(dataset);
+            for(int i = 0; i < jSubDatasets.size(); i++)
+                m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
 
         pthread_mutex_unlock(&m_mutex);
@@ -102,14 +113,12 @@ namespace sereno
     /*----------------------------------------------------------------------------*/
     /*----------------------------Send events to Java-----------------------------*/
     /*----------------------------------------------------------------------------*/
-
     void VFVData::sendRotationEvent(JNIEnv* env, SubDataset* sd, float roll, float pitch, float yaw)
     {
-        jvalue val[] = {{.j = (long)sd},
-                        {.f = roll},
+        jvalue val[] = {{.f = roll},
                         {.f = pitch},
                         {.f = yaw}};
 
-        env->CallVoidMethodA(m_javaObj, jSurfaceView_onRotationEvent, val);
+        env->CallVoidMethodA(m_jSubDatasetMap[sd], jSubDataset_onRotationEvent, val);
     }
 }

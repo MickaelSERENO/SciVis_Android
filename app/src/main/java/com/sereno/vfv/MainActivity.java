@@ -45,7 +45,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, VFVSurfaceView.VFVSurfaceViewListener
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback
 {
     public static final String TAG="VFV";
 
@@ -136,6 +136,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    {}
+
+    @Override
     public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
     {
         Dataset parent       = null;
@@ -188,7 +192,6 @@ public class MainActivity extends AppCompatActivity
         m_surfaceView   = findViewById(R.id.mainView);
         m_previewLayout = findViewById(R.id.previewLayout);
         m_model.addCallback(m_surfaceView);
-        m_surfaceView.addListener(this);
 
         //Configure the spinner color mode
         m_rangeColorView = findViewById(R.id.rangeColorView);
@@ -317,6 +320,8 @@ public class MainActivity extends AppCompatActivity
         {
             //Set the color range listener
             final SubDataset sd = d.getSubDataset(i);
+            sd.addListener(this);
+            
             m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
             {
                 @Override

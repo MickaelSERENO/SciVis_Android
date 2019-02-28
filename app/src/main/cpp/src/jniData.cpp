@@ -2,10 +2,15 @@
 
 namespace sereno
 {
-    JavaVM*   javaVM                       = NULL;
-    JNIEnv*   jniMainThread                = NULL;
-    jclass    jSurfaceViewClass            = 0;
-    jmethodID jSurfaceView_onRotationEvent = 0;
+    JavaVM*   javaVM                      = NULL;
+    JNIEnv*   jniMainThread               = NULL;
+
+    jclass    jDatasetClass               = 0;
+    jmethodID jDataset_getNbSubDataset    = 0;
+    jmethodID jDataset_getSubDataset      = 0;
+
+    jclass    jSubDatasetClass            = 0;
+    jmethodID jSubDataset_onRotationEvent = 0;
 }
 
 using namespace sereno;
@@ -19,12 +24,19 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return -1;
 
     //Load classes
-    jclass surfaceCls            = env->FindClass("com/sereno/gl/VFVSurfaceView");
-    jSurfaceViewClass            = (jclass)env->NewGlobalRef(surfaceCls);
-    env->DeleteLocalRef(surfaceCls);
+    jclass datasetCls = env->FindClass("com/sereno/vfv/Data/Dataset");
+    jDatasetClass     = (jclass)env->NewGlobalRef(datasetCls);
+    env->DeleteLocalRef(datasetCls);
+
+    jclass subDatasetCls = env->FindClass("com/sereno/vfv/Data/SubDataset");
+    jSubDatasetClass     = (jclass)env->NewGlobalRef(subDatasetCls);
+    env->DeleteLocalRef(subDatasetCls);
 
     //Load methods
-    jSurfaceView_onRotationEvent = env->GetMethodID(jSurfaceViewClass, "onRotationEvent", "(JFFF)V");
+    jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");
+    jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
+
+    jSubDataset_onRotationEvent = env->GetMethodID(jSubDatasetClass, "onRotationEvent", "(FFF)V");
 
     return JNI_VERSION_1_6;
 }
@@ -35,5 +47,5 @@ void JNI_OnUnload(JavaVM *vm, void *reserved)
     if(vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK)
         return;
 
-    env->DeleteGlobalRef(jSurfaceViewClass);
+    env->DeleteGlobalRef(jSubDatasetClass);
 }

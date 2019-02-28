@@ -1,7 +1,6 @@
 package com.sereno.gl;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.ApplicationModel;
@@ -10,26 +9,10 @@ import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 
-import java.util.ArrayList;
-
 public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback
 {
-    /** @brief Listener interface for VFVSurfaceView*/
-    public interface VFVSurfaceViewListener
-    {
-        /** @brief Method called when a new rotation on the current SubDataset is performed
-         * @param dataset the dataset being rotated (called AFTER rotation is performed)
-         * @param dRoll the delta roll applied
-         * @param dPitch the delta pitch applied
-         * @param dYaw the delta yaw applied*/
-        void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw);
-    }
-
     /** The native C++ pointer*/
     private long m_ptr;
-
-    /** List of listeners to call when the state changed*/
-    private ArrayList<VFVSurfaceViewListener> m_listeners = new ArrayList<>();
 
     public VFVSurfaceView(Context context)
     {
@@ -47,20 +30,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         super(context, attrs, defStyle);
         m_ptr = nativeCreateMainArgs();
-    }
-
-    /** @brief Add the Listener l in the listener list
-     * @param l the listener to add*/
-    public void addListener(VFVSurfaceViewListener l)
-    {
-        m_listeners.add(l);
-    }
-
-    /** @brief Remove the Listener l in the listener list
-     * @param l the listener to remove*/
-    public void removeListener(VFVSurfaceViewListener l)
-    {
-        m_listeners.remove(l);
     }
 
     @Override
@@ -81,7 +50,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset fd)
     {
-        nativeAddBinaryDataset(m_ptr, fd.getPtr());
+        nativeAddBinaryDataset(fd, m_ptr, fd.getPtr());
         onAddDataset(model, fd);
     }
 
@@ -89,7 +58,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
         //C++ callback
-        nativeAddVTKDataset(m_ptr, d.getPtr());
+        nativeAddVTKDataset(d, m_ptr, d.getPtr());
         onAddDataset(model, d);
     }
 
@@ -105,17 +74,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeOnRangeColorChange(m_ptr, min, max, mode, sd.getNativePtr());
     }
 
-    /** @brief Function called from C++ code when a rotation is performed
-     * @param sdPtr the SubDataset C++ native pointer being rotated (already rotated)
-     * @param dRoll the delta roll applied
-     * @param dPitch the delta pitch applied
-     * @param dYaw the delta yaw applied*/
-    public void onRotationEvent(long sdPtr, float dRoll, float dPitch, float dYaw)
-    {
-        SubDataset sd = new SubDataset(sdPtr);
-        for(VFVSurfaceViewListener l : m_listeners)
-            l.onRotationEvent(sd, dRoll, dPitch, dYaw);
-    }
+    @Override
+    public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
+    {}
 
     /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
@@ -126,14 +87,16 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     private native long nativeDeleteMainArgs(long ptr);
 
     /** \brief Add the dataset into the cpp application
+     * @param bd the binary dataset bound to the fd pointer
      * @param ptr the ptr associated with the main Argument
      * @param fd the BinaryDataset to add*/
-    private native void nativeAddBinaryDataset(long ptr, long fd);
+    private native void nativeAddBinaryDataset(BinaryDataset bd, long ptr, long fd);
 
     /** @brief Add a VTKParser into the cpp application
+     * @param vtk the VTKDataset bound to the vtkDataPtr
      * @param ptr the ptr associated with the main Argument
      * @param vtkDataPtr the vtk dataset C++ pointer object*/
-    private native void nativeAddVTKDataset(long ptr, long vtkDataPtr);
+    private native void nativeAddVTKDataset(VTKDataset vtk, long ptr, long vtkDataPtr);
 
     /** \brief Remove the dataset index i into the cpp application
      * @param ptr the ptr associated with the main argument
