@@ -64,9 +64,6 @@ public class SocketManager
     /** Is the hololens bound to this tablet?*/
     private boolean m_isBoundToHololens = false;
 
-    /** The read byte buffer*/
-    private ByteBuffer m_readBuffer = ByteBuffer.allocate(8192);
-
     /** The message buffer being used*/
     private MessageBuffer m_msgBuffer = new MessageBuffer();
 
@@ -124,8 +121,7 @@ public class SocketManager
                     int readSize = m_input.read(buf);
                     if(readSize > 0)
                     {
-                        m_readBuffer.put(buf, 0, readSize);
-                        m_msgBuffer.push(m_readBuffer);
+                        m_msgBuffer.push(buf);
                     }
                 }
                 catch(IOException io)
@@ -138,7 +134,6 @@ public class SocketManager
 
     public SocketManager(String ip, int port)
     {
-        m_readBuffer.order(ByteOrder.BIG_ENDIAN);
         m_socket      = new Socket();
         m_serverIP    = ip;
         m_serverPort  = port;

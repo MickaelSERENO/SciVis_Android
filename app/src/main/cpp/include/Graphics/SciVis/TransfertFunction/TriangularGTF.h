@@ -22,7 +22,7 @@ namespace sereno
             /** \brief  Constructor. Set scale at 1.0f, center at 0.0 and alphaMax at 1.0 */
             TriangularGTF() : TF<Dim>(), m_alphaMax(1.0f)
             {
-                for(uint8_t i = 0; i < Dim; i++)
+                for(uint8_t i = 0; i < Dim-1; i++)
                 {
                     m_scale[i]  = 0.5f;
                     m_center[i] = 0.5f;
