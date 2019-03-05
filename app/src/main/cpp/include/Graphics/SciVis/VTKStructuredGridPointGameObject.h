@@ -72,7 +72,7 @@ namespace sereno
             /** \brief  Destructor */
             ~VTKStructuredGridPointGameObject();
 
-            void draw(const glm::mat4& cameraMat);
+            void draw(const glm::mat4& cameraMat, const glm::mat4& projMat);
 
             void setColorRange(float min, float max, ColorMode colorMode);
         private:

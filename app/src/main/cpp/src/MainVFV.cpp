@@ -45,11 +45,6 @@ namespace sereno
 
         std::map<const SubDataset*, SubDatasetChangement> modelChanged;
 
-        //Should we update the color ?
-        //We do not keep WHICH dataset has seen its color changed, in most condition it is the CURRENT DATA which has seen its color changed
-        //If not, we update something for nothing, but the visualization is not broken (because bound to the model which is set in the Java thread)
-        bool updateColor = false;
-
         while(!m_surfaceData->isClosed())
         {
             //Handles event received from the surface view 
@@ -60,6 +55,10 @@ namespace sereno
                     case RESIZE:
                         //Redo the viewport
                         glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
+                        m_surfaceData->renderer.setProjectionMatrix(glm::ortho(-1.0f, 1.0f,
+                                                                               -(float)(event->sizeEvent.height/event->sizeEvent.width),
+                                                                                (float)(event->sizeEvent.height/event->sizeEvent.width),
+                                                                               -1.0f, 1.0f));
                         break;
                     case TOUCH_MOVE:
                     {

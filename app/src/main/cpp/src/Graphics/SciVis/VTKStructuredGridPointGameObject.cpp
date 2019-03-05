@@ -117,7 +117,7 @@ namespace sereno
             setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
         glBindTexture(GL_TEXTURE_3D, 0);
 
-        setScale(glm::vec3(0.5, 0.5, 0.5));
+        setScale(glm::vec3(1.0f, 1.0f, 1.0f));
 
         setRotate(m_model->getGlobalRotate());
     }
@@ -128,24 +128,24 @@ namespace sereno
         free(m_vals);
     }
 
-    void VTKStructuredGridPointGameObject::draw(const glm::mat4& cameraMat)
+    void VTKStructuredGridPointGameObject::draw(const glm::mat4& cameraMat, const glm::mat4& projMat)
     {
-        glm::mat4 mat    = getMatrix();
-        glm::mat4 mvp    = cameraMat*mat;
+        glm::mat4 mat = getMatrix();
+        glm::mat4 mvp = projMat*cameraMat*mat;
 
         /*----------------------------------------------------------------------------*/
         /*--------Determine the 4 rectangle points where the cube is on screen--------*/
         /*----------------------------------------------------------------------------*/
 
         glm::vec4 points[8];
-        points[0] = glm::vec4(0.f, 0.f, 0.f, 1.0f);
-        points[1] = glm::vec4(1.0, 0.f, 0.f, 1.0f);
-        points[2] = glm::vec4(0.f, 1.0, 0.f, 1.0f);
-        points[3] = glm::vec4(0.f, 0.f, 1.0, 1.0f);
-        points[4] = glm::vec4(1.0, 1.0, 0.f, 1.0f);
-        points[5] = glm::vec4(1.0, 0.f, 1.0, 1.0f);
-        points[6] = glm::vec4(0.f, 1.0, 1.0, 1.0f);
-        points[7] = glm::vec4(1.0, 1.0, 1.0, 1.0f);
+        points[0] = glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f);
+        points[1] = glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f);
+        points[2] = glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f);
+        points[3] = glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f);
+        points[4] = glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f);
+        points[5] = glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f);
+        points[6] = glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f);
+        points[7] = glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f);
 
         for(uint8_t i = 0; i < 8; i++)
         {
@@ -185,7 +185,7 @@ namespace sereno
         /*----------------------------------------------------------------------------*/
 
         glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindMaterial(mat, cameraMat, mvp, invMVP);
+        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP);
         m_mtl->bindTexture(m_texture,   3, 0);
         m_mtl->bindTexture(m_tfTexture, 2, 1);
 
@@ -315,6 +315,7 @@ namespace sereno
             glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32F,
                          m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2], 
                          0, GL_RG, GL_FLOAT, vals);
+            glGenerateMipmap(GL_TEXTURE_3D);
         glBindBuffer(GL_TEXTURE_3D, 0);
         free(vals);
     }

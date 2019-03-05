@@ -472,7 +472,9 @@ public class MainActivity extends AppCompatActivity
                     //Add the snap image
                     final ImageView snapImg = new ImageView(MainActivity.this);
                     snapImg.setAdjustViewBounds(true);
-                    snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                    snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    snapImg.setMaxWidth(256);
+                    snapImg.setMaxHeight(256);
                     snapImg.setImageResource(R.drawable.no_snapshot);
                     snapImg.setOnClickListener(new View.OnClickListener() {
                         @Override

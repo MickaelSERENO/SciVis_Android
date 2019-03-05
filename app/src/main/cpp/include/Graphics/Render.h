@@ -29,6 +29,18 @@ namespace sereno
              * \return the render camera matrix */
             const glm::mat4& getCameraMatrix() const {return m_cameraMatrix;}
 
+            /* \brief Get the projection camera matrix
+             * \return the projection camera matrix*/
+            const glm::mat4& getProjectionMatrix() const {return m_projMatrix;}
+
+            /* \brief Set the camera matrix (model-view)
+             * \param cameraMat the new view camera matrix*/
+            void setCameraMatrix(const glm::mat4& cameraMat) {m_cameraMatrix = cameraMat;}
+
+            /* \brief Set the projection camera matrix
+             * \param projMat the new projection camera matrix*/
+            void setProjectionMatrix(const glm::mat4& projMat) {m_projMatrix = projMat;}
+
             /* \brief Returns the width of the render
              * \return the width of the render */
             int getWidth() const {return m_width;}
@@ -39,6 +51,7 @@ namespace sereno
         protected:
             std::vector<Drawable*> m_currentDrawable; /*!< What are the current drawable being drawn ?*/
             glm::mat4              m_cameraMatrix;    /*!< The camera matrix to apply*/
+            glm::mat4              m_projMatrix;      /*!< The perspective matrix to apply*/
 
             int m_width  = 0; /*!< The width of the surface (pixels)*/
             int m_height = 0; /*!< The height of the surface (pixels)*/

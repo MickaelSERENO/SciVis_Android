@@ -30,12 +30,14 @@ namespace sereno
 
             /* \brief Bind the material. This will bind the shader and the internal material parameter 
              * We ask so many matrix (which some can be calculated) for performance issue (not recomputing these in the material and in the object calling this method)
-             * \param objMat the object matrix
-             * \param cameraMat the camera matrix
+             * \param objMat the object matrix (model)
+             * \param cameraMat the camera matrix (view)
+             * \param projMat the projection matrix (projection)
              * \param mvpMat objMat*cameraMat
              * \param invMVPMat inverse(invMVPMat)*/
-            void bindMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
-                              const glm::mat4& mvpMat, const glm::mat4& invMVPMat);
+            void bindMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat,
+                              const glm::mat4& projMat, const glm::mat4& mvpMat,
+                              const glm::mat4& invMVPMat);
 
             /**
              * \brief  Bind a texture to this material
@@ -46,12 +48,14 @@ namespace sereno
         protected:
             /* \brief Initialize the internal state of the Material
              * We ask so many matrix (which some can be calculated) for performance issue (not recomputing these in the material and in the object calling this method)
-             * \param objMat the object matrix
-             * \param cameraMat the camera matrix
+             * \param objMat the object matrix (model)
+             * \param cameraMat the camera matrix (view)
+             * \param projMat the projection matrix (projection)
              * \param mvpMat objMat*cameraMat
              * \param invMVPMat inverse(invMVPMat)*/
-            virtual void initMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
-                                      const glm::mat4& mvpMat, const glm::mat4& invMVPMat);
+            virtual void initMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
+                                      const glm::mat4& projMat, const glm::mat4& mvpMat,
+                                      const glm::mat4& invMVPMat);
             
             /* \brief Get the material attributs from the shader. Mostly these attributes are uniform location */
             void getAttributs();
@@ -60,6 +64,7 @@ namespace sereno
             GLRenderer* m_glRenderer; /*!< The OpenGL Context renderer. Note that the object will slightly being modified. 
                                            Indeed, the current shader information will be modified in order to not rebind multiple times the same Shader*/
 
+            GLint       m_uProjMat;   /*!< The uniform ID of uProjMat*/
             GLint       m_uCameraMat; /*!< The uniform ID of uCameraMat*/
             GLint       m_uObjMat;    /*!< The uniform ID of uObjMat*/
             GLint       m_uMVP;       /*!< The uniform ID of uMVP*/

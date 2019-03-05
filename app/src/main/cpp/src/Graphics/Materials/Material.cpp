@@ -10,8 +10,9 @@ namespace sereno
     Material::~Material()
     {}
 
-    void Material::bindMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
-                                const glm::mat4& mvpMat, const glm::mat4& invMVPMat)
+    void Material::bindMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
+                                const glm::mat4& projMat, const glm::mat4& mvpMat,
+                                const glm::mat4& invMVPMat)
     {
         //Check the shader
         if(m_shader == NULL)
@@ -25,11 +26,12 @@ namespace sereno
             m_glRenderer->setCurrentShader(m_shader);
 
         //Init the internal state of the material (mostly set Uniform values)
-        initMaterial(objMat, cameraMat, mvpMat, invMVPMat);
+        initMaterial(objMat, cameraMat, projMat, mvpMat, invMVPMat);
     }
 
-    void Material::initMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
-                                const glm::mat4& mvpMat, const glm::mat4& invMVPMat)
+    void Material::initMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
+                                const glm::mat4& projMat, const glm::mat4& mvpMat,
+                                const glm::mat4& invMVPMat)
     {
         if(m_shader)
         {
@@ -37,6 +39,7 @@ namespace sereno
             glUniformMatrix4fv(m_uCameraMat, 1, false, glm::value_ptr(cameraMat));
             glUniformMatrix4fv(m_uMVP,       1, false, glm::value_ptr(mvpMat));
             glUniformMatrix4fv(m_uInvMVP,    1, false, glm::value_ptr(invMVPMat));
+            glUniformMatrix4fv(m_uProjMat,   1, false, glm::value_ptr(projMat));
         }
     }
 
@@ -61,6 +64,7 @@ namespace sereno
             m_uObjMat    = glGetUniformLocation(m_shader->getProgramID(), "uObjMat");
             m_uMVP       = glGetUniformLocation(m_shader->getProgramID(), "uMVP");
             m_uInvMVP    = glGetUniformLocation(m_shader->getProgramID(), "uInvMVP");
+            m_uProjMat   = glGetUniformLocation(m_shader->getProgramID(), "uProjMat");
             for(uint32_t i = 0; i < MATERIAL_MAXTEXTURE; i++)
                 m_uTextures[i] = glGetUniformLocation(m_shader->getProgramID(), ("uTexture"+std::to_string(i)).c_str());
         }

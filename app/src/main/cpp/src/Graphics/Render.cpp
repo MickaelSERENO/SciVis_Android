@@ -3,7 +3,7 @@
 
 namespace sereno
 {
-    Render::Render() : m_cameraMatrix(1.0f)
+    Render::Render() : m_cameraMatrix(1.0f), m_projMatrix(1.0f)
     {}
 
     Render::~Render()
@@ -12,7 +12,7 @@ namespace sereno
     void Render::render()
     {
         for(Drawable* d : m_currentDrawable)
-            d->draw(m_cameraMatrix);
+            d->draw(m_cameraMatrix, m_projMatrix);
         m_currentDrawable.clear();
     }
 

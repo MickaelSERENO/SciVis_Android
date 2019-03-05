@@ -13,10 +13,11 @@ namespace sereno
     {
     }
 
-    void ColorMaterial::initMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat, 
-                                     const glm::mat4& mvpMat, const glm::mat4& invMVPMat)
+    void ColorMaterial::initMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
+                                     const glm::mat4& projMat, const glm::mat4& mvpMat,
+                                     const glm::mat4& invMVPMat)
     {
-        Material::initMaterial(objMat, cameraMat, mvpMat, invMVPMat);
+        Material::initMaterial(objMat, cameraMat, projMat, mvpMat, invMVPMat);
         if(m_shader)
         {
             glUniform1i(m_uUseUniColor, false);

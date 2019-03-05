@@ -21,8 +21,9 @@ namespace sereno
             virtual ~Drawable();
 
             /* \brief Draw this drawable on the current framebuffer. 
-             * \param cameraMat the current camera matrix*/
-            virtual void draw(const glm::mat4& cameraMat);
+             * \param cameraMat the current camera matrix
+             * \param projMat the projection camera matrix*/
+            virtual void draw(const glm::mat4& cameraMat, const glm::mat4& projMat);
 
             /* Function called for post processing drawing. 
              * This is called after EVERY children has been drawned
