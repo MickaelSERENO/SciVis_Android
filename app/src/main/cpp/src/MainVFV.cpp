@@ -131,7 +131,7 @@ namespace sereno
 
                             //Set internal state
                             m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
-                            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
+                            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
                             m_snapshots.insert(snap);
                             m_sciVis.back()->getModel()->setSnapshot(snap.second);
                         }
@@ -174,6 +174,17 @@ namespace sereno
                             modelChanged[event->sdEvent.sd].updateRotation = true;
                         break;
                     }
+                    case VFV_SET_CURRENT_DATA:
+                    {
+                        //Find which SciVis this sub dataset belongs to and change the current sci vis
+                        for(auto it : m_sciVis)
+                            if(it->getModel() == event->sdEvent.sd)
+                            {
+                                m_currentVis = it;
+                                break;
+                            }
+                        break;
+                    }
                     default:
                         LOG_ERROR("type %d still has to be done\n", event->getType());
                         break;
@@ -206,28 +217,32 @@ namespace sereno
             if(m_currentVis != NULL)
                 m_currentVis->update(&m_surfaceData->renderer);
 
+            m_surfaceData->renderer.render();
+
+            //Update the snapshot
             if(m_currentVis)
                 m_snapshotCnt++;
-
-            //Set the snapshot
             if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
             {
                 //Enlarge the pixel array
                 uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
                 uint32_t snapHeight = m_surfaceData->renderer.getHeight();
                 Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
-                if(curSnapshot == NULL || curSnapshot->width != snapWidth |- curSnapshot->height != snapHeight) 
+                if(curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
                 {
                     Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight*4));
                     m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
                     curSnapshot = newSnapshot;
+                    m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
                 }
                 //Read pixels
-                glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_BYTE, curSnapshot->pixels);
+                glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
                 m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
+                m_mainData->sendSnapshotEvent(jniMainThread, m_currentVis->getModel());
                 m_snapshotCnt = 0;
             }
-            m_surfaceData->renderer.render();
+
+            m_surfaceData->renderer.swapBuffers();
         }
     }
 

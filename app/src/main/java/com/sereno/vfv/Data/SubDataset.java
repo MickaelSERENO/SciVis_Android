@@ -17,10 +17,8 @@ public class SubDataset
          * @param sd the SubDataset being modified
          * @param min the minimum clamping color (normalized : between 0.0f and 1.0f)
          * @param max the maximum clamping color (normalized : between 0.0f and 1.0f)
-         * @param mode the ColorMode
-         */
+         * @param mode the ColorMode*/
         void onRangeColorChange(SubDataset sd, float min, float max, int mode);
-
 
         /** @brief Method called when a new rotation on the current SubDataset is performed
          * @param dataset the dataset being rotated (called AFTER rotation is performed)
@@ -33,6 +31,11 @@ public class SubDataset
          * @param dataset the dataset being rotated
          * @param quaternion the quaternion rotation*/
         void onRotationEvent(SubDataset dataset, float[] quaternion);
+
+        /** @brief Method called when a new snapshot on the current SubDataset is performed
+         * @param dataset the dataset creating a new snapshot
+         * @param snapshot the snapshot created*/
+        void onSnapshotEvent(SubDataset dataset, Bitmap snapshot);
     }
 
     /** The native C++ handle*/
@@ -111,6 +114,27 @@ public class SubDataset
             clbk.onRangeColorChange(this, min, max, mode);
     }
 
+    /** @brief Get the current minimum clamping color of this SubDataset
+     * @return the current minimum clamping color  being displayed*/
+    public int getMinClampingColor()
+    {
+        return nativeGetMinClampingColor(m_ptr);
+    }
+
+    /** @brief Get the current maximum clamping color of this SubDataset
+     * @return the current maximum clamping color  being displayed*/
+    public int getMaxClampingColor()
+    {
+        return nativeGetMaxClampingColor(m_ptr);
+    }
+
+
+    /** @brief Get the current color mode of this SubDataset
+     * @return the current color mode being displayed*/
+    public int getColorMode()
+    {
+        return nativeGetColorMode(m_ptr);
+    }
 
     /** @brief Function called from C++ code when a rotation is performed
      * @param dRoll the delta roll applied
@@ -120,6 +144,14 @@ public class SubDataset
     {
         for(ISubDatasetCallback l : m_listeners)
             l.onRotationEvent(this, dRoll, dPitch, dYaw);
+    }
+
+    /** @brief Function called frm C++ code when a new snapshot has been created
+     * @param bmp the new bitmap snapshot*/
+    public void onSnapshotEvent(Bitmap bmp)
+    {
+        for(ISubDatasetCallback l : m_listeners)
+            l.onSnapshotEvent(this, bmp);
     }
 
     /** Set the rotation of this SubDataset
@@ -145,6 +177,21 @@ public class SubDataset
      * @param ptr the native pointer
      * @return the maximum amplitude found in this SubDataset*/
     private native float nativeGetMaxAmplitude(long ptr);
+
+    /** @brief Get the current minimum clamping color of this SubDataset
+     * @param ptr  the native pointer
+     * @return the current minimum clamping color  being displayed*/
+    private native int nativeGetMinClampingColor(long ptr);
+
+    /** @brief Get the current maximum clamping color of this SubDataset
+     * @param ptr  the native pointer
+     * @return the current maximum clamping color  being displayed*/
+    private native int nativeGetMaxClampingColor(long ptr);
+
+    /** @brief Get the current color mode of this SubDataset
+     * @param ptr  the native pointer
+     * @return the current color mode being displayed*/
+    private native int nativeGetColorMode(long ptr);
 
     /** @brief Native code to get a snapshot of this SubDataset in the main rendering object
      * @param ptr the native pointer

@@ -95,6 +95,21 @@ inline float uint8ToFloat(uint8_t* data)
     return *(float*)&t;
 }
 
+/* \brief Tells wheter the system is big endian or not
+ * \return true if big endian, false otherwise*/
+inline bool isBigEndian()
+{
+    union u
+    {
+        uint8_t  c;
+        uint32_t i;
+    };
+
+    u t;
+    t.c = 255;
+    return t.i == 255;
+}
+
 
 #if __cplusplus > 201703L
     /**

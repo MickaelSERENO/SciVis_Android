@@ -1,5 +1,7 @@
 #include "Datasets/nativeSubDataset.h"
 #include "Datasets/SubDataset.h"
+#include "jniData.h"
+#include "utils.h"
 
 using namespace sereno;
 
@@ -7,6 +9,24 @@ JNIEXPORT bool JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsValid(JNIEnv*
 {
     SubDataset* sd = (SubDataset*)ptr;
     return sd->isValid();
+}
+
+JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    return (jint)sd->getMinClamping();
+}
+
+JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    return (jint)sd->getMaxClamping();
+}
+
+JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    return (jint)sd->getColorMode();
 }
 
 JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinAmplitude(JNIEnv* jenv, jobject jobj, jlong ptr)
@@ -28,21 +48,32 @@ JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(
     if(snap == NULL)
         return NULL;
 
-    //Get JNI data
-    jclass    bmpCls        = env->FindClass("android/graphics/Bitmap");
-    jclass    bmpConfCls    = env->FindClass("androd/graphics/Bitmap$Config");
-    jfieldID  bmpConfARGBID = env->GetStaticFieldID(bmpConfCls, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
-    jobject   bmpConfARGB   = env->GetStaticObjectField(bmpConfCls, bmpConfARGBID);
-    jmethodID createBmpID   = env->GetStaticMethodID(bmpCls, "createBitmap", "([IIILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
-
     //Create the java array
     uint32_t  size   = snap->width * snap->height;
     jintArray pixels = env->NewIntArray(size);
-    env->SetIntArrayRegion(pixels, 0, size, (const jint*)snap->pixels);
-    
-    //Create and fill the bitmap
-    jobject   bmp = env->CallStaticObjectMethod(bmpCls, createBmpID, pixels, snap->width, snap->height, bmpConfARGB);
 
+    uint32_t* pixelsPtr  = (uint32_t*)env->GetIntArrayElements(pixels, 0);
+
+    //Transform RGBA to ARGB
+    for(uint32_t j = 0; j < snap->height; j++)
+        for(uint32_t i = 0; i < snap->width; i++)
+        {
+            uint32_t ind = i+(snap->height-1-j)*snap->width;
+            uint8_t a = (snap->pixels[ind] >> 24);
+            uint8_t b = (snap->pixels[ind] >> 16);
+            uint8_t g = (snap->pixels[ind] >> 8);
+            uint8_t r =  snap->pixels[ind];
+
+            pixelsPtr[i+j*snap->width] = (a << 24) + (r << 16) +
+                                         (g << 8)  + b;
+            //pixelsPtr[i] = snap->pixels[i];
+        }
+    env->ReleaseIntArrayElements(pixels, (jint*)pixelsPtr, 0);
+
+    //Create and fill the bitmap
+    jobject  bmp = env->CallStaticObjectMethod(jBitmapClass, jBitmap_createBitmap, pixels, snap->width, snap->height, jBitmapConfigARGB);
+
+    env->DeleteLocalRef(pixels); //Delete local reference
     return bmp;
 }
 

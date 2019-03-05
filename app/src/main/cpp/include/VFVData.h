@@ -26,7 +26,7 @@ namespace sereno
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
     };
 
-    struct UpdateSubDatasetEvent
+    struct SubDatasetEvent
     {
         SubDataset* sd; /*!< The subdataset being updated*/
     };
@@ -57,7 +57,7 @@ namespace sereno
             DatasetEvent    dataset;       /*!< General dataset event*/
             BinaryDataEvent binaryData;    /*!< Binary  dataset event*/
             VTKDataEvent    vtkData;       /*!< VTK    dataset event*/
-            UpdateSubDatasetEvent sdEvent; /*!< SubDataset general event information*/
+            SubDatasetEvent sdEvent; /*!< SubDataset general event information*/
         };
 
         VFVEvent(VFVEventType t) : type(t)
@@ -66,8 +66,8 @@ namespace sereno
                 new(&binaryData) BinaryDataEvent;
             else if(type == VFV_ADD_VTK_DATA)
                 new(&vtkData) VTKDataEvent;
-            if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA)
-                new(&sdEvent) UpdateSubDatasetEvent;
+            if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA || type == VFV_SET_CURRENT_DATA)
+                new(&sdEvent) SubDatasetEvent;
         }
 
         ~VFVEvent()
@@ -76,8 +76,8 @@ namespace sereno
                 binaryData.~BinaryDataEvent();
             else if(type == VFV_ADD_VTK_DATA)
                 vtkData.~VTKDataEvent();
-            else if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA)
-                sdEvent.~UpdateSubDatasetEvent();
+            else if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA || type == VFV_SET_CURRENT_DATA)
+                sdEvent.~SubDatasetEvent();
         }
 
         /* \brief  Get the type of this event
@@ -150,15 +150,12 @@ namespace sereno
             void onRotationChange(SubDataset* data);
 
             /* \brief Set the current data displayed in the application
-             * \param dataID the dataID*/
-            void setCurrentData(int dataID);
+             * \param sd the new SubDataset to display*/
+            void setCurrentSubDataset(SubDataset* sd);
 
-            /* \brief Send a new snapshot available event to the Java UI 
-             * \param width the snapshot width
-             * \param height the snapshot height
-             * \param pixels the snapshot pixels
+            /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/
-            void sendNewSnapshotEvent(JNIEnv* jenv, uint32_t width, uint32_t height, uint32_t* pixels, SubDataset* subDataset);
+            void sendSnapshotEvent(JNIEnv* jenv, SubDataset* subDataset);
 
             /* \brief  Send a rotation event. Must be called after subDataset has been rotated
              * \param jenv the java environment

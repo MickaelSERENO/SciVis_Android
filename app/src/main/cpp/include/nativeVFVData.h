@@ -23,8 +23,8 @@ extern "C"
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
-     * \param dataIdx the data index to show on screen*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeSetCurrentData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx);
+     * \param sdPtr the SubDataset native pointer to display*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeChangeCurrentSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr);
 
     /* \brief Function called from Java in order to add a new binary data in the cpp memory application
      * Note that this function is asynchronous between the main cpp thread and the java UI thread

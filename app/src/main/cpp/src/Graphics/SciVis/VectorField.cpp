@@ -80,7 +80,6 @@ namespace sereno
                                                                   arrowLoader->normals[3*vertID+1],
                                                                   arrowLoader->normals[3*vertID+2],
                                                                   1.0f);
-
                         for(uint32_t v = 0; v < 3; v++)
                         {
                             fieldVertices[3*(vertID + currentVert) + v] = vert[v];

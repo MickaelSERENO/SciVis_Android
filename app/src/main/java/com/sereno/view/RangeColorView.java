@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class RangeColorView extends View
 {
     /* \brief Interface permitting to send a message when the range color has changed*/
-    public interface OnRangeChangeListener
+    public interface IOnRangeChangeListener
     {
         /* \brief Function called when the range has changed
          * @param view the view calling this method
@@ -47,7 +47,7 @@ public class RangeColorView extends View
 
     private int   m_valueInManipulation = MANIPULATING_NO_VALUE; /*!< What is the current handle being manipulated (i.e moved) ?*/
 
-    private ArrayList<OnRangeChangeListener> m_onRangeChangeListeners = new ArrayList<>(); /*!< Listeners to call when the range has changed*/
+    private ArrayList<IOnRangeChangeListener> m_onRangeChangeListeners = new ArrayList<>(); /*!< Listeners to call when the range has changed*/
 
     /** @brief Constructor with the view's context as @parameter
      *
@@ -155,7 +155,7 @@ public class RangeColorView extends View
     public void setColorMode(int mode)
     {
         m_colorMode = mode;
-        for(OnRangeChangeListener l : m_onRangeChangeListeners)
+        for(IOnRangeChangeListener l : m_onRangeChangeListeners)
             l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
         invalidate();
     }
@@ -168,20 +168,20 @@ public class RangeColorView extends View
     {
         m_minValue = Math.min(min, max);
         m_maxValue = Math.max(min, max);
-        for(OnRangeChangeListener l : m_onRangeChangeListeners)
+        for(IOnRangeChangeListener l : m_onRangeChangeListeners)
             l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
     }
 
     /** \brief Add an object to the list of listeners to call when the range color has changed
      * @param l the new listener to add*/
-    public void addOnRangeChangeListener(OnRangeChangeListener l)
+    public void addOnRangeChangeListener(IOnRangeChangeListener l)
     {
         m_onRangeChangeListeners.add(l);
     }
 
     /** \brief Remove an existing object to the list of listeners to call when the range color has changed
      * @param l the old listener to remove*/
-    public void removeOnRangeChangeListener(OnRangeChangeListener l)
+    public void removeOnRangeChangeListener(IOnRangeChangeListener l)
     {
         m_onRangeChangeListeners.remove(l);
     }
@@ -245,7 +245,7 @@ public class RangeColorView extends View
         }
         if(valueChanged)
         {
-            for(OnRangeChangeListener l : m_onRangeChangeListeners)
+            for(IOnRangeChangeListener l : m_onRangeChangeListeners)
                 l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
             invalidate();
         }

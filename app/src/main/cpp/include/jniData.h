@@ -8,12 +8,20 @@ namespace sereno
     extern JavaVM* javaVM;
     extern JNIEnv* jniMainThread;
 
+    extern jclass    jBitmapClass;
+    extern jmethodID jBitmap_createBitmap;
+
+    extern jclass    jBitmapConfigClass;
+    extern jfieldID  jBitmapConfig_ARGB;
+    extern jobject   jBitmapConfigARGB;
+
     extern jclass    jDatasetClass;
     extern jmethodID jDataset_getNbSubDataset;
     extern jmethodID jDataset_getSubDataset;
 
     extern jclass    jSubDatasetClass;
     extern jmethodID jSubDataset_onRotationEvent;
+    extern jmethodID jSubDataset_onSnapshotEvent;
 }
 
 extern "C"

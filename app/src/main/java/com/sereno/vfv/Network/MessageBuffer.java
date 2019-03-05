@@ -67,6 +67,10 @@ public class MessageBuffer
         /** Called when the message "ROTATE DATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onRotateDatasetMessage(RotateDatasetMessage msg);
+
+        /** Called when the message "MOVE DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onMoveDatasetMessage(MoveDatasetMessage msg);
     }
 
     /** No current type received*/
@@ -80,6 +84,9 @@ public class MessageBuffer
 
     /** Rotate dataset received*/
     public static final int GET_ROTATE_DATASET          = 2;
+
+    /** Move dataset received*/
+    public static final int GET_MOVE_DATASET            = 3;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -184,6 +191,10 @@ public class MessageBuffer
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onRotateDatasetMessage((RotateDatasetMessage) m_curMsg);
                     break;
+                case GET_MOVE_DATASET:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onMoveDatasetMessage((MoveDatasetMessage) m_curMsg);
+                    break;
                 default:
                     Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
             }
@@ -213,20 +224,22 @@ public class MessageBuffer
         {
             case GET_ADD_DATASET_ACKNOWLEDGE:
                 m_curMsg      = new AcknowledgeAddDatasetMessage();
-                m_curMsg.type = GET_ADD_DATASET_ACKNOWLEDGE;
                 break;
             case GET_ADD_VTK_DATASET:
                 m_curMsg      = new AddVTKDatasetMessage();
-                m_curMsg.type = GET_ADD_VTK_DATASET;
                 break;
             case GET_ROTATE_DATASET:
                 m_curMsg      = new RotateDatasetMessage();
-                m_curMsg.type = GET_ROTATE_DATASET;
+                break;
+            case GET_MOVE_DATASET:
+                m_curMsg      = new MoveDatasetMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
-                break;
+                return;
         }
+
+        m_curMsg.type = type;
     }
 
     /** Read 16 bits integer in the incoming byte

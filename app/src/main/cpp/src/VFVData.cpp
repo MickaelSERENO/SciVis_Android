@@ -1,7 +1,8 @@
 #include <jniData.h>
 #include "VFVData.h"
 #include "utils.h"
-#include "../../../../../../../../../../../home/mickael/.local/android/x86/include/Datasets/SubDataset.h"
+#include "Datasets/SubDataset.h"
+#include "Datasets/nativeSubDataset.h"
 
 namespace sereno
 {
@@ -67,10 +68,15 @@ namespace sereno
         //TODO
     }
 
-    void VFVData::setCurrentData(int dataID)
+    void VFVData::setCurrentSubDataset(SubDataset* sd)
     {
-        //TODO
+        VFVEvent* ev = NULL;
+        ev = new VFVEvent(VFV_SET_CURRENT_DATA);
+        ev->sdEvent.sd = sd;
+
+        addEvent(ev);
     }
+
 
     void VFVData::onRangeColorChange(float min, float max, ColorMode mode, SubDataset* sd)
     {
@@ -114,7 +120,6 @@ namespace sereno
         pthread_mutex_unlock(&m_mutex);
     }
 
-
     /*----------------------------------------------------------------------------*/
     /*----------------------------Send events to Java-----------------------------*/
     /*----------------------------------------------------------------------------*/
@@ -123,7 +128,14 @@ namespace sereno
         jvalue val[] = {{.f = roll},
                         {.f = pitch},
                         {.f = yaw}};
-
         env->CallVoidMethodA(m_jSubDatasetMap[sd], jSubDataset_onRotationEvent, val);
     }
+
+    void VFVData::sendSnapshotEvent(JNIEnv* env, SubDataset* sd)
+    {
+        jobject bitmap = Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(env, NULL, (jlong)sd);
+        env->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onSnapshotEvent, bitmap);
+        env->DeleteLocalRef(bitmap);
+    }
+
 }

@@ -192,9 +192,8 @@ error:
 
     void GLRenderer::render()
     {
-        Render::render();
         eglMakeCurrent(m_disp, m_surface, m_surface, m_context);
-        swapBuffers();
+        Render::render();
     }
 
     void GLRenderer::setCurrentShader(Shader* shader)

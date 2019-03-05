@@ -1,6 +1,7 @@
 package com.sereno.gl;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.ApplicationModel;
@@ -47,6 +48,13 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         return m_ptr;
     }
 
+    /** Change the current SubDataset being displayed
+     * @param sd the new SubDataset to display*/
+    public void changeCurrentSubDataset(SubDataset sd)
+    {
+        nativeChangeCurrentSubDataset(m_ptr, sd.getNativePtr());
+    }
+
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset fd)
     {
@@ -86,6 +94,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeOnRotationChange(m_ptr, dataset.getNativePtr());
     }
 
+    @Override
+    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
+    {
+        //We generated this event
+    }
+
     /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();
@@ -93,6 +107,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     /** \brief Delete the arguments sent to the main function
      * @param ptr the ptr to delete*/
     private native long nativeDeleteMainArgs(long ptr);
+
+    /** Change the current sub dataset to display
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the SubDataset native ptr*/
+    private native void nativeChangeCurrentSubDataset(long ptr, long sdPtr);
 
     /** \brief Add the dataset into the cpp application
      * @param bd the binary dataset bound to the fd pointer

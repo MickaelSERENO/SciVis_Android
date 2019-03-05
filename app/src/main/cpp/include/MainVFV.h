@@ -15,7 +15,7 @@
 #include <memory>
 #include <map>
 
-#define MAX_SNAPSHOT_COUNTER             5
+#define MAX_SNAPSHOT_COUNTER             30
 #define VTK_STRUCTURED_POINT_VIS_DENSITY 128
 
 #define SCIVIS_TF_COLOR(_, __, ___)\

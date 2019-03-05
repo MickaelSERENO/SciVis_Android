@@ -8,6 +8,8 @@ namespace sereno
     {
         if(parent)
             parent->addChild(this);
+        setPosition(glm::vec3(0, 0, 0));
+        setRotate(Quaternionf(0, 0, 0, 1));
     }
 
     GameObject::~GameObject()

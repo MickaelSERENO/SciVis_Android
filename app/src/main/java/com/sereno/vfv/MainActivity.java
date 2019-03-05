@@ -39,6 +39,7 @@ import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.MessageBuffer;
+import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.view.RangeColorView;
@@ -52,7 +53,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback, RangeColorView.IOnRangeChangeListener
 {
     public static final String TAG="VFV";
 
@@ -133,6 +134,22 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+
+    @Override
+    public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
+    {
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.setRangeColor(minVal, maxVal, mode);
+    }
+
+    public void changeCurrentSubDataset(SubDataset sd)
+    {
+        m_currentSubDataset = sd;
+        m_surfaceView.changeCurrentSubDataset(sd);
+        m_rangeColorView.setColorMode(sd.getColorMode());
+        m_rangeColorView.setRange(sd.getMinClampingColor(), sd.getMaxClampingColor());
+    }
+
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
@@ -203,6 +220,9 @@ public class MainActivity extends AppCompatActivity
     {
         //We made this changement... do nothing here
     }
+
+    @Override
+    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -288,6 +308,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onMoveDatasetMessage(MoveDatasetMessage msg)
+    {
+        //TODO
+    }
+
     /** \brief Set up the drawer layout (root layout)*/
     private void setUpDrawerLayout()
     {
@@ -300,6 +326,7 @@ public class MainActivity extends AppCompatActivity
 
         //Configure the spinner color mode
         m_rangeColorView = findViewById(R.id.rangeColorView);
+        m_rangeColorView.addOnRangeChangeListener(this);
         Spinner colorModeSpinner = findViewById(R.id.colorModeSpinner);
         colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
@@ -435,24 +462,48 @@ public class MainActivity extends AppCompatActivity
                 {
                     //Set the color range listener
                     final SubDataset sd = d.getSubDataset(i);
+                    if(m_currentSubDataset == null)
+                        m_currentSubDataset = sd;
                     sd.addListener(MainActivity.this);
 
-                    m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
-                    {
-                        @Override
-                        public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
-                        {
-                            sd.setRangeColor(minVal, maxVal, mode);
-                        }
-                    });
                     m_rangeColorView.setRange(0.0f, 1.0f);
                     m_rangeColorView.setColorMode(ColorMode.RAINBOW);
 
                     //Add the snap image
-                    ImageView snapImg = new ImageView(MainActivity.this);
+                    final ImageView snapImg = new ImageView(MainActivity.this);
                     snapImg.setAdjustViewBounds(true);
                     snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                     snapImg.setImageResource(R.drawable.no_snapshot);
+                    snapImg.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            changeCurrentSubDataset(sd);
+                        }
+                    });
+
+                    //Snapshot event
+                    sd.addListener(new SubDataset.ISubDatasetCallback() {
+                        @Override
+                        public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
+
+                        @Override
+                        public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw) {}
+
+                        @Override
+                        public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+                        @Override
+                        public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
+                        {
+                            final Bitmap s = snapshot;
+                            runOnUiThread(new Runnable() {
+                                              @Override
+                                              public void run() {
+                                                  snapImg.setImageBitmap(s);
+                                              }
+                                          });
+                        }
+                    });
                     dataView.addChild(new Tree<View>(snapImg), -1);
                 }
             }
@@ -463,5 +514,4 @@ public class MainActivity extends AppCompatActivity
     {
         System.loadLibrary("native-lib");
     }
-
 }
