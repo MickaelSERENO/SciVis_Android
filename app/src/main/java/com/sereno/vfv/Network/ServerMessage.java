@@ -20,19 +20,19 @@ abstract class ServerMessage
 
     /** Push a short value
      * @param value the value to push*/
-    void pushValue(short value) {}
+    void pushValue(short value) {cursor++;}
 
     /** Push a int value
      * @param value the value to push*/
-    void pushValue(int value) {}
+    void pushValue(int value) {cursor++;}
 
     /** Push a float value
      * @param value the value to push*/
-    void pushValue(float value) {}
+    void pushValue(float value) {cursor++;}
 
     /** Push a string value
      * @param value the value to push*/
-    void pushValue(String value) {}
+    void pushValue(String value) {cursor++;}
 
     /** What is the maximum cursor of this message?
      * @return the maximum cursor (included) this message can handle. -1 == no data to push*/

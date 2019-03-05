@@ -36,14 +36,17 @@ import com.sereno.vfv.Data.VTKParser;
 import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
 import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
+import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.MessageBuffer;
+import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.view.RangeColorView;
 import com.sereno.view.TreeView;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
@@ -70,13 +73,11 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         m_noSnapshotBmp = BitmapFactory.decodeResource(getResources(), R.drawable.no_snapshot);
 
         m_model = new ApplicationModel(this);
         m_model.addCallback(this);
-        m_socket = new SocketManager(m_model.getConfiguration().getServerIP(),
-                                     m_model.getConfiguration().getServerPort());
-        m_socket.getMessageBuffer().addListener(this);
 
         setContentView(R.layout.main_activity);
 
@@ -84,6 +85,10 @@ public class MainActivity extends AppCompatActivity
         setUpDrawerLayout();
         setUpToolbar();
         setUpHiddenMenu();
+
+        m_socket = new SocketManager(m_model.getConfiguration().getServerIP(),
+                m_model.getConfiguration().getServerPort());
+        m_socket.getMessageBuffer().addListener(this);
     }
 
     /** @brief Function called when the options items from the Toolbar are selected
@@ -132,14 +137,16 @@ public class MainActivity extends AppCompatActivity
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
-        addDataset(d);
+        if(d.getID() < 0)
+            addDataset(d);
     }
 
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
         addDataset(d);
-        m_socket.push(SocketManager.createAddVTKDatasetEvent(d));
+        if(d.getID() < 0)
+            m_socket.push(SocketManager.createAddVTKDatasetEvent(d));
     }
 
     @Override
@@ -186,8 +193,15 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        if(subDatasetID != -1 && parent != null)
+        //If everything is correct, send the rotation event
+        if(subDatasetID != -1 && parent != null && parent.getID() >= 0)
             m_socket.push(SocketManager.createRotationEvent(parent, subDatasetID, dataset.getRotation()));
+    }
+
+    @Override
+    public void onRotationEvent(SubDataset dataset, float[] quaternion)
+    {
+        //We made this changement... do nothing here
     }
 
     @Override
@@ -208,6 +222,69 @@ public class MainActivity extends AppCompatActivity
             }
             default:
                 break;
+        }
+    }
+
+    @Override
+    public void onAddVTKDatasetMessage(AddVTKDatasetMessage msg)
+    {
+        //Parse the message information
+        File vtkFile = new File(new File(getExternalFilesDir(null), "Datas"), msg.getPath());
+        VTKParser parser = new VTKParser(vtkFile);
+
+        ArrayList<VTKFieldValue> ptValuesList = new ArrayList<>();
+        ArrayList<VTKFieldValue> cellValuesList = new ArrayList<>();
+
+        for(int i : msg.getPtFieldValueIndices())
+            ptValuesList.add(parser.getPointFieldValues()[i]);
+
+        for(int i : msg.getCellFieldValueIndices())
+            cellValuesList.add(parser.getCellFieldValues()[i]);
+
+        VTKFieldValue[] ptValues = new VTKFieldValue[ptValuesList.size()];
+        ptValues = ptValuesList.toArray(ptValues);
+        VTKFieldValue[] cellValues = new VTKFieldValue[cellValuesList.size()];
+        cellValues = cellValuesList.toArray(cellValues);
+
+        //Add into the model
+        VTKDataset dataset = new VTKDataset(parser, ptValues, cellValues, vtkFile.getName());
+        dataset.setID(msg.getDataID());
+        synchronized(m_model)
+        {
+            m_model.addVTKDataset(dataset);
+        }
+    }
+
+    @Override
+    public void onRotateDatasetMessage(RotateDatasetMessage msg)
+    {
+        //Find the dataset
+        Dataset dataset = null;
+        synchronized(m_model)
+        {
+            for(BinaryDataset d : m_model.getBinaryDatasets())
+            {
+                if(d.getID() == msg.getDatasetID())
+                {
+                    dataset = d;
+                    break;
+                }
+            }
+
+            if(dataset == null)
+            for(VTKDataset d : m_model.getVTKDatasets())
+            {
+                if(d.getID() == msg.getDatasetID())
+                {
+                    dataset = d;
+                    break;
+                }
+            }
+        }
+
+        if(dataset != null)
+        {
+            dataset.getSubDataset(msg.getSubDatasetID()).setRotation(msg.getRotation());
         }
     }
 
@@ -296,7 +373,10 @@ public class MainActivity extends AppCompatActivity
                 if(fileName.endsWith(".data"))
                 {
                     BinaryDataset fd = new BinaryDataset(df.getFile());
-                    m_model.addBinaryDataset(fd);
+                    synchronized(m_model)
+                    {
+                        m_model.addBinaryDataset(fd);
+                    }
                 }
 
                 //VTK dataset
@@ -318,7 +398,10 @@ public class MainActivity extends AppCompatActivity
                             cellValues = cellValuesList.toArray(cellValues);
 
                             //Add into the model
-                            m_model.addVTKDataset(new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName()));
+                            synchronized(m_model)
+                            {
+                                m_model.addVTKDataset(new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName()));
+                            }
                         }
 
                         @Override
@@ -336,38 +419,49 @@ public class MainActivity extends AppCompatActivity
         dialogFragment.show(getFragmentManager(), "dialog");
     }
 
-    private void addDataset(Dataset d)
+    private void addDataset(final Dataset d)
     {
         //Add the preview
-        m_pendingDataset.add(d);
-        TextView   dataText = new TextView(this);
-        dataText.setText(d.getName());
-        Tree<View> dataView = new Tree<View>(dataText);
-        m_previewLayout.getData().addChild(dataView, -1);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_pendingDataset.add(d);
+                TextView   dataText = new TextView(MainActivity.this);
+                dataText.setText(d.getName());
+                Tree<View> dataView = new Tree<View>(dataText);
+                m_previewLayout.getData().addChild(dataView, -1);
 
-        for(int i = 0; i < d.getNbSubDataset(); i++)
-        {
-            //Set the color range listener
-            final SubDataset sd = d.getSubDataset(i);
-            sd.addListener(this);
-
-            m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
-            {
-                @Override
-                public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
+                for(int i = 0; i < d.getNbSubDataset(); i++)
                 {
-                    sd.setRangeColor(minVal, maxVal, mode);
-                }
-            });
-            m_rangeColorView.setRange(0.0f, 1.0f);
-            m_rangeColorView.setColorMode(ColorMode.RAINBOW);
+                    //Set the color range listener
+                    final SubDataset sd = d.getSubDataset(i);
+                    sd.addListener(MainActivity.this);
 
-            //Add the snap image
-            ImageView snapImg = new ImageView(this);
-            snapImg.setAdjustViewBounds(true);
-            snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            snapImg.setImageResource(R.drawable.no_snapshot);
-            dataView.addChild(new Tree<View>(snapImg), -1);
-        }
+                    m_rangeColorView.addOnRangeChangeListener(new RangeColorView.OnRangeChangeListener()
+                    {
+                        @Override
+                        public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
+                        {
+                            sd.setRangeColor(minVal, maxVal, mode);
+                        }
+                    });
+                    m_rangeColorView.setRange(0.0f, 1.0f);
+                    m_rangeColorView.setColorMode(ColorMode.RAINBOW);
+
+                    //Add the snap image
+                    ImageView snapImg = new ImageView(MainActivity.this);
+                    snapImg.setAdjustViewBounds(true);
+                    snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                    snapImg.setImageResource(R.drawable.no_snapshot);
+                    dataView.addChild(new Tree<View>(snapImg), -1);
+                }
+            }
+        });
+
     }
+    static
+    {
+        System.loadLibrary("native-lib");
+    }
+
 }

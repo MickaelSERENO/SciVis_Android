@@ -61,6 +61,13 @@ extern "C"
      * \param sd the SubDataset being modified*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode, jlong sd);
 
+    /* \brief Function called from Java in order to update the view from a SubDataset rotation
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param sd the SubDataset being modified*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRotationChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd);
+
     /**
      * \brief  Poll a native event from C++ for the UI
      * \param env the JNI environment

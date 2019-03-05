@@ -76,7 +76,15 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     @Override
     public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
-    {}
+    {
+        //We generated this event
+    }
+
+    @Override
+    public void onRotationEvent(SubDataset dataset, float[] quaternion)
+    {
+        nativeOnRotationChange(m_ptr, dataset.getNativePtr());
+    }
 
     /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
@@ -110,4 +118,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param mode the color mode to apply (See ColorMode)
      * @param sdPtr the SubDataset native pointer*/
     private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode, long sdPtr);
+
+    /** Send an event regarding an update from a SubDataset roation
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the SubDataset native pointer*/
+    private native void nativeOnRotationChange(long ptr, long sdPtr);
 }

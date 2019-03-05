@@ -28,6 +28,11 @@ public class SubDataset
          * @param dPitch the delta pitch applied
          * @param dYaw the delta yaw applied*/
         void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw);
+
+        /** @brief Method called when a new rotation on the current SubDataset is performed
+         * @param dataset the dataset being rotated
+         * @param quaternion the quaternion rotation*/
+        void onRotationEvent(SubDataset dataset, float[] quaternion);
     }
 
     /** The native C++ handle*/
@@ -117,6 +122,15 @@ public class SubDataset
             l.onRotationEvent(this, dRoll, dPitch, dYaw);
     }
 
+    /** Set the rotation of this SubDataset
+     * @param quaternion the new rotation to apply*/
+    public void setRotation(float[] quaternion)
+    {
+        nativeSetRotation(m_ptr, quaternion);
+        for(ISubDatasetCallback l : m_listeners)
+            l.onRotationEvent(this, quaternion);
+    }
+
     /** @brief Native code telling is this SubDataset is in a valid state
      * @param ptr the native pointer
      * @return true if in a valid state, false otherwise*/
@@ -138,8 +152,14 @@ public class SubDataset
     private native Bitmap nativeGetSnapshot(long ptr);
 
     /** @brief Get the rotation quaternion components. In order: w, i, j, k
+     * @param ptr the native pointer
      * @return the rotation quaternion components*/
     private native float[] nativeGetRotation(long ptr);
+
+    /** @brief Set the rotation quaternion components. In order: w, i, j, k
+     * @param ptr the native pointer
+     * @param q the quaternion rotation*/
+    private native void nativeSetRotation(long ptr, float[] q);
 
     /** @brief Native code to set the range color of this SubDataset being displayed
      * @param ptr the native pointer

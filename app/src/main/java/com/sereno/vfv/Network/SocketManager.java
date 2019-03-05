@@ -8,11 +8,13 @@ import com.sereno.vfv.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +28,7 @@ public class SocketManager
     public static final int    FAIL_CONNECT_SLEEP = 200;
     /** How many milliseconds the thread has to sleep before resending data ?*/
     public static final int    THREAD_SLEEP       = 1000/90;
-    public static final int    READ_TIMEOUT       = 5;
+    public static final int    READ_TIMEOUT       = 0;
 
     /* ************************************************************ */
     /* ******************Recognizable server type****************** */
@@ -80,15 +82,6 @@ public class SocketManager
             {
                 //Connect the socket
                 boolean isConnected = m_socket.isConnected();
-                synchronized (this)
-                {
-                    if (!isConnected)
-
-                    {
-                        Log.i(MainActivity.TAG, "Trying to reconnect at " + m_serverIP + ":" + m_serverPort + "\n");
-                        isConnected = connect();
-                    }
-                }
 
                 //If not connected, sleep longer
                 if(!isConnected)
@@ -115,18 +108,50 @@ public class SocketManager
 
             while(!m_isClosed)
             {
+                //Connect the socket
+                boolean isConnected = m_socket.isConnected();
+
+                synchronized (this)
+                {
+                    //Check the connection
+                    if(!isConnected)
+                    {
+                        Log.i(MainActivity.TAG, "Trying to reconnect at " + m_serverIP + ":" + m_serverPort + "\n");
+                        isConnected = connect();
+                    }
+                }
+
                 try
                 {
                     //Read the data
-                    int readSize = m_input.read(buf);
-                    if(readSize > 0)
+                    if(isConnected)
                     {
-                        m_msgBuffer.push(buf);
+                        int readSize = m_input.read(buf);
+                        if (readSize > 0)
+                            m_msgBuffer.push(buf, readSize);
+                        else //EOF
+                            close();
+                    }
+                    else
+                    {
+                        Thread.sleep(THREAD_SLEEP);
+                        continue;
+                    }
+                }
+                catch(EOFException e)
+                {
+                    synchronized (this)
+                    {
+                        close();
                     }
                 }
                 catch(IOException io)
                 {
                     Log.e(MainActivity.TAG, "IO exception...");
+                }
+                catch(InterruptedException e)
+                {
+                    e.printStackTrace();
                 }
             }
         }
@@ -206,7 +231,10 @@ public class SocketManager
      * @param data array of bytes to write to the server*/
     public synchronized void push(byte[] data)
     {
-        m_queueSendBuf.add(data);
+        synchronized(m_queueSendBuf)
+        {
+            m_queueSendBuf.add(data);
+        }
     }
 
     /** Connect to the server. We put this into a separate function for letting the thread connecting to the server
@@ -272,35 +300,37 @@ public class SocketManager
         //Send TABLET_IDENT
         if(m_isBoundToHololens == false && m_hololensIP != null)
         {
-            try
+            synchronized(m_queueSendBuf)
             {
-                m_output.write(getIdentData());
-                m_output.flush();
-                m_isBoundToHololens = true;
-            }
-            catch(final IOException e)
-            {
-                close();
-                return false;
+                m_queueSendBuf.push(getIdentData());
             }
         }
 
-        //Send other buffers. These buffer are generate from the static method this class provides
-        while(!m_queueSendBuf.isEmpty())
+        //Send buffers. These buffer are generate from the static method this class provides
+        synchronized(m_queueSendBuf)
         {
-            byte[] d = m_queueSendBuf.poll();
-            try
+            while(!m_queueSendBuf.isEmpty())
             {
-                m_output.write(d);
-                m_output.flush();
+                byte[] d = m_queueSendBuf.poll();
+                try
+                {
+                    synchronized(this)
+                    {
+                        m_output.write(d);
+                        m_output.flush();
+                    }
+                }
+                catch(final Exception e)
+                {
+                    synchronized(this)
+                    {
+                        close();
+                    }
+                    return false;
+                }
             }
-            catch(final Exception e)
-            {
-                close();
-                return false;
-            }
+            return true;
         }
-        return true;
     }
 
     /* ************************************************************ */

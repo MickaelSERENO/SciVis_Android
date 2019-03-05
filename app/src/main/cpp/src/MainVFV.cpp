@@ -3,6 +3,12 @@
 
 namespace sereno
 {
+    struct SubDatasetChangement
+    {
+        bool updateColor    = false;;
+        bool updateRotation = false;
+    };
+
     MainVFV::MainVFV(GLSurfaceViewData* surfaceData, VFVData* mainData) : m_surfaceData(surfaceData), m_mainData(mainData)
     {
         surfaceData->renderer.initializeContext();
@@ -37,8 +43,7 @@ namespace sereno
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        //List of dataset modified
-        std::vector<const SubDataset*> modelChanged;
+        std::map<const SubDataset*, SubDatasetChangement> modelChanged;
 
         //Should we update the color ?
         //We do not keep WHICH dataset has seen its color changed, in most condition it is the CURRENT DATA which has seen its color changed
@@ -62,7 +67,12 @@ namespace sereno
                         {
                             float roll  = event->touchEvent.x - event->touchEvent.oldX;
                             float pitch = event->touchEvent.y - event->touchEvent.oldY;
-                            modelChanged.push_back(m_currentVis->getModel());
+
+                            auto it = modelChanged.find(m_currentVis->getModel());
+                            if(it == modelChanged.end())
+                                modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, true}));
+                            else
+                                modelChanged[m_currentVis->getModel()].updateRotation = true;
                             m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
                             m_mainData->sendRotationEvent(jniMainThread, m_currentVis->getModel(), roll, pitch, 0);
 
@@ -106,7 +116,7 @@ namespace sereno
 
                     //Add VTK Dataset
                     case VFV_ADD_VTK_DATA:
-                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY, 
+                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
                                                                                              m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
                         m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
                         float dim[3];
@@ -130,26 +140,40 @@ namespace sereno
                         break;
 
                     case VFV_DEL_DATA:
-                        {
-                            //Check if the current sci vis is being deleted
-                            if(m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
-                                m_currentVis = NULL;
+                    {
+                        //Check if the current sci vis is being deleted
+                        if(m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
+                            m_currentVis = NULL;
 
-                            //Check vector field
-                            for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
-                                if((*it)->getModel()->getParent() == event->dataset.dataset.get())
-                                {
-                                    delete (*it);
-                                    m_vectorFields.erase(it);
-                                    break;
-                                }
-                        }
+                        //Check vector field
+                        for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
+                            if((*it)->getModel()->getParent() == event->dataset.dataset.get())
+                            {
+                                delete (*it);
+                                m_vectorFields.erase(it);
+                                break;
+                            }
                         break;
+                    }
+
                     case VFV_COLOR_RANGE_CHANGED:
-                        //Change color event. The color will be changed ONCE below (only once because it is heavy to change the color multiple times. We do it once before rendering)
-                        modelChanged.push_back(event->colorRange.sd);
-                        updateColor = true;
+                    {
+                        auto it = modelChanged.find(event->sdEvent.sd);
+                        if(it == modelChanged.end())
+                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{true, false}));
+                        else
+                            modelChanged[event->sdEvent.sd].updateColor = true;
                         break;
+                    }
+                    case VFV_SET_ROTATION_DATA:
+                    {
+                        auto it = modelChanged.find(event->sdEvent.sd);
+                        if(it == modelChanged.end())
+                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{false, true}));
+                        else
+                            modelChanged[event->sdEvent.sd].updateRotation = true;
+                        break;
+                    }
                     default:
                         LOG_ERROR("type %d still has to be done\n", event->getType());
                         break;
@@ -158,23 +182,23 @@ namespace sereno
             }
 
             //Apply the model changement (rotation + color)
-            for(auto& dataset : modelChanged)
+            for(auto& it : modelChanged)
             {
                 for(auto sciVis : m_sciVis)
                 {
-                    if(sciVis->getModel() == dataset)
+                    if(sciVis->getModel() == it.first)
                     {
-                        if(updateColor)
+                        if(it.second.updateColor)
                         {
-                            m_currentVis->setColorRange(dataset->getMinClamping(), dataset->getMaxClamping(), dataset->getColorMode());
-                            m_currentVis->setTFTexture(m_sciVisTFs[dataset->getColorMode() + m_sciVisDefaultTF[sciVis]]);
+                            m_currentVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping(), it.first->getColorMode());
+                            m_currentVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
                         }
-                        m_currentVis->setRotate(dataset->getGlobalRotate());
-                        updateColor = false;
-                        break;
+                        if(it.second.updateRotation)
+                            m_currentVis->setRotate(it.first->getGlobalRotate());
                     }
                 }
             }
+            modelChanged.clear();
 
             //Draw the scene
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

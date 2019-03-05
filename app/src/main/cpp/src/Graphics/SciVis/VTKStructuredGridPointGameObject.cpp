@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <limits>
+#include <omp.h>
 
 namespace sereno
 {
@@ -117,6 +118,8 @@ namespace sereno
         glBindTexture(GL_TEXTURE_3D, 0);
 
         setScale(glm::vec3(0.5, 0.5, 0.5));
+
+        setRotate(m_model->getGlobalRotate());
     }
 
     VTKStructuredGridPointGameObject::~VTKStructuredGridPointGameObject()
@@ -130,7 +133,6 @@ namespace sereno
         glm::mat4 mat    = getMatrix();
         glm::mat4 mvp    = cameraMat*mat;
 
-        
         /*----------------------------------------------------------------------------*/
         /*--------Determine the 4 rectangle points where the cube is on screen--------*/
         /*----------------------------------------------------------------------------*/
@@ -208,86 +210,106 @@ namespace sereno
         float* vals = (float*)malloc(sizeof(float)*nbValues*2);
 
         //Compute scalar
-        for(uint32_t i = 0; i < nbValues; i++)
+        float maxGrad = 0.0f;
+        #pragma omp parallel
         {
-            float t = (m_vals[i]-m_minVal)/(m_maxVal-m_minVal);
+            #pragma omp for
+            {
+                for(uint32_t i = 0; i < nbValues; i++)
+                {
+                    float t = (m_vals[i]-m_minVal)/(m_maxVal-m_minVal);
 
-            //Test if inside the min-max range.
-            if(t > max || t < min)
-                vals[2*i] = -1.0f;
-            else
-                vals[2*i] = t;
-        }
+                    //Test if inside the min-max range.
+                    if(t > max || t < min)
+                        vals[2*i] = -1.0f;
+                    else
+                        vals[2*i] = t;
+                }
+            }
 
         /*----------------------------------------------------------------------------*/
         /*--------------------------Compute gradient values---------------------------*/
         /*----------------------------------------------------------------------------*/
 
-        //Central difference used
-
-        float maxGrad = 0.0f;
-
-        for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
-            for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
-                for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
-                {
-                    uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
-                                   k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                    float    x1  = vals[2*(ind-1)];
-                    float    x2  = vals[2*(ind+1)];
-                    float    y1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0])];
-                    float    y2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0])];
-                    float    z1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
-                    float    z2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
-
-                    vals[2*ind+1] = (x1-x2)*(x1-x2)/m_gridPointVBO->m_spacing[0]+
-                                    (y1-y2)*(y1-y2)/m_gridPointVBO->m_spacing[1]+
-                                    (z1-z2)*(z1-z2)/m_gridPointVBO->m_spacing[2];
-                    maxGrad = std::max(vals[2*ind+1], maxGrad);
-                }
-
-        //Normalize the gradient
-        for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
-            for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
-                for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
-                {
-                    uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
-                                   k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                    vals[2*ind+1] /= maxGrad;
-                }
-
-        /*----------------------------------------------------------------------------*/
-        /*---------------Compute gradient values for Edge (grad = 0.0f)---------------*/
-        /*----------------------------------------------------------------------------*/
-
-        //for k = 0 and k = max
-        for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
-            for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+            //Central difference used
+            #pragma omp for reduction(max:maxGrad)
             {
-                uint32_t offset = (m_gridPointVBO->m_dimensions[2]-1)*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                vals[2*(i+j*m_gridPointVBO->m_dimensions[0])+1]        = 0.0f;
-                vals[2*(i+j*m_gridPointVBO->m_dimensions[0]+offset)+1] = 0.0f;
+                for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
+                    for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
+                        for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
+                        {
+                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
+                                           k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                            float    x1  = vals[2*(ind-1)];
+                            float    x2  = vals[2*(ind+1)];
+                            float    y1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0])];
+                            float    y2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0])];
+                            float    z1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
+                            float    z2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
+
+                            vals[2*ind+1] = (x1-x2)*(x1-x2)/m_gridPointVBO->m_spacing[0]+
+                                            (y1-y2)*(y1-y2)/m_gridPointVBO->m_spacing[1]+
+                                            (z1-z2)*(z1-z2)/m_gridPointVBO->m_spacing[2];
+                            maxGrad = std::max(vals[2*ind+1], maxGrad);
+                        }
             }
 
-        //for j = 0 and j = max
-        for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
-            for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+
+            //Normalize the gradient
+            #pragma omp for
             {
-                uint32_t offset = (m_gridPointVBO->m_dimensions[1]-1)*m_gridPointVBO->m_dimensions[0];
-                vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
-                vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+                for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
+                    for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
+                        for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
+                        {
+                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
+                                           k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                            vals[2*ind+1] /= maxGrad;
+                        }
             }
 
-        //for i = 0 and i = max
-        for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
-            for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+                /*----------------------------------------------------------------------------*/
+                /*---------------Compute gradient values for Edge (grad = 0.0f)---------------*/
+                /*----------------------------------------------------------------------------*/
+
+            //for k = 0 and k = max
+            #pragma omp for
             {
-                uint32_t offset = m_gridPointVBO->m_dimensions[0]-1;
-                vals[2*(j*m_gridPointVBO->m_dimensions[0]+
-                        k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
-                vals[2*(j*m_gridPointVBO->m_dimensions[0]+
-                        k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+                for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+                    for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+                    {
+                        uint32_t offset = (m_gridPointVBO->m_dimensions[2]-1)*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                        vals[2*(i+j*m_gridPointVBO->m_dimensions[0])+1]        = 0.0f;
+                        vals[2*(i+j*m_gridPointVBO->m_dimensions[0]+offset)+1] = 0.0f;
+                    }
             }
+
+            //for j = 0 and j = max
+            #pragma omp for
+            {
+                for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
+                    for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+                    {
+                        uint32_t offset = (m_gridPointVBO->m_dimensions[1]-1)*m_gridPointVBO->m_dimensions[0];
+                        vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
+                        vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+                    }
+            }
+
+                //for i = 0 and i = max
+            #pragma omp for
+            {
+                for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
+                    for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+                    {
+                        uint32_t offset = m_gridPointVBO->m_dimensions[0]-1;
+                        vals[2*(j*m_gridPointVBO->m_dimensions[0]+
+                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
+                        vals[2*(j*m_gridPointVBO->m_dimensions[0]+
+                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+                    }
+            }
+        }
 
         glBindTexture(GL_TEXTURE_3D, m_texture);
             glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32F,

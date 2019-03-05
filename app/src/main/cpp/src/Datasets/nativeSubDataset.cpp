@@ -55,6 +55,14 @@ JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetRotat
     return arr;
 }
 
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRotation(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray q)
+{
+    float* qArr = jenv->GetFloatArrayElements(q, 0);
+
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->setGlobalRotate(Quaternionf(qArr[1], qArr[2], qArr[3], qArr[0]));
+}
+
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRangeColor(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max, jint mode)
 {
     SubDataset* sd = (SubDataset*)ptr;

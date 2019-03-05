@@ -14,6 +14,7 @@ public class AcknowledgeAddDatasetMessage extends ServerMessage
     void pushValue(int value)
     {
         m_id = value;
+        super.pushValue(value);
     }
 
     @Override

@@ -75,12 +75,17 @@ namespace sereno
     void VFVData::onRangeColorChange(float min, float max, ColorMode mode, SubDataset* sd)
     {
         VFVEvent* ev = NULL;
-        pthread_mutex_lock(&m_mutex);
-        {
-            ev = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
-            ev->colorRange.sd = sd;
-        }
-        pthread_mutex_unlock(&m_mutex);
+        ev = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
+        ev->sdEvent.sd = sd;
+
+        addEvent(ev);
+    }
+
+    void VFVData::onRotationChange(SubDataset* data)
+    {
+        VFVEvent* ev = NULL;
+        ev = new VFVEvent(VFV_SET_ROTATION_DATA);
+        ev->sdEvent.sd = data;
 
         addEvent(ev);
     }

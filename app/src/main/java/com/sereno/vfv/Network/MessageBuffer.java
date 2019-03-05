@@ -59,13 +59,27 @@ public class MessageBuffer
         /** Called when the message acknowledge add dataset has been successfully parsed
          * @param msg the message parsed*/
         void onAcknowledgeAddDatasetMessage(AcknowledgeAddDatasetMessage msg);
+
+        /** Called when the message "ADD VTK DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onAddVTKDatasetMessage(AddVTKDatasetMessage msg);
+
+        /** Called when the message "ROTATE DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onRotateDatasetMessage(RotateDatasetMessage msg);
     }
 
     /** No current type received*/
     public static final int GET_NO_TYPE                 = -1;
 
+    /** Add a new VTK Dataset*/
+    public static final int GET_ADD_VTK_DATASET         = 0;
+
     /** Add dataset acknowledge received*/
-    public static final int GET_ADD_DATASET_ACKNOWLEDGE = 0;
+    public static final int GET_ADD_DATASET_ACKNOWLEDGE = 1;
+
+    /** Rotate dataset received*/
+    public static final int GET_ROTATE_DATASET          = 2;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -87,8 +101,10 @@ public class MessageBuffer
     public MessageBuffer()
     {}
 
-    /**Push values present in the buffer*/
-    public void push(byte[] buffer)
+    /**Push values present in the buffer
+     * @param buffer  the buffer to read
+     * @param readSize the size of the buffer*/
+    public void push(byte[] buffer, int readSize)
     {
         int bufPos = 0;
         while(true)
@@ -96,7 +112,7 @@ public class MessageBuffer
             //If no current message -> fetch the next message type
             if(m_curMsg == null)
             {
-                ReadInt16 val = readInt16(buffer, bufPos);
+                ReadInt16 val = readInt16(buffer, bufPos, readSize);
                 bufPos = val.bufOff;
                 if(!val.valid)
                     return;
@@ -113,7 +129,7 @@ public class MessageBuffer
                 {
                     case 's':
                      {
-                        ReadString val = readString(buffer, bufPos);
+                        ReadString val = readString(buffer, bufPos, readSize);
                         bufPos = val.bufOff;
                         if (!val.valid)
                             return;
@@ -122,7 +138,7 @@ public class MessageBuffer
                     }
                     case 'i':
                     {
-                        ReadInt16 val = readInt16(buffer, bufPos);
+                        ReadInt16 val = readInt16(buffer, bufPos, readSize);
                         bufPos = val.bufOff;
                         if(!val.valid)
                             return;
@@ -131,7 +147,7 @@ public class MessageBuffer
                     }
                     case 'I':
                     {
-                        ReadInt32 val = readInt32(buffer, bufPos);
+                        ReadInt32 val = readInt32(buffer, bufPos, readSize);
                         bufPos = val.bufOff;
                         if(!val.valid)
                             return;
@@ -140,7 +156,7 @@ public class MessageBuffer
                     }
                     case 'f':
                     {
-                        ReadFloat val = readFloat(buffer, bufPos);
+                        ReadFloat val = readFloat(buffer, bufPos, readSize);
                         bufPos = val.bufOff;
                         if(!val.valid)
                             return;
@@ -151,18 +167,25 @@ public class MessageBuffer
                         Log.e(MainActivity.TAG, "Unhandled type " + m_curMsg.getCurrentType() + ". Skipping");
                         break;
                 }
-                m_curMsg.cursor++;
             }
 
             //When the message is finished, send it
-            switch(m_curMsg.getCurrentType())
+            switch(m_curMsg.getType())
             {
                 case GET_ADD_DATASET_ACKNOWLEDGE:
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onAcknowledgeAddDatasetMessage((AcknowledgeAddDatasetMessage) m_curMsg);
-
+                    break;
+                case GET_ADD_VTK_DATASET:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onAddVTKDatasetMessage((AddVTKDatasetMessage) m_curMsg);
+                    break;
+                case GET_ROTATE_DATASET:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onRotateDatasetMessage((RotateDatasetMessage) m_curMsg);
+                    break;
                 default:
-                    Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType());
+                    Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
             }
             m_curMsg = null;
         }
@@ -182,7 +205,8 @@ public class MessageBuffer
         m_listeners.remove(lst);
     }
 
-    /** Allocate a new message type depending on m_type*/
+    /** Allocate a new message type depending on the type
+     * @param type  the type of the message*/
     private void allocateNewMessage(short type)
     {
         switch(type)
@@ -191,8 +215,16 @@ public class MessageBuffer
                 m_curMsg      = new AcknowledgeAddDatasetMessage();
                 m_curMsg.type = GET_ADD_DATASET_ACKNOWLEDGE;
                 break;
+            case GET_ADD_VTK_DATASET:
+                m_curMsg      = new AddVTKDatasetMessage();
+                m_curMsg.type = GET_ADD_VTK_DATASET;
+                break;
+            case GET_ROTATE_DATASET:
+                m_curMsg      = new RotateDatasetMessage();
+                m_curMsg.type = GET_ROTATE_DATASET;
+                break;
             default:
-                Log.e(MainActivity.TAG, "Unknown type " + type);
+                Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
                 break;
         }
     }
@@ -200,16 +232,17 @@ public class MessageBuffer
     /** Read 16 bits integer in the incoming byte
      * @param data the incoming data
      * @param offset the offset in the data array
+     * @param readSize the size of the data (initial size)
      * @return the value read*/
-    private ReadInt16 readInt16(byte[] data, int offset)
+    private ReadInt16 readInt16(byte[] data, int offset, int readSize)
     {
         ReadInt16 val = new ReadInt16();
         val.bufOff = offset;
         val.valid  = false;
 
-        if(data.length+m_dataPos - offset < 2)
+        if(readSize+m_dataPos - offset < 2)
         {
-            for(int i = offset; i < data.length - offset; i++, val.bufOff++)
+            for(int i = offset; i < readSize - offset; i++, val.bufOff++)
                 m_data[m_dataPos++] = data[i];
             return val;
         }
@@ -219,33 +252,36 @@ public class MessageBuffer
 
         val.value = (short)((m_data[0] << 8) +
                             (m_data[1]));
+        val.valid = true;
+        m_dataPos = 0;
         return val;
     }
 
     /** Read 32 bits integer in the incoming byte
      * @param data the incoming data
      * @param offset the offset in the data array
+     * @param readSize the size of the data (initial size)
      * @return the value read*/
-    private ReadInt32 readInt32(byte[] data, int offset)
+    private ReadInt32 readInt32(byte[] data, int offset, int readSize)
     {
         ReadInt32 val = new ReadInt32();
         val.bufOff = offset;
         val.valid  = false;
 
-        if(data.length+m_dataPos - offset < 4)
+        if(readSize + m_dataPos - offset < 4)
         {
-            for(int i = offset; i < data.length - offset; i++, val.bufOff++)
+            for(int i = offset; i < readSize - offset; i++, val.bufOff++)
                 m_data[m_dataPos++] = data[i];
             return val;
         }
 
-        for(int i = offset; m_dataPos < 4; i++, val.bufOff++)
-            m_data[m_dataPos++] = m_data[i];
+        for(int i = offset; m_dataPos < 4; m_dataPos++, i++, val.bufOff++)
+            m_data[m_dataPos] = data[i];
 
-        val.value = (int)((m_data[0] << 24) +
-                          (m_data[1] << 16) +
-                          (m_data[2] << 8)  +
-                          (m_data[3]));
+        val.value = (int)(((m_data[0] & 0xff) << 24) +
+                          ((m_data[1] & 0xff) << 16) +
+                          ((m_data[2] & 0xff) << 8) +
+                          (m_data[3] & 0xff));
         val.valid = true;
         m_dataPos = 0;
         return val;
@@ -255,10 +291,10 @@ public class MessageBuffer
      * @param data the incoming data
      * @param offset the offset in the data array
      * @return the value read*/
-    private ReadFloat readFloat(byte[] data, int offset)
+    private ReadFloat readFloat(byte[] data, int offset, int readSize)
     {
         ReadFloat val   = new ReadFloat();
-        ReadInt32 val32 = readInt32(data, offset);
+        ReadInt32 val32 = readInt32(data, offset, readSize);
 
         val.valid  = val32.valid;
         val.bufOff = val32.bufOff;
@@ -270,8 +306,9 @@ public class MessageBuffer
     /** Read String (32 bits + n bits) in the incoming byte
      * @param data the incoming data
      * @param offset the offset in the data array
+     * @param readSize the size of the data (initial size)
      * @return the value read*/
-    private ReadString readString(byte[] data, int offset)
+    private ReadString readString(byte[] data, int offset, int readSize)
     {
         ReadString val = new ReadString();
         val.valid  = false;
@@ -279,7 +316,7 @@ public class MessageBuffer
 
         if(m_stringSize < 0)
         {
-            ReadInt32 stringSize = readInt32(data, offset);
+            ReadInt32 stringSize = readInt32(data, offset, readSize);
             val.bufOff = stringSize.bufOff;
             if(!stringSize.valid)
                 return val;
@@ -292,10 +329,9 @@ public class MessageBuffer
             }
             m_stringBuf  = new StringBuilder(m_stringSize);
         }
-        while(m_stringBuf.length() != m_stringSize && val.bufOff < data.length)
+        while(m_stringBuf.length() != m_stringSize && val.bufOff < readSize)
         {
-            m_stringBuf.append(data[val.bufOff]);
-            val.bufOff++;
+            m_stringBuf.append((char)data[val.bufOff++]);
         }
 
         if(m_stringBuf.length() == m_stringSize)

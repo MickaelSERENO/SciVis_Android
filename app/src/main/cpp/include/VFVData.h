@@ -22,16 +22,13 @@ namespace sereno
         VFV_ADD_VTK_DATA,        /*!< VTK Data added*/
         VFV_DEL_DATA,            /*!< Data removed*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
+        VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
     };
 
-    /* \brief Color range information */
-    struct ColorRangeEvent
+    struct UpdateSubDatasetEvent
     {
-        float min;      /*!< the minimum range (ratio : 0.0, 1.0)*/
-        float max;      /*!< the maximum range (ratio : 0.0, 1.0)*/
-        ColorMode mode; /*!< The color mode to apply*/
-        SubDataset* sd; /*!< The subdataset changing*/       
+        SubDataset* sd; /*!< The subdataset being updated*/
     };
 
     /* \brief binary data event information (add) */
@@ -57,10 +54,10 @@ namespace sereno
     {
         union
         {
-            DatasetEvent    dataset;    /*!< General dataset event*/
-            BinaryDataEvent binaryData; /*!< Binary  dataset event*/
-            VTKDataEvent    vtkData;    /*!< VTK    dataset event*/
-            ColorRangeEvent colorRange; /*!< Color range event information */
+            DatasetEvent    dataset;       /*!< General dataset event*/
+            BinaryDataEvent binaryData;    /*!< Binary  dataset event*/
+            VTKDataEvent    vtkData;       /*!< VTK    dataset event*/
+            UpdateSubDatasetEvent sdEvent; /*!< SubDataset general event information*/
         };
 
         VFVEvent(VFVEventType t) : type(t)
@@ -69,8 +66,8 @@ namespace sereno
                 new(&binaryData) BinaryDataEvent;
             else if(type == VFV_ADD_VTK_DATA)
                 new(&vtkData) VTKDataEvent;
-            else if(type == VFV_COLOR_RANGE_CHANGED)
-                new(&colorRange) ColorRangeEvent;
+            if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA)
+                new(&sdEvent) UpdateSubDatasetEvent;
         }
 
         ~VFVEvent()
@@ -79,8 +76,8 @@ namespace sereno
                 binaryData.~BinaryDataEvent();
             else if(type == VFV_ADD_VTK_DATA)
                 vtkData.~VTKDataEvent();
-            else if(type == VFV_COLOR_RANGE_CHANGED)
-                colorRange.~ColorRangeEvent();
+            else if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA)
+                sdEvent.~UpdateSubDatasetEvent();
         }
 
         /* \brief  Get the type of this event
@@ -147,6 +144,10 @@ namespace sereno
              * \param mode the current color mode
              * \param data the SubDataset changing*/
             void onRangeColorChange(float min, float max, ColorMode mode, SubDataset* data);
+
+            /* \brief Function called when a SubDataset rotation has changed
+             * \param data the SubDataset changing */
+            void onRotationChange(SubDataset* data);
 
             /* \brief Set the current data displayed in the application
              * \param dataID the dataID*/

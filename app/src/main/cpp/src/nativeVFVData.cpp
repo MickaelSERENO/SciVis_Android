@@ -66,3 +66,9 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChan
     VFVData* data = (VFVData*)ptr;
     data->onRangeColorChange(min, max, (ColorMode)(mode), (SubDataset*)sd);
 }
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRotationChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->onRotationChange((SubDataset*)sd);
+}
