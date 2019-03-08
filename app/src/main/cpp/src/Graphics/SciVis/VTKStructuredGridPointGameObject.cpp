@@ -70,6 +70,7 @@ namespace sereno
 
         //Read and determine the max / min values
         uint8_t* vals = (uint8_t*)m_gridPointVBO->m_vtkParser->parseAllFieldValues(ptFieldValue);
+
         for(uint32_t i = 0; i < ptFieldValue->nbTuples; i++)
         {
             float val = readParsedVTKValue<double>(vals + i*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
@@ -77,25 +78,34 @@ namespace sereno
             m_maxVal = std::max(m_maxVal, val);
             m_minVal = std::min(m_minVal, val);
         }
+
         float amp[2] = {m_maxVal, m_minVal};
         subDataset->setAmplitude(amp);
 
         //Store the interesting values
         size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
         m_vals = (float*)malloc(sizeof(float)*nbValues);
-        for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
-            for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
-                for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
-                {
-                    size_t destID = i + 
-                                    j*m_gridPointVBO->m_dimensions[0] + 
-                                    k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                    size_t srcID  = i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0] +
-                                    j*ptsDesc.size[1]/m_gridPointVBO->m_dimensions[1]*ptsDesc.size[0] + 
-                                    k*ptsDesc.size[2]/m_gridPointVBO->m_dimensions[2]*ptsDesc.size[1]*ptsDesc.size[0];
-                    m_vals[destID] = readParsedVTKValue<double>(vals + srcID*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
-                                                                ptFieldValue->format);
-                }
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            {
+                for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
+                    for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+                        for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+                        {
+                            size_t destID = i + 
+                                            j*m_gridPointVBO->m_dimensions[0] + 
+                                            k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+                            size_t srcID  = i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0] +
+                                            j*ptsDesc.size[1]*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[1] + 
+                                            k*ptsDesc.size[2]*ptsDesc.size[1]*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[2];
+                            m_vals[destID] = readParsedVTKValue<float>(vals + srcID*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
+                                                                       ptFieldValue->format);
+                            m_vals[destID] = (m_vals[destID] - m_minVal)/(m_maxVal - m_minVal);
+                        }
+            }
+        }
         free(vals);
 
         //Set VAO
@@ -217,7 +227,7 @@ namespace sereno
             {
                 for(uint32_t i = 0; i < nbValues; i++)
                 {
-                    float t = (m_vals[i]-m_minVal)/(m_maxVal-m_minVal);
+                    float t = m_vals[i];
 
                     //Test if inside the min-max range.
                     if(t > max || t < min)
@@ -247,9 +257,9 @@ namespace sereno
                             float    z1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
                             float    z2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
 
-                            vals[2*ind+1] = (x1-x2)*(x1-x2)/m_gridPointVBO->m_spacing[0]+
-                                            (y1-y2)*(y1-y2)/m_gridPointVBO->m_spacing[1]+
-                                            (z1-z2)*(z1-z2)/m_gridPointVBO->m_spacing[2];
+                            vals[2*ind+1] = (x1-x2)*(x1-x2)/(2.0f*m_gridPointVBO->m_spacing[0])+
+                                            (y1-y2)*(y1-y2)/(2.0f*m_gridPointVBO->m_spacing[1])+
+                                            (z1-z2)*(z1-z2)/(2.0f*m_gridPointVBO->m_spacing[2]);
                             maxGrad = std::max(vals[2*ind+1], maxGrad);
                         }
             }
