@@ -17,7 +17,7 @@ namespace sereno
         //Check the shader
         if(m_shader == NULL)
         {
-            LOG_ERROR("Could not bind this material because no shader was bound to it\n");
+          //  LOG_ERROR("Could not bind this material because no shader was bound to it\n");
             return;
         }
 

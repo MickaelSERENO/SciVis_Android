@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
                     {
-                        EditText txt = view.findViewById(R.id.hololensIP);
+                        EditText txt = (EditText)view.findViewById(R.id.hololensIP);
                         m_socket.setHololensIP(txt.getText().toString());
                     }
 
@@ -319,15 +319,15 @@ public class MainActivity extends AppCompatActivity
     {
         ImageView noSnapshotView = new ImageView(this);
 
-        m_drawerLayout  = findViewById(R.id.rootLayout);
-        m_surfaceView   = findViewById(R.id.mainView);
-        m_previewLayout = findViewById(R.id.previewLayout);
+        m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
+        m_surfaceView   = (VFVSurfaceView)findViewById(R.id.mainView);
+        m_previewLayout = (TreeView)findViewById(R.id.previewLayout);
         m_model.addCallback(m_surfaceView);
 
         //Configure the spinner color mode
-        m_rangeColorView = findViewById(R.id.rangeColorView);
+        m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
         m_rangeColorView.addOnRangeChangeListener(this);
-        Spinner colorModeSpinner = findViewById(R.id.colorModeSpinner);
+        Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
         colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
@@ -362,7 +362,7 @@ public class MainActivity extends AppCompatActivity
     private void setUpToolbar()
     {
         //Set the support of toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         //Add an home button
@@ -373,8 +373,8 @@ public class MainActivity extends AppCompatActivity
     /** \brief Setup the hidden menu (left menu) part of the drawer */
     private void setUpHiddenMenu()
     {
-        m_deleteDataBtn  = findViewById(R.id.deleteDataBtn);
-        Button addButton = findViewById(R.id.addNewDataBtn);
+        m_deleteDataBtn  = (Button)findViewById(R.id.deleteDataBtn);
+        Button addButton = (Button)findViewById(R.id.addNewDataBtn);
         addButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
             {
-                Spinner dataSpinner = view.findViewById(R.id.openDatasetSpinner);
+                Spinner dataSpinner = (Spinner)view.findViewById(R.id.openDatasetSpinner);
                 final DataFile df   = (DataFile)dataSpinner.getSelectedItem();
 
                 String fileName = df.getFile().getName();

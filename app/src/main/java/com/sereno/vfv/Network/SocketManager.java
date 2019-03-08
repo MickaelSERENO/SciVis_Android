@@ -115,10 +115,7 @@ public class SocketManager
                 {
                     //Check the connection
                     if(!isConnected)
-                    {
-                        Log.i(MainActivity.TAG, "Trying to reconnect at " + m_serverIP + ":" + m_serverPort + "\n");
                         isConnected = connect();
-                    }
                 }
 
                 try
@@ -142,6 +139,7 @@ public class SocketManager
                 {
                     synchronized (this)
                     {
+                        Log.i(MainActivity.TAG, "Communication lost with the server\n");
                         close();
                     }
                 }
@@ -204,8 +202,6 @@ public class SocketManager
         try{m_socket.setReuseAddress(true);}catch(Exception e){}
         //Needed to resend a new bound
         m_isBoundToHololens = false;
-
-        Log.i(MainActivity.TAG, "Communication lost with the server\n");
     }
 
     /* ************************************************************ */

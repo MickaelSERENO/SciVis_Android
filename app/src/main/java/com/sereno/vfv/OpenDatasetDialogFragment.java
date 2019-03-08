@@ -69,7 +69,7 @@ public class OpenDatasetDialogFragment extends DialogFragment
      * \return true if the layout can be set up correctly. If no datasets, this function returns false*/
     private boolean setupLayout(View view)
     {
-        Spinner datasetSpinner = view.findViewById(R.id.openDatasetSpinner);
+        Spinner datasetSpinner = (Spinner)view.findViewById(R.id.openDatasetSpinner);
         DataFile[] dataFiles   = DataFile.getAvailableDatasets(getActivity());
         if(dataFiles == null)
         {

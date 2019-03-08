@@ -69,11 +69,11 @@
 template <typename T>
 inline std::vector<T*> jlongArrayToVector(JNIEnv* env, jlongArray arr)
 {
-    T** values = (T**)env->GetLongArrayElements(arr, NULL);
+    jlong* values = env->GetLongArrayElements(arr, NULL);
     auto nbElem = env->GetArrayLength(arr);
     std::vector<T*> res(nbElem);
     for(int i = 0; i < nbElem; i++)
-        res[i] = values[i];
+        res[i] = (T*)values[i];
     return res;
 }
 
