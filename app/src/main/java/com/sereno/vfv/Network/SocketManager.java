@@ -34,9 +34,9 @@ public class SocketManager
     /* ******************Recognizable server type****************** */
     /* ************************************************************ */
 
-    public static final short IDENT_TABLET    = 1;
-    public static final short ADD_VTK_DATASET = 3;
-    public static final short ROTATE_DATASET  = 4;
+    public static final short IDENT_TABLET         = 1;
+    public static final short ADD_VTK_DATASET      = 3;
+    public static final short ROTATE_DATASET       = 4;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -299,6 +299,7 @@ public class SocketManager
             synchronized(m_queueSendBuf)
             {
                 m_queueSendBuf.push(getIdentData());
+                m_isBoundToHololens = true;
             }
         }
 

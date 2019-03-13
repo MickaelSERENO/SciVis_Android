@@ -14,4 +14,5 @@
     <string name="serverIP">Server IP</string>
     <string name="hololensIP">Hololens IP</string>
     <string name="openVTKTitle">Select the wanted fields</string>
+    <string name="headsetColor">Headset color</string>
 </resources>

@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.sereno.vfv.MainActivity;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /** Message Buffer class. Permits to parse the incoming server data correctly
@@ -71,6 +70,10 @@ public class MessageBuffer
         /** Called when the message "MOVE DATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onMoveDatasetMessage(MoveDatasetMessage msg);
+
+        /** Called when the message "HEADSET_BINDING_INFO" has been successfully parsed
+         * @param msg the message parsed*/
+        void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg);
     }
 
     /** No current type received*/
@@ -87,6 +90,13 @@ public class MessageBuffer
 
     /** Move dataset received*/
     public static final int GET_MOVE_DATASET            = 3;
+
+    /** Received the headset information*/
+    public static final int GET_HEADSET_BINDING_INFO    = 6;
+
+    /** Received the headset disconnection information*/
+    public static final int GET_HEADSET_DISCONNECTED    = 7;
+
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -195,6 +205,14 @@ public class MessageBuffer
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onMoveDatasetMessage((MoveDatasetMessage) m_curMsg);
                     break;
+                case GET_HEADSET_BINDING_INFO:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onHeadsetBindingInfoMessage((HeadsetBindingInfoMessage) m_curMsg);
+                    break;
+                case GET_HEADSET_DISCONNECTED:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onEmptyMessage((EmptyMessage)m_curMsg);
+                    break;
                 default:
                     Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
             }
@@ -223,16 +241,22 @@ public class MessageBuffer
         switch(type)
         {
             case GET_ADD_DATASET_ACKNOWLEDGE:
-                m_curMsg      = new AcknowledgeAddDatasetMessage();
+                m_curMsg = new AcknowledgeAddDatasetMessage();
                 break;
             case GET_ADD_VTK_DATASET:
-                m_curMsg      = new AddVTKDatasetMessage();
+                m_curMsg = new AddVTKDatasetMessage();
                 break;
             case GET_ROTATE_DATASET:
-                m_curMsg      = new RotateDatasetMessage();
+                m_curMsg = new RotateDatasetMessage();
                 break;
             case GET_MOVE_DATASET:
-                m_curMsg      = new MoveDatasetMessage();
+                m_curMsg = new MoveDatasetMessage();
+                break;
+            case GET_HEADSET_BINDING_INFO:
+                m_curMsg = new HeadsetBindingInfoMessage();
+                break;
+            case GET_HEADSET_DISCONNECTED:
+                m_curMsg = new EmptyMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

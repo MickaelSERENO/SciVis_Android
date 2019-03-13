@@ -38,6 +38,7 @@ import com.sereno.vfv.Listener.INotiveVTKDialogListener;
 import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.EmptyMessage;
+import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
@@ -66,6 +67,7 @@ public class MainActivity extends AppCompatActivity
     private Bitmap           m_noSnapshotBmp;     /*!< The bitmap used when no preview is available*/
     private SubDataset       m_currentSubDataset; /*!< The current application sub dataset*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
+    private ImageView        m_headsetColor;      /*!< Image view representing the headset color*/
     private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
 
 
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.main_activity);
 
         //Set up all internal components
+        setUpMainLayout();
         setUpDrawerLayout();
         setUpToolbar();
         setUpHiddenMenu();
@@ -227,10 +230,19 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
+        if(msg.getType() == MessageBuffer.GET_HEADSET_DISCONNECTED)
+        {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    m_headsetColor.setImageBitmap(m_noSnapshotBmp);
+                }
+            });
+        }
     }
 
     @Override
-    public void onAcknowledgeAddDatasetMessage(AcknowledgeAddDatasetMessage msg)
+    public void onAcknowledgeAddDatasetMessage(final AcknowledgeAddDatasetMessage msg)
     {
         switch(msg.getType())
         {
@@ -314,15 +326,33 @@ public class MainActivity extends AppCompatActivity
         //TODO
     }
 
+    @Override
+    public void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg)
+    {
+        final int color = msg.getHeadsetColor();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_headsetColor.setImageBitmap(null);
+                m_headsetColor.setBackgroundColor((color & 0xffffff) + ((byte)0xff << 24));
+            }
+        });
+    }
+
+    /** Set up the main layout*/
+    private void setUpMainLayout()
+    {
+        m_surfaceView   = (VFVSurfaceView)findViewById(R.id.mainView);
+        m_model.addCallback(m_surfaceView);
+
+        m_headsetColor = (ImageView)findViewById(R.id.headsetColor);
+    }
+
     /** \brief Set up the drawer layout (root layout)*/
     private void setUpDrawerLayout()
     {
-        ImageView noSnapshotView = new ImageView(this);
-
         m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
-        m_surfaceView   = (VFVSurfaceView)findViewById(R.id.mainView);
         m_previewLayout = (TreeView)findViewById(R.id.previewLayout);
-        m_model.addCallback(m_surfaceView);
 
         //Configure the spinner color mode
         m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
