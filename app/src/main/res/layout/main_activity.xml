@@ -12,87 +12,36 @@
     <!-- tools:openDrawer="start" -->
 
     <!-- Main body Layout of screen (drawer will slide over this) -->
-    <android.support.v7.widget.GridLayout
+    <LinearLayout
         android:id="@+id/mainContent"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <!-- Toolbar -->
         <android.support.v7.widget.Toolbar
-            app:layout_column="0"
-            app:layout_row="0"
-            app:layout_columnSpan="2"
-            app:layout_columnWeight="4"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/toolbar"
             android:background="?attr/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"/>
 
-        <!-- Previews -->
-        <com.sereno.view.TreeView
-            android:id="@+id/previewLayout"
-            app:layout_row="1"
-            app:layout_rowWeight="3"
-            app:layout_column="0"
-            app:layout_columnWeight="1"
-            android:layout_width="300px"
-            android:layout_height="300px"
-            app:topOffsetPerChild="10"
-            app:leftOffsetPerLevel="25"
-            app:strokeWidth="3"
-            android:textAlignment="center"/>
+        <!-- Tabs buttons -->
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabMode="fixed"
+            app:tabGravity="fill"/>
 
-        <!-- Information -->
-        <LinearLayout
-            android:id="@+id/informationLayout"
-            android:layout_height="300px"
-            android:layout_width="300px"
-            android:orientation="vertical"
-            app:layout_row="2"
-            app:layout_rowWeight="1"
-            app:layout_column="0">
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="2px"
-                android:background="@android:color/black"/>
-            <LinearLayout
-                android:paddingTop="5dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center_vertical">
-                <TextView
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:text="@string/headsetColor"
-                    android:layout_marginRight="5dp"/>
+        <!-- Tabs contents -->
+        <android.support.v4.view.ViewPager
+            android:id="@+id/viewpager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-                <ImageView
-                    android:id="@+id/headsetColor"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:adjustViewBounds="true"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/no_snapshot"
-                    android:background="@android:color/transparent"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Records -->
-
-        <!-- Current data preview -->
-        <com.sereno.gl.VFVSurfaceView
-            android:id="@+id/mainView"
-            app:layout_row="1"
-            app:layout_rowSpan="2"
-            app:layout_rowWeight="4"
-            app:layout_column="1"
-            app:layout_columnWeight="3"
-            android:layout_width="300px"
-            android:layout_height="300px"
-            />
-    </android.support.v7.widget.GridLayout>
+    </LinearLayout>
 
     <!-- Include the drawer layout (left menu) -->
     <include layout="@layout/drawer_layout"/>

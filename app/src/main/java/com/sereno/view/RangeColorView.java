@@ -18,18 +18,8 @@ import com.sereno.color.MSHColor;
 
 import java.util.ArrayList;
 
-public class RangeColorView extends View
+public class RangeColorView extends View implements RangeColorData.IOnRangeChangeListener
 {
-    /* \brief Interface permitting to send a message when the range color has changed*/
-    public interface IOnRangeChangeListener
-    {
-        /* \brief Function called when the range has changed
-         * @param view the view calling this method
-         * @param minVal the current minimum value (between 0.0 and 1.0)
-         * @param maxVal the current maximum value (between 0.0 and 1.0)
-         * @param mode the color mode applied*/
-        void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode);
-    }
 
     public static final int MAX_PIXELS    = 150; /*!< Maximum height*/
     public static final int TRIANGLE_SIZE = 30;  /*!< The triangles size*/
@@ -40,14 +30,10 @@ public class RangeColorView extends View
 
     private Paint m_paint        = new Paint(); /*!< The object configuring the paint of the canvas (color)*/
     private Paint m_handlesPaint = new Paint(); /*!< The paint object permitting to draw the handlers*/
-    private int   m_colorMode    = ColorMode.RAINBOW; /*!< The colormode to display*/
-
-    private float m_minValue     = 0.0f; /*!< The current minimum value (between 0 and 1)*/
-    private float m_maxValue     = 1.0f; /*!< The current maximum value (between 0 and 1)*/
 
     private int   m_valueInManipulation = MANIPULATING_NO_VALUE; /*!< What is the current handle being manipulated (i.e moved) ?*/
 
-    private ArrayList<IOnRangeChangeListener> m_onRangeChangeListeners = new ArrayList<>(); /*!< Listeners to call when the range has changed*/
+    private RangeColorData m_model = new RangeColorData(); /*!< The internal data model*/
 
     /** @brief Constructor with the view's context as @parameter
      *
@@ -94,7 +80,7 @@ public class RangeColorView extends View
             float t = (float)(i) / (float)(width);
             Color c = null;
 
-            switch(m_colorMode)
+            switch(m_model.getColorMode())
             {
                 case ColorMode.RAINBOW:
                 {
@@ -138,7 +124,7 @@ public class RangeColorView extends View
                 canvas.drawLine(i+j+TRIANGLE_SIZE/2.0f, 0, i+j+TRIANGLE_SIZE/2.0f, height, m_paint);
         }
         //Draw the handles
-        int[] v = new int[]{(int)(width*m_minValue), (int)(width*m_maxValue)};
+        int[] v = new int[]{(int)(width*m_model.getMinRange()), (int)(width*m_model.getMaxRange())};
         for(int j = 0; j < 2; j++)
         {
             Path path = new Path();
@@ -150,42 +136,6 @@ public class RangeColorView extends View
         }
     }
 
-    /** \brief Set the color mode of this View
-     * @param mode the color mode (See ColorMode class)*/
-    public void setColorMode(int mode)
-    {
-        m_colorMode = mode;
-        for(IOnRangeChangeListener l : m_onRangeChangeListeners)
-            l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
-        invalidate();
-    }
-
-    /** \brief Set the range color. If min > max, we invert the value
-     * @param min the minimum range
-     * @param max the maximum range
-     */
-    public void setRange(float min, float max)
-    {
-        m_minValue = Math.min(min, max);
-        m_maxValue = Math.max(min, max);
-        for(IOnRangeChangeListener l : m_onRangeChangeListeners)
-            l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
-    }
-
-    /** \brief Add an object to the list of listeners to call when the range color has changed
-     * @param l the new listener to add*/
-    public void addOnRangeChangeListener(IOnRangeChangeListener l)
-    {
-        m_onRangeChangeListeners.add(l);
-    }
-
-    /** \brief Remove an existing object to the list of listeners to call when the range color has changed
-     * @param l the old listener to remove*/
-    public void removeOnRangeChangeListener(IOnRangeChangeListener l)
-    {
-        m_onRangeChangeListeners.remove(l);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent e)
     {
@@ -195,18 +145,21 @@ public class RangeColorView extends View
         boolean valueChanged = false;
         float   indice       = Math.min(Math.max((x - TRIANGLE_SIZE/2.0f)/width, 0.0f), 1.0f);
 
+        float minValue = m_model.getMinRange();
+        float maxValue = m_model.getMaxRange();
+
         //Set the cursor and store which value we are manipulating
         if(e.getAction() == MotionEvent.ACTION_DOWN)
         {
-            if(Math.abs(indice - m_minValue) < Math.abs(indice - m_maxValue))
+            if(Math.abs(indice - m_model.getMinRange()) < Math.abs(indice - m_model.getMaxRange()))
             {
                 m_valueInManipulation = MANIPULATING_MIN_VALUE;
-                m_minValue = indice;
+                minValue = indice;
             }
             else
             {
                 m_valueInManipulation = MANIPULATING_MAX_VALUE;
-                m_maxValue = indice;
+                maxValue = indice;
             }
             valueChanged = true;
         }
@@ -219,37 +172,46 @@ public class RangeColorView extends View
             if(m_valueInManipulation == MANIPULATING_MIN_VALUE)
             {
                 //Switch manipulating indice if we went hover
-                if(indice > m_maxValue)
+                if(indice > maxValue)
                 {
-                    m_minValue = m_maxValue;
-                    m_maxValue = indice;
+                    minValue = maxValue;
+                    maxValue = indice;
                     m_valueInManipulation = MANIPULATING_MAX_VALUE;
                 }
                 else
-                    m_minValue = indice;
+                    minValue = indice;
             }
 
             else if(m_valueInManipulation == MANIPULATING_MAX_VALUE)
             {
                 //Switch manipulating indice if we went hover
-                if(indice < m_minValue)
+                if(indice < minValue)
                 {
-                    m_maxValue = m_minValue;
-                    m_minValue = indice;
+                    maxValue = minValue;
+                    minValue = indice;
                     m_valueInManipulation = MANIPULATING_MIN_VALUE;
                 }
                 else
-                    m_maxValue = indice;
+                    maxValue = indice;
             }
             valueChanged = true;
         }
         if(valueChanged)
-        {
-            for(IOnRangeChangeListener l : m_onRangeChangeListeners)
-                l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
-            invalidate();
-        }
+            m_model.setRange(minValue, maxValue);
         return true;
+    }
+
+    /** Get the model of this RangeColorView
+     * @return the RangeColorData model*/
+    public RangeColorData getModel()
+    {
+        return m_model;
+    }
+
+    @Override
+    public void onRangeChange(RangeColorData view, float minVal, float maxVal, int mode)
+    {
+        invalidate();
     }
 
     @Override

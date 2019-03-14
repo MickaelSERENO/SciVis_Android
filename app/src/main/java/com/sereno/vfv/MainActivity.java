@@ -4,7 +4,10 @@ import android.app.DialogFragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -54,7 +57,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback, RangeColorView.IOnRangeChangeListener
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener
 {
     public static final String TAG="VFV";
 
@@ -62,12 +65,7 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout     m_drawerLayout;      /*!< The root layout. DrawerLayout permit to have a left menu*/
     private Button           m_deleteDataBtn;     /*!< The delete data button*/
     private RangeColorView   m_rangeColorView;    /*!< The range color view*/
-    private VFVSurfaceView   m_surfaceView;       /*!< The surface view displaying the vector field*/
-    private TreeView         m_previewLayout;     /*!< The preview layout*/
-    private Bitmap           m_noSnapshotBmp;     /*!< The bitmap used when no preview is available*/
-    private SubDataset       m_currentSubDataset; /*!< The current application sub dataset*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
-    private ImageView        m_headsetColor;      /*!< Image view representing the headset color*/
     private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
 
 
@@ -77,10 +75,8 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
 
-        m_noSnapshotBmp = BitmapFactory.decodeResource(getResources(), R.drawable.no_snapshot);
-
         m_model = new ApplicationModel(this);
-        m_model.addCallback(this);
+        m_model.addListener(this);
 
         setContentView(R.layout.main_activity);
 
@@ -90,8 +86,7 @@ public class MainActivity extends AppCompatActivity
         setUpToolbar();
         setUpHiddenMenu();
 
-        m_socket = new SocketManager(m_model.getConfiguration().getServerIP(),
-                m_model.getConfiguration().getServerPort());
+        m_socket = new SocketManager(m_model.getConfiguration().getServerIP(), m_model.getConfiguration().getServerPort());
         m_socket.getMessageBuffer().addListener(this);
     }
 
@@ -137,36 +132,22 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-
-    @Override
-    public void onRangeChange(RangeColorView view, float minVal, float maxVal, int mode)
-    {
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.setRangeColor(minVal, maxVal, mode);
-    }
-
     public void changeCurrentSubDataset(SubDataset sd)
-    {
-        m_currentSubDataset = sd;
-        m_surfaceView.changeCurrentSubDataset(sd);
-        m_rangeColorView.setColorMode(sd.getColorMode());
-        m_rangeColorView.setRange(sd.getMinClampingColor(), sd.getMaxClampingColor());
-    }
+    {}
 
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
-        if(d.getID() < 0)
-            addDataset(d);
+        onAddDataset(d);
     }
 
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
-        addDataset(d);
         if(d.getID() < 0)
             m_socket.push(SocketManager.createAddVTKDatasetEvent(d));
+        onAddDataset(d);
     }
 
     @Override
@@ -229,17 +210,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
-    {
-        if(msg.getType() == MessageBuffer.GET_HEADSET_DISCONNECTED)
-        {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    m_headsetColor.setImageBitmap(m_noSnapshotBmp);
-                }
-            });
-        }
-    }
+    {}
 
     @Override
     public void onAcknowledgeAddDatasetMessage(final AcknowledgeAddDatasetMessage msg)
@@ -328,43 +299,44 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg)
+    {}
+
+    @Override
+    public void onChangeCurrentSubDataset(SubDataset sd)
     {
-        final int color = msg.getHeadsetColor();
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                m_headsetColor.setImageBitmap(null);
-                m_headsetColor.setBackgroundColor((color & 0xffffff) + ((byte)0xff << 24));
-            }
-        });
+        m_rangeColorView.getModel().setColorMode(sd.getColorMode());
+        m_rangeColorView.getModel().setRange(sd.getMinClampingColor(), sd.getMaxClampingColor());
     }
 
     /** Set up the main layout*/
     private void setUpMainLayout()
     {
-        m_surfaceView   = (VFVSurfaceView)findViewById(R.id.mainView);
-        m_model.addCallback(m_surfaceView);
+        ViewPager        viewPager    = (ViewPager)findViewById(R.id.viewpager);
+        ViewPagerAdapter adapter      = new ViewPagerAdapter(getSupportFragmentManager());
+        DatasetsFragment dataFragment = new DatasetsFragment();
+        dataFragment.setUpModel(m_model);
+        adapter.addFragment(dataFragment, "Datasets");
+        viewPager.setAdapter(adapter);
 
-        m_headsetColor = (ImageView)findViewById(R.id.headsetColor);
+        TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
     /** \brief Set up the drawer layout (root layout)*/
     private void setUpDrawerLayout()
     {
         m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
-        m_previewLayout = (TreeView)findViewById(R.id.previewLayout);
 
         //Configure the spinner color mode
         m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
-        m_rangeColorView.addOnRangeChangeListener(this);
+        m_model.setRangeColorModel(m_rangeColorView.getModel());
+
         Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
         colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
-            {
-                m_rangeColorView.setColorMode((int)l);
-            }
+            {}
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView)
@@ -476,72 +448,17 @@ public class MainActivity extends AppCompatActivity
         dialogFragment.show(getFragmentManager(), "dialog");
     }
 
-    private void addDataset(final Dataset d)
+    private void onAddDataset(Dataset d)
     {
-        //Add the preview
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                m_pendingDataset.add(d);
-                TextView   dataText = new TextView(MainActivity.this);
-                dataText.setText(d.getName());
-                Tree<View> dataView = new Tree<View>(dataText);
-                m_previewLayout.getData().addChild(dataView, -1);
-
-                for(int i = 0; i < d.getNbSubDataset(); i++)
-                {
-                    //Set the color range listener
-                    final SubDataset sd = d.getSubDataset(i);
-                    if(m_currentSubDataset == null)
-                        m_currentSubDataset = sd;
-                    sd.addListener(MainActivity.this);
-
-                    m_rangeColorView.setRange(0.0f, 1.0f);
-                    m_rangeColorView.setColorMode(ColorMode.RAINBOW);
-
-                    //Add the snap image
-                    final ImageView snapImg = new ImageView(MainActivity.this);
-                    snapImg.setAdjustViewBounds(true);
-                    snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    snapImg.setMaxWidth(256);
-                    snapImg.setMaxHeight(256);
-                    snapImg.setImageResource(R.drawable.no_snapshot);
-                    snapImg.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            changeCurrentSubDataset(sd);
-                        }
-                    });
-
-                    //Snapshot event
-                    sd.addListener(new SubDataset.ISubDatasetCallback() {
-                        @Override
-                        public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
-
-                        @Override
-                        public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw) {}
-
-                        @Override
-                        public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
-
-                        @Override
-                        public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
-                        {
-                            final Bitmap s = snapshot;
-                            runOnUiThread(new Runnable() {
-                                              @Override
-                                              public void run() {
-                                                  snapImg.setImageBitmap(s);
-                                              }
-                                          });
-                        }
-                    });
-                    dataView.addChild(new Tree<View>(snapImg), -1);
-                }
+                m_rangeColorView.getModel().setRange(0.0f, 1.0f);
+                m_rangeColorView.getModel().setColorMode(ColorMode.RAINBOW);
             }
         });
-
     }
+
     static
     {
         System.loadLibrary("native-lib");
