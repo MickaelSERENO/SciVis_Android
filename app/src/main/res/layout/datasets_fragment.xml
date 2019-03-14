@@ -17,9 +17,13 @@
         app:layout_column="0"
         android:layout_width="wrap_content"
         android:layout_height="300px"
-        app:topOffsetPerChild="10"
-        app:leftOffsetPerLevel="25"
-        app:strokeWidth="3"
+        app:topOffsetPerChild="10px"
+        app:leftOffsetPerLevel="25px"
+        app:strokeWidth="3px"
+        app:extendHeight="64px"
+        app:extendWidth="64px"
+        app:inExtendSrc="@drawable/in_expend"
+        app:notExtendSrc="@drawable/not_expend"
         android:textAlignment="center"/>
 
     <!-- Information -->

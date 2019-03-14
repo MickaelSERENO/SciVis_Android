@@ -2,14 +2,16 @@ package com.sereno.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
+import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.sereno.Tree;
 import com.sereno.vfv.R;
@@ -55,6 +57,18 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
     /** @brief The Paint used when drawing*/
     private Paint m_paint;
 
+    /** The image representing the in extended*/
+    private Bitmap m_inExtendImg;
+
+    /** The image representing the not extend state*/
+    private Bitmap m_notExtendImg;
+
+    /** The extend bitmap width*/
+    private int m_extendWidth;
+
+    /** The extend bitmap height*/
+    private int m_extendHeight;
+
     /** @brief Constructor with the view's context as @parameter
      * @param c the Context associated with the view*/
     public TreeView(Context c)
@@ -90,9 +104,24 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
     {
         //Read the AttributeSet
         TypedArray ta = getContext().obtainStyledAttributes(a, R.styleable.TreeView);
-        m_leftOffsetPerLevel = ta.getInt(R.styleable.TreeView_leftOffsetPerLevel, 10);
-        m_topOffsetPerChild  = ta.getInt(R.styleable.TreeView_topOffsetPerChild,  15);
-        m_strokeWidth        = ta.getInt(R.styleable.TreeView_strokeWidth, 1);
+        m_leftOffsetPerLevel = ta.getDimensionPixelSize(R.styleable.TreeView_leftOffsetPerLevel, 10);
+        m_topOffsetPerChild  = ta.getDimensionPixelSize(R.styleable.TreeView_topOffsetPerChild,15);
+        m_strokeWidth        = ta.getDimensionPixelSize(R.styleable.TreeView_strokeWidth, 1);
+        int inExtendSrc      = ta.getResourceId(R.styleable.TreeView_inExtendSrc, -1);
+        int notExtendSrc     = ta.getResourceId(R.styleable.TreeView_notExtendSrc, -1);
+        m_extendWidth        = ta.getDimensionPixelSize(R.styleable.TreeView_extendWidth, 32);
+        m_extendHeight       = ta.getDimensionPixelSize(R.styleable.TreeView_extendHeight, 32);
+
+        //Load default bitmap
+        if(inExtendSrc == -1)
+            m_inExtendImg = BitmapFactory.decodeResource(getResources(), com.sereno.vfv.R.drawable.in_expend);
+        else
+            m_inExtendImg = BitmapFactory.decodeResource(getResources(), inExtendSrc);
+
+        if(notExtendSrc == -1)
+            m_notExtendImg = BitmapFactory.decodeResource(getResources(), com.sereno.vfv.R.drawable.not_expend);
+        else
+            m_notExtendImg = BitmapFactory.decodeResource(getResources(), notExtendSrc);
         ta.recycle();
 
         m_tree = new Tree<>(null);
@@ -172,15 +201,34 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
                              resolveSizeAndState(state.height, heightMeasureSpec, state.measureState << MEASURED_HEIGHT_STATE_SHIFT));
     }
 
+    /** Layout a leaf
+     * @param b See "onLayout" b parameter
+     * @param leftMargin the left margin to apply
+     * @param topMargin the top margin to apply
+     * @param left the left part of this layout
+     * @param top the top part of this layout
+     * @param right the right part of this layout
+     * @param bottom the bottom part of this layout
+     * @param leaf the leaf to layout
+     * @param extend Is the parent extended?
+     * @return the new top margin to apply*/
     private int onLayoutLeaf(boolean b, int leftMargin, int topMargin,
-                              int left, int top, int right, int bottom, Tree<View> leaf)
+                              int left, int top, int right, int bottom, Tree<View> leaf, boolean extend)
     {
         final View child = leaf.value;
         int height=0;
-        if(child != null)
+
+        if(child != null && extend && child.getVisibility() != GONE)
         {
             final int width = child.getMeasuredWidth();
             height = child.getMeasuredHeight();
+
+            //Place for the expend logo
+            if(leaf.getChildren().size() > 0)
+            {
+                leftMargin += m_extendWidth;
+                topMargin  += Math.max(m_extendHeight-height, 0.0);
+            }
 
             // These are the far left and right edges in which we are performing layout.
             int leftPos  = getPaddingLeft()+leftMargin;
@@ -194,10 +242,11 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
             child.layout(leftPos, parentTop, Math.min(leftPos + width, rightPos), Math.min(parentTop + height, parentBottom));
         }
 
-        topMargin = topMargin + height + (child != null ? m_topOffsetPerChild : 0);
+        extend = extend && leaf.getExtend();
+        topMargin = topMargin + Math.max(height, (leaf.getChildren().size() > 0 && extend ? m_extendHeight : 0)) + (child != null ? m_topOffsetPerChild : 0);
         for(Tree<View> l : leaf.getChildren())
-            topMargin = onLayoutLeaf(b, leftMargin + (child != null ? m_leftOffsetPerLevel : 0),
-                                     topMargin, left, top, right, bottom, l);
+            topMargin = onLayoutLeaf(b, leftMargin + (child != null ? m_leftOffsetPerLevel: 0),
+                                     topMargin, left, top, right, bottom, l, extend);
         return topMargin;
     }
 
@@ -205,7 +254,7 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
     protected void onLayout(boolean b, int left, int top, int right, int bottom)
     {
         onLayoutLeaf(b, 0, 0, left,
-                     top, right, bottom, m_tree);
+                     top, right, bottom, m_tree, true);
     }
 
     @Override
@@ -216,21 +265,43 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         drawLeaf(canvas, m_tree);
     }
 
+    /** Draw a leaf on screen
+     * @param canvas the canvas to draw on
+     * @param tree the tree to draw. Actually, this function draws the line and the extends images*/
     public void drawLeaf(Canvas canvas, Tree<View> tree)
     {
-        for(Tree<View> t : tree.getChildren())
+        //Draw extend image
+        if(tree.getChildren().size() > 0 && tree.value != null)
         {
-            if(tree.value != null && t.value != null)
+            Bitmap b = (tree.getExtend() ? m_inExtendImg : m_notExtendImg);
+
+            canvas.drawBitmap((tree.getExtend() ? m_inExtendImg : m_notExtendImg),
+                    new Rect(0, 0, b.getWidth(), b.getHeight()),
+
+                    new Rect((int)(tree.value.getX() - m_extendWidth),               (int)(tree.value.getY()+(tree.value.getHeight()-m_extendHeight)/2.0f),
+                             (int)(tree.value.getX() - m_extendWidth+m_extendWidth), (int)(tree.value.getY()+(tree.value.getHeight()-m_extendHeight)/2.0f+m_extendHeight)), m_paint);
+        }
+
+        if(tree.getExtend())
+        {
+            for (Tree<View> t : tree.getChildren())
             {
-                canvas.drawLine(tree.value.getX() + 5, tree.value.getY() + tree.value.getHeight(),
-                        tree.value.getX() + 5, t.value.getY() + t.value.getHeight() / 2, m_paint);
-                canvas.drawLine(tree.value.getX() + 5, t.value.getY() + t.value.getHeight() / 2,
-                        t.value.getX(), t.value.getY() + t.value.getHeight() / 2, m_paint);
+                if (tree.value != null && t.value != null)
+                {
+                    canvas.drawLine(tree.value.getX() - m_extendWidth / 2.0f, tree.value.getY() + Math.max(tree.value.getHeight(), m_extendHeight),
+                                    tree.value.getX() - m_extendWidth / 2.0f, t.value.getY() + t.value.getHeight() / 2, m_paint);
+
+
+                    canvas.drawLine(tree.value.getX() - m_extendWidth / 2.0f, t.value.getY() + t.value.getHeight() / 2,
+                                    t.value.getX() - (t.getChildren().size() > 0 ? m_extendWidth / 2.0f : 0.0f), t.value.getY() + t.value.getHeight() / 2, m_paint);
+                }
+                drawLeaf(canvas, t);
             }
-            drawLeaf(canvas, t);
         }
     }
 
+    /** @brief register this object to the 'child' children listeners
+     * @param child the child to look at*/
     public void recursiveOnAddChildren(Tree<View> child)
     {
         if(child.value != null)
@@ -263,6 +334,48 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         invalidate();
     }
 
+    /** Set the extendability of a leaf
+     * @param tree the leaf to look at
+     * @param extend Is the parent extended?*/
+    public void onSetExtendLeaf(Tree<View> tree, boolean extend)
+    {
+        if(tree.value != null)
+        {
+            if(!extend)
+                tree.value.setVisibility(GONE);
+            else
+                tree.value.setVisibility(VISIBLE);
+        }
+
+        //Commit the extend state
+        extend = extend && tree.getExtend();
+        for(Tree<View> t : tree.getChildren())
+        {
+            onSetExtendLeaf(t, extend);
+        }
+    }
+
+    @Override
+    public void onSetExtend(Tree<View> tree, boolean extend)
+    {
+        //Search if we should really extend this leaf...
+        if(extend)
+        {
+            for(Tree<View> parent = tree.getParent(); parent != null; parent = parent.getParent())
+                if(!parent.getExtend())
+                {
+                    extend = false;
+                    break;
+                }
+        }
+
+        for(Tree<View> t : tree.getChildren())
+        {
+            onSetExtendLeaf(t, extend);
+        }
+        invalidate();
+    }
+
     /** @brief Set the stroke width of this TreeView
      * @param strokeWidth the stroke width*/
     public void setStrokeWidth(int strokeWidth)
@@ -270,6 +383,72 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         m_strokeWidth = strokeWidth;
         m_paint.setStrokeWidth(strokeWidth);
         invalidate();
+    }
+
+    /** Set the size of the extend bitmap
+     * @param width the new extend bitmap width
+     * @param height the new extend bitmap height*/
+    public void setExtendSize(int width, int height)
+    {
+        m_extendWidth  = width;
+        m_extendHeight = height;
+    }
+
+    /** Get the extend bitmap width
+     * @return the extend bitmap width*/
+    public int getExtendWidth()
+    {
+        return m_extendWidth;
+    }
+
+    /** Get the extend bitmap height
+     * @return the extend bitmap height*/
+    public int getExtendHeight()
+    {
+        return m_extendHeight;
+    }
+
+    private boolean onTouchEventLeaf(Tree<View> tree, float x, float y)
+    {
+        boolean changed = false;
+        if(tree.value != null)
+        {
+            //Test collision
+            if(tree.value.getX() - m_extendWidth < x && tree.value.getX() > x &&
+               tree.value.getY() + (tree.value.getHeight()-m_extendHeight)/2.0 < y &&
+               tree.value.getY() + (tree.value.getHeight()+m_extendHeight)/2.0 > y)
+            {
+                changed = true;
+                tree.setExtend(!tree.getExtend());
+            }
+        }
+
+        if(changed)
+            return true;
+
+        for(Tree<View> t : tree.getChildren())
+            if(onTouchEventLeaf(t, x, y))
+                return true;
+
+        return false;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        boolean changed = false; //We test ALL the fingers and do not stop at the first one hit (others may also hit the target)!
+
+        if(event.getAction() == MotionEvent.ACTION_DOWN)
+        {
+            for(int i = 0; i < event.getPointerCount(); i++)
+            {
+                int pointID = event.getPointerId(i);
+                if(onTouchEventLeaf(m_tree, event.getX(pointID), event.getY(pointID)))
+                    changed = true;
+            }
+        }
+
+        return changed;
     }
 
     public Tree<View> getData()

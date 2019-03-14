@@ -19,19 +19,23 @@ public class Tree<T>
          * @param parent the parent before removal
          * @param child the child removed*/
         void onRemoveChild(Tree<T> parent, Tree<T> child);
+
+        /** @brief Called when the extendability of a Tree changed
+         * @param tree the Tree changing
+         * @param extend the new value of the extendability*/
+        void onSetExtend(Tree<T> tree, boolean extend);
     }
 
     /** @brief The leaves*/
     private List<Tree> m_leaves = new ArrayList<>();
-
     /** @brief The stored value*/
     public T value = null;
-
     /** @brief The listeners to call when the Tree state changes*/
-    public List<TreeListener<T>> m_listeners = new ArrayList<>();
-
+    private List<TreeListener<T>> m_listeners = new ArrayList<>();
     /** @brief The parent Tree*/
     private Tree m_parent = null;
+    /** Should we extend this tree?*/
+    private boolean m_extend = true;
 
     /** @brief Constructor
      * @param v the value bound to this Tree*/
@@ -100,6 +104,22 @@ public class Tree<T>
             child.m_parent = null;
             m_leaves.remove(child);
         }
+    }
+
+    /** Should this leaf be extended?
+     * @return true if should be extended, false otherwise*/
+    public boolean getExtend()
+    {
+        return m_extend;
+    }
+
+    /** Set the extendability of this Leaf
+     * @param extend true if should be extended, false otherwise*/
+    public void setExtend(boolean extend)
+    {
+        m_extend = extend;
+        for(TreeListener l : m_listeners)
+            l.onSetExtend(this, extend);
     }
 
     /** @brief Set the parent of this Tree
