@@ -9,8 +9,9 @@ import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
+import com.sereno.view.AnnotationData;
 
-public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback
+public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
 {
     /** The native C++ pointer*/
     private long m_ptr;
@@ -99,6 +100,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         //We generated this event
     }
+
+    @Override
+    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/

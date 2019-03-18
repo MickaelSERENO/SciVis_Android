@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Main body Layout of screen (drawer will slide over this) -->
+<android.support.v7.widget.GridLayout
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/annotMainContent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Previews -->
+    <com.sereno.view.TreeView
+        android:id="@+id/annotPreviewLayout"
+        app:layout_row="0"
+        app:layout_rowWeight="1"
+        app:layout_columnWeight="1"
+        app:layout_column="0"
+        android:background="@color/treeColor"
+        android:layout_height="0px"
+        android:layout_width="0px"
+        app:topOffsetPerChild="10px"
+        app:leftOffsetPerLevel="25px"
+        app:strokeWidth="3px"
+        app:extendHeight="64px"
+        app:extendWidth="64px"
+        app:inExtendSrc="@drawable/in_expend"
+        app:notExtendSrc="@drawable/not_expend"
+        android:textAlignment="center"/>
+
+    <!-- Main View -->
+    <RelativeLayout
+        app:layout_column="1"
+        app:layout_row="0"
+        app:layout_rowWeight="1"
+        app:layout_columnWeight="3"
+        android:layout_height="0px"
+        android:layout_width="0px">
+
+        <!-- Stroke/Text view -->
+        <com.sereno.view.AnnotationView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/annotView"/>
+
+        <!-- Button views -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="right"
+            android:orientation="vertical">
+
+            <!-- Stroke parameters -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="right">
+                <ImageView
+                    android:id="@+id/annotationStrokeParam"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="64dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/color_palette"/>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/annotationTextMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="64dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerInside"
+                android:src="@drawable/text_mode"/>
+
+            <ImageView
+                android:id="@+id/annotationImportImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="64dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerInside"
+                android:src="@drawable/import_image"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+</android.support.v7.widget.GridLayout>

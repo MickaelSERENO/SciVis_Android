@@ -24,12 +24,13 @@ import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
+import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
 
-public class DatasetsFragment extends Fragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback, RangeColorData.IOnRangeChangeListener
+public class DatasetsFragment extends Fragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, RangeColorData.IOnRangeChangeListener
 {
     /** @brief The Listener used when DatasetFragment is modifying its internal states*/
     public interface IDatasetFragmentListener
@@ -130,6 +131,9 @@ public class DatasetsFragment extends Fragment implements ApplicationModel.IData
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
+    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
         if(msg.getType() == MessageBuffer.GET_HEADSET_DISCONNECTED)
@@ -183,7 +187,8 @@ public class DatasetsFragment extends Fragment implements ApplicationModel.IData
         });
     }
 
-    /** Set up the main layout*/
+    /** Set up the main layout
+     * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
     {
         m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.mainView);
@@ -203,7 +208,7 @@ public class DatasetsFragment extends Fragment implements ApplicationModel.IData
                 TextView dataText = new TextView(getContext());
                 dataText.setText(d.getName());
                 Tree<View> dataView = new Tree<View>(dataText);
-                m_previewLayout.getData().addChild(dataView, -1);
+                m_previewLayout.getModel().addChild(dataView, -1);
 
                 for(int i = 0; i < d.getNbSubDataset(); i++)
                 {
@@ -228,7 +233,7 @@ public class DatasetsFragment extends Fragment implements ApplicationModel.IData
                     });
 
                     //Snapshot event
-                    sd.addListener(new SubDataset.ISubDatasetCallback() {
+                    sd.addListener(new SubDataset.ISubDatasetListener() {
                         @Override
                         public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
 
@@ -249,6 +254,9 @@ public class DatasetsFragment extends Fragment implements ApplicationModel.IData
                                 }
                             });
                         }
+
+                        @Override
+                        public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
                     });
                     dataView.addChild(new Tree<View>(snapImg), -1);
                 }

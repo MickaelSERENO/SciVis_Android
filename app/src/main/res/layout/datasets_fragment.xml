@@ -24,7 +24,9 @@
         app:extendWidth="64px"
         app:inExtendSrc="@drawable/in_expend"
         app:notExtendSrc="@drawable/not_expend"
-        android:textAlignment="center"/>
+        android:textAlignment="center"
+        android:background="@color/treeColor"
+        />
 
     <!-- Information -->
     <LinearLayout

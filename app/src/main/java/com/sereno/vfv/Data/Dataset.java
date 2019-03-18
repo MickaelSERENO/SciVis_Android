@@ -25,7 +25,7 @@ public abstract class Dataset
         m_ptr  = ptr;
         m_name = name;
 
-        for(int i = 0; i < getNbSubDataset(); i++)
+        for(int i = 0; i < nativeGetNbSubDatasets(m_ptr); i++)
             m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i)));
     }
 
@@ -47,7 +47,7 @@ public abstract class Dataset
 
     /** @brief Get the number of sub dataset this dataset is bound to
      * @return the number of sub datasets*/
-    public int getNbSubDataset() {return nativeGetNbSubDatasets(m_ptr);}
+    public int getNbSubDataset() {return m_subDatasets.size();}
 
     /** @brief Get the SubDataset at indice i
      * @param i the SubDataset number #i
@@ -56,6 +56,10 @@ public abstract class Dataset
     {
         return m_subDatasets.get(i);
     }
+
+    /** Get the list of SubDataset this Dataset is bound to
+     * @return an ArrayList of SubDataset*/
+    public ArrayList<SubDataset> getSubDatasets() {return m_subDatasets;}
 
     /** @brief Get the ID of this Dataset. The ID is shared with the Server
      * @return the Dataset ID*/

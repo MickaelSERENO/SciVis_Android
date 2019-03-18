@@ -4,14 +4,16 @@ import android.graphics.Bitmap;
 
 import com.sereno.color.ColorMode;
 import com.sereno.gl.VFVSurfaceView;
+import com.sereno.view.AnnotationData;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SubDataset
 {
     /** @brief Callback interface called when the SubDataset is modified*/
-    public interface ISubDatasetCallback
+    public interface ISubDatasetListener
     {
         /** @brief On range color change callback, called when the color changed
          * @param sd the SubDataset being modified
@@ -36,12 +38,21 @@ public class SubDataset
          * @param dataset the dataset creating a new snapshot
          * @param snapshot the snapshot created*/
         void onSnapshotEvent(SubDataset dataset, Bitmap snapshot);
+
+        /** Method called when a new annotation has been added to this SubDataset
+         * @param dataset the dataset receiving a new annotation
+         * @param annotation the annotation added*/
+        void onAddAnnotation(SubDataset dataset, AnnotationData annotation);
     }
 
     /** The native C++ handle*/
     protected long m_ptr;
 
-    private List<ISubDatasetCallback> m_listeners = new ArrayList<>();
+    /** List of listeners bound to this SubDataset*/
+    private List<ISubDatasetListener> m_listeners = new ArrayList<>();
+
+    /** List of annotations bound to this SubDataset*/
+    private List<AnnotationData> m_annotations = new ArrayList<>();
 
     /** @brief Constructor. Link the Java object with the C++ native SubDataset object
      * @param ptr the native C++ pointer*/
@@ -52,14 +63,14 @@ public class SubDataset
 
     /** @brief Add a new callback Listener
      * @param listener the listener to call for new events*/
-    public void addListener(ISubDatasetCallback listener)
+    public void addListener(ISubDatasetListener listener)
     {
         m_listeners.add(listener);
     }
 
     /** @brief Remove an old callback Listener
      * @param listener the listener to remove from the list*/
-    public void removeListener(ISubDatasetCallback listener)
+    public void removeListener(ISubDatasetListener listener)
     {
         m_listeners.remove(listener);
     }
@@ -110,7 +121,7 @@ public class SubDataset
     public void setRangeColor(float min, float max, int mode)
     {
         nativeSetRangeColor(m_ptr, min, max, mode);
-        for(ISubDatasetCallback clbk : m_listeners)
+        for(ISubDatasetListener clbk : m_listeners)
             clbk.onRangeColorChange(this, min, max, mode);
     }
 
@@ -142,7 +153,7 @@ public class SubDataset
      * @param dYaw the delta yaw applied*/
     public void onRotationEvent(float dRoll, float dPitch, float dYaw)
     {
-        for(ISubDatasetCallback l : m_listeners)
+        for(ISubDatasetListener l : m_listeners)
             l.onRotationEvent(this, dRoll, dPitch, dYaw);
     }
 
@@ -150,7 +161,7 @@ public class SubDataset
      * @param bmp the new bitmap snapshot*/
     public void onSnapshotEvent(Bitmap bmp)
     {
-        for(ISubDatasetCallback l : m_listeners)
+        for(ISubDatasetListener l : m_listeners)
             l.onSnapshotEvent(this, bmp);
     }
 
@@ -159,8 +170,31 @@ public class SubDataset
     public void setRotation(float[] quaternion)
     {
         nativeSetRotation(m_ptr, quaternion);
-        for(ISubDatasetCallback l : m_listeners)
+        for(ISubDatasetListener l : m_listeners)
             l.onRotationEvent(this, quaternion);
+    }
+
+    /** Get the SubDataset name
+     * @return the SubDataset name*/
+    public String getName()
+    {
+        return nativeGetName(m_ptr);
+    }
+
+    /** Add a new annotation
+     * @param annot the annotation to add*/
+    public void addAnnotation(AnnotationData annot)
+    {
+        m_annotations.add(annot);
+        for(ISubDatasetListener l : m_listeners)
+            l.onAddAnnotation(this, annot);
+    }
+
+    /** Get the list of annotations
+     * @return the list of annotations. Please, do not modify the list (list item can however be modified)*/
+    public List<AnnotationData> getAnnotations()
+    {
+        return m_annotations;
     }
 
     /** @brief Native code telling is this SubDataset is in a valid state
@@ -214,4 +248,9 @@ public class SubDataset
      * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded
      * @param mode the ColorMode to apply*/
     private native void nativeSetRangeColor(long ptr, float min, float max, int mode);
+
+    /** Native code to get the SubDataset name
+     * @param ptr the native pointer
+     * @return the SubDataset name*/
+    private native String nativeGetName(long ptr);
 }

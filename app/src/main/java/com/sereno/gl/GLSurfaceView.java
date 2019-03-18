@@ -127,8 +127,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
             }
 
 
-            int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_ID_MASK) >> MotionEvent.ACTION_POINTER_ID_SHIFT;
-            int pID = event.findPointerIndex(pointerIndex);
+            int pID = event.getPointerId(i);
             if(pID != -1)
             {
                 float x = 2*event.getX(pID) / width - 1;

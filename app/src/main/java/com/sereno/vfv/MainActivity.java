@@ -46,6 +46,7 @@ import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
+import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorView;
 import com.sereno.view.TreeView;
 
@@ -57,7 +58,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetCallback, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener
 {
     public static final String TAG="VFV";
 
@@ -209,6 +210,9 @@ public class MainActivity extends AppCompatActivity
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
+    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    @Override
     public void onEmptyMessage(EmptyMessage msg)
     {}
 
@@ -313,11 +317,18 @@ public class MainActivity extends AppCompatActivity
     {
         ViewPager        viewPager    = (ViewPager)findViewById(R.id.viewpager);
         ViewPagerAdapter adapter      = new ViewPagerAdapter(getSupportFragmentManager());
+
+        //Add "Datasets" tab
         DatasetsFragment dataFragment = new DatasetsFragment();
         dataFragment.setUpModel(m_model);
         adapter.addFragment(dataFragment, "Datasets");
-        viewPager.setAdapter(adapter);
 
+        //Add "Annotations" tab
+        AnnotationsFragment annotationsFragment = new AnnotationsFragment();
+        annotationsFragment.setUpModel(m_model);
+        adapter.addFragment(annotationsFragment, "Annotations");
+
+        viewPager.setAdapter(adapter);
         TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
     }
@@ -327,10 +338,10 @@ public class MainActivity extends AppCompatActivity
     {
         m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
 
-        //Configure the spinner color mode
         m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
         m_model.setRangeColorModel(m_rangeColorView.getModel());
 
+        //Configure the spinner color mode
         Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
         colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
@@ -448,6 +459,8 @@ public class MainActivity extends AppCompatActivity
         dialogFragment.show(getFragmentManager(), "dialog");
     }
 
+    /** Function called for gathering common actions when adding a new Dataset
+     * @param d the Dataset added*/
     private void onAddDataset(Dataset d)
     {
         runOnUiThread(new Runnable() {

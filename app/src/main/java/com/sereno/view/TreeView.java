@@ -451,7 +451,7 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         return changed;
     }
 
-    public Tree<View> getData()
+    public Tree<View> getModel()
     {
         return m_tree;
     }
