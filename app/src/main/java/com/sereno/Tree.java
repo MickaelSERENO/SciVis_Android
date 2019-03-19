@@ -8,7 +8,7 @@ import java.util.List;
 public class Tree<T>
 {
     /** @brief Tree Listener*/
-    public interface TreeListener<T>
+    public interface ITreeListener<T>
     {
         /** @brief Called when a child has been added
          * @param parent the parent after the addition
@@ -31,7 +31,7 @@ public class Tree<T>
     /** @brief The stored value*/
     public T value = null;
     /** @brief The listeners to call when the Tree state changes*/
-    private List<TreeListener<T>> m_listeners = new ArrayList<>();
+    private List<ITreeListener<T>> m_listeners = new ArrayList<>();
     /** @brief The parent Tree*/
     private Tree m_parent = null;
     /** Should we extend this tree?*/
@@ -46,14 +46,14 @@ public class Tree<T>
 
     /** @brief Add a new listener
      * @param l the new listener*/
-    public void addListener(TreeListener<T> l)
+    public void addListener(ITreeListener<T> l)
     {
         m_listeners.add(l);
     }
 
     /** @brief Remove an old listener
      * @param l the listener to remove*/
-    public void removeListener(TreeListener<T> l)
+    public void removeListener(ITreeListener<T> l)
     {
         m_listeners.remove(l);
     }
@@ -89,7 +89,7 @@ public class Tree<T>
         else
             m_leaves.add(index, child);
 
-        for(TreeListener l : m_listeners)
+        for(ITreeListener l : m_listeners)
             l.onAddChild(this, child);
     }
 
@@ -99,7 +99,7 @@ public class Tree<T>
     {
         if(child.m_parent == this)
         {
-            for(TreeListener l : m_listeners)
+            for(ITreeListener l : m_listeners)
                 l.onRemoveChild(this, child);
             child.m_parent = null;
             m_leaves.remove(child);
@@ -118,7 +118,7 @@ public class Tree<T>
     public void setExtend(boolean extend)
     {
         m_extend = extend;
-        for(TreeListener l : m_listeners)
+        for(ITreeListener l : m_listeners)
             l.onSetExtend(this, extend);
     }
 

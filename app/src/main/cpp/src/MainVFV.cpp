@@ -227,16 +227,16 @@ namespace sereno
                 uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
                 uint32_t snapHeight = m_surfaceData->renderer.getHeight();
                 Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
+
                 if(curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
                 {
-                    Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight*4));
+                    Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
                     m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
                     curSnapshot = newSnapshot;
                     m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
                 }
                 //Read pixels
                 glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
-                m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
                 m_mainData->sendSnapshotEvent(jniMainThread, m_currentVis->getModel());
                 m_snapshotCnt = 0;
             }

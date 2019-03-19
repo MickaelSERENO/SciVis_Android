@@ -4,8 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,14 +25,16 @@ import com.sereno.view.AnnotationView;
 import com.sereno.view.TreeView;
 
 import java.util.HashMap;
+import java.util.Map;
 
-public class AnnotationsFragment extends Fragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, SubDataset.ISubDatasetListener
+public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, SubDataset.ISubDatasetListener
 {
     private static class AnnotationBitmap
     {
         public Bitmap    bitmap;
         public ImageView imageView;
     }
+
     /** The application model in use*/
     private ApplicationModel m_model = null;
 
@@ -41,6 +43,17 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
 
     /** The annotation view*/
     private AnnotationView m_annotView;
+
+    /** The image view text mode*/
+    private ImageView m_textMode;
+
+    /** The color parameters image view*/
+    private ImageView m_colorParam;
+
+    /** The import images image view*/
+    private ImageView m_imageImport;
+
+    private Drawable m_defaultImageViewBackground;
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationBitmap> m_bitmaps = new HashMap<>();
@@ -63,6 +76,7 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
     {
         View v = inflater.inflate(R.layout.annotations_fragment, container, false);
         setUpMainLayout(v);
+        setMode(AnnotationData.AnnotationMode.STROKE);
         return v;
     }
 
@@ -135,11 +149,40 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
         m_annotView = (AnnotationView)v.findViewById(R.id.annotView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
 
-        ImageView colorParam = (ImageView)v.findViewById(R.id.annotationStrokeParam);
-        ImageView textMode = (ImageView)v.findViewById(R.id.annotationTextMode);
-        ImageView imageImport = (ImageView)v.findViewById(R.id.annotationImportImage);
+        m_annotView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                {
+                    for(IFragmentListener l : m_listeners)
+                        l.onDisableSwipping(AnnotationsFragment.this);
+                }
+                else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                {
+                    for(IFragmentListener l : m_listeners)
+                        l.onEnableSwipping(AnnotationsFragment.this);
+                }
+                return false;
+            }
+        });
 
-        textMode.setOnTouchListener(new View.OnTouchListener() {
+        m_colorParam  = (ImageView)v.findViewById(R.id.annotationStrokeParam);
+        m_textMode    = (ImageView)v.findViewById(R.id.annotationTextMode);
+        m_imageImport = (ImageView)v.findViewById(R.id.annotationImportImage);
+
+        m_colorParam.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                {
+                    setMode(AnnotationData.AnnotationMode.STROKE);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        m_textMode.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
@@ -150,19 +193,52 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
                 return false;
             }
         });
+
+        m_defaultImageViewBackground = m_colorParam.getBackground();
     }
 
+    /** Set the image views button backgrounds to TRANSPARENT*/
+    private void setImageViewBackgrounds()
+    {
+        m_colorParam.setBackground(m_defaultImageViewBackground);
+        m_textMode.setBackground(m_defaultImageViewBackground);
+        m_imageImport.setBackground(m_defaultImageViewBackground);
+    }
+
+    /** Set the current mode to apply
+     * @param mode the mode to apply*/
     private void setMode(AnnotationData.AnnotationMode mode)
     {
+        if(mode == AnnotationData.AnnotationMode.STROKE)
+        {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setImageViewBackgrounds();
+                    m_colorParam.setBackgroundResource(R.drawable.round_rectangle_background);
+                }
+            });
+        }
+        else if(mode == AnnotationData.AnnotationMode.TEXT)
+        {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setImageViewBackgrounds();
+                    m_textMode.setBackgroundResource(R.drawable.round_rectangle_background);
+                }
+            });
+        }
+
         m_mode = mode;
-        if(m_annotView.getModel() != null)
+        if(m_annotView.getModel() != null && m_annotView.getModel().getMode() != mode) //Not fire for nothing
             m_annotView.getModel().setMode(mode);
     }
 
     private void addNewAnnotation(SubDataset sd)
     {
         AnnotationData data = new AnnotationData();
-        data.setMode(m_mode);
+        data.setMode(m_mode); //Set to the current mode
         sd.addAnnotation(data);
     }
 
@@ -200,9 +276,14 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
 
     private void changeCurrentAnnotation(ImageView snapImg, AnnotationData annotation)
     {
+        //Eveything to default
+        for(Map.Entry<AnnotationData, AnnotationBitmap> bmp : m_bitmaps.entrySet())
+            bmp.getValue().imageView.setBackground(m_defaultImageViewBackground);
+
+        //Our particular stylized
+        m_bitmaps.get(annotation).imageView.setBackgroundResource(R.drawable.round_rectangle_background);
         annotation.setMode(m_mode);
         m_annotView.setModel(annotation);
-
     }
 
     @Override
@@ -220,9 +301,6 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
     @Override
     public void onAddAnnotation(final SubDataset dataset, final AnnotationData annotation)
     {
-        if(m_annotView.getModel() == null)
-            m_annotView.setModel(annotation);
-
         annotation.addListener(this);
 
         getActivity().runOnUiThread(new Runnable() {
@@ -247,6 +325,10 @@ public class AnnotationsFragment extends Fragment implements ApplicationModel.ID
                 bmp.imageView = snapImg;
                 m_bitmaps.put(annotation, bmp);
                 tree.addChild(new Tree<View>(snapImg), -1);
+
+                //If no annotation yet added
+                if(m_annotView.getModel() == null)
+                    changeCurrentAnnotation(snapImg, annotation);
             }
         });
     }

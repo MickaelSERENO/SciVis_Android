@@ -1,6 +1,7 @@
 package com.sereno.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -19,6 +20,7 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 
 import com.sereno.vfv.MainActivity;
+import com.sereno.vfv.R;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -31,12 +33,16 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
     /** The internal data of the annotation view*/
     private AnnotationData m_model = new AnnotationData();
 
-    /** The paint object used to draw on screen*/
-    private Paint m_paint = new Paint();
+    /** The paint object used to draw strokes on screen*/
+    private Paint m_strokePaint = new Paint();
+
+    /** The paint object used to draw texts on screen*/
+    private Paint m_textPaint = new Paint();
 
     /** The timer used to draw the cursor on screen*/
     private Timer m_textTimer = null;
 
+    /** The text handler message to draw text on UI thread*/
     private Handler m_textHandler = new Handler();
 
     /** Should we draw the text cursor? Works only on Text mode*/
@@ -72,6 +78,14 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
         setFocusable(true);
         setFocusableInTouchMode(true);
         m_model.addListener(this);
+
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.AnnotationView);
+        int fontSize = ta.getInt(R.styleable.AnnotationView_fontSize, -1);
+        if(fontSize != -1)
+            m_textPaint.setTextSize(fontSize);
+        ta.recycle();
+
+        m_strokePaint.setStyle(Paint.Style.STROKE);
     }
 
     @Override
@@ -81,12 +95,11 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
             return;
 
         //Draw the strokes
-        m_paint.setStyle(Paint.Style.STROKE);
         for(AnnotationStroke s : m_model.getStrokes())
         {
             //Parameterize the paint
-            m_paint.setColor(s.getColor());
-            m_paint.setStrokeWidth(s.getWidth());
+            m_strokePaint.setColor(s.getColor());
+            m_strokePaint.setStrokeWidth(s.getWidth());
 
             //Draw the path
             Path path = new Path();
@@ -97,14 +110,18 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
             for(int i = 1; i < points.size(); i++)
                 path.lineTo(points.get(i).x, points.get(i).y);
 
-            canvas.drawPath(path, m_paint);
+            canvas.drawPath(path, m_strokePaint);
         }
 
         //Draw the texts
-        m_paint.setStyle(Paint.Style.STROKE);
         for(AnnotationText t : m_model.getTexts())
         {
-            canvas.drawText(t.getText(), t.getPosition().x, t.getPosition().y, m_paint);
+            int y = t.getPosition().y;
+            for (String line: t.getText().split("\n"))
+            {
+                canvas.drawText(line, t.getPosition().x, y, m_textPaint);
+                y += m_textPaint.descent() - m_textPaint.ascent();
+            }
         }
     }
 
@@ -130,7 +147,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
                 addStrokePoint = true;
 
             //Add the event point. The callback listeners will invalidate this view
-            if(addStrokePoint)
+            if(addStrokePoint && m_model.getStrokes().size() > 0)
             {
                 AnnotationStroke s = m_model.getStrokes().get(m_model.getStrokes().size()-1);
                 s.addPoint(new Point((int)e.getX(), (int)e.getY()));
@@ -195,8 +212,6 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
         {
             ArrayList<AnnotationText> texts = m_model.getTexts();
             texts.get(texts.size()-1).addKey(code, event.getUnicodeChar());
-
-            Log.e(MainActivity.TAG, texts.get(texts.size()-1).getText());
             return true;
         }
         return false;

@@ -2,17 +2,14 @@ package com.sereno.vfv;
 
 import android.app.DialogFragment;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -20,14 +17,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-import com.sereno.Tree;
+import com.sereno.VFVViewPager;
 import com.sereno.color.ColorMode;
-import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.BinaryDataset;
@@ -48,9 +41,6 @@ import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorView;
-import com.sereno.view.TreeView;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -58,7 +48,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener, VFVFragment.IFragmentListener
 {
     public static final String TAG="VFV";
 
@@ -68,6 +58,7 @@ public class MainActivity extends AppCompatActivity
     private RangeColorView   m_rangeColorView;    /*!< The range color view*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
     private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
+    private VFVViewPager     m_viewPager;
 
 
     /** @brief OnCreate function. Called when the activity is on creation*/
@@ -312,11 +303,23 @@ public class MainActivity extends AppCompatActivity
         m_rangeColorView.getModel().setRange(sd.getMinClampingColor(), sd.getMaxClampingColor());
     }
 
+    @Override
+    public void onEnableSwipping(Fragment fragment)
+    {
+        m_viewPager.setPagingEnabled(true);
+    }
+
+    @Override
+    public void onDisableSwipping(Fragment fragment)
+    {
+        m_viewPager.setPagingEnabled(false);
+    }
+
     /** Set up the main layout*/
     private void setUpMainLayout()
     {
-        ViewPager        viewPager    = (ViewPager)findViewById(R.id.viewpager);
-        ViewPagerAdapter adapter      = new ViewPagerAdapter(getSupportFragmentManager());
+        m_viewPager = (VFVViewPager)findViewById(R.id.viewpager);
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         //Add "Datasets" tab
         DatasetsFragment dataFragment = new DatasetsFragment();
@@ -328,9 +331,12 @@ public class MainActivity extends AppCompatActivity
         annotationsFragment.setUpModel(m_model);
         adapter.addFragment(annotationsFragment, "Annotations");
 
-        viewPager.setAdapter(adapter);
+        dataFragment.addListener((VFVFragment.IFragmentListener)this);
+        annotationsFragment.addListener(this);
+
+        m_viewPager.setAdapter(adapter);
         TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.setupWithViewPager(m_viewPager);
     }
 
     /** \brief Set up the drawer layout (root layout)*/

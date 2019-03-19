@@ -10,23 +10,28 @@
     android:layout_height="match_parent">
 
     <!-- Previews -->
-    <com.sereno.view.TreeView
-        android:id="@+id/annotPreviewLayout"
+    <ScrollView
         app:layout_row="0"
         app:layout_rowWeight="1"
         app:layout_columnWeight="1"
         app:layout_column="0"
         android:background="@color/treeColor"
         android:layout_height="0px"
-        android:layout_width="0px"
-        app:topOffsetPerChild="10px"
-        app:leftOffsetPerLevel="25px"
-        app:strokeWidth="3px"
-        app:extendHeight="64px"
-        app:extendWidth="64px"
-        app:inExtendSrc="@drawable/in_expend"
-        app:notExtendSrc="@drawable/not_expend"
-        android:textAlignment="center"/>
+        android:layout_width="0px">
+
+        android:textAlignment="center"
+        <com.sereno.view.TreeView
+            android:id="@+id/annotPreviewLayout"
+            app:topOffsetPerChild="10px"
+            app:leftOffsetPerLevel="25px"
+            app:strokeWidth="3px"
+            app:extendHeight="64px"
+            app:extendWidth="64px"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:inExtendSrc="@drawable/in_expend"
+            app:notExtendSrc="@drawable/not_expend"/>
+    </ScrollView>
 
     <!-- Main View -->
     <RelativeLayout
@@ -41,7 +46,8 @@
         <com.sereno.view.AnnotationView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/annotView"/>
+            android:id="@+id/annotView"
+            app:fontSize="64"/>
 
         <!-- Button views -->
         <LinearLayout
@@ -56,6 +62,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="right">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/annotationStrokeParamLayout"
+                    android:orientation="horizontal">
+
+                </LinearLayout>
+
                 <ImageView
                     android:id="@+id/annotationStrokeParam"
                     android:layout_width="wrap_content"

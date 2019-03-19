@@ -29,7 +29,7 @@ public class AnnotationText
     private Point  m_pos  = new Point(0, 0);
 
     /**The cursor position*/
-    private int m_cursorPos = 0;
+    private int m_cursorPos = -1;
 
     /** The listeners to call when the current state of the annotations changed*/
     private ArrayList<IAnnotationTextListener> m_listeners = new ArrayList<>();
@@ -87,18 +87,31 @@ public class AnnotationText
 
     public void addKey(int keycode, int unicode)
     {
+        String strAdd = null;
         if(unicode == 0)
         {
-            if(keycode == KeyEvent.KEYCODE_DEL && m_cursorPos > 0 && m_text.length() > m_cursorPos)
+
+            if(keycode == KeyEvent.KEYCODE_DEL && m_cursorPos >= 0 && m_text.length() > m_cursorPos)
             {
-                m_text = m_text.substring(0, m_cursorPos) + m_text.substring(m_cursorPos);
+                m_text = m_text.substring(0, m_cursorPos) + m_text.substring(m_cursorPos, m_text.length()-1);
                 m_cursorPos--;
             }
+            else if(keycode == KeyEvent.KEYCODE_ENTER)
+                strAdd = "\n";
         }
+
         else
+            strAdd = new String(Character.toChars(unicode));
+
+        if(strAdd != null)
         {
-            m_text = m_text.substring(0, m_cursorPos) + Character.toChars(unicode) + (m_cursorPos == 0 ? m_text.substring(m_cursorPos) : m_text.substring(m_cursorPos-1));
-            m_cursorPos++;
+            if(m_cursorPos == -1)
+                m_text = strAdd;
+            else if(m_text.length()-1 >= 0)
+                m_text = m_text.substring(0, m_cursorPos+1) + strAdd + m_text.substring(m_cursorPos, m_text.length()-1);
+            else
+                m_text = m_text.substring(0, m_cursorPos+1) + strAdd;
+            m_cursorPos+=strAdd.length();
         }
 
         for(IAnnotationTextListener l : m_listeners)

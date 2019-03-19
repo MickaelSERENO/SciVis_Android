@@ -52,7 +52,7 @@ JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(
     uint32_t  size   = snap->width * snap->height;
     jintArray pixels = env->NewIntArray(size);
 
-    uint32_t* pixelsPtr  = (uint32_t*)env->GetIntArrayElements(pixels, 0);
+    jint* pixelsPtr  = env->GetIntArrayElements(pixels, 0);
 
     //Transform RGBA to ARGB
     for(uint32_t j = 0; j < snap->height; j++)
@@ -66,7 +66,6 @@ JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(
 
             pixelsPtr[i+j*snap->width] = (a << 24) + (r << 16) +
                                          (g << 8)  + b;
-            //pixelsPtr[i] = snap->pixels[i];
         }
     env->ReleaseIntArrayElements(pixels, (jint*)pixelsPtr, 0);
 

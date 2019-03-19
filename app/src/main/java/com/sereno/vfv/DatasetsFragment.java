@@ -1,10 +1,10 @@
 package com.sereno.vfv;
 
-import android.support.v4.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -30,7 +30,7 @@ import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
 
-public class DatasetsFragment extends Fragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, RangeColorData.IOnRangeChangeListener
+public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, RangeColorData.IOnRangeChangeListener
 {
     /** @brief The Listener used when DatasetFragment is modifying its internal states*/
     public interface IDatasetFragmentListener
@@ -194,6 +194,23 @@ public class DatasetsFragment extends Fragment implements ApplicationModel.IData
         m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.mainView);
         m_previewLayout = (TreeView)v.findViewById(R.id.previewLayout);
         m_headsetColor = (ImageView)v.findViewById(R.id.headsetColor);
+
+        m_surfaceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                {
+                    for(IFragmentListener l : ((VFVFragment)(DatasetsFragment.this)).m_listeners)
+                        l.onDisableSwipping(DatasetsFragment.this);
+                }
+                else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                {
+                    for(IFragmentListener l : ((VFVFragment)(DatasetsFragment.this)).m_listeners)
+                        l.onEnableSwipping(DatasetsFragment.this);
+                }
+                return false;
+            }
+        });
 
         if(m_model != null)
             m_model.addListener(m_surfaceView);

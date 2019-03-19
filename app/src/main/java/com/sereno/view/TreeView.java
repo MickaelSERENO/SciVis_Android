@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 import com.sereno.Tree;
 import com.sereno.vfv.R;
 
-public class TreeView extends ViewGroup implements Tree.TreeListener<View>
+public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
 {
     /** @brief Class representing the measure of the tree view*/
     private class TreeViewMeasureState
@@ -28,6 +28,7 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         int heightMode;   /*!< What is the height mode of this layout?*/
         int maximumWidth; /*!< The width associated with the width mode*/
         int maximumHeight; /*!< The height associated with the height mode*/
+        int topOffset = 0; /*!< The top offset*/
 
         public Object clone()
         {
@@ -39,6 +40,7 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
             s.heightMode        = heightMode;
             s.maximumWidth      = maximumWidth;
             s.maximumHeight     = maximumHeight;
+            s.topOffset         = topOffset;
             return s;
         }
     }
@@ -156,25 +158,34 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
      * @param leftOffset the left offset for the current leaf
      * @param topOffset the top offset for the current leaf
      * @param state the layout state (current width, height and measure specifications)
+     * @param extend is the parent extended?
      * @param t the current leaf to look at*/
-    protected TreeViewMeasureState onMeasureLeaf(int leftOffset, int topOffset, TreeViewMeasureState state, Tree<View> t)
+    protected TreeViewMeasureState onMeasureLeaf(int leftOffset, TreeViewMeasureState state, boolean extend, Tree<View> t)
     {
-        if(t.value != null)
+        if(t.value != null && extend && t.value.getVisibility() != GONE)
         {
             int maxWidth  = Math.max(0, state.maximumWidth-leftOffset);
-            int maxHeight = Math.max(0, state.maximumHeight-topOffset);
+            int maxHeight = Math.max(0, state.maximumHeight-state.topOffset);
+
+            if(t.getChildren().size() > 0)
+            {
+                leftOffset += m_extendWidth;
+                state.topOffset += Math.max(m_extendHeight - t.value.getMeasuredHeight(), 0.0);
+            }
 
             measureChild(t.value, MeasureSpec.makeMeasureSpec(maxWidth,  state.widthMode), MeasureSpec.makeMeasureSpec(maxHeight, state.heightMode));
-            state.height = Math.max(topOffset+t.value.getMeasuredHeight(), state.height);
-            state.width  = Math.max(leftOffset+t.value.getMeasuredWidth(), state.width);
 
-            topOffset  += t.value.getMeasuredHeight() + m_topOffsetPerChild;
+            state.height = Math.max(state.topOffset+t.value.getMeasuredHeight(), state.height);
+            state.width  = Math.max(leftOffset+t.value.getMeasuredWidth(), state.width);
+            state.topOffset += t.value.getMeasuredHeight() + m_topOffsetPerChild;
+
             leftOffset += m_leftOffsetPerLevel;
             state.measureState = combineMeasuredStates(state.measureState, t.value.getMeasuredState());
         }
 
+        extend = extend && t.getExtend();
         for(Tree<View> l : t.getChildren())
-            state = onMeasureLeaf(topOffset, leftOffset, state, l);
+            state = onMeasureLeaf(leftOffset, state, extend, l);
 
         return state;
     }
@@ -188,15 +199,16 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
         state.height = getSuggestedMinimumHeight();
         state.measureState   = 0;
         state.widthMode      = MeasureSpec.getMode(widthMeasureSpec);
-        state.maximumWidth   = Math.max(0, MeasureSpec.getSize(widthMeasureSpec) - getPaddingRight() - getPaddingLeft());
+        state.maximumWidth   = Math.max(0, MeasureSpec.getSize(widthMeasureSpec) - getPaddingRight());
         state.heightMode     = MeasureSpec.getMode(heightMeasureSpec);
-        state.maximumHeight  = Math.max(0, MeasureSpec.getSize(heightMeasureSpec) - getPaddingTop() - getPaddingBottom());
+        state.maximumHeight  = Math.max(0, MeasureSpec.getSize(heightMeasureSpec) - getPaddingBottom());
+        state.topOffset      = getPaddingTop();
 
         if(state.widthMode == MeasureSpec.EXACTLY)
             state.widthMode = MeasureSpec.AT_MOST;
         if(state.heightMode == MeasureSpec.EXACTLY)
             state.heightMode = MeasureSpec.AT_MOST;
-        onMeasureLeaf(0, 0, state, m_tree);
+        onMeasureLeaf(getPaddingLeft(), state, true, m_tree);
         setMeasuredDimension(resolveSizeAndState(state.width, widthMeasureSpec, state.measureState),
                              resolveSizeAndState(state.height, heightMeasureSpec, state.measureState << MEASURED_HEIGHT_STATE_SHIFT));
     }
@@ -232,7 +244,7 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
 
             // These are the far left and right edges in which we are performing layout.
             int leftPos  = getPaddingLeft()+leftMargin;
-            int rightPos = right - left - leftMargin - getPaddingRight();
+            int rightPos = right - left - getPaddingRight();
 
             // These are the top and bottom edges in which we are performing layout.
             final int parentTop = getPaddingTop()+topMargin;
@@ -240,10 +252,10 @@ public class TreeView extends ViewGroup implements Tree.TreeListener<View>
 
             // Place the child.
             child.layout(leftPos, parentTop, Math.min(leftPos + width, rightPos), Math.min(parentTop + height, parentBottom));
+            topMargin += height + m_topOffsetPerChild;
         }
 
         extend = extend && leaf.getExtend();
-        topMargin = topMargin + Math.max(height, (leaf.getChildren().size() > 0 && extend ? m_extendHeight : 0)) + (child != null ? m_topOffsetPerChild : 0);
         for(Tree<View> l : leaf.getChildren())
             topMargin = onLayoutLeaf(b, leftMargin + (child != null ? m_leftOffsetPerLevel: 0),
                                      topMargin, left, top, right, bottom, l, extend);
