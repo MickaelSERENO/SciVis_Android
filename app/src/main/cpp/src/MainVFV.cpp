@@ -45,6 +45,8 @@ namespace sereno
 
         std::map<const SubDataset*, SubDatasetChangement> modelChanged;
 
+        bool visible = true;
+
         while(!m_surfaceData->isClosed())
         {
             //Handles event received from the surface view 
@@ -74,9 +76,13 @@ namespace sereno
                                 modelChanged[m_currentVis->getModel()].updateRotation = true;
                             m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
                             m_mainData->sendRotationEvent(jniMainThread, m_currentVis->getModel(), roll, pitch, 0);
-
-                            LOG_INFO("Rotating about %f %f", pitch, roll);
                         }
+                        break;
+                    }
+                    case VISIBILITY:
+                    {
+                        visible = event->visibility.visibility;
+                        m_snapshotCnt = 0;
                         break;
                     }
                     default:
@@ -210,37 +216,42 @@ namespace sereno
             }
             modelChanged.clear();
 
-            //Draw the scene
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if(m_currentVis != NULL)
-                m_currentVis->update(&m_surfaceData->renderer);
-
-            m_surfaceData->renderer.render();
-
-            //Update the snapshot
-            if(m_currentVis)
-                m_snapshotCnt++;
-            if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
+            if(visible)
             {
-                //Enlarge the pixel array
-                uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
-                uint32_t snapHeight = m_surfaceData->renderer.getHeight();
-                Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
+                //Draw the scene
+                if(m_currentVis != NULL)
+                    m_currentVis->update(&m_surfaceData->renderer);
 
-                if(curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
+                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                m_surfaceData->renderer.render();
+
+                //Update the snapshot
+                if(m_currentVis)
+                    m_snapshotCnt++;
+                if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
                 {
-                    Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
-                    m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
-                    curSnapshot = newSnapshot;
-                    m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
-                }
-                //Read pixels
-                glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
-                m_mainData->sendSnapshotEvent(jniMainThread, m_currentVis->getModel());
-                m_snapshotCnt = 0;
-            }
+                    //Enlarge the pixel array
+                    uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
+                    uint32_t snapHeight = m_surfaceData->renderer.getHeight();
+                    Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
 
+                    if(curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
+                    {
+                        Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
+                        m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
+                        curSnapshot = newSnapshot;
+                        m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
+                    }
+                    //Read pixels
+                    glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
+                    m_mainData->sendSnapshotEvent(jniMainThread, m_currentVis->getModel());
+                    m_snapshotCnt = 0;
+                }
+            }
+            else
+                usleep(2.0e3);
             m_surfaceData->renderer.swapBuffers();
         }
     }

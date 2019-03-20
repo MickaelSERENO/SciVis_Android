@@ -1,10 +1,15 @@
 package com.sereno.vfv.Network;
 
+import android.graphics.Point;
 import android.util.Log;
 
+import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
+import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationStroke;
+import com.sereno.view.AnnotationText;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -37,6 +42,7 @@ public class SocketManager
     public static final short IDENT_TABLET         = 1;
     public static final short ADD_VTK_DATASET      = 3;
     public static final short ROTATE_DATASET       = 4;
+    public static final short SEND_ANNOTATION      = 6;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -335,18 +341,17 @@ public class SocketManager
     /* ************************************************************ */
 
     /** Create a Rotation event data to send to the server
-     * @param dataset The Dataset which possesses the SubDataset being rotated
-     * @param subID The SubDataset ID being rotated
+     * @param ids the dataset and subdatasets IDs
      * @param qArr the array of the new quaternion to send (w, i, j, k)
      * @return array of byte to send to push*/
-    public static byte[] createRotationEvent(Dataset dataset, int subID, float[] qArr)
+    public static byte[] createRotationEvent(MainActivity.DatasetIDBinding ids, float[] qArr)
     {
         ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(ROTATE_DATASET);
-        buf.putInt(dataset.getID());
-        buf.putInt(subID);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
 
         for(int i = 0; i < 4; i++)
             buf.putFloat(qArr[i]);
@@ -374,6 +379,53 @@ public class SocketManager
 
         for(int i = 0; i < d.getSelectedCellFieldValues().length; i++)
             buf.putInt(d.getCellFieldValueIndice(d.getSelectedPtFieldValues()[i]));
+
+        return buf.array();
+    }
+
+    public static byte[] createAnnotationEvent(MainActivity.DatasetIDBinding ids, AnnotationData annotationData, ApplicationModel.AnnotationMetaData metaData)
+    {
+        int size = 2+7*4;
+        for(AnnotationStroke s : annotationData.getStrokes())
+            size += 3*4 + 2*s.getPoints().size()*4;
+        for(AnnotationText t : annotationData.getTexts())
+            size += 3*4 + 4 + t.getText().length();
+        ByteBuffer buf = ByteBuffer.allocate(size);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        //Send "header" data
+        buf.putShort(SEND_ANNOTATION);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+        buf.putInt(metaData.getAnnotationID());
+        buf.putInt(annotationData.getWidth());
+        buf.putInt(annotationData.getHeight());
+        buf.putInt(annotationData.getStrokes().size());
+        buf.putInt(annotationData.getTexts().size());
+
+        //Send strokes data
+        for(AnnotationStroke s : annotationData.getStrokes())
+        {
+            buf.putInt(s.getColor());
+            buf.putFloat(s.getWidth());
+            buf.putInt(s.getPoints().size());
+
+            for(Point p : s.getPoints())
+            {
+                buf.putFloat(p.x);
+                buf.putFloat(p.y);
+            }
+        }
+
+        //Send text data
+        for(AnnotationText t : annotationData.getTexts())
+        {
+            buf.putInt(t.getColor());
+            buf.putFloat(t.getPosition().x);
+            buf.putFloat(t.getPosition().y);
+            buf.putInt(t.getText().length());
+            buf.put(t.getText().getBytes(StandardCharsets.US_ASCII));
+        }
 
         return buf.array();
     }

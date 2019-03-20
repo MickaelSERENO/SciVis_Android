@@ -82,6 +82,18 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnTouchEvent(JNIE
     pData->touchEvent(action, finger, x, y);
 }
 
+JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnHidden(JNIEnv* jenv, jobject jobj, jlong data)
+{
+    GLSurfaceViewData* pData = (GLSurfaceViewData*)data;
+    pData->visibilityEvent(false);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnVisible(JNIEnv* jenv, jobject jobj, jlong data)
+{
+    GLSurfaceViewData* pData = (GLSurfaceViewData*)data;
+    pData->visibilityEvent(true);
+}
+
 JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeCloseEvent(JNIEnv* jenv, jobject jobj, jlong data)
 {
     GLSurfaceViewData* pData = (GLSurfaceViewData*)data;

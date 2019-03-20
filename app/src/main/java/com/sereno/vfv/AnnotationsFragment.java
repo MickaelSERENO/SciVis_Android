@@ -157,6 +157,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         });
     }
 
+    @Override
+    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
+    {
+
+    }
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
@@ -296,9 +302,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
      * @param sd the SubDataset to bind an annotation*/
     private void addNewAnnotation(SubDataset sd)
     {
-        AnnotationData data = new AnnotationData();
-        data.setMode(m_mode); //Set to the current mode
-        sd.addAnnotation(data);
+        if(m_model != null)
+        {
+            AnnotationData data = new AnnotationData(m_annotView.getWidth(), m_annotView.getHeight());
+            ApplicationModel.AnnotationMetaData metaData = new ApplicationModel.AnnotationMetaData(sd, -1);
+            data.setMode(m_mode); //Set to the current mode
+            m_model.addAnnotation(data, metaData);
+        }
     }
 
     /**Update the bitmap bound to an annotation data

@@ -71,6 +71,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         onAddDataset(model, d);
     }
 
+    @Override
+    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
+
     public void onAddDataset(ApplicationModel model, Dataset d)
     {
         for(int i = 0; i < d.getNbSubDataset(); i++)

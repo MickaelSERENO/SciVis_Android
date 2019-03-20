@@ -33,7 +33,8 @@ namespace sereno
         KEYUP,      /*!< Keyup event*/
         TOUCH_DOWN, /*!< Touch down event */
         TOUCH_UP,   /*!< Touch up event */
-        TOUCH_MOVE  /*!< Touch move event*/
+        TOUCH_MOVE, /*!< Touch move event*/
+        VISIBILITY  /*!< Visibility event*/
     };
 
     /* \brief Describes a touch event */
@@ -62,14 +63,21 @@ namespace sereno
         uint32_t height; /*!< The height of the surface*/
     };
 
+    /* \brief Describes a change regarding the surface visibility*/
+    struct VisibilityEvent
+    {
+        bool visibility; /*!< Is the surface visible?*/
+    };
+
     /* \brief Describes an event */
     struct Event
     {
         union
         {
-            KeyEvent   keyEvent;   /*!< A key event */
-            TouchEvent touchEvent; /*!< A touch event*/
-            SizeEvent  sizeEvent;  /*!< A resize event*/
+            KeyEvent        keyEvent;   /*!< A key event */
+            TouchEvent      touchEvent; /*!< A touch event*/
+            SizeEvent       sizeEvent;  /*!< A resize event*/
+            VisibilityEvent visibility; /*!< A visibility event*/
         };
 
         EventType type; /*!< The type of the event*/

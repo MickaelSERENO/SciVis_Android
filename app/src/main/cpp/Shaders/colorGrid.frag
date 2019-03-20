@@ -122,12 +122,12 @@ void main()
     fragColor = vec4(0, 0, 0, 0);
     for(; minT < maxT; minT+=rayStep, rayPos += varyRayNormal*rayStep)
     {
-        vec2 tfCoord = textureLod(uTexture0, rayPos, 2.0).rg;
+        vec2 tfCoord = textureLod(uTexture0, rayPos, 1.0).rg;
         vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
         fragColor.xyz = fragColor.xyz + (1.0 - fragColor.a)*tfColor.a*tfColor.xyz;
         fragColor.a = fragColor.a + tfColor.a*(1.0 - fragColor.a); 
 
-        if(fragColor.a >= 0.95)
+        if(fragColor.a >= 0.90)
         {
             fragColor.a = 1.0;
             return;
@@ -135,9 +135,9 @@ void main()
     }
 
     //At t=maxT
-    vec2 tfCoord = textureLod(uTexture0, varyRayOrigin.xyz + maxT*varyRayNormal + vec3(0.5, 0.5, 0.5), 2.0).rg;
+    /*vec2 tfCoord = textureLod(uTexture0, varyRayOrigin.xyz + maxT*varyRayNormal + vec3(0.5, 0.5, 0.5), 2.0).rg;
     vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
 
     fragColor.xyz = fragColor.xyz + (1.0 - fragColor.a)*tfColor.a*tfColor.xyz;
-    fragColor.a = fragColor.a + tfColor.a*(1.0 - fragColor.a); 
+    fragColor.a = fragColor.a + tfColor.a*(1.0 - fragColor.a);*/
 }

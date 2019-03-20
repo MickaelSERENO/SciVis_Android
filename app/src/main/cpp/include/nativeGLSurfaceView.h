@@ -68,6 +68,18 @@ extern "C"
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnTouchEvent(JNIEnv* jenv, jobject jobj,
                                                                                 jlong data, jint action, jint finger, jfloat x, jfloat y);
 
+    /* \brief Function called from Java when the Surface is gone / invisible
+     * \param jenv the JNI environment variable
+     * \param jobj the java object
+     * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnHidden(JNIEnv* jenv, jobject jobj, jlong data);
+
+    /* \brief Function called from Java when the Surface is visible
+     * \param jenv the JNI environment variable
+     * \param jobj the java object
+     * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnVisible(JNIEnv* jenv, jobject jobj, jlong data);
+
     /* \brief  Close the object
      * \param jenv the java environment
      * \param jobj the object calling this function

@@ -3,9 +3,11 @@ package com.sereno.vfv;
 import android.app.DialogFragment;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -40,6 +42,8 @@ import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationStroke;
+import com.sereno.view.AnnotationText;
 import com.sereno.view.RangeColorView;
 
 import java.io.File;
@@ -48,8 +52,27 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener, VFVFragment.IFragmentListener
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener
 {
+    /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
+    public static class DatasetIDBinding
+    {
+        /** The subdataset server ID*/
+        public int subDatasetID;
+
+        /** The parent dataset*/
+        public Dataset dataset;
+
+        /** Constructor
+         * @param dataset the parent dataset
+         * @param subDatasetID the subdataset ID*/
+        public DatasetIDBinding(Dataset dataset, int subDatasetID)
+        {
+            this.dataset      = dataset;
+            this.subDatasetID = subDatasetID;
+        }
+    }
+
     public static final String TAG="VFV";
 
     private ApplicationModel m_model;             /*!< The application data model */
@@ -59,7 +82,6 @@ public class MainActivity extends AppCompatActivity
     private SocketManager    m_socket;            /*!< Connection with the server application*/
     private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
     private VFVViewPager     m_viewPager;
-
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -117,6 +139,47 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    private DatasetIDBinding getDatasetIDBinding(SubDataset sd)
+    {
+        Dataset parent       = null;
+        int     subDatasetID = -1;
+
+        //Fetch to which Dataset this SubDataset belongs to
+        for(VTKDataset d : m_model.getVTKDatasets())
+        {
+            if(parent != null)
+                break;
+            for(int i = 0; i < d.getNbSubDataset(); i++)
+            {
+                if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
+                {
+                    parent       = d;
+                    subDatasetID = i;
+                }
+            }
+        }
+
+        if(parent == null)
+        {
+            for(BinaryDataset d : m_model.getBinaryDatasets())
+            {
+                if(parent != null)
+                    break;
+
+                for(int i = 0; i < d.getNbSubDataset(); i++)
+                {
+                    if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
+                    {
+                        parent       = d;
+                        subDatasetID = i;
+                        break;
+                    }
+                }
+            }
+        }
+        return new DatasetIDBinding(parent, subDatasetID);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -143,52 +206,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
+    {
+        annot.addListener(this);
+    }
+
+    @Override
     public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
     {}
 
     @Override
     public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
     {
-        Dataset parent       = null;
-        int     subDatasetID = -1;
-
-        //Fetch to which Dataset this SubDataset belongs to
-        for(VTKDataset d : m_model.getVTKDatasets())
-        {
-            if(parent != null)
-                break;
-            for(int i = 0; i < d.getNbSubDataset(); i++)
-            {
-                if(d.getSubDataset(i).getNativePtr() == dataset.getNativePtr())
-                {
-                    parent       = d;
-                    subDatasetID = i;
-                }
-            }
-        }
-
-        if(parent == null)
-        {
-            for(BinaryDataset d : m_model.getBinaryDatasets())
-            {
-                if(parent != null)
-                    break;
-
-                for(int i = 0; i < d.getNbSubDataset(); i++)
-                {
-                    if(d.getSubDataset(i).getNativePtr() == dataset.getNativePtr())
-                    {
-                        parent       = d;
-                        subDatasetID = i;
-                        break;
-                    }
-                }
-            }
-        }
+        DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
 
         //If everything is correct, send the rotation event
-        if(subDatasetID != -1 && parent != null && parent.getID() >= 0)
-            m_socket.push(SocketManager.createRotationEvent(parent, subDatasetID, dataset.getRotation()));
+        if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
+            m_socket.push(SocketManager.createRotationEvent(idBinding, dataset.getRotation()));
     }
 
     @Override
@@ -245,45 +279,49 @@ public class MainActivity extends AppCompatActivity
         cellValues = cellValuesList.toArray(cellValues);
 
         //Add into the model
-        VTKDataset dataset = new VTKDataset(parser, ptValues, cellValues, vtkFile.getName());
+        final VTKDataset dataset = new VTKDataset(parser, ptValues, cellValues, vtkFile.getName());
         dataset.setID(msg.getDataID());
-        synchronized(m_model)
-        {
-            m_model.addVTKDataset(dataset);
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_model.addVTKDataset(dataset);
+            }
+        });
     }
 
     @Override
-    public void onRotateDatasetMessage(RotateDatasetMessage msg)
+    public void onRotateDatasetMessage(final RotateDatasetMessage msg)
     {
         //Find the dataset
-        Dataset dataset = null;
-        synchronized(m_model)
-        {
-            for(BinaryDataset d : m_model.getBinaryDatasets())
-            {
-                if(d.getID() == msg.getDatasetID())
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Dataset dataset = null;
+                for(BinaryDataset d : m_model.getBinaryDatasets())
                 {
-                    dataset = d;
-                    break;
+                    if(d.getID() == msg.getDatasetID())
+                    {
+                        dataset = d;
+                        break;
+                    }
+                }
+
+                if(dataset == null)
+                    for(VTKDataset d : m_model.getVTKDatasets())
+                    {
+                        if(d.getID() == msg.getDatasetID())
+                        {
+                            dataset = d;
+                            break;
+                        }
+                    }
+
+                if(dataset != null)
+                {
+                    dataset.getSubDataset(msg.getSubDatasetID()).setRotation(msg.getRotation());
                 }
             }
-
-            if(dataset == null)
-            for(VTKDataset d : m_model.getVTKDatasets())
-            {
-                if(d.getID() == msg.getDatasetID())
-                {
-                    dataset = d;
-                    break;
-                }
-            }
-        }
-
-        if(dataset != null)
-        {
-            dataset.getSubDataset(msg.getSubDatasetID()).setRotation(msg.getRotation());
-        }
+        });
     }
 
     @Override
@@ -315,6 +353,36 @@ public class MainActivity extends AppCompatActivity
         m_viewPager.setPagingEnabled(false);
     }
 
+    private void sendAnnotationToServer(AnnotationData annotation)
+    {
+        ApplicationModel.AnnotationMetaData metaData = m_model.getAnnotations().get(annotation);
+        DatasetIDBinding idBinding = getDatasetIDBinding(metaData.getSubDataset());
+        if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
+            m_socket.push(SocketManager.createAnnotationEvent(idBinding, annotation, m_model.getAnnotations().get(annotation)));
+    }
+
+    @Override
+    public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
+    {
+        sendAnnotationToServer(data);
+    }
+
+    @Override
+    public void onAddText(AnnotationData data, AnnotationText text)
+    {
+        sendAnnotationToServer(data);
+    }
+
+    @Override
+    public void onAddImage(AnnotationData data)
+    {
+        sendAnnotationToServer(data);
+    }
+
+    @Override
+    public void onSetMode(AnnotationData data, AnnotationData.AnnotationMode mode)
+    {}
+
     /** Set up the main layout*/
     private void setUpMainLayout()
     {
@@ -322,13 +390,11 @@ public class MainActivity extends AppCompatActivity
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         //Add "Datasets" tab
-        DatasetsFragment dataFragment = new DatasetsFragment();
-        dataFragment.setUpModel(m_model);
+        final DatasetsFragment dataFragment = new DatasetsFragment();
         adapter.addFragment(dataFragment, "Datasets");
 
         //Add "Annotations" tab
-        AnnotationsFragment annotationsFragment = new AnnotationsFragment();
-        annotationsFragment.setUpModel(m_model);
+        final  AnnotationsFragment annotationsFragment = new AnnotationsFragment();
         adapter.addFragment(annotationsFragment, "Annotations");
 
         dataFragment.addListener((VFVFragment.IFragmentListener)this);
@@ -337,6 +403,36 @@ public class MainActivity extends AppCompatActivity
         m_viewPager.setAdapter(adapter);
         TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(m_viewPager);
+
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dataFragment.setUpModel(m_model);
+                annotationsFragment.setUpModel(m_model);
+            }
+        });
+
+        m_viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            @Override
+            public void onPageSelected(final int position)
+            {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(position == 0)
+                            dataFragment.setVisibility(true);
+                        else
+                            dataFragment.setVisibility(false);
+                    }
+                });
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {}
+        });
     }
 
     /** \brief Set up the drawer layout (root layout)*/
@@ -418,11 +514,13 @@ public class MainActivity extends AppCompatActivity
                 //Binary dataset
                 if(fileName.endsWith(".data"))
                 {
-                    BinaryDataset fd = new BinaryDataset(df.getFile());
-                    synchronized(m_model)
-                    {
-                        m_model.addBinaryDataset(fd);
-                    }
+                    final BinaryDataset fd = new BinaryDataset(df.getFile());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            m_model.addBinaryDataset(fd);
+                        }
+                    });
                 }
 
                 //VTK dataset
@@ -443,11 +541,15 @@ public class MainActivity extends AppCompatActivity
                             VTKFieldValue[] cellValues = new VTKFieldValue[cellValuesList.size()];
                             cellValues = cellValuesList.toArray(cellValues);
 
+
+                            final VTKDataset dataset = new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName());
                             //Add into the model
-                            synchronized(m_model)
-                            {
-                                m_model.addVTKDataset(new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName()));
-                            }
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    m_model.addVTKDataset(dataset);
+                                }
+                            });
                         }
 
                         @Override
@@ -469,6 +571,7 @@ public class MainActivity extends AppCompatActivity
      * @param d the Dataset added*/
     private void onAddDataset(Dataset d)
     {
+        m_pendingDataset.push(d);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

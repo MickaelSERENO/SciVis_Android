@@ -40,6 +40,9 @@ public class AnnotationData
         IMAGE
     }
 
+    private int m_width;
+    private int m_height;
+
     /** The current annotation mode*/
     private AnnotationMode m_mode = AnnotationMode.STROKE;
 
@@ -52,10 +55,13 @@ public class AnnotationData
     /** The listeners to call when the current state of the annotations changed*/
     private ArrayList<IAnnotationDataListener> m_listeners = new ArrayList<>();
 
-    /** Default Constructor*/
-    public AnnotationData()
+    /** Constructor
+     * @param width  the texture width where this annotation belongs to
+     * @param height the texture height where this annotation belongs to*/
+    public AnnotationData(int width, int height)
     {
-
+        m_width  = width;
+        m_height = height;
     }
 
     /** Add a new listener to call if not already registered
@@ -71,6 +77,20 @@ public class AnnotationData
     public void removeListener(IAnnotationDataListener l)
     {
         m_listeners.remove(l);
+    }
+
+    /** Get the texture width where this annotation belongs to
+     * @return the texture width*/
+    public int getWidth()
+    {
+        return m_width;
+    }
+
+    /** Get the texture height where this annotation belongs to
+     * @return the texture height*/
+    public int getHeight()
+    {
+        return m_height;
     }
 
     /** Get the current annotation mode

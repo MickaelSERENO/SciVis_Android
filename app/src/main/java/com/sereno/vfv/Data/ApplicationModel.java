@@ -1,12 +1,16 @@
 package com.sereno.vfv.Data;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Range;
+import android.widget.ImageView;
 
+import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /** @brief The Model component on the MVC architecture */
 public class ApplicationModel
@@ -23,13 +27,56 @@ public class ApplicationModel
          * @param model the app data
          * @param d the dataset to add*/
         void onAddVTKDataset(ApplicationModel model, VTKDataset d);
+
+        /** @brief Function called when a new Annotation has been added
+         * @param model the app data
+         * @param annot the annotation true value
+         * @param metaData the annotation meta data value*/
+        void onAddAnnotation(ApplicationModel model, AnnotationData annot, AnnotationMetaData metaData);
     }
+
+    /** Annotation meta data*/
+    public static class AnnotationMetaData
+    {
+        /** The subdataset this annotation is bound to*/
+        public SubDataset m_subDataset;
+
+        /**The annotation ID defined by the server.*/
+        public int m_annotationID = 0;
+
+        /** Constructor
+         * @param subDataset the subdataset bound to this annotation
+         * @param annotationID the subdataset ID*/
+        public AnnotationMetaData(SubDataset subDataset, int annotationID)
+        {
+            m_subDataset   = subDataset;
+            m_annotationID = annotationID;
+        }
+
+        /** Get the annotation ID
+         * @return the annotation Server ID*/
+        public int getAnnotationID()
+        {
+            return m_annotationID;
+        }
+
+        /** Get the SubDataset possessing this annotation
+         * @return the SubDataset possessing this annotation*/
+        public SubDataset getSubDataset()
+        {
+            return m_subDataset;
+        }
+    }
+
 
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
     private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open datasets */
     private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;          /**!< The configuration object*/
     private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
+    /** The bitmap showing the content of the annotations*/
+    private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
+
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -94,6 +141,25 @@ public class ApplicationModel
     public void setRangeColorModel(RangeColorData model)
     {
         m_rangeColorModel = model;
+    }
+
+    /** Add a new annotation
+     * @param annotation the annotation to add
+     * @param metaData the annotation meta data*/
+    public void addAnnotation(AnnotationData annotation, AnnotationMetaData metaData)
+    {
+        m_annotations.put(annotation, metaData);
+        metaData.getSubDataset().addAnnotation(annotation);
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onAddAnnotation(this, annotation, metaData);
+    }
+
+    /** Get the annations registered
+     * @return a map containing the annotations and annotation metadata*/
+    public HashMap<AnnotationData, AnnotationMetaData> getAnnotations()
+    {
+        return m_annotations;
     }
 
     /** @brief Read the configuration file

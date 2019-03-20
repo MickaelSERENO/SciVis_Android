@@ -37,6 +37,10 @@ namespace sereno
              * \param y the y position */
             void touchEvent(int action, int finger, float x, float y);
 
+            /* \brief Function to call when the surface visibility changes
+             * \param visibility is the surface visible?*/
+            void visibilityEvent(bool visibility);
+
             /* \brief Get a touch finger coordinate state
              * \param id the id of the finger to look at
              * \return the touch coordinate or NULL if id is not correct */

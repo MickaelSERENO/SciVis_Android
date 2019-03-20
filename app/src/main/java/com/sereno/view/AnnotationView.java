@@ -31,7 +31,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
     private static final int TEXT_TIMER=1000;
 
     /** The internal data of the annotation view*/
-    private AnnotationData m_model = new AnnotationData();
+    private AnnotationData m_model = new AnnotationData(512, 512);
 
     /** The paint object used to draw strokes on screen*/
     private Paint m_strokePaint = new Paint();

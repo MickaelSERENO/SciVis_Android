@@ -87,6 +87,15 @@ namespace sereno
         addEvent(ev);
     }
 
+    void GLSurfaceViewData::visibilityEvent(bool visibility)
+    {
+        Event* ev = new Event;
+        ev->type = VISIBILITY;
+        ev->visibility.visibility = visibility;
+        addEvent(ev);
+    }
+
+
     Event* GLSurfaceViewData::pollEvent()
     {
         Event* ev = NULL;

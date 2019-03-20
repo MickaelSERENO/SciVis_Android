@@ -139,6 +139,14 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         return true;
     }
 
+    public void setRenderVisibility(int visibility)
+    {
+        if(visibility == GONE || visibility == INVISIBLE)
+            nativeOnHidden(m_internalData);
+        else
+            nativeOnVisible(m_internalData);
+    }
+
     protected String getMainLibrary()
     {
         return "native-lib";
@@ -227,6 +235,14 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      * @param x the x position [-1, +1]
      * @param y the y position [-1, +1].*/
     private native void nativeOnTouchEvent(long data, int action, int finger, float x, float y);
+
+    /** Native function called when this view is gone / invisible
+     * @param data the C++ internal data pointer*/
+    private native void nativeOnHidden(long data);
+
+    /** Native function called when this view is visible
+     * @param data the C++ internal data pointer*/
+    private native void nativeOnVisible(long data);
 
     static
     {

@@ -95,6 +95,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_listeners.remove(l);
     }
 
+    /** @brief Set the visibility of this fragment. Useful for optimization (do not draw what is not on screen)
+     * @param visibility the new visibility state. false == not visible, true = visible*/
+    public void setVisibility(boolean visibility)
+    {
+        m_surfaceView.setRenderVisibility(visibility ? View.VISIBLE : View.INVISIBLE);
+    }
+
     @Override
     public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
     {
@@ -114,6 +121,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         addDataset(d);
     }
+
+    @Override
+    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
+    {}
 
     @Override
     public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
