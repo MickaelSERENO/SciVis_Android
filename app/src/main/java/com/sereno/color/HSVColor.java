@@ -56,6 +56,13 @@ public class HSVColor
         v = max;
     }
 
+    /** Is the hue defined?
+     * @return the hue if defined*/
+    public boolean isHueDefined()
+    {
+        return s == 0.0f || v == 0.0f;
+    }
+
     /** \brief Convert from the HSV colorspace to the RGB colorspace
      * \return the color in RGB space */
     public Color toRGB()
@@ -79,5 +86,10 @@ public class HSVColor
             default:
                 return new Color(c+m, m, x+m, a);
         }
+    }
+
+    public Object clone()
+    {
+        return new HSVColor(h, s, v, a);
     }
 }

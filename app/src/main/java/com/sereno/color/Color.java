@@ -21,6 +21,16 @@ public class Color
         a = _a;
     }
 
+    /** Get a Int32 ARGB 8888 color
+     * @return the color into a int format*/
+    public int toARGB8888()
+    {
+        return ((int)(255*a)      << 24) +
+               ((int)(255*r) << 16) +
+               ((int)(255*g) << 8)  +
+               ((int)(255*b));
+    }
+
     @Override
     public Object clone()
     {

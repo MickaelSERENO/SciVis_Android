@@ -82,6 +82,15 @@ public class AnnotationStroke
         return m_color;
     }
 
+    /** Set the stroke color
+     * @param color the new stroke color to apply*/
+    public void setColor(int color)
+    {
+        m_color = color;
+        for(IAnnotationStrokeListener l : m_listeners)
+            l.onSetColor(this, color);
+    }
+
     /** Get the stroke width
      * @return the stroke width*/
     public float getWidth()

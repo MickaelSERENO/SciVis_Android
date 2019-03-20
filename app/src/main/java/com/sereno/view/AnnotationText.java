@@ -20,6 +20,11 @@ public class AnnotationText
          * @param text the Annotation being modified
          * @param pos the new position to apply*/
         void onSetPosition(AnnotationText text, Point pos);
+
+        /** Method called when the color of this annotation changes
+         * @param text the Annotation being modified
+         * @param color the new color to apply*/
+        void onSetColor(AnnotationText text, int color);
     }
 
     /** The annotation string*/
@@ -30,6 +35,9 @@ public class AnnotationText
 
     /**The cursor position*/
     private int m_cursorPos = -1;
+
+    /**The text color*/
+    private int m_color = 0xff000000;
 
     /** The listeners to call when the current state of the annotations changed*/
     private ArrayList<IAnnotationTextListener> m_listeners = new ArrayList<>();
@@ -85,6 +93,9 @@ public class AnnotationText
         return m_pos;
     }
 
+    /** Add a new key entry in the text
+     * @param keycode the key code
+     * @param unicode the UTF8 unichar code*/
     public void addKey(int keycode, int unicode)
     {
         String strAdd = null;
@@ -118,11 +129,31 @@ public class AnnotationText
             l.onSetText(this, m_text);
     }
 
+    /** get the annotation text color
+     * @return the text color*/
+    public int getColor()
+    {
+        return m_color;
+    }
+
+    /** Set the annotation text color
+     * @param color the new text color*/
+    public void setColor(int color)
+    {
+        m_color = color;
+        for(IAnnotationTextListener l : m_listeners)
+            l.onSetColor(this, color);
+    }
+
+    /** Set the current cursor position
+     * @param pos the new cursor position*/
     public void setCursorPosition(int pos)
     {
         m_cursorPos = pos;
     }
 
+    /** Get the current cursor position
+     * @return the current cursor position*/
     public int getCursorPosition()
     {
         return m_cursorPos;

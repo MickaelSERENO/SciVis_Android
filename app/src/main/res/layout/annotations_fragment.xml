@@ -67,7 +67,13 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/annotationStrokeParamLayout"
                     android:orientation="horizontal">
-
+                    <com.sereno.view.ColorPickerView
+                        android:layout_height="100dp"
+                        android:layout_width="100dp"
+                        android:id="@+id/strokeColorPicker"
+                        app:circleRadius="5dp"
+                        app:pickerHueHeight="15dp"
+                        app:pickerSpace="5dp"/>
                 </LinearLayout>
 
                 <ImageView
@@ -80,14 +86,36 @@
                     android:src="@drawable/color_palette"/>
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/annotationTextMode"
+            <!-- Text parameters -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxWidth="64dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerInside"
-                android:src="@drawable/text_mode"/>
+                android:orientation="horizontal"
+                android:gravity="right"
+                android:layout_marginTop="10dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/annotationTextParamLayout"
+                    android:orientation="horizontal">
+                    <com.sereno.view.ColorPickerView
+                        android:layout_height="100dp"
+                        android:layout_width="100dp"
+                        android:id="@+id/textColorPicker"
+                        app:circleRadius="5dp"
+                        app:pickerHueHeight="15dp"
+                        app:pickerSpace="5dp"/>
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/annotationTextMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="64dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/text_mode"/>
+            </LinearLayout>
 
             <ImageView
                 android:id="@+id/annotationImportImage"

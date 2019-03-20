@@ -13,4 +13,11 @@
     <declare-styleable name="AnnotationView">
         <attr name="fontSize" format="integer"/>
     </declare-styleable>
+
+    <declare-styleable name="ColorPickerView">
+        <attr name="circleRadius"      format="dimension"/>
+        <attr name="pickerSpace"       format="dimension"/>
+        <attr name="pickerHueHeight"   format="dimension"/>
+        <attr name="sliderHeight"      format="dimension"/>
+    </declare-styleable>
 </resources>

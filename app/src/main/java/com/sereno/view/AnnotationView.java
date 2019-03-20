@@ -117,6 +117,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
         for(AnnotationText t : m_model.getTexts())
         {
             int y = t.getPosition().y;
+            m_textPaint.setColor(t.getColor());
             for (String line: t.getText().split("\n"))
             {
                 canvas.drawText(line, t.getPosition().x, y, m_textPaint);
@@ -297,6 +298,12 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
 
     @Override
     public void onSetPosition(AnnotationText text, Point pos) {
+        invalidate();
+    }
+
+    @Override
+    public void onSetColor(AnnotationText text, int color)
+    {
         invalidate();
     }
 }

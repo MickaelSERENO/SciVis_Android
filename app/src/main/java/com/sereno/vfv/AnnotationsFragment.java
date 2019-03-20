@@ -5,12 +5,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sereno.Tree;
@@ -22,12 +24,14 @@ import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.view.AnnotationView;
+import com.sereno.view.ColorPickerData;
+import com.sereno.view.ColorPickerView;
 import com.sereno.view.TreeView;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, SubDataset.ISubDatasetListener
+public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener, SubDataset.ISubDatasetListener
 {
     private static class AnnotationBitmap
     {
@@ -55,6 +59,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     private Drawable m_defaultImageViewBackground;
 
+    /**The stroke parameter layout*/
+    private LinearLayout m_strokeParamLayout = null;
+
+    /**The stroke parameter layout*/
+    private LinearLayout m_textParamLayout = null;
+
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationBitmap> m_bitmaps = new HashMap<>();
 
@@ -63,6 +73,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     /** The current Drawing mode*/
     private AnnotationData.AnnotationMode m_mode = AnnotationData.AnnotationMode.STROKE;
+
+    /** The current stroke color*/
+    private int m_currentStrokeColor = 0xff000000;
+
+    /** The current text color*/
+    private int m_currentTextColor = 0xff000000;
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -148,21 +164,46 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_previews  = (TreeView)v.findViewById(R.id.annotPreviewLayout);
         m_annotView = (AnnotationView)v.findViewById(R.id.annotView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
+        m_strokeParamLayout = (LinearLayout)v.findViewById(R.id.annotationStrokeParamLayout);
+        m_textParamLayout   = (LinearLayout)v.findViewById(R.id.annotationTextParamLayout);
+        ColorPickerView strokeColorPicker = (ColorPickerView)v.findViewById(R.id.strokeColorPicker);
+        ColorPickerView textColorPicker   = (ColorPickerView)v.findViewById(R.id.textColorPicker);
 
         m_annotView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                {
-                    for(IFragmentListener l : m_listeners)
-                        l.onDisableSwipping(AnnotationsFragment.this);
-                }
-                else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
-                {
-                    for(IFragmentListener l : m_listeners)
-                        l.onEnableSwipping(AnnotationsFragment.this);
-                }
+                onTouchSwippingEvent(motionEvent);
                 return false;
+            }
+        });
+
+        strokeColorPicker.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                onTouchSwippingEvent(motionEvent);
+                return false;
+            }
+        });
+
+        textColorPicker.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                onTouchSwippingEvent(motionEvent);
+                return false;
+            }
+        });
+
+        strokeColorPicker.getModel().addListener(new ColorPickerData.IColorPickerDataListener() {
+            @Override
+            public void onSetColor(ColorPickerData data, int color) {
+                m_currentStrokeColor = color;
+            }
+        });
+
+        textColorPicker.getModel().addListener(new ColorPickerData.IColorPickerDataListener() {
+            @Override
+            public void onSetColor(ColorPickerData data, int color) {
+                m_currentTextColor = color;
             }
         });
 
@@ -175,7 +216,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
+                    AnnotationData.AnnotationMode mode = m_mode;
+                    int visibility = m_strokeParamLayout.getVisibility();
                     setMode(AnnotationData.AnnotationMode.STROKE);
+
+                    //If reselected, toggle the visibility
+                    if(mode == AnnotationData.AnnotationMode.STROKE)
+                        m_strokeParamLayout.setVisibility(visibility == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     return true;
                 }
                 return false;
@@ -187,7 +234,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
+                    AnnotationData.AnnotationMode mode = m_mode;
+                    int visibility = m_textParamLayout.getVisibility();
                     setMode(AnnotationData.AnnotationMode.TEXT);
+
+                    //If reselected, toggle the visibility
+                    if(mode == AnnotationData.AnnotationMode.TEXT)
+                        m_textParamLayout.setVisibility(visibility == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     return true;
                 }
                 return false;
@@ -197,12 +250,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_defaultImageViewBackground = m_colorParam.getBackground();
     }
 
-    /** Set the image views button backgrounds to TRANSPARENT*/
+    /** Set the image views button backgrounds to TRANSPARENT and hides parameter layouts*/
     private void setImageViewBackgrounds()
     {
         m_colorParam.setBackground(m_defaultImageViewBackground);
         m_textMode.setBackground(m_defaultImageViewBackground);
         m_imageImport.setBackground(m_defaultImageViewBackground);
+        m_strokeParamLayout.setVisibility(View.INVISIBLE);
+        m_textParamLayout.setVisibility(View.INVISIBLE);
     }
 
     /** Set the current mode to apply
@@ -216,6 +271,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 public void run() {
                     setImageViewBackgrounds();
                     m_colorParam.setBackgroundResource(R.drawable.round_rectangle_background);
+                    m_strokeParamLayout.setVisibility(View.VISIBLE);
                 }
             });
         }
@@ -226,6 +282,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 public void run() {
                     setImageViewBackgrounds();
                     m_textMode.setBackgroundResource(R.drawable.round_rectangle_background);
+                    m_textParamLayout.setVisibility(View.VISIBLE);
                 }
             });
         }
@@ -235,6 +292,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             m_annotView.getModel().setMode(mode);
     }
 
+    /** Add a new annotation bound to a SubDataset
+     * @param sd the SubDataset to bind an annotation*/
     private void addNewAnnotation(SubDataset sd)
     {
         AnnotationData data = new AnnotationData();
@@ -267,7 +326,21 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             {
                 if(s == stroke)
                 {
-                    float width = stroke.getWidth();
+                    updateBitmap(key);
+                    return;
+                }
+            }
+    }
+
+    /** Update the bitmap bound to a text
+     * @param text the text being updated*/
+    private void updateBitmapText(AnnotationText text)
+    {
+        for(AnnotationData key : m_bitmaps.keySet())
+            for(AnnotationText t : key.getTexts())
+            {
+                if(t == text)
+                {
                     updateBitmap(key);
                     return;
                 }
@@ -284,6 +357,22 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_bitmaps.get(annotation).imageView.setBackgroundResource(R.drawable.round_rectangle_background);
         annotation.setMode(m_mode);
         m_annotView.setModel(annotation);
+    }
+
+    /** Function to enable or disable the swipping based on a motion event
+     * @param motionEvent the motion event received*/
+    private void onTouchSwippingEvent(MotionEvent motionEvent)
+    {
+        if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+        {
+            for(IFragmentListener l : m_listeners)
+                l.onDisableSwipping(AnnotationsFragment.this);
+        }
+        else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+        {
+            for(IFragmentListener l : m_listeners)
+                l.onEnableSwipping(AnnotationsFragment.this);
+        }
     }
 
     @Override
@@ -337,12 +426,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);
+        stroke.setColor(m_currentStrokeColor);
     }
 
     @Override
     public void onAddText(AnnotationData data, AnnotationText text)
     {
-        updateBitmap(data);
+        text.setColor(m_currentTextColor);
+        text.addListener(this);
     }
 
     @Override
@@ -374,4 +465,24 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         updateBitmapStroke(stroke);
     }
+
+
+    @Override
+    public void onSetText(AnnotationText text, String str)
+    {
+        updateBitmapText(text);
+    }
+
+    @Override
+    public void onSetPosition(AnnotationText text, Point pos)
+    {
+        updateBitmapText(text);
+    }
+
+    @Override
+    public void onSetColor(AnnotationText text, int color)
+    {
+        updateBitmapText(text);
+    }
+
 }
