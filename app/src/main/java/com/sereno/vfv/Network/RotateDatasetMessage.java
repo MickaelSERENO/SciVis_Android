@@ -8,6 +8,9 @@ public class RotateDatasetMessage extends ServerMessage
     /** The subdataset ID of the message*/
     private int m_subDatasetID;
 
+    /** The headset ID performing this movement. -1 == server call*/
+    private int m_headsetID;
+
     /** The new rotation to apply*/
     private float[] m_rotation = new float[4];
 
@@ -26,6 +29,8 @@ public class RotateDatasetMessage extends ServerMessage
             m_datasetID = val;
         else if(cursor == 1)
             m_subDatasetID = val;
+        else if(cursor == 2)
+            m_headsetID = val;
         super.pushValue(val);
     }
 
@@ -39,7 +44,7 @@ public class RotateDatasetMessage extends ServerMessage
     @Override
     public int getMaxCursor()
     {
-        return 5;
+        return 6;
     }
 
     /** Get the dataset ID parsed
@@ -55,6 +60,10 @@ public class RotateDatasetMessage extends ServerMessage
     {
         return m_subDatasetID;
     }
+
+    /** Get the headset ID parsed.
+     * @return the headset ID rotating this dataset. -1 == server call*/
+    public int getHeadsetID() {return m_headsetID;}
 
     /** The rotation parsed. 0 -> w, 1 -> i, 2 -> j, 3 ->k
      * @return the rotation quaternion parsed*/

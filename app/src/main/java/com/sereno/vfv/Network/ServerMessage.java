@@ -18,6 +18,10 @@ abstract class ServerMessage
      */
     abstract byte getCurrentType();
 
+    /** Push a bytevalue
+     * @param value the value to push*/
+    void pushValue(byte value) {cursor++;}
+
     /** Push a short value
      * @param value the value to push*/
     void pushValue(short value) {cursor++;}

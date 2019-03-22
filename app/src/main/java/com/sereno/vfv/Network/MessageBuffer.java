@@ -88,15 +88,14 @@ public class MessageBuffer
     /** Rotate dataset received*/
     public static final int GET_ROTATE_DATASET          = 2;
 
+    /** Received the headset information*/
+    public static final int GET_HEADSET_BINDING_INFO    = 4;
+
     /** Move dataset received*/
     public static final int GET_MOVE_DATASET            = 3;
 
-    /** Received the headset information*/
-    public static final int GET_HEADSET_BINDING_INFO    = 6;
-
     /** Received the headset disconnection information*/
     public static final int GET_HEADSET_DISCONNECTED    = 7;
-
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -178,6 +177,12 @@ public class MessageBuffer
                         if(!val.valid)
                             return;
                         m_curMsg.pushValue(val.value);
+                        break;
+                    }
+                    case 'b':
+                    {
+                        m_curMsg.pushValue(buffer[bufPos]);
+                        bufPos++;
                         break;
                     }
                     default:

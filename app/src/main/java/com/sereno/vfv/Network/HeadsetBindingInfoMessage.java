@@ -8,6 +8,12 @@ public class HeadsetBindingInfoMessage extends ServerMessage
     /** The displayed headset color. R = (m_headsetColor >> 16) & 0xff, G = (m_headsetColor >> 8) & 0xff, B = m_headsetColor & 0xff*/
     private int m_headsetColor;
 
+    /** Is the tablet connected ? (should be always true)*/
+    private boolean m_tabletConnected;
+
+    /** Is this headset the first headset connected?*/
+    private boolean m_firstConnected;
+
     @Override
     public void pushValue(int value)
     {
@@ -19,19 +25,31 @@ public class HeadsetBindingInfoMessage extends ServerMessage
     }
 
     @Override
+    public void pushValue(byte v)
+    {
+        if(cursor == 2)
+            m_tabletConnected = (v!=0);
+        else if(cursor == 3)
+            m_firstConnected = (v!=0);
+        super.pushValue(v);
+    }
+
+    @Override
     public byte getCurrentType()
     {
         if(cursor == 0)
             return 'I';
         else if(cursor == 1)
             return 'I';
+        else if(cursor == 2 || cursor == 3)
+            return 'b';
         return 0;
     }
 
     @Override
     public int getMaxCursor()
     {
-        return 1;
+        return 3;
     }
 
     /** Get the headset ID bound with this tablet

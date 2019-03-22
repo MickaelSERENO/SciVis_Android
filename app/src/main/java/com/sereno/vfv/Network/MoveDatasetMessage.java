@@ -8,6 +8,9 @@ public class MoveDatasetMessage extends ServerMessage
     /** The subdataset ID of the message*/
     private int m_subDatasetID;
 
+    /** The headset ID performing this movement. -1 == server call*/
+    private int m_headsetID;
+
     /** The new rotation to apply*/
     private float[] m_position = new float[3];
 
@@ -26,6 +29,8 @@ public class MoveDatasetMessage extends ServerMessage
             m_datasetID = val;
         else if(cursor == 1)
             m_subDatasetID = val;
+        else if(cursor == 2)
+            m_headsetID = val;
         super.pushValue(val);
     }
 
@@ -39,7 +44,7 @@ public class MoveDatasetMessage extends ServerMessage
     @Override
     public int getMaxCursor()
     {
-        return 4;
+        return 5;
     }
 
     /** Get the dataset ID parsed
@@ -55,6 +60,10 @@ public class MoveDatasetMessage extends ServerMessage
     {
         return m_subDatasetID;
     }
+
+    /** Get the headset ID parsed.
+     * @return the headset ID moving this dataset. -1 == server call*/
+    public int getHeadsetID() {return m_headsetID;}
 
     /** The position parsed.
      * @return the Vector3 position parsed*/
