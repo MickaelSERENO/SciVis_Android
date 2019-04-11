@@ -33,6 +33,16 @@ public class ApplicationModel
          * @param annot the annotation true value
          * @param metaData the annotation meta data value*/
         void onAddAnnotation(ApplicationModel model, AnnotationData annot, AnnotationMetaData metaData);
+
+        /** @brief Method called when the current device action changed
+         * @param model the app data
+         * @param action the new current action*/
+        void onChangeCurrentAction(ApplicationModel model, int action);
+
+        /** @brief Method called when the current SubDataset changed
+         * @param model the app data
+         * @param sd the new current sub dataset*/
+        void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd);
     }
 
     /** Annotation meta data*/
@@ -41,7 +51,7 @@ public class ApplicationModel
         /** The subdataset this annotation is bound to*/
         public SubDataset m_subDataset;
 
-        /**The annotation ID defined by the server.*/
+        /** The annotation ID defined by the server.*/
         public int m_annotationID = 0;
 
         /** Constructor
@@ -68,6 +78,12 @@ public class ApplicationModel
         }
     }
 
+    /* All the available current action*/
+    public final int CURRENT_ACTION_NOTHING   = 0;
+    public final int CURRENT_ACTION_MOVING    = 1;
+    public final int CURRENT_ACTION_SCALING   = 2;
+    public final int CURRENT_ACTION_ROTATING  = 3;
+    public final int CURRENT_ACTION_SKETCHING = 4;
 
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
     private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open datasets */
@@ -76,6 +92,12 @@ public class ApplicationModel
     private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
+
+    /** The current action*/
+    private int m_currentAction = CURRENT_ACTION_NOTHING;
+
+    /** The current subdataset*/
+    private SubDataset m_currentSubDataset = null;
 
 
     /** @brief Basic constructor, initialize the data at its default state */
@@ -160,6 +182,36 @@ public class ApplicationModel
     public HashMap<AnnotationData, AnnotationMetaData> getAnnotations()
     {
         return m_annotations;
+    }
+
+    public void setCurrentAction(int action)
+    {
+        m_currentAction = action;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onChangeCurrentAction(this, action);
+    }
+
+    /** Get the current device action
+     * @return The current device action*/
+    public int getCurrentAction()
+    {
+        return m_currentAction;
+    }
+
+    /** Set the current SubDataset
+     * @param sd The new current SubDataset*/
+    public void setCurrentSubDataset(SubDataset sd)
+    {
+        m_currentSubDataset = sd;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onChangeCurrentSubDataset(this, sd);
+    }
+
+    /** Get the current SubDataset
+     * @return The current SubDataset*/
+    public SubDataset getCurrentSubDataset()
+    {
+        return m_currentSubDataset;
     }
 
     /** @brief Read the configuration file

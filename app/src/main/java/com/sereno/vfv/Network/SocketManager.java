@@ -4,29 +4,33 @@ import android.graphics.Point;
 import android.util.Log;
 
 import com.sereno.vfv.Data.ApplicationModel;
-import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 
 public class SocketManager
 {
+    public interface ISocketManagerListener
+    {
+        /** Function called when the socket has successfully established a connection
+         * @param socket The SocketManager calling this Method*/
+        void onReconnection(SocketManager socket);
+    }
+
     /** The connection timeout in milliseconds*/
     public static final int    CONNECT_TIMEOUT    = 100;
     /** How many milliseconds the thread has to sleep before reattempting to connect ?*/
@@ -39,10 +43,12 @@ public class SocketManager
     /* ******************Recognizable server type****************** */
     /* ************************************************************ */
 
-    public static final short IDENT_TABLET         = 1;
-    public static final short ADD_VTK_DATASET      = 3;
-    public static final short ROTATE_DATASET       = 4;
-    public static final short SEND_ANNOTATION      = 6;
+    public static final short IDENT_TABLET            = 1;
+    public static final short ADD_VTK_DATASET         = 3;
+    public static final short ROTATE_DATASET          = 4;
+    public static final short SEND_ANNOTATION         = 6;
+    public static final short SEND_CURRENT_ACTION     = 9;
+    public static final short SEND_CURRENT_SUBDATASET = 10;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -77,6 +83,9 @@ public class SocketManager
 
     /** The queue buffer storing data to SEND*/
     private ArrayDeque<byte[]> m_queueSendBuf = new ArrayDeque<>();
+
+    private ArrayList<ISocketManagerListener> m_listeners = new ArrayList<>();
+
 
     /** Runnable writing to the socket. It also tries to reconnect to the server every time*/
     private Runnable m_writeThreadRunnable = new Runnable()
@@ -145,13 +154,11 @@ public class SocketManager
                 {
                     synchronized (this)
                     {
-                        Log.i(MainActivity.TAG, "Communication lost with the server\n");
                         close();
                     }
                 }
                 catch(IOException io)
                 {
-                    Log.e(MainActivity.TAG, "IO exception...");
                 }
                 catch(InterruptedException e)
                 {
@@ -171,6 +178,21 @@ public class SocketManager
 
         m_readThread = new Thread(m_readThreadRunnable);
         m_readThread.start();
+    }
+
+    /** @brief Add a listener object to call when the internal states of this socket changes
+     * @param l the new listener to take account of*/
+    public void addListener(ISocketManagerListener l)
+    {
+        if(!m_listeners.contains(l))
+            m_listeners.add(l);
+    }
+
+    /** @brief Remove a listener object to call when the internal states of this socket changes
+     * @param l the new listener to take account of*/
+    public void removeListener(ISocketManagerListener l)
+    {
+        m_listeners.remove(l);
     }
 
     /** \brief Set the server address
@@ -278,7 +300,10 @@ public class SocketManager
             m_input  = null;
             return false;
         }
-        Log.i(MainActivity.TAG, "Reconnected\n");
+
+        for(ISocketManagerListener l : m_listeners)
+            l.onReconnection(this);
+
         return true;
     }
 
@@ -339,6 +364,34 @@ public class SocketManager
     /* ************************************************************ */
     /* *****************Create buffers - static******************** */
     /* ************************************************************ */
+
+    /** Create a "Set current Working subdataset" event
+     * @param ids the dataset and subdatasets IDs
+     * @return array of byte to send to push*/
+    public static byte[] createCurrentSubDatasetEvent(MainActivity.DatasetIDBinding ids)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SEND_CURRENT_SUBDATASET);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+
+        return buf.array();
+    }
+
+    /** Create a set current action event to send to the server
+     * @param action the new current action
+     * @return array of byte to send to push*/
+    public static byte[] createCurrentActionEvent(int action)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+        buf.putShort(SEND_CURRENT_ACTION);
+        buf.putInt(action);
+
+        return buf.array();
+    }
 
     /** Create a Rotation event data to send to the server
      * @param ids the dataset and subdatasets IDs

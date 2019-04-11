@@ -32,22 +32,11 @@ import java.util.ArrayList;
 
 public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, RangeColorData.IOnRangeChangeListener
 {
-    /** @brief The Listener used when DatasetFragment is modifying its internal states*/
-    public interface IDatasetFragmentListener
-    {
-        /** Called wheter the current subdataset being displayed changed
-         * @param d the current subdataset being displayed*/
-        void onChangeCurrentSubDataset(SubDataset d);
-    }
-
     private VFVSurfaceView   m_surfaceView       = null; /*!< The surface view displaying the vector field*/
     private TreeView         m_previewLayout     = null; /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp     = null; /*!< The bitmap used when no preview is available*/
-    private SubDataset       m_currentSubDataset = null; /*!< The current application sub dataset*/
     private ImageView        m_headsetColor      = null; /*!< Image view representing the headset color*/
     private ApplicationModel m_model             = null; /*!< The application model to use*/
-
-    private ArrayList<IDatasetFragmentListener> m_listeners = new ArrayList<>();
 
     public DatasetsFragment()
     {
@@ -80,21 +69,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             model.addListener(m_surfaceView);
     }
 
-    /** @brief Add a listener object to call when the internal states of this fragment changes
-     * @param l the new listener to take account of*/
-    public void addListener(IDatasetFragmentListener l)
-    {
-        if(!m_listeners.contains(l))
-            m_listeners.add(l);
-    }
-
-    /** @brief Remove a listener object to call when the internal states of this fragment changes
-     * @param l the new listener to take account of*/
-    public void removeListener(IDatasetFragmentListener l)
-    {
-        m_listeners.remove(l);
-    }
-
     /** @brief Set the visibility of this fragment. Useful for optimization (do not draw what is not on screen)
      * @param visibility the new visibility state. false == not visible, true = visible*/
     public void setVisibility(boolean visibility)
@@ -105,8 +79,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
     {
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.setRangeColor(minVal, maxVal, mode);
+        if(m_model != null && m_model.getCurrentSubDataset() != null)
+            m_model.getCurrentSubDataset() .setRangeColor(minVal, maxVal, mode);
     }
 
     @Override
@@ -125,6 +99,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
     {}
+
+    @Override
+    public void onChangeCurrentAction(ApplicationModel model, int action) {
+    }
 
     @Override
     public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
@@ -170,14 +148,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onRotateDatasetMessage(RotateDatasetMessage msg)
     {}
 
-    private void changeCurrentSubDataset(SubDataset sd)
-    {
-        m_currentSubDataset = sd;
-        m_surfaceView.changeCurrentSubDataset(sd);
-
-        for(IDatasetFragmentListener l : m_listeners)
-            l.onChangeCurrentSubDataset(sd);
-    }
+    @Override
+    public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
+    { }
 
     @Override
     public void onMoveDatasetMessage(MoveDatasetMessage msg)
@@ -204,8 +177,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.mainView);
         m_previewLayout = (TreeView)v.findViewById(R.id.previewLayout);
-        m_headsetColor = (ImageView)v.findViewById(R.id.headsetColor);
+        m_headsetColor  = (ImageView)v.findViewById(R.id.headsetColor);
 
+        if(m_model != null)
+            m_model.addListener(m_surfaceView);
+
+        //Surface view listeners
         m_surfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -223,8 +200,18 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-        if(m_model != null)
-            m_model.addListener(m_surfaceView);
+        m_surfaceView.addListener(new VFVSurfaceView.IVFVSurfaceViewListener() {
+            @Override
+            public void onChangeCurrentAction(final int action) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(m_model != null)
+                            m_model.setCurrentAction(action);
+                    }
+                });
+            }
+        });
     }
 
     private void addDataset(final Dataset d)
@@ -242,8 +229,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 {
                     //Set the color range listener
                     final SubDataset sd = d.getSubDataset(i);
-                    if(m_currentSubDataset == null)
-                        m_currentSubDataset = sd;
+                    if(m_model.getCurrentSubDataset() == null)
+                        m_model.setCurrentSubDataset(sd);
                     sd.addListener(DatasetsFragment.this);
 
                     //Add the snap image
@@ -256,7 +243,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     snapImg.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            changeCurrentSubDataset(sd);
+                            m_model.setCurrentSubDataset(sd);
                         }
                     });
 

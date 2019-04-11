@@ -2,26 +2,38 @@
 
 namespace sereno
 {
-    JavaVM*   javaVM                      = NULL;
-    JNIEnv*   jniMainThread               = NULL;
+    JavaVM*   javaVM                           = NULL;
+    JNIEnv*   jniMainThread                    = NULL;
 
-    jclass    jBitmapClass                = 0;
-    jmethodID jBitmap_createBitmap        = 0;
+    jclass    jVFVSurfaceViewClass             = 0;
+    jmethodID jVFVSurfaceView_setCurrentAction = 0;
+    jmethodID jVFVSurfaceView_getCurrentAction = 0;
 
-    jclass    jBitmapConfigClass          = 0;
-    jfieldID  jBitmapConfig_ARGB          = 0;
-    jobject   jBitmapConfigARGB           = 0;
+    jclass    jBitmapClass                     = 0;
+    jmethodID jBitmap_createBitmap             = 0;
 
-    jclass    jDatasetClass               = 0;
-    jmethodID jDataset_getNbSubDataset    = 0;
-    jmethodID jDataset_getSubDataset      = 0;
+    jclass    jBitmapConfigClass               = 0;
+    jfieldID  jBitmapConfig_ARGB               = 0;
+    jobject   jBitmapConfigARGB                = 0;
 
-    jclass    jSubDatasetClass            = 0;
-    jmethodID jSubDataset_onRotationEvent = 0;
-    jmethodID jSubDataset_onSnapshotEvent = 0;
+    jclass    jDatasetClass                    = 0;
+    jmethodID jDataset_getNbSubDataset         = 0;
+    jmethodID jDataset_getSubDataset           = 0;
+
+    jclass    jSubDatasetClass                 = 0;
+    jmethodID jSubDataset_onRotationEvent      = 0;
+    jmethodID jSubDataset_onSnapshotEvent      = 0;
 }
 
 using namespace sereno;
+
+jclass getJNIClassGlobalReference(JNIEnv* env, const char* name)
+{
+    jclass cls = env->FindClass(name);
+    jclass res = (jclass)env->NewGlobalRef(cls);
+    env->DeleteLocalRef(cls);
+    return res;
+}
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
@@ -32,23 +44,16 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return -1;
 
     //Load classes
-    jclass bmpCls     = env->FindClass("android/graphics/Bitmap");
-    jBitmapClass      = (jclass)env->NewGlobalRef(bmpCls);
-    env->DeleteLocalRef(bmpCls);
-
-    jclass bmpConfCls  = env->FindClass("android/graphics/Bitmap$Config");
-    jBitmapConfigClass = (jclass)env->NewGlobalRef(bmpConfCls);
-    env->DeleteLocalRef(bmpConfCls);
-
-    jclass datasetCls = env->FindClass("com/sereno/vfv/Data/Dataset");
-    jDatasetClass     = (jclass)env->NewGlobalRef(datasetCls);
-    env->DeleteLocalRef(datasetCls);
-
-    jclass subDatasetCls = env->FindClass("com/sereno/vfv/Data/SubDataset");
-    jSubDatasetClass     = (jclass)env->NewGlobalRef(subDatasetCls);
-    env->DeleteLocalRef(subDatasetCls);
+    jVFVSurfaceViewClass = getJNIClassGlobalReference(env, "com/sereno/gl/VFVSurfaceView");
+    jBitmapClass         = getJNIClassGlobalReference(env, "android/graphics/Bitmap");
+    jBitmapConfigClass   = getJNIClassGlobalReference(env, "android/graphics/Bitmap$Config");
+    jDatasetClass        = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/Dataset");
+    jSubDatasetClass     = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
 
     //Load methods
+    jVFVSurfaceView_getCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "getCurrentAction", "()I");
+    jVFVSurfaceView_setCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "setCurrentAction", "(I)V");
+
     jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");
     jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
 
@@ -61,7 +66,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     
     //Load static object
     jobject bmpConfARGB = env->GetStaticObjectField(jBitmapConfigClass, jBitmapConfig_ARGB);
-    jBitmapConfigARGB     = env->NewGlobalRef(bmpConfARGB);
+    jBitmapConfigARGB   = env->NewGlobalRef(bmpConfARGB);
     env->DeleteLocalRef(bmpConfARGB);
 
     return JNI_VERSION_1_6;
@@ -73,6 +78,8 @@ void JNI_OnUnload(JavaVM *vm, void *reserved)
     if(vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK)
         return;
 
+    //Delete global references
+    env->DeleteGlobalRef(jVFVSurfaceViewClass);
     env->DeleteGlobalRef(jBitmapClass);
     env->DeleteGlobalRef(jBitmapConfigClass);
     env->DeleteGlobalRef(jDatasetClass);

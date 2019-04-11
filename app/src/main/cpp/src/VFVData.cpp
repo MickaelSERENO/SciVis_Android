@@ -77,6 +77,11 @@ namespace sereno
         addEvent(ev);
     }
 
+    void VFVData::setCurrentAction(VFVCurrentAction a)
+    {
+        jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_setCurrentAction, (int)a);
+    }
+
 
     void VFVData::onRangeColorChange(float min, float max, ColorMode mode, SubDataset* sd)
     {
@@ -114,7 +119,6 @@ namespace sereno
 
     void VFVData::addEvent(VFVEvent* ev)
     {
-        LOG_INFO("New event added\n");
         pthread_mutex_lock(&m_mutex);
             m_events.push_back(ev);
         pthread_mutex_unlock(&m_mutex);

@@ -26,6 +26,16 @@ namespace sereno
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
     };
 
+    /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
+    enum VFVCurrentAction
+    {
+        VFV_CURRENT_ACTION_NOTHING   = 0,
+        VFV_CURRENT_ACTION_MOVING    = 1,
+        VFV_CURRENT_ACTION_SCALING   = 2,
+        VFV_CURRENT_ACTION_ROTATING  = 3,
+        VFV_CURRENT_ACTION_SKETCHING = 4
+    };
+
     struct SubDatasetEvent
     {
         SubDataset* sd; /*!< The subdataset being updated*/
@@ -152,6 +162,10 @@ namespace sereno
             /* \brief Set the current data displayed in the application
              * \param sd the new SubDataset to display*/
             void setCurrentSubDataset(SubDataset* sd);
+
+            /* \brief  Set the current action the device is performing
+             * \param action */
+            void setCurrentAction(VFVCurrentAction action);
 
             /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/

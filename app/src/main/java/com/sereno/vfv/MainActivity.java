@@ -47,12 +47,14 @@ import com.sereno.view.AnnotationText;
 import com.sereno.view.RangeColorView;
 
 import java.io.File;
+import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, DatasetsFragment.IDatasetFragmentListener, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback,
+                                     VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener, SocketManager.ISocketManagerListener
 {
     /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
     public static class DatasetIDBinding
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity
     private SocketManager    m_socket;            /*!< Connection with the server application*/
     private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
     private VFVViewPager     m_viewPager;
+    private DatasetsFragment m_dataFragment = null;
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -144,35 +147,38 @@ public class MainActivity extends AppCompatActivity
         Dataset parent       = null;
         int     subDatasetID = -1;
 
-        //Fetch to which Dataset this SubDataset belongs to
-        for(VTKDataset d : m_model.getVTKDatasets())
+        if(sd != null)
         {
-            if(parent != null)
-                break;
-            for(int i = 0; i < d.getNbSubDataset(); i++)
-            {
-                if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
-                {
-                    parent       = d;
-                    subDatasetID = i;
-                }
-            }
-        }
-
-        if(parent == null)
-        {
-            for(BinaryDataset d : m_model.getBinaryDatasets())
+            //Fetch to which Dataset this SubDataset belongs to
+            for(VTKDataset d : m_model.getVTKDatasets())
             {
                 if(parent != null)
                     break;
-
                 for(int i = 0; i < d.getNbSubDataset(); i++)
                 {
                     if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
                     {
                         parent       = d;
                         subDatasetID = i;
+                    }
+                }
+            }
+
+            if(parent == null)
+            {
+                for(BinaryDataset d : m_model.getBinaryDatasets())
+                {
+                    if(parent != null)
                         break;
+
+                    for(int i = 0; i < d.getNbSubDataset(); i++)
+                    {
+                        if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
+                        {
+                            parent       = d;
+                            subDatasetID = i;
+                            break;
+                        }
                     }
                 }
             }
@@ -186,9 +192,6 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.toolbar_menu, menu);
         return true;
     }
-
-    public void changeCurrentSubDataset(SubDataset sd)
-    {}
 
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
@@ -209,6 +212,11 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
     {
         annot.addListener(this);
+    }
+
+    @Override
+    public void onChangeCurrentAction(ApplicationModel model, int action) {
+        m_socket.push(SocketManager.createCurrentActionEvent(action));
     }
 
     @Override
@@ -335,7 +343,7 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
-    public void onChangeCurrentSubDataset(SubDataset sd)
+    public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {
         m_rangeColorView.getModel().setColorMode(sd.getColorMode());
         m_rangeColorView.getModel().setRange(sd.getMinClampingColor(), sd.getMaxClampingColor());
@@ -383,6 +391,14 @@ public class MainActivity extends AppCompatActivity
     public void onSetMode(AnnotationData data, AnnotationData.AnnotationMode mode)
     {}
 
+
+    @Override
+    public void onReconnection(SocketManager socket)
+    {
+        socket.push(SocketManager.createCurrentActionEvent(m_model.getCurrentAction()));
+        socket.push(SocketManager.createCurrentSubDatasetEvent(getDatasetIDBinding(m_model.getCurrentSubDataset())));
+    }
+
     /** Set up the main layout*/
     private void setUpMainLayout()
     {
@@ -390,14 +406,14 @@ public class MainActivity extends AppCompatActivity
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         //Add "Datasets" tab
-        final DatasetsFragment dataFragment = new DatasetsFragment();
-        adapter.addFragment(dataFragment, "Datasets");
+        m_dataFragment = new DatasetsFragment();
+        adapter.addFragment(m_dataFragment, "Datasets");
 
         //Add "Annotations" tab
         final  AnnotationsFragment annotationsFragment = new AnnotationsFragment();
         adapter.addFragment(annotationsFragment, "Annotations");
 
-        dataFragment.addListener((VFVFragment.IFragmentListener)this);
+        m_dataFragment.addListener((VFVFragment.IFragmentListener)this);
         annotationsFragment.addListener(this);
 
         m_viewPager.setAdapter(adapter);
@@ -407,7 +423,7 @@ public class MainActivity extends AppCompatActivity
         this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dataFragment.setUpModel(m_model);
+                m_dataFragment.setUpModel(m_model);
                 annotationsFragment.setUpModel(m_model);
             }
         });
@@ -423,9 +439,9 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         if(position == 0)
-                            dataFragment.setVisibility(true);
+                            m_dataFragment.setVisibility(true);
                         else
-                            dataFragment.setVisibility(false);
+                            m_dataFragment.setVisibility(false);
                     }
                 });
             }
@@ -449,7 +465,9 @@ public class MainActivity extends AppCompatActivity
         {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
-            {}
+            {
+                m_rangeColorView.getModel().setColorMode(i);
+            }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView)

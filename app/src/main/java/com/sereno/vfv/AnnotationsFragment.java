@@ -163,6 +163,16 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     }
 
+    @Override
+    public void onChangeCurrentAction(ApplicationModel model, int action) {
+
+    }
+
+    @Override
+    public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd) {
+
+    }
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)

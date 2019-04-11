@@ -54,6 +54,14 @@ namespace sereno
             {
                 switch(event->type)
                 {
+                    case TOUCH_UP:
+                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                        break;
+
+                    case TOUCH_DOWN:
+                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_ROTATING);
+                        break;
+
                     case RESIZE:
                         //Redo the viewport
                         glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
@@ -62,6 +70,7 @@ namespace sereno
                                                                                 (float)(event->sizeEvent.height/event->sizeEvent.width),
                                                                                -1.0f, 1.0f));
                         break;
+
                     case TOUCH_MOVE:
                     {
                         if(m_currentVis)

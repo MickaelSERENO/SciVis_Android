@@ -11,10 +11,25 @@ import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.view.AnnotationData;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
 {
+    /** VFVSurfaceView Listener interface.*/
+    public interface IVFVSurfaceViewListener
+    {
+        /** Method called when the VFVSurfaceView wants to change the current action
+         * This method can be called asynchronously
+         * @param action the current action asked*/
+        void onChangeCurrentAction(int action);
+    }
+
     /** The native C++ pointer*/
     private long m_ptr;
+
+    /** List of listeners bound to this VFVSurfaceView*/
+    private List<IVFVSurfaceViewListener> m_listeners = new ArrayList<>();
 
     public VFVSurfaceView(Context context)
     {
@@ -49,11 +64,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         return m_ptr;
     }
 
-    /** Change the current SubDataset being displayed
-     * @param sd the new SubDataset to display*/
-    public void changeCurrentSubDataset(SubDataset sd)
+    /** @brief Add a new callback Listener
+     * @param listener the listener to call for new events*/
+    public void addListener(IVFVSurfaceViewListener listener)
     {
-        nativeChangeCurrentSubDataset(m_ptr, sd.getNativePtr());
+        m_listeners.add(listener);
+    }
+
+    /** @brief Remove an old callback Listener
+     * @param listener the listener to remove from the list*/
+    public void removeListener(IVFVSurfaceViewListener listener)
+    {
+        m_listeners.remove(listener);
     }
 
     @Override
@@ -73,6 +95,17 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
+
+    @Override
+    public void onChangeCurrentAction(ApplicationModel model, int action) {
+
+    }
+
+    @Override
+    public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
+    {
+        nativeChangeCurrentSubDataset(m_ptr, sd.getNativePtr());
+    }
 
     public void onAddDataset(ApplicationModel model, Dataset d)
     {
@@ -106,6 +139,23 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     @Override
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    /** Function called from the native code when the native code needs to change the current action
+     * Pay attention that this is done asynchronously
+     * @param a the new action to use*/
+    private void setCurrentAction(int a)
+    {
+        for(IVFVSurfaceViewListener l : m_listeners)
+            l.onChangeCurrentAction(a);
+    }
+
+    /** Function called from the native code to get the current action of the device
+     * Pay attention that this is done asynchronously
+     * @return the current action*/
+    private int getCurrentAction()
+    {
+        return 0;
+    }
 
     /** \brief Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
