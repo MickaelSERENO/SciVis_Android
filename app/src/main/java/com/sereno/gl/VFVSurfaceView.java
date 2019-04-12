@@ -120,12 +120,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
-    {
-        //We generated this event
-    }
-
-    @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {
         nativeOnRotationChange(m_ptr, dataset.getNativePtr());

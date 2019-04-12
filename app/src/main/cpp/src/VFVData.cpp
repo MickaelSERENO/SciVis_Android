@@ -127,19 +127,23 @@ namespace sereno
     /*----------------------------------------------------------------------------*/
     /*----------------------------Send events to Java-----------------------------*/
     /*----------------------------------------------------------------------------*/
-    void VFVData::sendRotationEvent(JNIEnv* env, SubDataset* sd, float roll, float pitch, float yaw)
+    void VFVData::sendRotationEvent(SubDataset* sd)
     {
-        jvalue val[] = {{.f = roll},
-                        {.f = pitch},
-                        {.f = yaw}};
-        env->CallVoidMethodA(m_jSubDatasetMap[sd], jSubDataset_onRotationEvent, val);
+        //Create the quaternion array
+        jfloatArray arr = jniMainThread->NewFloatArray(4);
+        Quaternionf q   = sd->getGlobalRotate();
+        float qArr[4] = {q.w, q.x, q.y, q.z};
+        jniMainThread->SetFloatArrayRegion(arr, 0, 4, qArr);
+
+        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onRotationEvent, arr);
+        jniMainThread->DeleteLocalRef(arr);
     }
 
-    void VFVData::sendSnapshotEvent(JNIEnv* env, SubDataset* sd)
+    void VFVData::sendSnapshotEvent(SubDataset* sd)
     {
-        jobject bitmap = Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(env, NULL, (jlong)sd);
-        env->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onSnapshotEvent, bitmap);
-        env->DeleteLocalRef(bitmap);
+        jobject bitmap = Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(jniMainThread, NULL, (jlong)sd);
+        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onSnapshotEvent, bitmap);
+        jniMainThread->DeleteLocalRef(bitmap);
     }
 
 }

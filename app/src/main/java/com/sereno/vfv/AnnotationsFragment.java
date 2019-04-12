@@ -399,9 +399,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
 
     @Override
-    public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw) {}
-
-    @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
 
     @Override

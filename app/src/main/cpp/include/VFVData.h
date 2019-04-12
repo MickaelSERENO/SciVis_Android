@@ -169,15 +169,11 @@ namespace sereno
 
             /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/
-            void sendSnapshotEvent(JNIEnv* jenv, SubDataset* subDataset);
+            void sendSnapshotEvent(SubDataset* subDataset);
 
             /* \brief  Send a rotation event. Must be called after subDataset has been rotated
-             * \param jenv the java environment
-             * \param subDataset the subDataset being modified. 
-             * \param roll the roll (y axis) rotation
-             * \param pitch the pitch (x axis) rotation
-             * \param yaw the yaw (z axis) rotation*/
-            void sendRotationEvent(JNIEnv* jenv, SubDataset* subDataset, float roll, float pitch, float yaw);
+             * \param subDataset the subDataset being modified.*/ 
+            void sendRotationEvent(SubDataset* subDataset);
 
             /* \brief Get the Java object bound to this model
              * \return the Java object*/

@@ -83,8 +83,7 @@ namespace sereno
                                 modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, true}));
                             else
                                 modelChanged[m_currentVis->getModel()].updateRotation = true;
-                            m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
-                            m_mainData->sendRotationEvent(jniMainThread, m_currentVis->getModel(), roll, pitch, 0);
+                            m_mainData->sendRotationEvent(m_currentVis->getModel());
                         }
                         break;
                     }
@@ -255,7 +254,7 @@ namespace sereno
                     }
                     //Read pixels
                     glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
-                    m_mainData->sendSnapshotEvent(jniMainThread, m_currentVis->getModel());
+                    m_mainData->sendSnapshotEvent(m_currentVis->getModel());
                     m_snapshotCnt = 0;
                 }
             }

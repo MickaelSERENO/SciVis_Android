@@ -23,13 +23,6 @@ public class SubDataset
         void onRangeColorChange(SubDataset sd, float min, float max, int mode);
 
         /** @brief Method called when a new rotation on the current SubDataset is performed
-         * @param dataset the dataset being rotated (called AFTER rotation is performed)
-         * @param dRoll the delta roll applied
-         * @param dPitch the delta pitch applied
-         * @param dYaw the delta yaw applied*/
-        void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw);
-
-        /** @brief Method called when a new rotation on the current SubDataset is performed
          * @param dataset the dataset being rotated
          * @param quaternion the quaternion rotation*/
         void onRotationEvent(SubDataset dataset, float[] quaternion);
@@ -53,6 +46,10 @@ public class SubDataset
 
     /** List of annotations bound to this SubDataset*/
     private List<AnnotationData> m_annotations = new ArrayList<>();
+
+    /** The current headset owning this subdataset*/
+    private int m_ownerHeadsetID = -1;
+
 
     /** @brief Constructor. Link the Java object with the C++ native SubDataset object
      * @param ptr the native C++ pointer*/
@@ -145,16 +142,6 @@ public class SubDataset
     public int getColorMode()
     {
         return nativeGetColorMode(m_ptr);
-    }
-
-    /** @brief Function called from C++ code when a rotation is performed
-     * @param dRoll the delta roll applied
-     * @param dPitch the delta pitch applied
-     * @param dYaw the delta yaw applied*/
-    public void onRotationEvent(float dRoll, float dPitch, float dYaw)
-    {
-        for(ISubDatasetListener l : m_listeners)
-            l.onRotationEvent(this, dRoll, dPitch, dYaw);
     }
 
     /** @brief Function called frm C++ code when a new snapshot has been created

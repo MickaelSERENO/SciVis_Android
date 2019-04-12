@@ -57,7 +57,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");
     jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
 
-    jSubDataset_onRotationEvent = env->GetMethodID(jSubDatasetClass, "onRotationEvent", "(FFF)V");
+    jSubDataset_onRotationEvent = env->GetMethodID(jSubDatasetClass, "onRotationEvent", "([F)V");
     jSubDataset_onSnapshotEvent = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
 
     //Load fields

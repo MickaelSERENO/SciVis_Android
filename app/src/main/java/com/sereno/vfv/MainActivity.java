@@ -41,6 +41,7 @@ import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
+import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
@@ -224,19 +225,13 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
-    public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
+    public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
 
         //If everything is correct, send the rotation event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
             m_socket.push(SocketManager.createRotationEvent(idBinding, dataset.getRotation()));
-    }
-
-    @Override
-    public void onRotationEvent(SubDataset dataset, float[] quaternion)
-    {
-        //We made this changement... do nothing here
     }
 
     @Override
@@ -326,7 +321,10 @@ public class MainActivity extends AppCompatActivity
 
                 if(dataset != null)
                 {
-                    dataset.getSubDataset(msg.getSubDatasetID()).setRotation(msg.getRotation());
+                    //Remove and re add the listener for not ending in a while loop
+                    dataset.getSubDataset(msg.getSubDatasetID()).removeListener(MainActivity.this);
+                        dataset.getSubDataset(msg.getSubDatasetID()).setRotation(msg.getRotation());
+                    dataset.getSubDataset(msg.getSubDatasetID()).addListener(MainActivity.this);
                 }
             }
         });
@@ -341,6 +339,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg)
     {}
+
+    @Override
+    public void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg)
+    {
+        //TODO
+    }
 
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)

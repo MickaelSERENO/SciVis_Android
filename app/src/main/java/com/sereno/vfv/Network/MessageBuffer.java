@@ -74,6 +74,10 @@ public class MessageBuffer
         /** Called when the message "HEADSET_BINDING_INFO" has been successfully parsed
          * @param msg the message parsed*/
         void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg);
+
+        /** Called when the message "GET_SUBDATASET_OWNER" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg);
     }
 
     /** No current type received*/
@@ -94,8 +98,8 @@ public class MessageBuffer
     /** Move dataset received*/
     public static final int GET_MOVE_DATASET            = 3;
 
-    /** Received the headset disconnection information*/
-    public static final int GET_HEADSET_DISCONNECTED    = 7;
+    /** Received the subdataset owning information*/
+    public static final int GET_SUBDATASET_OWNER        = 8;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -214,9 +218,9 @@ public class MessageBuffer
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onHeadsetBindingInfoMessage((HeadsetBindingInfoMessage) m_curMsg);
                     break;
-                case GET_HEADSET_DISCONNECTED:
+                case GET_SUBDATASET_OWNER:
                     for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onEmptyMessage((EmptyMessage)m_curMsg);
+                        clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage) m_curMsg);
                     break;
                 default:
                     Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
@@ -260,8 +264,8 @@ public class MessageBuffer
             case GET_HEADSET_BINDING_INFO:
                 m_curMsg = new HeadsetBindingInfoMessage();
                 break;
-            case GET_HEADSET_DISCONNECTED:
-                m_curMsg = new EmptyMessage();
+            case GET_SUBDATASET_OWNER:
+                m_curMsg = new SubDatasetOwnerMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

@@ -24,6 +24,7 @@ import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
+import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 import com.sereno.view.TreeView;
@@ -109,10 +110,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {}
 
     @Override
-    public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw)
-    {}
-
-    @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {}
 
@@ -125,15 +122,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
-        if(msg.getType() == MessageBuffer.GET_HEADSET_DISCONNECTED)
-        {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    m_headsetColor.setImageBitmap(m_noSnapshotBmp);
-                }
-            });
-        }
     }
 
     @Override
@@ -170,6 +158,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
     }
+
+    @Override
+    public void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg) {}
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -252,8 +243,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                         @Override
                         public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
 
-                        @Override
-                        public void onRotationEvent(SubDataset dataset, float dRoll, float dPitch, float dYaw) {}
 
                         @Override
                         public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
