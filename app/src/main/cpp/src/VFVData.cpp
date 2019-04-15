@@ -135,7 +135,7 @@ namespace sereno
         float qArr[4] = {q.w, q.x, q.y, q.z};
         jniMainThread->SetFloatArrayRegion(arr, 0, 4, qArr);
 
-        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onRotationEvent, arr);
+        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setRotation, arr);
         jniMainThread->DeleteLocalRef(arr);
     }
 

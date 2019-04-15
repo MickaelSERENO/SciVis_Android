@@ -43,15 +43,16 @@ namespace sereno
         }
         ev->touchEvent.id = finger;
         ev->touchEvent.x  = x;
-        ev->touchEvent.y = y;
+        ev->touchEvent.y  = y;
 
+        pthread_mutex_lock(&m_mutex);
         //Save touch state (old, start position)
         TouchCoord* tc = getTouchCoord(finger);
         if(tc)
         {
             m_touchCoords[finger].type = (action <= 2) ? (TouchType)action : TOUCH_TYPE_DOWN;
 
-            if(action == TOUCH_TYPE_DOWN)
+            if(m_touchCoords[finger].type == TOUCH_TYPE_DOWN)
             {
                 tc->startX = x;
                 tc->startY = y;
@@ -83,6 +84,7 @@ namespace sereno
             ev->touchEvent.startX = x;
             ev->touchEvent.startY = y;
         }
+        pthread_mutex_unlock(&m_mutex);
 
         addEvent(ev);
     }

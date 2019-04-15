@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /** @brief The Model component on the MVC architecture */
-public class ApplicationModel
+public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, SubDataset.ISubDatasetListener
 {
     /** @brief Interface possessing functions called when deleting or adding new datasets */
     public interface IDataCallback
@@ -162,7 +162,18 @@ public class ApplicationModel
      * @param model the RangeColorData model being used to clamp subdatasets color displayed*/
     public void setRangeColorModel(RangeColorData model)
     {
+        if(m_rangeColorModel != null)
+            m_rangeColorModel.removeOnRangeChangeListener(this);
         m_rangeColorModel = model;
+        m_rangeColorModel.addOnRangeChangeListener(this);
+    }
+
+
+    @Override
+    public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
+    {
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.setRangeColor(minVal, maxVal, mode);
     }
 
     /** Add a new annotation
@@ -202,10 +213,45 @@ public class ApplicationModel
      * @param sd The new current SubDataset*/
     public void setCurrentSubDataset(SubDataset sd)
     {
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.removeListener(this);
         m_currentSubDataset = sd;
+
+        onRangeColorChange(sd, sd.getMinClampingColor(), sd.getMaxClampingColor(), sd.getColorMode());
+
         for(IDataCallback clbk : m_listeners)
             clbk.onChangeCurrentSubDataset(this, sd);
     }
+
+    @Override
+    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    {
+        if(m_rangeColorModel == null)
+            return;
+
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.removeListener(this);
+        m_rangeColorModel.removeOnRangeChangeListener(this);
+
+        if(mode != m_rangeColorModel.getColorMode())
+            m_rangeColorModel.setColorMode(mode);
+        if(min != m_rangeColorModel.getMinRange() || max != m_rangeColorModel.getMaxRange())
+            m_rangeColorModel.setRange(min, max);
+
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.addListener(this);
+        m_rangeColorModel.addOnRangeChangeListener(this);
+    }
+
+    @Override
+    public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+    @Override
+    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
+
+    @Override
+    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
 
     /** Get the current SubDataset
      * @return The current SubDataset*/

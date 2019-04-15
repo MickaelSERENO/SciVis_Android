@@ -17,6 +17,8 @@
 
 #define MAX_SNAPSHOT_COUNTER             30
 #define VTK_STRUCTURED_POINT_VIS_DENSITY 128
+#define MAX_PINCH_OPPOSITE  0.01
+#define MIN_PINCH_THRESHOLD 20
 
 #define SCIVIS_TF_COLOR(_, __, ___)\
     _(RAINBOW, __, ___)            \

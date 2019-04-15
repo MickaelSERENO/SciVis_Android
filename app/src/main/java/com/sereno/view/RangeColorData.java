@@ -10,7 +10,7 @@ public class RangeColorData
     /* \brief Interface permitting to send a message when the range color has changed*/
     public interface IOnRangeChangeListener
     {
-        /* \brief Function called when the range has changed
+        /** Function called when the range has changed
          * @param data the data calling this method
          * @param minVal the current minimum value (between 0.0 and 1.0)
          * @param maxVal the current maximum value (between 0.0 and 1.0)
@@ -26,16 +26,15 @@ public class RangeColorData
 
     private ArrayList<IOnRangeChangeListener> m_onRangeChangeListeners = new ArrayList<>(); /*!< Listeners to call when the range has changed*/
 
-    /** \brief Set the color mode of this View
+    /** Set the color mode of this View
      * @param mode the color mode (See ColorMode class)*/
     public void setColorMode(int mode)
     {
         m_colorMode = mode;
-        for(IOnRangeChangeListener l : m_onRangeChangeListeners)
-            l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
+        launchEvent();
     }
 
-    /** \brief Set the range color. If min > max, we invert the value
+    /** Set the range color. If min > max, we invert the value
      * @param min the minimum range. Will be clamped between 0.0f and 1.0f.
      * @param max the maximum range. Will be clamped between 0.0f and 1.0f.
      */
@@ -46,12 +45,21 @@ public class RangeColorData
         m_minValue = Math.min(Math.max(0.0f, m_minValue), 1.0f);
         m_maxValue = Math.min(Math.max(0.0f, m_maxValue), 1.0f);
 
-        for(IOnRangeChangeListener l : m_onRangeChangeListeners)
-            l.onRangeChange(this, m_minValue, m_maxValue, m_colorMode);
+        launchEvent();
     }
 
-    /** \brief Get the minimum range
-     * \return the minimum range (between 0.0f and 1.0f)*/
+    /** Launch the events of the range color changement*/
+    private void launchEvent()
+    {
+        float min       = m_minValue;
+        float max       = m_maxValue;
+        int   colorMode = m_colorMode;
+        for(int i = 0; i < m_onRangeChangeListeners.size(); i++)
+            m_onRangeChangeListeners.get(i).onRangeChange(this, min, max, colorMode);
+    }
+
+    /** Get the minimum range
+     * return the minimum range (between 0.0f and 1.0f)*/
     public float getMinRange()
     {
         return m_minValue;
@@ -67,7 +75,7 @@ public class RangeColorData
         return m_colorMode;
     }
 
-    /** \brief Add an object to the list of listeners to call when the range color has changed
+    /** Add an object to the list of listeners to call when the range color has changed
      * @param l the new listener to add*/
     public void addOnRangeChangeListener(IOnRangeChangeListener l)
     {

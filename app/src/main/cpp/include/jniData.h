@@ -24,7 +24,7 @@ namespace sereno
     extern jmethodID jDataset_getSubDataset;
 
     extern jclass    jSubDatasetClass;
-    extern jmethodID jSubDataset_onRotationEvent;
+    extern jmethodID jSubDataset_setRotation;
     extern jmethodID jSubDataset_onSnapshotEvent;
 }
 

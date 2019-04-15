@@ -53,6 +53,12 @@ namespace sereno
              * \return  true if closed, false otherwise */
             bool isClosed() const {return m_isClosed;}
 
+            /* \brief Unlock the surface data threading communication*/
+            void unlock() {pthread_mutex_unlock(&m_mutex);}
+
+            /* \brief lock the surface data threading communication*/
+            void lock() {pthread_mutex_lock(&m_mutex);}
+
             const std::string  dataPath; /*!< The data path*/
             GLRenderer         renderer; /*!< The renderer */
         private:

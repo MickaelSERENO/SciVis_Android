@@ -7,6 +7,7 @@ namespace sereno
     {
         bool updateColor    = false;;
         bool updateRotation = false;
+        bool updateScale    = false;
     };
 
     MainVFV::MainVFV(GLSurfaceViewData* surfaceData, VFVData* mainData) : m_surfaceData(surfaceData), m_mainData(mainData)
@@ -75,15 +76,74 @@ namespace sereno
                     {
                         if(m_currentVis)
                         {
-                            float roll  = event->touchEvent.x - event->touchEvent.oldX;
-                            float pitch = event->touchEvent.y - event->touchEvent.oldY;
+                            m_surfaceData->lock();
+                            {
+                                //Get the number of fingers down
+                                TouchCoord* tc1 = NULL;
+                                TouchCoord* tc2 = NULL;
 
-                            auto it = modelChanged.find(m_currentVis->getModel());
-                            if(it == modelChanged.end())
-                                modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, true}));
-                            else
-                                modelChanged[m_currentVis->getModel()].updateRotation = true;
-                            m_mainData->sendRotationEvent(m_currentVis->getModel());
+                                uint32_t numberFinger = 0;
+                                TouchCoord* tc = NULL;
+                                for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+                                {
+                                    if(tc->type != TOUCH_TYPE_UP)
+                                    {
+                                        if(tc1 == NULL)
+                                            tc1 = tc;
+                                        else if(tc2 == NULL)
+                                            tc2 = tc;
+                                        numberFinger++;
+                                    }
+                                }
+
+                                //Scale
+                                if(numberFinger >= 2)
+                                {
+                                    //Determine if we are having a pitch
+                                    if((tc1->x - tc1->oldX) * (tc2->x - tc2->oldX) <= MAX_PINCH_OPPOSITE &&
+                                       (tc1->y - tc1->oldY) * (tc2->y - tc2->oldY) <= MAX_PINCH_OPPOSITE &&
+
+                                       (tc1->x - tc1->startX) * (tc2->x - tc2->startX) <= MAX_PINCH_OPPOSITE &&
+                                       (tc1->y - tc1->startY) * (tc2->y - tc2->startY) <= MAX_PINCH_OPPOSITE)
+                                    {
+                                        //Determine the scaling factor
+                                        float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
+                                                                   (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
+
+                                        float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
+                                                                    (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
+
+                                        float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
+                                                                    (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
+
+                                        if(abs(distanceAfter - distanceOrigin) >= MIN_PINCH_THRESHOLD)
+                                        {
+                                            float scale = distanceAfter / distanceBefore;
+
+                                            //Update the scale later
+                                            m_currentVis->getModel()->setScale(m_currentVis->getModel()->getScale() * scale);
+                                            auto it = modelChanged.find(m_currentVis->getModel());
+                                            if(it == modelChanged.end())
+                                                modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true}));
+                                            else
+                                                modelChanged[m_currentVis->getModel()].updateScale = true;
+
+                                        }
+                                    }
+                                }
+
+                                //Rotation
+                                else
+                                {
+                                    float roll  = event->touchEvent.x - event->touchEvent.oldX;
+                                    float pitch = event->touchEvent.y - event->touchEvent.oldY;
+                                    pitch = 0; //Disable pitch rotation
+
+                                    m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
+                                    m_mainData->sendRotationEvent(m_currentVis->getModel());
+                                }
+                            }
+                            m_surfaceData->unlock();
                         }
                         break;
                     }
@@ -173,7 +233,7 @@ namespace sereno
                     {
                         auto it = modelChanged.find(event->sdEvent.sd);
                         if(it == modelChanged.end())
-                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{true, false}));
+                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{true, false, false}));
                         else
                             modelChanged[event->sdEvent.sd].updateColor = true;
                         break;
@@ -182,7 +242,7 @@ namespace sereno
                     {
                         auto it = modelChanged.find(event->sdEvent.sd);
                         if(it == modelChanged.end())
-                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{false, true}));
+                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{false, true, false}));
                         else
                             modelChanged[event->sdEvent.sd].updateRotation = true;
                         break;
@@ -214,11 +274,13 @@ namespace sereno
                     {
                         if(it.second.updateColor)
                         {
-                            m_currentVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping(), it.first->getColorMode());
-                            m_currentVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
+                            sciVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping(), it.first->getColorMode());
+                            sciVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
                         }
                         if(it.second.updateRotation)
-                            m_currentVis->setRotate(it.first->getGlobalRotate());
+                            sciVis->setRotate(it.first->getGlobalRotate());
+                        if(it.second.updateScale)
+                            sciVis->setScale(it.first->getScale());
                     }
                 }
             }
@@ -245,13 +307,15 @@ namespace sereno
                     uint32_t snapHeight = m_surfaceData->renderer.getHeight();
                     Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
 
-                    if(curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
+                    if((curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
+                        && (snapWidth * snapHeight != 0))
                     {
                         Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
                         m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
                         curSnapshot = newSnapshot;
                         m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
                     }
+
                     //Read pixels
                     glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
                     m_mainData->sendSnapshotEvent(m_currentVis->getModel());

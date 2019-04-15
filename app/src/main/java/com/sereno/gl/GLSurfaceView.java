@@ -110,31 +110,57 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         int width  = getWidth();
         int height = getHeight();
 
-        for(int i = 0; i < event.getPointerCount(); i++)
+        int pID = event.getActionIndex();
+        int action;
+        switch(event.getActionMasked())
         {
-            int action = 0;
-            switch(event.getAction() & MotionEvent.ACTION_MASK)
+            case MotionEvent.ACTION_DOWN:
+                action = 0;
+                break;
+            case MotionEvent.ACTION_UP:
+                action = 1;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                action = 2;
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                action = 0;
+                pID = event.getActionIndex();
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                action = 1;
+                pID = event.getActionIndex();
+                break;
+            default:
+                super.onTouchEvent(event);
+                return true;
+        }
+
+        if(action != 2)
+        {
+            try
             {
-                case MotionEvent.ACTION_DOWN:
-                    action = 0;
-                    break;
-                case MotionEvent.ACTION_UP:
-                    action = 1;
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    action = 2;
-                    break;
+                float x = 2 * event.getX(pID) / width - 1;
+                float y = -2 * event.getY(pID) / height + 1;
+                nativeOnTouchEvent(m_internalData, action, event.getPointerId(pID), x, y);
             }
-
-
-            int pID = event.getPointerId(i);
-            if(pID != -1)
+            catch(Exception e){}
+        }
+        else
+        {
+            for(int i = 0; i < event.getPointerCount(); i++)
             {
-                float x = 2*event.getX(pID) / width - 1;
-                float y = -2*event.getY(pID) / height + 1;
-                nativeOnTouchEvent(m_internalData, action, pID, x, y);
+                try
+                {
+                    pID = i;
+                    float x = 2 * event.getX(pID) / width - 1;
+                    float y = -2 * event.getY(pID) / height + 1;
+                    nativeOnTouchEvent(m_internalData, action, event.getPointerId(pID), x, y);
+                }
+                catch(Exception e){}
             }
         }
+
         super.onTouchEvent(event);
         return true;
     }

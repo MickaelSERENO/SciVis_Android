@@ -45,6 +45,7 @@ import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
+import com.sereno.view.RangeColorData;
 import com.sereno.view.RangeColorView;
 
 import java.io.File;
@@ -348,10 +349,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
-    {
-        m_rangeColorView.getModel().setColorMode(sd.getColorMode());
-        m_rangeColorView.getModel().setRange(sd.getMinClampingColor(), sd.getMaxClampingColor());
-    }
+    {}
 
     @Override
     public void onEnableSwipping(Fragment fragment)
@@ -463,8 +461,18 @@ public class MainActivity extends AppCompatActivity
         m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
         m_model.setRangeColorModel(m_rangeColorView.getModel());
 
+
         //Configure the spinner color mode
-        Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
+        final Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
+
+        m_rangeColorView.getModel().addOnRangeChangeListener(new RangeColorData.IOnRangeChangeListener()
+        {
+            @Override
+            public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
+            {
+                colorModeSpinner.setSelection(mode);
+            }
+        });
         colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
@@ -557,21 +565,26 @@ public class MainActivity extends AppCompatActivity
                         {
                             //Get under Array shape the pt and cells field values desired
                             ArrayList<VTKFieldValue> ptValuesList = dialog.getSelectedPtFieldValues();
-                            VTKFieldValue[] ptValues = new VTKFieldValue[ptValuesList.size()];
-                            ptValues = ptValuesList.toArray(ptValues);
                             ArrayList<VTKFieldValue> cellValuesList = dialog.getSelectedCellFieldValues();
-                            VTKFieldValue[] cellValues = new VTKFieldValue[cellValuesList.size()];
-                            cellValues = cellValuesList.toArray(cellValues);
+
+                            if(cellValuesList.size() + ptValuesList.size() > 0)
+                            {
+                                VTKFieldValue[] ptValues = new VTKFieldValue[ptValuesList.size()];
+                                ptValues = ptValuesList.toArray(ptValues);
+                                VTKFieldValue[] cellValues = new VTKFieldValue[cellValuesList.size()];
+                                cellValues = cellValuesList.toArray(cellValues);
 
 
-                            final VTKDataset dataset = new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName());
-                            //Add into the model
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    m_model.addVTKDataset(dataset);
-                                }
-                            });
+
+                                final VTKDataset dataset = new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName());
+                                //Add into the model
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        m_model.addVTKDataset(dataset);
+                                    }
+                                });
+                            }
                         }
 
                         @Override

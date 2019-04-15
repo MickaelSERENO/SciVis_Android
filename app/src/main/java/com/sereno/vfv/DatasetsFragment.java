@@ -31,7 +31,7 @@ import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
 
-public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback, RangeColorData.IOnRangeChangeListener
+public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback
 {
     private VFVSurfaceView   m_surfaceView       = null; /*!< The surface view displaying the vector field*/
     private TreeView         m_previewLayout     = null; /*!< The preview layout*/
@@ -75,13 +75,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void setVisibility(boolean visibility)
     {
         m_surfaceView.setRenderVisibility(visibility ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    @Override
-    public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
-    {
-        if(m_model != null && m_model.getCurrentSubDataset() != null)
-            m_model.getCurrentSubDataset() .setRangeColor(minVal, maxVal, mode);
     }
 
     @Override

@@ -257,5 +257,7 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
 
         m_paint.setColor(android.graphics.Color.BLACK);
         m_paint.setStyle(Paint.Style.FILL);
+
+        m_model.addOnRangeChangeListener(this);
     }
 }

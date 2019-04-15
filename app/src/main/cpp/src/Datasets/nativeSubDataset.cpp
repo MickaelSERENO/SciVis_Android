@@ -11,22 +11,22 @@ JNIEXPORT bool JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsValid(JNIEnv*
     return sd->isValid();
 }
 
-JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
+JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    return (jint)sd->getMinClamping();
+    return sd->getMinClamping();
 }
 
-JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
+JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    return (jint)sd->getMaxClamping();
+    return sd->getMaxClamping();
 }
 
 JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    return (jint)sd->getColorMode();
+    return sd->getColorMode();
 }
 
 JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinAmplitude(JNIEnv* jenv, jobject jobj, jlong ptr)
@@ -99,7 +99,6 @@ JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIE
     const std::string& name = sd->getName();
     return jenv->NewStringUTF(name.c_str());
 }
-
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRangeColor(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max, jint mode)
 {
