@@ -96,6 +96,7 @@
 #define TOP_RIGHT_IMAGE    5
 #define BOTTOM_RIGHT_IMAGE 6
 #define BOTTOM_LEFT_IMAGE  7
+#define NO_IMAGE           8 //Need to be placed at the end
 
 namespace sereno
 {
@@ -109,6 +110,14 @@ namespace sereno
 
     //Generate sereno::sciVisTFGetDimension
     DEFINE_SCIVIS_GET_DIM(SCIVIS_TF_COLOR, SCIVIS_TF_CLASS)
+
+    struct SubDatasetChangement
+    {
+        bool updateColor    = false; /*!< Has the color been updated ?*/
+        bool updateRotation = false; /*!< Has the rotation been updated ?*/
+        bool updateScale    = false; /*!< Has the scaling been updated ?*/
+    };
+
 
     class MainVFV : public IVFVCallback
     {
@@ -137,6 +146,11 @@ namespace sereno
             /** \brief  Place the widgets on the screen */
             void placeWidgets();
 
+            /* \brief Handles the touch event 
+             * \param event the touch event received 
+             * \param modelChanged the hashmap storing what model changed*/
+            void handleTouchAction(TouchEvent* event, std::map<const SubDataset*, SubDatasetChangement>& modelChanged);
+
             GLSurfaceViewData* m_surfaceData; /*!< The GL Surface associated with this application */
             VFVData*           m_mainData;    /*!< The main data*/
 
@@ -159,6 +173,8 @@ namespace sereno
             TextureRectangleData* m_gpuTexVBO;       /*!< GPU VBO information for drawing textures*/
             Texture*              m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
             DefaultGameObject*    m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
+
+            uint32_t              m_currentWidgetAction = NO_IMAGE;
 
             typedef std::pair<SciVis*, SciVisTFEnum> SciVisPair;
     };

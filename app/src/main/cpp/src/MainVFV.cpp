@@ -3,13 +3,6 @@
 
 namespace sereno
 {
-    struct SubDatasetChangement
-    {
-        bool updateColor    = false;;
-        bool updateRotation = false;
-        bool updateScale    = false;
-    };
-
     MainVFV::MainVFV(GLSurfaceViewData* surfaceData, VFVData* mainData) : m_surfaceData(surfaceData), m_mainData(mainData)
     {
         surfaceData->renderer.initializeContext();
@@ -130,12 +123,70 @@ namespace sereno
                 switch(event->type)
                 {
                     case TOUCH_UP:
-                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                    {
+                        uint32_t numberFinger = 0;
+                        TouchCoord* tc = NULL;
+                        for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+                            if(tc->type != TOUCH_TYPE_UP)
+                                numberFinger++;
+
+                        if(numberFinger == 0)
+                        {
+                            m_currentWidgetAction = NO_IMAGE;
+                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                        }
                         break;
+                    }
 
                     case TOUCH_DOWN:
+                    {
+                        float width  = m_surfaceData->renderer.getWidth();
+                        float height = m_surfaceData->renderer.getHeight();
+                        float ratio  = height/width;
+                        float y = event->touchEvent.y*ratio; //Determine where y is
+                        float x = event->touchEvent.x;
+
+                        float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
+                        float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
+
+                        //Determine current widget touched
+
+                        //Left
+                        if(x <= -1.0+widgetWidth)
+                        {
+                            if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
+                                m_currentWidgetAction = LEFT_IMAGE;
+                            else if(y > ratio-widgetWidth)
+                                m_currentWidgetAction = TOP_LEFT_IMAGE;
+                            else
+                                m_currentWidgetAction = BOTTOM_LEFT_IMAGE;
+                        }
+
+                        //Right
+                        else if(x >= 1.0f-widgetWidth)
+                        {
+                            if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
+                                m_currentWidgetAction = RIGHT_IMAGE;
+                            else if(y > ratio-widgetWidth)
+                                m_currentWidgetAction = TOP_RIGHT_IMAGE;
+                            else
+                                m_currentWidgetAction = BOTTOM_RIGHT_IMAGE;
+                        }
+
+                        //Center (top/bottom)
+                        else
+                        {
+                            if(y > ratio-widgetWidth)
+                                m_currentWidgetAction = TOP_IMAGE;
+                            else if(y < -ratio+widgetWidth)
+                                m_currentWidgetAction = BOTTOM_IMAGE;
+                        }
+
+                        LOG_INFO("Current action : %u", m_currentWidgetAction);
+                        //TODO
                         m_mainData->setCurrentAction(VFV_CURRENT_ACTION_ROTATING);
                         break;
+                    }
 
                     case RESIZE:
                         //Redo the viewport
@@ -154,72 +205,7 @@ namespace sereno
                         if(m_currentVis)
                         {
                             m_surfaceData->lock();
-                            {
-                                //Get the number of fingers down
-                                TouchCoord* tc1 = NULL;
-                                TouchCoord* tc2 = NULL;
-
-                                uint32_t numberFinger = 0;
-                                TouchCoord* tc = NULL;
-                                for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
-                                {
-                                    if(tc->type != TOUCH_TYPE_UP)
-                                    {
-                                        if(tc1 == NULL)
-                                            tc1 = tc;
-                                        else if(tc2 == NULL)
-                                            tc2 = tc;
-                                        numberFinger++;
-                                    }
-                                }
-
-                                //Scale
-                                if(numberFinger >= 2)
-                                {
-                                    //Determine if we are having a pitch
-                                    if((tc1->x - tc1->oldX) * (tc2->x - tc2->oldX) <= MAX_PINCH_OPPOSITE &&
-                                       (tc1->y - tc1->oldY) * (tc2->y - tc2->oldY) <= MAX_PINCH_OPPOSITE &&
-
-                                       (tc1->x - tc1->startX) * (tc2->x - tc2->startX) <= MAX_PINCH_OPPOSITE &&
-                                       (tc1->y - tc1->startY) * (tc2->y - tc2->startY) <= MAX_PINCH_OPPOSITE)
-                                    {
-                                        //Determine the scaling factor
-                                        float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
-                                                                   (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
-
-                                        float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
-                                                                    (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
-
-                                        float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
-                                                                    (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
-
-                                        if(abs(distanceAfter - distanceOrigin) >= MIN_PINCH_THRESHOLD)
-                                        {
-                                            float scale = distanceAfter / distanceBefore;
-
-                                            //Update the scale later
-                                            m_currentVis->getModel()->setScale(m_currentVis->getModel()->getScale() * scale);
-                                            auto it = modelChanged.find(m_currentVis->getModel());
-                                            if(it == modelChanged.end())
-                                                modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true}));
-                                            else
-                                                modelChanged[m_currentVis->getModel()].updateScale = true;
-
-                                        }
-                                    }
-                                }
-
-                                //Rotation
-                                else
-                                {
-                                    float roll  = event->touchEvent.x - event->touchEvent.oldX;
-                                    float pitch = event->touchEvent.y - event->touchEvent.oldY;
-                                    pitch = 0; //Disable pitch rotation
-
-                                    m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
-                                    m_mainData->sendRotationEvent(m_currentVis->getModel());
-                                }
-                            }
+                                handleTouchAction(&event->touchEvent, modelChanged);
                             m_surfaceData->unlock();
                         }
                         break;
@@ -404,6 +390,109 @@ namespace sereno
             else
                 usleep(2.0e3);
             m_surfaceData->renderer.swapBuffers();
+        }
+    }
+
+    void MainVFV::handleTouchAction(TouchEvent* event, std::map<const SubDataset*, SubDatasetChangement>& modelChanged)
+    {
+        switch(m_currentWidgetAction)
+        {
+            case TOP_RIGHT_IMAGE:
+            case BOTTOM_RIGHT_IMAGE:
+            case TOP_LEFT_IMAGE:
+            case BOTTOM_LEFT_IMAGE:
+            {
+                float factor = sqrt((event->y - event->oldY)*(event->y - event->oldY)+
+                                    (event->x - event->oldX)*(event->x - event->oldX));
+
+                //Check backward. Could also use startX and startY but.... this is easier
+                if(m_currentWidgetAction == TOP_RIGHT_IMAGE ||
+                   m_currentWidgetAction == TOP_LEFT_IMAGE)
+                {
+                    if(event->y - event->oldY > 0)
+                        factor *= -1;
+                }
+                else if(event->y - event->oldY < 0)
+                    factor *= -1;
+
+                //Modify the scale
+                glm::vec3 currentScale = m_currentVis->getModel()->getScale();
+                currentScale.y = currentScale.z = fmin(currentScale.x+factor, 0.0f);
+                m_currentVis->getModel()->setScale(currentScale);
+                break;
+            }
+
+            case NO_IMAGE:
+            {
+                //Get the number of fingers down
+                TouchCoord* tc1 = NULL;
+                TouchCoord* tc2 = NULL;
+
+                uint32_t numberFinger = 0;
+                TouchCoord* tc = NULL;
+                for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+                {
+                    if(tc->type != TOUCH_TYPE_UP)
+                    {
+                        if(tc1 == NULL)
+                            tc1 = tc;
+                        else if(tc2 == NULL)
+                            tc2 = tc;
+                        numberFinger++;
+                    }
+                }
+
+                //Scale
+                if(numberFinger >= 2)
+                {
+                    //Determine if we are having a pitch
+                    if((tc1->x - tc1->oldX) * (tc2->x - tc2->oldX) <= MAX_PINCH_OPPOSITE &&
+                       (tc1->y - tc1->oldY) * (tc2->y - tc2->oldY) <= MAX_PINCH_OPPOSITE &&
+
+                       (tc1->x - tc1->startX) * (tc2->x - tc2->startX) <= MAX_PINCH_OPPOSITE &&
+                       (tc1->y - tc1->startY) * (tc2->y - tc2->startY) <= MAX_PINCH_OPPOSITE)
+                    {
+                        //Determine the scaling factor
+                        float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
+                                                   (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
+
+                        float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
+                                                    (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
+
+                        float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
+                                                    (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
+
+                        if(abs(distanceAfter - distanceOrigin) >= MIN_PINCH_THRESHOLD)
+                        {
+                            float scale = distanceAfter / distanceBefore;
+
+                            //Update the scale later
+                            m_currentVis->getModel()->setScale(m_currentVis->getModel()->getScale() * scale);
+                            auto it = modelChanged.find(m_currentVis->getModel());
+                            if(it == modelChanged.end())
+                                modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true}));
+                            else
+                                modelChanged[m_currentVis->getModel()].updateScale = true;
+
+                        }
+                    }
+                }
+
+                //Rotation
+                else
+                {
+                    float roll  = event->x - event->oldX;
+                    float pitch = event->y - event->oldY;
+                    pitch = 0; //Disable pitch rotation
+
+                    m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
+                    m_mainData->sendRotationEvent(m_currentVis->getModel());
+                }
+                break;
+            }
+
+            default:
+            {}
         }
     }
 
