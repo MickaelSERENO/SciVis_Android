@@ -40,6 +40,16 @@ namespace sereno
             glUniformMatrix4fv(m_uMVP,       1, false, glm::value_ptr(mvpMat));
             glUniformMatrix4fv(m_uInvMVP,    1, false, glm::value_ptr(invMVPMat));
             glUniformMatrix4fv(m_uProjMat,   1, false, glm::value_ptr(projMat));
+
+            for(int i = 0; i < MATERIAL_MAXTEXTURE; i++)
+            {
+                if(m_textures[i].valid)
+                {
+                    glActiveTexture(GL_TEXTURE0+i);
+                    glBindTexture(m_textures[i].dim, m_textures[i].tex);
+                    glUniform1i(m_uTextures[i], i);
+                }
+            }
         }
     }
 
@@ -47,13 +57,18 @@ namespace sereno
     {
         if(id < MATERIAL_MAXTEXTURE && m_shader)
         {
-            glActiveTexture(GL_TEXTURE0+id);
+            m_textures[id].valid = true;
+            m_textures[id].tex   = textureID;
             if(textureDim == 1 || textureDim == 2)
-                glBindTexture(GL_TEXTURE_2D, textureID);
+                m_textures[id].dim = GL_TEXTURE_2D;
             else if(textureDim == 3)
-                glBindTexture(GL_TEXTURE_3D, textureID);
-            glUniform1i(m_uTextures[id], id);
+                m_textures[id].dim = GL_TEXTURE_3D;
         }
+    }
+
+    void Material::unbindTexture(uint8_t id)
+    {
+        m_textures[id].valid = false;
     }
 
     void Material::getAttributs()

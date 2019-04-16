@@ -16,11 +16,42 @@ namespace sereno
         if(mainData)
             mainData->setCallback(this);
 
-        //Load arrow mesh and material
+        //Load arrow mesh
         m_arrowMesh    = MeshLoader::loadFrom3DS(m_surfaceData->dataPath + "/Models/arrow.3ds");
+
+        //Load images data
+        const char* volumeImageManipPath[8];
+        volumeImageManipPath[TOP_IMAGE]          = "negativeYTranslation.png";
+        volumeImageManipPath[BOTTOM_IMAGE]       = "positiveYTranslation.png";
+        volumeImageManipPath[RIGHT_IMAGE]        = "negativeXTranslation.png";
+        volumeImageManipPath[LEFT_IMAGE]         = "positiveXTranslation.png";
+        volumeImageManipPath[TOP_LEFT_IMAGE]     = "topLeftNegativeScaling.png";
+        volumeImageManipPath[TOP_RIGHT_IMAGE]    = "topRightNegativeScaling.png";
+        volumeImageManipPath[BOTTOM_LEFT_IMAGE]  = "bottomLeftPositiveScaling.png";
+        volumeImageManipPath[BOTTOM_RIGHT_IMAGE] = "bottomRightPositiveScaling.png";
+
+        //Load every materials
         m_vfMtl        = new Material(&surfaceData->renderer, surfaceData->renderer.getShader("vectorField"));
         m_colorGridMtl = new ColorGridMaterial(&surfaceData->renderer);
+        m_textureMtl   = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
+        m_gpuTexVBO    = new TextureRectangleData();
 
+        //Load 3D images used to translate/rotate/scale the 3D datasets
+        m_3dImageManipTex = (Texture*)malloc(sizeof(Texture)*8);
+        m_3dImageManipGO = (DefaultGameObject*)malloc(sizeof(DefaultGameObject)*8);
+        for(int i = 0; i < 8; i++)
+        {
+            uint32_t texWidth, texHeight;
+            std::string texPath = surfaceData->dataPath + "/Images/" + volumeImageManipPath[i];
+            uint8_t* texData = getPNGRGBABytesFromFiles(texPath.c_str(), &texWidth, &texHeight);
+            new(m_3dImageManipTex+i) Texture(texWidth, texHeight, texData);
+            free(texData);
+            new(m_textureMtl+i) SimpleTextureMaterial(&surfaceData->renderer);
+            m_textureMtl[i].bindTexture(m_3dImageManipTex[i].getTextureID(), 2, 0);
+            new(m_3dImageManipGO+i) DefaultGameObject(NULL, &surfaceData->renderer, m_textureMtl+i, m_gpuTexVBO);
+        }
+
+        //Load the default scientific vis transfer functions
         uint32_t texSize[2] = {256, 256};
         for(uint32_t i = 0; i < SciVisTFEnum_End; i++)
             m_sciVisTFs.push_back(sciVisTFGenTexture((SciVisTFEnum)i, texSize));
@@ -35,6 +66,49 @@ namespace sereno
             glDeleteTextures(1, &tex);
         delete m_arrowMesh;
         delete m_vfMtl;
+        delete m_gpuTexVBO;
+        for(int i = 0; i < 8; i++)
+        {
+            m_textureMtl[i].~SimpleTextureMaterial();
+            m_3dImageManipTex[i].~Texture();
+            m_3dImageManipGO[i].~DefaultGameObject();
+        }
+        free(m_3dImageManipGO);
+    }
+
+    void MainVFV::placeWidgets()
+    {
+        //Nothing to do
+        if(m_surfaceData->renderer.getWidth() == 0.0)
+            return;
+
+        float width  = m_surfaceData->renderer.getWidth();
+        float height = m_surfaceData->renderer.getHeight();
+        float ratio  = height/width;
+
+        float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
+        float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
+
+        m_3dImageManipGO[LEFT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
+        m_3dImageManipGO[LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, 0.0f, 0.0f));
+
+        m_3dImageManipGO[RIGHT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
+        m_3dImageManipGO[RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, 0.0f, 0.0f));
+
+        m_3dImageManipGO[TOP_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth, 1.0f));
+        m_3dImageManipGO[TOP_IMAGE].setPosition(glm::vec3(0.0f, ratio-widgetWidth*0.5f, 0.0f));
+        m_3dImageManipGO[BOTTOM_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth, 1.0f));
+        m_3dImageManipGO[BOTTOM_IMAGE].setPosition(glm::vec3(0.0f, -ratio+widgetWidth*0.5f, 0.0f));
+
+        int corners[4] {TOP_LEFT_IMAGE, TOP_RIGHT_IMAGE, BOTTOM_RIGHT_IMAGE, BOTTOM_LEFT_IMAGE};
+        for(int i = 0; i < 4; i++)
+            m_3dImageManipGO[corners[i]].setScale(glm::vec3(widgetWidth, widgetWidth, 1.0));
+
+        m_3dImageManipGO[TOP_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, ratio-widgetWidth*0.5f, 0.0));
+        m_3dImageManipGO[TOP_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, ratio-widgetWidth*0.5f, 0.0));
+
+        m_3dImageManipGO[BOTTOM_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
+        m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
     }
 
     void MainVFV::run()
@@ -67,9 +141,12 @@ namespace sereno
                         //Redo the viewport
                         glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
                         m_surfaceData->renderer.setProjectionMatrix(glm::ortho(-1.0f, 1.0f,
-                                                                               -(float)(event->sizeEvent.height/event->sizeEvent.width),
-                                                                                (float)(event->sizeEvent.height/event->sizeEvent.width),
+                                                                               -((float)event->sizeEvent.height)/event->sizeEvent.width,
+                                                                                ((float)event->sizeEvent.height)/event->sizeEvent.width,
                                                                                -1.0f, 1.0f));
+                        m_surfaceData->renderer.swapBuffers();
+                        placeWidgets();
+
                         break;
 
                     case TOUCH_MOVE:
@@ -288,12 +365,14 @@ namespace sereno
 
             if(visible)
             {
+                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
                 //Draw the scene
                 if(m_currentVis != NULL)
                     m_currentVis->update(&m_surfaceData->renderer);
-
-                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                for(int i = 0; i < 8; i++)
+                    m_3dImageManipGO[i].update(&m_surfaceData->renderer);
 
                 m_surfaceData->renderer.render();
 

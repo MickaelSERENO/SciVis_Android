@@ -6,6 +6,7 @@
 #include <jni.h>
 #include <cstring>
 #include <vector>
+#include <cstdlib>
 
 #define ENUM_BODY(name, value)                  \
     name value,
@@ -37,6 +38,9 @@
 #define LOG_WARNING(fmt, ...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print an error on the android log */
 #define LOG_DEBUG(fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "%s:%d " fmt, __FILENAME__, __LINE__, ## __VA_ARGS__) /* <Print a  debug on the android log */
 
+#ifndef ERROR
+#define ERROR(x, ...) fprintf(stderr, x, ## __VA_ARGS__)
+#endif
 
 /* \brief Set a field of a Java Object from C++ value
  * Before calling it, pay attention to look at if jenv is defined (JNIEnv*) 

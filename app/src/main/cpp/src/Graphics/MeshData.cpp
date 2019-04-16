@@ -2,7 +2,7 @@
 
 namespace sereno
 {
-    MeshData::MeshData(MeshLoader* loader, GLRenderer* renderer, Material* mtl) : Drawable(renderer, mtl), m_subMeshData(loader->subMeshData)
+    MeshGPUData::MeshGPUData(MeshLoader* loader) : GPUData(), m_subMeshData(loader->subMeshData)
     {
         //Create VAO, VBO
         glGenVertexArrays(1, &m_vaoID);
@@ -27,13 +27,13 @@ namespace sereno
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
         glBindVertexArray(0);
+
+        m_nbVertices = loader->nbVertices;
+        m_mode       = GL_TRIANGLES;
     }
 
-    MeshData::~MeshData()
+    MeshData::MeshData(MeshGPUData* meshData, GLRenderer* renderer, Material* mtl) : Drawable(renderer, mtl), m_meshData(meshData)
     {
-        //Delete buffers + VAO
-        glDeleteBuffers(1, &m_vboID);
-        glDeleteVertexArrays(1, &m_vaoID);
     }
 
     void MeshData::draw(const glm::mat4& cameraMat)

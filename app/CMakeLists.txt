@@ -57,6 +57,7 @@ endif()
 #Check module in PKG
 find_package(PkgConfig              REQUIRED)
 PKG_CHECK_MODULES(LIB3DS            REQUIRED lib3ds)
+PKG_CHECK_MODULES(LIBPNG            REQUIRED libpng)
 PKG_CHECK_MODULES(GLM               REQUIRED glm)
 PKG_CHECK_MODULES(SERENO_VTK_PARSER REQUIRED serenoVTKParser)
 PKG_CHECK_MODULES(SERENO_MATH       REQUIRED serenoMath)
@@ -67,6 +68,7 @@ find_library(log-lib     log)
 find_library(android-lib android)
 find_library(egl-lib     EGL)
 find_library(gles-lib    GLESv3)
+find_library(z-lib       z)
 
 #######################
 #Add external libraries
@@ -77,6 +79,12 @@ findSO(3DS_SO LIB3DS)
 add_library(3ds-lib SHARED IMPORTED)
 set_target_properties(3ds-lib PROPERTIES
         IMPORTED_LOCATION "${3DS_SO}")
+
+#libpng
+findSO(LIBPNG_SO LIBPNG)
+add_library(png-lib SHARED IMPORTED)
+set_target_properties(png-lib PROPERTIES
+        IMPORTED_LOCATION "${LIBPNG_SO}")
 
 #sereno vtk parser
 findSO(SERENO_VTK_PARSER_SO SERENO_VTK_PARSER)
@@ -113,8 +121,8 @@ endif()
 add_library(native-lib SHARED ${SOURCES} ${HEADERS})
 add_definitions(-DSNAPSHOT)
 target_compile_options(native-lib PRIVATE ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS} ${SERENO_MATH_CFLAGS} ${SERENO_SCI_VIS_CFLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(native-lib ${GLM_LDFLAGS} 3ds-lib sereno_vtk_parser-lib sereno_math-lib sereno_sci_vis-lib
-                      ${log-lib} ${egl-lib} ${gles-lib} ${android-lib} ${OpenMP_EXE_LINKER_FLAGS})
+target_link_libraries(native-lib ${GLM_LDFLAGS} png-lib 3ds-lib sereno_vtk_parser-lib sereno_math-lib sereno_sci_vis-lib
+                      ${z-lib} ${log-lib} ${egl-lib} ${gles-lib} ${android-lib} ${OpenMP_EXE_LINKER_FLAGS})
 
 #Copy .so
 if(ANDROID)
@@ -124,6 +132,7 @@ if(ANDROID)
     add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SERENO_MATH_SO}       ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
     add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SERENO_VTK_PARSER_SO} ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
     add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${3DS_SO}               ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
+    add_custom_command(TARGET COPY_SO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LIBPNG_SO}            ${PROJECT_SOURCE_DIR}/libs/${CMAKE_ANDROID_ARCH_ABI}/)
 endif()
 
 #Gdb

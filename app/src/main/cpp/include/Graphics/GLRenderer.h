@@ -55,8 +55,8 @@ namespace sereno
             Shader* getCurrentShader() {return m_currentShader;}
 
             /* \brief Set the current in used shader */
-            void setCurrentShader(Shader* shader); 
-        private: 
+            void setCurrentShader(Shader* shader);
+        private:
             /* \brief Destroy the EGL surface without locking any mutex */
             void internalEglDestroySurface();
 
@@ -80,6 +80,8 @@ namespace sereno
 
             ResourcesManager<Shader*> m_shaders;              /*!< The shaders loaded by this OpenGL Renderer*/
             Shader*                   m_currentShader = NULL; /*!< The current in used shader program*/
+
+            friend GLSurfaceViewData;
     };
 }
 

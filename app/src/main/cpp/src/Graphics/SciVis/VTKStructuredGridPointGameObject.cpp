@@ -195,9 +195,9 @@ namespace sereno
         /*----------------------------------------------------------------------------*/
 
         glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP);
         m_mtl->bindTexture(m_texture,   3, 0);
         m_mtl->bindTexture(m_tfTexture, 2, 1);
+        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP);
 
         glDepthMask(false);
         glEnable(GL_BLEND);

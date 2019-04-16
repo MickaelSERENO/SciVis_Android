@@ -1,0 +1,4 @@
+#ifndef  DRAWABLETEXTURE_INC
+#define  DRAWABLETEXTURE_INC
+
+#endif

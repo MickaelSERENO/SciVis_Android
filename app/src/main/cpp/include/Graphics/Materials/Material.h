@@ -12,6 +12,13 @@
 
 namespace sereno
 {
+    struct TextureBinding
+    {
+        GLuint tex   = 0;     /*!< The texture GPU ID*/
+        bool   valid = false; /*!< Is this texture vlaid or not?*/
+        GLenum dim;           /*!< The texture dimension*/
+    };
+
     /* \brief Material class.*/
     class Material
     {
@@ -40,11 +47,15 @@ namespace sereno
                               const glm::mat4& invMVPMat);
 
             /**
-             * \brief  Bind a texture to this material
+             * \brief  Bind a texture to this material. Has to be called before "bindMaterial"
              * \param textureID the texture to bind
              * \param textureDim the texture dimension (1, 2 or 3. 1 and 2 are used as GL_TEXTURE_2D)
              * \param id the texture ID (GL_TEXTURE0, GL_TEXTURE1, etc.). Must be inferior than MATERIAL_MAXTEXTURE*/
             void bindTexture(GLuint textureID, uint8_t textureDim, uint8_t id);
+
+            /** \brief UNbind the texture ID's id
+             * \param id the texture ID to unbind*/
+            void unbindTexture(uint8_t id);
         protected:
             /* \brief Initialize the internal state of the Material
              * We ask so many matrix (which some can be calculated) for performance issue (not recomputing these in the material and in the object calling this method)
@@ -70,6 +81,8 @@ namespace sereno
             GLint       m_uMVP;       /*!< The uniform ID of uMVP*/
             GLint       m_uInvMVP;    /*!< The uniform ID of uInvMVP*/
             GLint       m_uTextures[MATERIAL_MAXTEXTURE]; /*!< The uniform IDs of uTexture<i>*/
+
+            TextureBinding m_textures[MATERIAL_MAXTEXTURE]; /*!< List of texture binding*/
     };
 }
 
