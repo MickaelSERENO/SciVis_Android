@@ -11,6 +11,7 @@ uniform vec3      uDimension;
 
 in vec3 varyBegRayOrigin;
 in vec2 varyPosition;
+in vec3 varyNormal;
 
 out vec4 fragColor;
 
@@ -27,7 +28,7 @@ bool computeRayPlaneIntersection(in vec3 rayOrigin, in vec3 rayNormal, in vec3 p
         return false;
 
     t = dot(planeNormal, planePosition-rayOrigin)/nDir;
-    return true;
+    return t >= 0.0;
 }
 
 /** \brief  Compute the ray-cube intersection
@@ -92,20 +93,21 @@ void main()
 {
     //Compute starting point + normal
     vec3 rayOrigin;
-    vec4 endRayOrigin = uInvMVP * vec4(varyPosition, 1.0, 1.0);
-    endRayOrigin     /= endRayOrigin.w;
+    vec3 rayNormal;
 
     if(uCameraParams.w == 0.0) //Perspective mode
-        rayOrigin = varyBegRayOrigin;
-    else
     {
-        vec4 begRayOrigin = uInvMVP * vec4(varyPosition, -1.0, 1.0);
-        rayOrigin     = begRayOrigin.xyz / begRayOrigin.w;
+        vec4 endRayOrigin = uInvMVP * vec4(varyPosition, 1.0, 1.0);
+        endRayOrigin     /= endRayOrigin.w;
+
+        rayOrigin = varyBegRayOrigin;
+        rayNormal = normalize(endRayOrigin.xyz - rayOrigin.xyz);
     }
-    
-    vec3 rayNormal = normalize(endRayOrigin.xyz - rayOrigin.xyz);
-
-
+    else //Orthographic mode, normal already computed
+    {
+        rayNormal = varyNormal;
+        rayOrigin = varyBegRayOrigin;
+    }
     //Compute ray - cube intersections
     float t[6];
     bool  tValidity[6];
@@ -116,7 +118,9 @@ void main()
     for(; !tValidity[startValidity]; startValidity++);
 
     if(startValidity == 6)
+    {
         discard;
+    }
 
     //If yes, look at the starting and end points
     float minT = t[startValidity];

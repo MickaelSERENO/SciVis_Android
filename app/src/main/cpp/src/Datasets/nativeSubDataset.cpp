@@ -79,7 +79,7 @@ JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetRotation(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     jfloatArray arr = jenv->NewFloatArray(4);
-    Quaternionf q   = ((SubDataset*)ptr)->getGlobalRotate();
+    const Quaternionf& q   = ((SubDataset*)ptr)->getGlobalRotate();
     float qArr[4] = {q.w, q.x, q.y, q.z};
     jenv->SetFloatArrayRegion(arr, 0, 4, qArr);
     return arr;
@@ -91,6 +91,40 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRotation(JNI
 
     SubDataset* sd = (SubDataset*)ptr;
     sd->setGlobalRotate(Quaternionf(qArr[1], qArr[2], qArr[3], qArr[0]));
+}
+
+JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetPosition(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    jfloatArray arr = jenv->NewFloatArray(4);
+    glm::vec3   p   = ((SubDataset*)ptr)->getPosition();
+    float pArr[3] = {p[0], p[1], p[2]};
+    jenv->SetFloatArrayRegion(arr, 0, 3, pArr);
+    return arr;
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetPosition(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray p)
+{
+    float* pArr = jenv->GetFloatArrayElements(p, 0);
+
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->setPosition(glm::vec3(pArr[0], pArr[1], pArr[2]));
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetScale(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray s)
+{
+    float* sArr = jenv->GetFloatArrayElements(s, 0);
+
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->setPosition(glm::vec3(sArr[0], sArr[1], sArr[2]));
+}
+
+JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetScale(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    jfloatArray arr = jenv->NewFloatArray(3);
+    glm::vec3   s   = ((SubDataset*)ptr)->getScale();
+    float sArr[3] = {s[0], s[1], s[2]};
+    jenv->SetFloatArrayRegion(arr, 0, 3, sArr);
+    return arr;
 }
 
 JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIEnv* jenv, jobject jobj, jlong ptr)

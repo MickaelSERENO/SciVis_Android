@@ -104,6 +104,14 @@ public class SubDataset
      * @return the rotation quaternion components*/
     public float[] getRotation() {return nativeGetRotation(m_ptr);}
 
+    /** Get the 3D position components. In order: x, y, z
+     * @return the position quaternion components*/
+    public float[] getPosition() {return nativeGetPosition(m_ptr);}
+
+    /** Get the 3D scaling components. In order: x, y, z
+     * @return the 3D scaling components*/
+    public float[] getScale() {return nativeGetScale(m_ptr);}
+
     /** Get the native pointer of the SubDataset
      * @return the native pointer*/
     public long getNativePtr()
@@ -153,12 +161,26 @@ public class SubDataset
     }
 
     /** Set the rotation of this SubDataset
-     * @param quaternion the new rotation to apply*/
+     * @param quaternion the new rotation to apply (w, x, y, z)*/
     public void setRotation(float[] quaternion)
     {
         nativeSetRotation(m_ptr, quaternion);
         for(ISubDatasetListener l : m_listeners)
             l.onRotationEvent(this, quaternion);
+    }
+
+    /** Set the position of this SubDataset
+     * @param position the new position to apply*/
+    public void setPosition(float[] position)
+    {
+        nativeSetScale(m_ptr, position);
+    }
+
+    /** Set the scaling of this SubDataset
+     * @param scale the new scale to apply*/
+    public void setScale(float[] scale)
+    {
+        nativeSetScale(m_ptr, scale);
     }
 
     /** Get the SubDataset name
@@ -228,6 +250,27 @@ public class SubDataset
      * @param ptr the native pointer
      * @param q the quaternion rotation*/
     private native void nativeSetRotation(long ptr, float[] q);
+
+    /** Get the 3D position components. In order: x, y, z
+     * @param ptr the native pointer
+     * @return the 3D position vector*/
+    private native float[] nativeGetPosition(long ptr);
+
+
+    /** Set the 3D position components. In order: x, y, z
+     * @param ptr the native pointer
+     * @param p the 3D position vector*/
+    private native void nativeSetPosition(long ptr, float[] p);
+
+    /** Get the 3D scale components. In order: x, y, z
+     * @param ptr the native pointer
+     * @return the 3D scale vector*/
+    private native float[] nativeGetScale(long ptr);
+
+    /** Set the 3D scale components. In order: x, y, z
+     * @param ptr the native pointer
+     * @param p the 3D scale vector*/
+    private native void nativeSetScale(long ptr, float[] s);
 
     /** Native code to set the range color of this SubDataset being displayed
      * @param ptr the native pointer

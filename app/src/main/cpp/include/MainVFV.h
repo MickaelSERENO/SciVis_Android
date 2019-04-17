@@ -21,8 +21,6 @@
 
 #define MAX_SNAPSHOT_COUNTER             30
 #define VTK_STRUCTURED_POINT_VIS_DENSITY 128
-#define MAX_PINCH_OPPOSITE  0.01
-#define MIN_PINCH_THRESHOLD 20
 #define WIDGET_WIDTH_PX     64
 
 #define SCIVIS_TF_COLOR(_, __, ___)\
@@ -116,6 +114,7 @@ namespace sereno
         bool updateColor    = false; /*!< Has the color been updated ?*/
         bool updateRotation = false; /*!< Has the rotation been updated ?*/
         bool updateScale    = false; /*!< Has the scaling been updated ?*/
+        bool updatePos      = false; /*!< Has the position been updated ?*/
     };
 
 

@@ -114,6 +114,7 @@ namespace sereno
         std::map<const SubDataset*, SubDatasetChangement> modelChanged;
 
         bool visible = true;
+        uint32_t cameraAnimT = 0;
 
         while(!m_surfaceData->isClosed())
         {
@@ -133,6 +134,13 @@ namespace sereno
                         if(numberFinger == 0)
                         {
                             m_currentWidgetAction = NO_IMAGE;
+                            cameraAnimT = 0;
+                            m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
+                                                                          -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                                           ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                                          -1.0f, 1.0f, false);
+                            m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+                            m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
                             m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
                         }
                         break;
@@ -140,51 +148,75 @@ namespace sereno
 
                     case TOUCH_DOWN:
                     {
-                        float width  = m_surfaceData->renderer.getWidth();
-                        float height = m_surfaceData->renderer.getHeight();
-                        float ratio  = height/width;
-                        float y = event->touchEvent.y*ratio; //Determine where y is
-                        float x = event->touchEvent.x;
+                        uint32_t numberFinger = 0;
+                        TouchCoord* tc = NULL;
+                        for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+                            if(tc->type != TOUCH_TYPE_UP)
+                                numberFinger++;
 
-                        float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
-                        float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
-
-                        //Determine current widget touched
-
-                        //Left
-                        if(x <= -1.0+widgetWidth)
+                        if(numberFinger == 1)
                         {
-                            if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
-                                m_currentWidgetAction = LEFT_IMAGE;
-                            else if(y > ratio-widgetWidth)
-                                m_currentWidgetAction = TOP_LEFT_IMAGE;
+                            float width  = m_surfaceData->renderer.getWidth();
+                            float height = m_surfaceData->renderer.getHeight();
+                            float ratio  = height/width;
+                            float y = event->touchEvent.y*ratio; //Determine where y is
+                            float x = event->touchEvent.x;
+
+                            float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
+                            float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
+
+                            //Determine current widget touched
+
+                            //Left
+                            if(x <= -1.0+widgetWidth)
+                            {
+                                if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
+                                    m_currentWidgetAction = LEFT_IMAGE;
+                                else if(y > ratio-widgetWidth)
+                                    m_currentWidgetAction = TOP_LEFT_IMAGE;
+                                else
+                                    m_currentWidgetAction = BOTTOM_LEFT_IMAGE;
+                            }
+
+                            //Right
+                            else if(x >= 1.0f-widgetWidth)
+                            {
+                                if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
+                                    m_currentWidgetAction = RIGHT_IMAGE;
+                                else if(y > ratio-widgetWidth)
+                                    m_currentWidgetAction = TOP_RIGHT_IMAGE;
+                                else
+                                    m_currentWidgetAction = BOTTOM_RIGHT_IMAGE;
+                            }
+
+                            //Center (top/bottom)
                             else
-                                m_currentWidgetAction = BOTTOM_LEFT_IMAGE;
-                        }
+                            {
+                                if(y > ratio-widgetWidth)
+                                    m_currentWidgetAction = TOP_IMAGE;
+                                else if(y < -ratio+widgetWidth)
+                                    m_currentWidgetAction = BOTTOM_IMAGE;
+                            }
 
-                        //Right
-                        else if(x >= 1.0f-widgetWidth)
-                        {
-                            if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
-                                m_currentWidgetAction = RIGHT_IMAGE;
-                            else if(y > ratio-widgetWidth)
-                                m_currentWidgetAction = TOP_RIGHT_IMAGE;
+                            if(m_currentWidgetAction == TOP_IMAGE ||
+                               m_currentWidgetAction == BOTTOM_IMAGE ||
+                               m_currentWidgetAction == LEFT_IMAGE ||
+                               m_currentWidgetAction == RIGHT_IMAGE)
+                            {
+                                m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
+                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
+                            }
+
+                            else if(m_currentWidgetAction == NO_IMAGE)
+                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_ROTATING);
                             else
-                                m_currentWidgetAction = BOTTOM_RIGHT_IMAGE;
+                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SCALING);
                         }
-
-                        //Center (top/bottom)
-                        else
+                        else //Pinch
                         {
-                            if(y > ratio-widgetWidth)
-                                m_currentWidgetAction = TOP_IMAGE;
-                            else if(y < -ratio+widgetWidth)
-                                m_currentWidgetAction = BOTTOM_IMAGE;
+                            m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
+                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
                         }
-
-                        LOG_INFO("Current action : %u", m_currentWidgetAction);
-                        //TODO
-                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_ROTATING);
                         break;
                     }
 
@@ -195,7 +227,7 @@ namespace sereno
                         m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
                                                                       -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
                                                                        ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                      -1.0f, 1.0f);
+                                                                      -1.0f, 1.0f, false);
                         placeWidgets();
                         break;
 
@@ -269,6 +301,7 @@ namespace sereno
                             std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
                             m_snapshots.insert(snap);
                             m_sciVis.back()->getModel()->setSnapshot(snap.second);
+                            m_sciVis.back()->setPosition(glm::vec3(0.0, 0.0, 0.0f));
                         }
                         if(m_currentVis == NULL)
                             m_currentVis = m_sciVis[0];
@@ -295,7 +328,7 @@ namespace sereno
                     {
                         auto it = modelChanged.find(event->sdEvent.sd);
                         if(it == modelChanged.end())
-                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{true, false, false}));
+                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{true, false, false, false}));
                         else
                             modelChanged[event->sdEvent.sd].updateColor = true;
                         break;
@@ -304,7 +337,7 @@ namespace sereno
                     {
                         auto it = modelChanged.find(event->sdEvent.sd);
                         if(it == modelChanged.end())
-                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{false, true, false}));
+                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{false, true, false, false}));
                         else
                             modelChanged[event->sdEvent.sd].updateRotation = true;
                         break;
@@ -346,24 +379,41 @@ namespace sereno
                     }
                 }
             }
+            
+
+            if(m_currentVis)
+            {
+                if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
+                    m_currentVis->setPosition(m_currentVis->getModel()->getPosition());
+                else
+                    m_currentVis->setPosition(glm::vec3(0, 0, 0));
+            }
             modelChanged.clear();
 
             if(visible)
             {
+
+                if(m_surfaceData->renderer.getCameraParams().w == 0.0 && cameraAnimT < 60)
+                {
+                    lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)5.0f+cameraAnimT)*glm::vec3(0.15f, 0.15f, -0.15f), glm::vec3(0.0, 0.0, 0.0), false);
+                    cameraAnimT++;
+                }
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 //Draw the scene
                 if(m_currentVis != NULL)
                     m_currentVis->update(&m_surfaceData->renderer);
-                for(int i = 0; i < 8; i++)
-                    m_3dImageManipGO[i].update(&m_surfaceData->renderer);
-
+                if(m_surfaceData->renderer.getCameraParams().w == 1.0) //Orthographic mode
+                    for(int i = 0; i < 8; i++)
+                        m_3dImageManipGO[i].update(&m_surfaceData->renderer);
                 m_surfaceData->renderer.render();
 
                 //Update the snapshot
                 if(m_currentVis)
+                {
                     m_snapshotCnt++;
+                }
                 if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
                 {
                     //Enlarge the pixel array
@@ -419,82 +469,119 @@ namespace sereno
                     glm::vec3 currentScale = m_currentVis->getModel()->getScale();
                     currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
                     m_currentVis->getModel()->setScale(currentScale);
-                    LOG_INFO("Factor : %f, currentScale : %f", (float)factor, (float)currentScale.x);
 
                     auto it = modelChanged.find(m_currentVis->getModel());
                     if(it == modelChanged.end())
-                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true}));
+                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true, false}));
                     else
                         modelChanged[m_currentVis->getModel()].updateScale = true;
                     break;
                 }
             }
 
+            case TOP_IMAGE:
+            case BOTTOM_IMAGE:
+            {
+                if(m_currentVis)
+                {
+                    m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(0.0f, event->y - event->oldY, 0.0f));
+                    auto it = modelChanged.find(m_currentVis->getModel());
+                    if(it == modelChanged.end())
+                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, false, true}));
+                    else
+                        modelChanged[m_currentVis->getModel()].updatePos = true;
+                }
+                break;
+            }
+            case RIGHT_IMAGE:
+            case LEFT_IMAGE:
+            {
+                if(m_currentVis)
+                {
+                    m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(event->x - event->oldX, 0.0f, 0.0f));
+                    auto it = modelChanged.find(m_currentVis->getModel());
+                    if(it == modelChanged.end())
+                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, false, true}));
+                    else
+                        modelChanged[m_currentVis->getModel()].updatePos = true;
+                }
+                break;
+            }
+
             case NO_IMAGE:
             {
-                //Get the number of fingers down
-                TouchCoord* tc1 = NULL;
-                TouchCoord* tc2 = NULL;
-
-                uint32_t numberFinger = 0;
-                TouchCoord* tc = NULL;
-                for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+                if(m_currentVis)
                 {
-                    if(tc->type != TOUCH_TYPE_UP)
+                    //Get the number of fingers down
+                    TouchCoord* tc1 = NULL;
+                    TouchCoord* tc2 = NULL;
+
+                    uint32_t numberFinger = 0;
+                    TouchCoord* tc = NULL;
+                    for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
                     {
-                        if(tc1 == NULL)
-                            tc1 = tc;
-                        else if(tc2 == NULL)
-                            tc2 = tc;
-                        numberFinger++;
-                    }
-                }
-
-                //Scale
-                if(numberFinger >= 2)
-                {
-                    //Determine if we are having a pitch
-                    if((tc1->x - tc1->oldX) * (tc2->x - tc2->oldX) <= MAX_PINCH_OPPOSITE &&
-                       (tc1->y - tc1->oldY) * (tc2->y - tc2->oldY) <= MAX_PINCH_OPPOSITE &&
-
-                       (tc1->x - tc1->startX) * (tc2->x - tc2->startX) <= MAX_PINCH_OPPOSITE &&
-                       (tc1->y - tc1->startY) * (tc2->y - tc2->startY) <= MAX_PINCH_OPPOSITE)
-                    {
-                        //Determine the scaling factor
-                        float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
-                                                   (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
-
-                        float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
-                                                    (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
-
-                        float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) * m_surfaceData->renderer.getWidth() * m_surfaceData->renderer.getWidth() / 4 +
-                                                    (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() * m_surfaceData->renderer.getHeight() / 4);
-
-                        if(abs(distanceAfter - distanceOrigin) >= MIN_PINCH_THRESHOLD)
+                        if(tc->type != TOUCH_TYPE_UP)
                         {
-                            float scale = distanceAfter / distanceBefore;
-
-                            //Update the scale later
-                            m_currentVis->getModel()->setScale(m_currentVis->getModel()->getScale() * scale);
-                            auto it = modelChanged.find(m_currentVis->getModel());
-                            if(it == modelChanged.end())
-                                modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true}));
-                            else
-                                modelChanged[m_currentVis->getModel()].updateScale = true;
-
+                            if(tc1 == NULL)
+                                tc1 = tc;
+                            else if(tc2 == NULL)
+                                tc2 = tc;
+                            numberFinger++;
                         }
                     }
-                }
 
-                //Rotation
-                else
-                {
-                    float roll  = event->x - event->oldX;
-                    float pitch = event->y - event->oldY;
-                    pitch = 0; //Disable pitch rotation
+                    //Z Translation
+                    if(numberFinger >= 2)
+                    {
+                        //Determine if we are having a pitch
+                        glm::vec2 vec1(tc1->x - tc1->oldX,
+                                       tc1->y - tc1->oldY);
 
-                    m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
-                    m_mainData->sendRotationEvent(m_currentVis->getModel());
+                        glm::vec2 vec2(tc2->x - tc2->oldX,
+                                       tc2->y - tc2->oldY);
+
+                        if((vec1.x != 0 || vec1.x != 0) &&
+                                (vec2.x != 0 || vec2.x != 0))
+                        {
+                            vec1 = glm::normalize(vec1);
+                            vec2 = glm::normalize(vec2);
+
+                            float cosVec = vec1.x*vec2.x + vec1.y*vec2.y;
+
+                            if(cosVec <= -0.8f)
+                            {
+                                //Determine the scaling factor
+                                float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) +
+                                        (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+
+                                float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) +
+                                        (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+
+                                float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) +
+                                        (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+
+                                float factor = distanceAfter - distanceBefore;
+
+                                m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(0.0f, 0.0f, factor));
+                                auto it = modelChanged.find(m_currentVis->getModel());
+                                if(it == modelChanged.end())
+                                    modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, false, true}));
+                                else
+                                    modelChanged[m_currentVis->getModel()].updatePos = true;
+                            }
+                        }
+                    }
+
+                    //Rotation
+                    else
+                    {
+                        float roll  = event->x - event->oldX;
+                        float pitch = event->y - event->oldY;
+                        pitch = 0; //Disable pitch rotation
+
+                        m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
+                        m_mainData->sendRotationEvent(m_currentVis->getModel());
+                    }
                 }
                 break;
             }

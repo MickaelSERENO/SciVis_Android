@@ -23,6 +23,10 @@ extern "C"
 
 	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRotation(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray q);
 
+	JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetPosition(JNIEnv* jenv, jobject jobj, jlong ptr);
+
+	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetPosition(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray p);
+
 	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRangeColor(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max, jint mode);
 
 	JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIEnv* jenv, jobject jobj, jlong ptr);
