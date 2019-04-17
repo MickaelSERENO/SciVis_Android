@@ -2,12 +2,15 @@
 
 precision mediump float;
 
+uniform mat4 uInvMVP;
+uniform vec4 uCameraParams;
+
 uniform sampler3D uTexture0;
 uniform sampler2D uTexture1;
 uniform vec3      uDimension;
 
-in vec3 varyRayNormal;
-in vec4 varyRayOrigin;
+in vec3 varyBegRayOrigin;
+in vec2 varyPosition;
 
 out vec4 fragColor;
 
@@ -17,9 +20,9 @@ out vec4 fragColor;
  * \param planePosition the plane position 
  * \param t[out] the parameter t of the ray equation
  * \return   true if intersection, false otherwise */
-bool computeRayPlaneIntersection(in vec3 rayOrigin, in vec3 planeNormal, in vec3 planePosition, out float t)
+bool computeRayPlaneIntersection(in vec3 rayOrigin, in vec3 rayNormal, in vec3 planeNormal, in vec3 planePosition, out float t)
 {
-    float nDir = dot(planeNormal, varyRayNormal);
+    float nDir = dot(planeNormal, rayNormal);
     if(nDir == 0.0)
         return false;
 
@@ -30,27 +33,27 @@ bool computeRayPlaneIntersection(in vec3 rayOrigin, in vec3 planeNormal, in vec3
 /** \brief  Compute the ray-cube intersection
  *
  * \param rayOrigin the ray origin
- * \param t[6] the t values (pos = rayOrigin +t*varyRayNormal)
+ * \param t[6] the t values (pos = rayOrigin +t*rayNormal)
  * \param tValidity[6] the t validity (is t[i] a valid value?) */
-void computeRayCubeIntersection(in vec3 rayOrigin, out float t[6], out bool tValidity[6])
+void computeRayCubeIntersection(in vec3 rayOrigin, in vec3 rayNormal, out float t[6], out bool tValidity[6])
 {
     //Left
-    tValidity[0] = computeRayPlaneIntersection(rayOrigin, vec3(-1,  0,  0),
+    tValidity[0] = computeRayPlaneIntersection(rayOrigin, rayNormal, vec3(-1,  0,  0),
                                                vec3(-0.5, -0.5, -0.5), t[0]);
     //Right
-    tValidity[1] = computeRayPlaneIntersection(rayOrigin, vec3( 1,  0,  0),
+    tValidity[1] = computeRayPlaneIntersection(rayOrigin, rayNormal, vec3( 1,  0,  0),
                                                vec3(0.5, -0.5, -0.5), t[1]);
     //Top
-    tValidity[2] = computeRayPlaneIntersection(rayOrigin, vec3( 0,  1,  0),
+    tValidity[2] = computeRayPlaneIntersection(rayOrigin, rayNormal, vec3( 0,  1,  0),
                                                vec3(-0.5, 0.5, -0.5), t[2]);
     //Bottom
-    tValidity[3] = computeRayPlaneIntersection(rayOrigin, vec3( 0, -1,  0),
+    tValidity[3] = computeRayPlaneIntersection(rayOrigin, rayNormal, vec3( 0, -1,  0),
                                                vec3(-0.5, -0.5, -0.5), t[3]);
     //Front
-    tValidity[4] = computeRayPlaneIntersection(rayOrigin, vec3( 0,  0, -1),
+    tValidity[4] = computeRayPlaneIntersection(rayOrigin, rayNormal, vec3( 0,  0, -1),
                                                vec3(-0.5, -0.5, -0.5), t[4]);
     //Back
-    tValidity[5] = computeRayPlaneIntersection(rayOrigin, vec3( 0,  0,  1),
+    tValidity[5] = computeRayPlaneIntersection(rayOrigin, rayNormal, vec3( 0,  0,  1),
                                                vec3(-0.5, -0.5, 0.5), t[5]);
 
     //Test the limits
@@ -59,7 +62,7 @@ void computeRayCubeIntersection(in vec3 rayOrigin, out float t[6], out bool tVal
         //Left / Right
         if(tValidity[i])
         {
-            vec3 p = t[i]*varyRayNormal + rayOrigin;
+            vec3 p = t[i]*rayNormal + rayOrigin;
             if(p.y <= -0.5 || p.y >= 0.5 ||
                p.z <= -0.5 || p.z >= 0.5)
                 tValidity[i] = false;
@@ -68,7 +71,7 @@ void computeRayCubeIntersection(in vec3 rayOrigin, out float t[6], out bool tVal
         //Top / Bottom
         if(tValidity[i+2])
         {
-            vec3 p = t[i+2]*varyRayNormal + rayOrigin;
+            vec3 p = t[i+2]*rayNormal + rayOrigin;
             if(p.x <= -0.5 || p.x >= 0.5 ||
                p.z <= -0.5 || p.z >= 0.5)
                 tValidity[i+2] = false;
@@ -77,7 +80,7 @@ void computeRayCubeIntersection(in vec3 rayOrigin, out float t[6], out bool tVal
         //Front / Back
         if(tValidity[i+4])
         {
-            vec3 p = t[i+4]*varyRayNormal + rayOrigin;
+            vec3 p = t[i+4]*rayNormal + rayOrigin;
             if(p.x <= -0.5 || p.x >= 0.5 ||
                p.y <= -0.5 || p.y >= 0.5)
                 tValidity[i+4] = false;
@@ -87,10 +90,26 @@ void computeRayCubeIntersection(in vec3 rayOrigin, out float t[6], out bool tVal
 
 void main()
 {
+    //Compute starting point + normal
+    vec3 rayOrigin;
+    vec4 endRayOrigin = uInvMVP * vec4(varyPosition, 1.0, 1.0);
+    endRayOrigin     /= endRayOrigin.w;
+
+    if(uCameraParams.w == 0.0) //Perspective mode
+        rayOrigin = varyBegRayOrigin;
+    else
+    {
+        vec4 begRayOrigin = uInvMVP * vec4(varyPosition, -1.0, 1.0);
+        rayOrigin     = begRayOrigin.xyz / begRayOrigin.w;
+    }
+    
+    vec3 rayNormal = normalize(endRayOrigin.xyz - rayOrigin.xyz);
+
+
     //Compute ray - cube intersections
     float t[6];
     bool  tValidity[6];
-    computeRayCubeIntersection(varyRayOrigin.xyz, t, tValidity);
+    computeRayCubeIntersection(rayOrigin, rayNormal, t, tValidity);
 
     //Determine if the ray touched the cube or not
     int startValidity = 0;
@@ -116,13 +135,13 @@ void main()
     //compute step and maximum number of steps
     float rayStep = 1.0/(max(max(uDimension.x, uDimension.y), uDimension.z)*3.0);
 
-    vec3 rayPos = varyRayOrigin.xyz + minT*varyRayNormal + vec3(0.5, 0.5, 0.5);
+    vec3 rayPos = rayOrigin.xyz + minT*rayNormal + vec3(0.5, 0.5, 0.5);
 
     //Ray marching algorithm
     fragColor = vec4(0, 0, 0, 0);
-    for(; minT < maxT; minT+=rayStep, rayPos += varyRayNormal*rayStep)
+    for(; minT < maxT; minT+=rayStep, rayPos += rayNormal*rayStep)
     {
-        vec2 tfCoord = textureLod(uTexture0, rayPos, 1.0).rg;
+        vec2 tfCoord = textureLod(uTexture0, rayPos, 0.0).rg;
         vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
         fragColor.xyz = fragColor.xyz + (1.0 - fragColor.a)*tfColor.a*tfColor.xyz;
         fragColor.a = fragColor.a + tfColor.a*(1.0 - fragColor.a); 
@@ -135,7 +154,7 @@ void main()
     }
 
     //At t=maxT
-    /*vec2 tfCoord = textureLod(uTexture0, varyRayOrigin.xyz + maxT*varyRayNormal + vec3(0.5, 0.5, 0.5), 2.0).rg;
+    /*vec2 tfCoord = textureLod(uTexture0, rayOrigin.xyz + maxT*rayNormal + vec3(0.5, 0.5, 0.5), 2.0).rg;
     vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
 
     fragColor.xyz = fragColor.xyz + (1.0 - fragColor.a)*tfColor.a*tfColor.xyz;

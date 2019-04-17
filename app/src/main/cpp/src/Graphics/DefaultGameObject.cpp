@@ -42,13 +42,15 @@ namespace sereno
     DefaultGameObject::DefaultGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, GPUData* data) : GameObject(parent, renderer, mtl), m_gpuData(data) 
     {}
     
-    void DefaultGameObject::draw(const glm::mat4& cameraMat, const glm::mat4& projMat)
+    void DefaultGameObject::draw(const Render& render)
     {
+        const glm::mat4& cameraMat = render.getCameraMatrix();
+        const glm::mat4& projMat   = render.getProjectionMatrix();
         glm::mat4 mat = getMatrix();
         glm::mat4 mvp = projMat*cameraMat*mat;
 
         glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP);
+        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
 
         glBindVertexArray(m_gpuData->getVAO());
         {

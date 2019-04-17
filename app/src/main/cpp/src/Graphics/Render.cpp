@@ -3,7 +3,7 @@
 
 namespace sereno
 {
-    Render::Render() : m_cameraMatrix(1.0f), m_projMatrix(1.0f)
+    Render::Render() : m_cameraMatrix(1.0f), m_projMatrix(1.0f), m_cameraParams(0.0f, 0.0f, 0.0f, 1.0f)
     {}
 
     Render::~Render()
@@ -12,12 +12,25 @@ namespace sereno
     void Render::render()
     {
         for(Drawable* d : m_currentDrawable)
-            d->draw(m_cameraMatrix, m_projMatrix);
+            d->draw(*this);
         m_currentDrawable.clear();
     }
 
     void Render::addToDraw(Drawable* d)
     {
         m_currentDrawable.push_back(d);
+    }
+
+    void Render::setOrthographicMatrix(float left, float right, float bottom, float top, float near, float far)
+    {
+        m_projMatrix     = glm::ortho(left, right, bottom, top, near, far);
+        m_cameraParams.w = 1.0f;
+    }
+
+
+    void Render::setPerspectiveMatrix(float fovY, float aspect, float near, float far)
+    {
+        m_projMatrix = glm::perspective(fovY, aspect, near, far);
+        m_cameraParams.w = 0.0f;
     }
 }

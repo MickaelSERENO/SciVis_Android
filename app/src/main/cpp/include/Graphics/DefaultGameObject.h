@@ -22,7 +22,7 @@ namespace sereno
              * \param gpuData which GPUData to use?*/
             DefaultGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, GPUData* gpuData);
 
-            void draw(const glm::mat4& cameraMat, const glm::mat4& projMat);
+            void draw(const Render& render);
         private:
             GPUData* m_gpuData; /*!< Pointer to the GPU Data (VBO, VAO)*/
     };

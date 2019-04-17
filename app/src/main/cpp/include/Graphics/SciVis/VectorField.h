@@ -39,7 +39,7 @@ namespace sereno
              * \return the binary dataset model of this VectorField*/
             std::shared_ptr<BinaryDataset> getBinaryDatasetModel() const {return m_binaryDataset;}
 
-            void draw(const glm::mat4& cameraMat, const glm::mat4& projMat);
+            void draw(const Render& render);
 
             void setColorRange(float min, float max, ColorMode colorMode);
         private:

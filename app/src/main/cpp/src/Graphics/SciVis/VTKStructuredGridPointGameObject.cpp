@@ -138,8 +138,10 @@ namespace sereno
         free(m_vals);
     }
 
-    void VTKStructuredGridPointGameObject::draw(const glm::mat4& cameraMat, const glm::mat4& projMat)
+    void VTKStructuredGridPointGameObject::draw(const Render& render)
     {
+        const glm::mat4& cameraMat = render.getCameraMatrix();
+        const glm::mat4& projMat   = render.getProjectionMatrix();
         glm::mat4 mat = getMatrix();
         glm::mat4 mvp = projMat*cameraMat*mat;
 
@@ -197,7 +199,7 @@ namespace sereno
         glm::mat4 invMVP = glm::inverse(mvp);
         m_mtl->bindTexture(m_texture,   3, 0);
         m_mtl->bindTexture(m_tfTexture, 2, 1);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP);
+        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
 
         glDepthMask(false);
         glEnable(GL_BLEND);

@@ -42,9 +42,9 @@ namespace sereno
              * \param projMat the projection matrix (projection)
              * \param mvpMat objMat*cameraMat
              * \param invMVPMat inverse(invMVPMat)*/
-            void bindMaterial(const glm::mat4& objMat, const glm::mat4& cameraMat,
-                              const glm::mat4& projMat, const glm::mat4& mvpMat,
-                              const glm::mat4& invMVPMat);
+            void bindMaterial(const glm::mat4& objMat,    const glm::mat4& cameraMat,
+                              const glm::mat4& projMat,   const glm::mat4& mvpMat,
+                              const glm::mat4& invMVPMat, const glm::vec4& cameraParams);
 
             /**
              * \brief  Bind a texture to this material. Has to be called before "bindMaterial"
@@ -63,10 +63,11 @@ namespace sereno
              * \param cameraMat the camera matrix (view)
              * \param projMat the projection matrix (projection)
              * \param mvpMat objMat*cameraMat
-             * \param invMVPMat inverse(invMVPMat)*/
-            virtual void initMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
-                                      const glm::mat4& projMat, const glm::mat4& mvpMat,
-                                      const glm::mat4& invMVPMat);
+             * \param invMVPMat inverse(invMVPMat)
+             * \param cameraParams the camera parameters. Only w is used for now. w == 1.0 -> orthographic, w == 0.0 -> perspective*/
+            virtual void initMaterial(const glm::mat4& objMat,    const glm::mat4& cameraMat,
+                                      const glm::mat4& projMat,   const glm::mat4& mvpMat,
+                                      const glm::mat4& invMVPMat, const glm::vec4& cameraParams);
             
             /* \brief Get the material attributs from the shader. Mostly these attributes are uniform location */
             void getAttributs();
@@ -75,11 +76,14 @@ namespace sereno
             GLRenderer* m_glRenderer; /*!< The OpenGL Context renderer. Note that the object will slightly being modified. 
                                            Indeed, the current shader information will be modified in order to not rebind multiple times the same Shader*/
 
-            GLint       m_uProjMat;   /*!< The uniform ID of uProjMat*/
-            GLint       m_uCameraMat; /*!< The uniform ID of uCameraMat*/
-            GLint       m_uObjMat;    /*!< The uniform ID of uObjMat*/
-            GLint       m_uMVP;       /*!< The uniform ID of uMVP*/
-            GLint       m_uInvMVP;    /*!< The uniform ID of uInvMVP*/
+            GLint       m_uProjMat;      /*!< The uniform ID of uProjMat*/
+            GLint       m_uCameraMat;    /*!< The uniform ID of uCameraMat*/
+            GLint       m_uObjMat;       /*!< The uniform ID of uObjMat*/
+            GLint       m_uMVP;          /*!< The uniform ID of uMVP*/
+            GLint       m_uInvMVP;       /*!< The uniform ID of uInvMVP*/
+            GLint       m_uInvMV;        /*!< The uniform ID of uInvMV*/
+            GLint       m_uInvP;         /*!< The uniform ID of uInvP*/
+            GLint       m_uCameraParams; /*!< The uniform ID of the uCameraParams*/
             GLint       m_uTextures[MATERIAL_MAXTEXTURE]; /*!< The uniform IDs of uTexture<i>*/
 
             TextureBinding m_textures[MATERIAL_MAXTEXTURE]; /*!< List of texture binding*/

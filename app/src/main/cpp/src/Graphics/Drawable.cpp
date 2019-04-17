@@ -9,7 +9,7 @@ namespace sereno
     Drawable::~Drawable()
     {}
 
-    void Drawable::draw(const glm::mat4& cameraMat, const glm::mat4& projMat)
+    void Drawable::draw(const Render& render)
     {}
 
     void Drawable::postDraw(const glm::mat4& cameraMat)

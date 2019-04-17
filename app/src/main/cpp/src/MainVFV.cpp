@@ -190,14 +190,13 @@ namespace sereno
 
                     case RESIZE:
                         //Redo the viewport
-                        glViewport(0, 0, event->sizeEvent.width, event->sizeEvent.height);
-                        m_surfaceData->renderer.setProjectionMatrix(glm::ortho(-1.0f, 1.0f,
-                                                                               -((float)event->sizeEvent.height)/event->sizeEvent.width,
-                                                                                ((float)event->sizeEvent.height)/event->sizeEvent.width,
-                                                                               -1.0f, 1.0f));
                         m_surfaceData->renderer.swapBuffers();
+                        glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
+                        m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
+                                                                      -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                                       ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                                      -1.0f, 1.0f);
                         placeWidgets();
-
                         break;
 
                     case TOUCH_MOVE:
@@ -402,24 +401,33 @@ namespace sereno
             case TOP_LEFT_IMAGE:
             case BOTTOM_LEFT_IMAGE:
             {
-                float factor = sqrt((event->y - event->oldY)*(event->y - event->oldY)+
-                                    (event->x - event->oldX)*(event->x - event->oldX));
-
-                //Check backward. Could also use startX and startY but.... this is easier
-                if(m_currentWidgetAction == TOP_RIGHT_IMAGE ||
-                   m_currentWidgetAction == TOP_LEFT_IMAGE)
+                if(m_currentVis)
                 {
-                    if(event->y - event->oldY > 0)
-                        factor *= -1;
-                }
-                else if(event->y - event->oldY < 0)
-                    factor *= -1;
+                    float factor = sqrt((event->y - event->oldY)*(event->y - event->oldY)+
+                                        (event->x - event->oldX)*(event->x - event->oldX));
 
-                //Modify the scale
-                glm::vec3 currentScale = m_currentVis->getModel()->getScale();
-                currentScale.y = currentScale.z = fmin(currentScale.x+factor, 0.0f);
-                m_currentVis->getModel()->setScale(currentScale);
-                break;
+                    float inv    = (((event->y - event->startY)*(event->y - event->startY)+
+                                     (event->x - event->startX)*(event->x - event->startX)) > ((event->startY - event->oldY)*(event->startY - event->oldY)+
+                                                                                               (event->startX - event->oldX)*(event->startX - event->oldX))) ? 1.0f : -1.0f;
+                    factor *= inv;
+
+                    if(m_currentWidgetAction == TOP_RIGHT_IMAGE ||
+                       m_currentWidgetAction == TOP_LEFT_IMAGE)
+                        factor *= -1.0f;
+
+                    //Modify the scale
+                    glm::vec3 currentScale = m_currentVis->getModel()->getScale();
+                    currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
+                    m_currentVis->getModel()->setScale(currentScale);
+                    LOG_INFO("Factor : %f, currentScale : %f", (float)factor, (float)currentScale.x);
+
+                    auto it = modelChanged.find(m_currentVis->getModel());
+                    if(it == modelChanged.end())
+                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true}));
+                    else
+                        modelChanged[m_currentVis->getModel()].updateScale = true;
+                    break;
+                }
             }
 
             case NO_IMAGE:

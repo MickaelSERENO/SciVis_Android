@@ -130,12 +130,15 @@ namespace sereno
         glDeleteVertexArrays(1, &m_vaoID);
     }
 
-    void VectorField::draw(const glm::mat4& cameraMat, const glm::mat4& projMat)
+    void VectorField::draw(const Render& render)
     {
-        glm::mat4 mat    = getMatrix();
-        glm::mat4 mvp    = projMat*cameraMat*mat;
+        const glm::mat4& cameraMat = render.getCameraMatrix();
+        const glm::mat4& projMat   = render.getProjectionMatrix();
+        glm::mat4 mat = getMatrix();
+        glm::mat4 mvp = projMat*cameraMat*mat;
         glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP);
+
+        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
         m_mtl->bindTexture(m_tfTexture, m_tfTextureDim, 0);
         glBindVertexArray(m_vaoID);
         {

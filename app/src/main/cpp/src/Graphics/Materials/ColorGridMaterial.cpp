@@ -14,9 +14,9 @@ namespace sereno
 
     void ColorGridMaterial::initMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
                                          const glm::mat4& projMat, const glm::mat4& mvpMat,
-                                         const glm::mat4& invMVPMat)
+                                         const glm::mat4& invMVPMat, const glm::vec4& cameraParams)
     {
-        Material::initMaterial(objMat, cameraMat, projMat, mvpMat, invMVPMat);
+        Material::initMaterial(objMat, cameraMat, projMat, mvpMat, invMVPMat, cameraParams);
         if(m_shader)
         {
             glUniform3fv(m_uSpacing,   1, m_spacing);

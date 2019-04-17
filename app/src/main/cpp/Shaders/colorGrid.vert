@@ -2,19 +2,25 @@
 
 precision mediump float;
 
-uniform mat4 uMVP;
 uniform mat4 uInvMVP;
+uniform mat4 uProjMat;
+uniform mat4 uInvP;
+uniform mat4 uInvMV;
+uniform vec4 uCameraParams;
 
 in  vec2 vPosition;
 
-out vec3 varyRayNormal;
-out vec4 varyRayOrigin;
+out vec3 varyBegRayOrigin;
+out vec2 varyPosition;
 
 void main()
 {
-	gl_Position   = vec4(vPosition, -1.0, 1.0);
+	gl_Position  = vec4(vPosition, -1.0, 1.0);
+    varyPosition = vPosition;
 
-    varyRayNormal = normalize(vec3(vec4(0, 0, 1, 1)*uMVP)); //Normal in model space
-    varyRayOrigin = uInvMVP*gl_Position;                    //Origin in model space
-    varyRayOrigin/= varyRayOrigin.w;
+    if(uCameraParams.w == 0.0) //Perspective mode
+    {
+        vec4 begRayOrigin = vec4(0, 0, -1.0, 1.0) * uInvMVP;
+        varyBegRayOrigin  = begRayOrigin.xyz / begRayOrigin.w;
+    }
 }

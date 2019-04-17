@@ -164,16 +164,13 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
     {
         if(t.value != null && extend && t.value.getVisibility() != GONE)
         {
+            if(t.getChildren().size() > 0)
+                leftOffset += m_extendWidth;
+
             int maxWidth  = Math.max(0, state.maximumWidth-leftOffset);
             int maxHeight = Math.max(0, state.maximumHeight-state.topOffset);
 
-            if(t.getChildren().size() > 0)
-            {
-                leftOffset += m_extendWidth;
-                state.topOffset += Math.max(m_extendHeight - t.value.getMeasuredHeight(), 0.0);
-            }
-
-            measureChild(t.value, MeasureSpec.makeMeasureSpec(maxWidth,  state.widthMode), MeasureSpec.makeMeasureSpec(maxHeight, state.heightMode));
+            measureChild(t.value, MeasureSpec.makeMeasureSpec(maxWidth, state.widthMode), MeasureSpec.makeMeasureSpec(maxHeight, state.heightMode));
 
             state.height = Math.max(state.topOffset+t.value.getMeasuredHeight(), state.height);
             state.width  = Math.max(leftOffset+t.value.getMeasuredWidth(), state.width);
@@ -181,6 +178,9 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
 
             leftOffset += m_leftOffsetPerLevel;
             state.measureState = combineMeasuredStates(state.measureState, t.value.getMeasuredState());
+
+            if(t.getChildren().size() > 0)
+                state.topOffset += Math.max(m_extendHeight - t.value.getMeasuredHeight(), 0.0);
         }
 
         extend = extend && t.getExtend();
@@ -228,12 +228,11 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
                               int left, int top, int right, int bottom, Tree<View> leaf, boolean extend)
     {
         final View child = leaf.value;
-        int height=0;
 
         if(child != null && extend && child.getVisibility() != GONE)
         {
             final int width = child.getMeasuredWidth();
-            height = child.getMeasuredHeight();
+            final int height = child.getMeasuredHeight();
 
             //Place for the expend logo
             if(leaf.getChildren().size() > 0)

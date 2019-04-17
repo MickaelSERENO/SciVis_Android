@@ -12,7 +12,7 @@ namespace sereno
 
     void Material::bindMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
                                 const glm::mat4& projMat, const glm::mat4& mvpMat,
-                                const glm::mat4& invMVPMat)
+                                const glm::mat4& invMVPMat, const glm::vec4& cameraParams)
     {
         //Check the shader
         if(m_shader == NULL)
@@ -26,12 +26,12 @@ namespace sereno
             m_glRenderer->setCurrentShader(m_shader);
 
         //Init the internal state of the material (mostly set Uniform values)
-        initMaterial(objMat, cameraMat, projMat, mvpMat, invMVPMat);
+        initMaterial(objMat, cameraMat, projMat, mvpMat, invMVPMat, cameraParams);
     }
 
-    void Material::initMaterial(const glm::mat4& objMat,  const glm::mat4& cameraMat,
-                                const glm::mat4& projMat, const glm::mat4& mvpMat,
-                                const glm::mat4& invMVPMat)
+    void Material::initMaterial(const glm::mat4& objMat,    const glm::mat4& cameraMat,
+                                const glm::mat4& projMat,   const glm::mat4& mvpMat,  
+                                const glm::mat4& invMVPMat, const glm::vec4& cameraParams)
     {
         if(m_shader)
         {
@@ -40,6 +40,12 @@ namespace sereno
             glUniformMatrix4fv(m_uMVP,       1, false, glm::value_ptr(mvpMat));
             glUniformMatrix4fv(m_uInvMVP,    1, false, glm::value_ptr(invMVPMat));
             glUniformMatrix4fv(m_uProjMat,   1, false, glm::value_ptr(projMat));
+            if(m_uInvP != -1)
+                glUniformMatrix4fv(m_uInvP, 1, false, glm::value_ptr(glm::inverse(projMat)));
+            if(m_uInvMV != -1)
+                glUniformMatrix4fv(m_uInvMV, 1, false, glm::value_ptr(invMVPMat * projMat));
+
+            glUniform4fv(m_uCameraParams, 1, glm::value_ptr(cameraParams));
 
             for(int i = 0; i < MATERIAL_MAXTEXTURE; i++)
             {
@@ -75,11 +81,15 @@ namespace sereno
     {
         if(m_shader)
         {
-            m_uCameraMat = glGetUniformLocation(m_shader->getProgramID(), "uCameraMat");
-            m_uObjMat    = glGetUniformLocation(m_shader->getProgramID(), "uObjMat");
-            m_uMVP       = glGetUniformLocation(m_shader->getProgramID(), "uMVP");
-            m_uInvMVP    = glGetUniformLocation(m_shader->getProgramID(), "uInvMVP");
-            m_uProjMat   = glGetUniformLocation(m_shader->getProgramID(), "uProjMat");
+            m_uCameraMat    = glGetUniformLocation(m_shader->getProgramID(), "uCameraMat");
+            m_uObjMat       = glGetUniformLocation(m_shader->getProgramID(), "uObjMat");
+            m_uMVP          = glGetUniformLocation(m_shader->getProgramID(), "uMVP");
+            m_uInvMVP       = glGetUniformLocation(m_shader->getProgramID(), "uInvMVP");
+            m_uProjMat      = glGetUniformLocation(m_shader->getProgramID(), "uProjMat");
+            m_uInvMV        = glGetUniformLocation(m_shader->getProgramID(), "uInvMV");
+            m_uInvP         = glGetUniformLocation(m_shader->getProgramID(), "uInvP");
+            m_uCameraParams = glGetUniformLocation(m_shader->getProgramID(), "uCameraParams");
+
             for(uint32_t i = 0; i < MATERIAL_MAXTEXTURE; i++)
                 m_uTextures[i] = glGetUniformLocation(m_shader->getProgramID(), ("uTexture"+std::to_string(i)).c_str());
         }
