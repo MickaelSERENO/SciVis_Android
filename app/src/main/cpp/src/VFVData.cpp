@@ -1,3 +1,5 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <jniData.h>
 #include "VFVData.h"
 #include "utils.h"
@@ -32,18 +34,25 @@ namespace sereno
         m_clbk = clbk;
     }
 
+    void VFVData::updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status)
+    {
+        lock();
+            m_headsetsStatus = status;
+        unlock();
+    }
+
     void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset, const std::vector<jobject>& jSubDatasets)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_BINARY_DATA);
         ev->binaryData.dataset = dataset;
 
-        pthread_mutex_lock(&m_mutex);
+        lock();
         {
             m_datas.push_back(dataset);
             for(int i = 0; i < jSubDatasets.size(); i++)
                 m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
-        pthread_mutex_unlock(&m_mutex);
+        unlock();
         addEvent(ev);
     }
 
@@ -52,14 +61,14 @@ namespace sereno
         VFVEvent* ev = new VFVEvent(VFV_ADD_VTK_DATA);
         ev->vtkData.dataset = dataset;
 
-        pthread_mutex_lock(&m_mutex);
+        lock();
         {
             m_datas.push_back(dataset);
             for(int i = 0; i < jSubDatasets.size(); i++)
                 m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
 
-        pthread_mutex_unlock(&m_mutex);
+        unlock();
         addEvent(ev);
     }
 
@@ -85,18 +94,29 @@ namespace sereno
 
     void VFVData::onRangeColorChange(float min, float max, ColorMode mode, SubDataset* sd)
     {
-        VFVEvent* ev = NULL;
-        ev = new VFVEvent(VFV_COLOR_RANGE_CHANGED);
-        ev->sdEvent.sd = sd;
-
-        addEvent(ev);
+        addSubDatasetEvent(sd, VFV_COLOR_RANGE_CHANGED);
     }
 
     void VFVData::onRotationChange(SubDataset* data)
     {
+        addSubDatasetEvent(data, VFV_SET_ROTATION_DATA);
+    }
+
+    void VFVData::onPositionChange(SubDataset* data)
+    {
+        addSubDatasetEvent(data, VFV_SET_POSITION_DATA);
+    }
+
+    void VFVData::onScaleChange(SubDataset* data)
+    {
+        addSubDatasetEvent(data, VFV_SET_SCALE_DATA);
+    }
+
+    void VFVData::addSubDatasetEvent(SubDataset* sd, VFVEventType type)
+    {
         VFVEvent* ev = NULL;
-        ev = new VFVEvent(VFV_SET_ROTATION_DATA);
-        ev->sdEvent.sd = data;
+        ev = new VFVEvent(type);
+        ev->sdEvent.sd = sd;
 
         addEvent(ev);
     }
@@ -104,7 +124,7 @@ namespace sereno
     VFVEvent* VFVData::pollEvent()
     {
         VFVEvent* ev = NULL;
-        pthread_mutex_lock(&m_mutex);
+        lock();
         {
             if(m_events.size() > 0)
             {
@@ -112,16 +132,16 @@ namespace sereno
                 m_events.pop_front();
             }
         }
-        pthread_mutex_unlock(&m_mutex);
+        unlock();
 
         return ev;
     }
 
     void VFVData::addEvent(VFVEvent* ev)
     {
-        pthread_mutex_lock(&m_mutex);
+        lock();
             m_events.push_back(ev);
-        pthread_mutex_unlock(&m_mutex);
+        unlock();
     }
 
     /*----------------------------------------------------------------------------*/
@@ -136,6 +156,26 @@ namespace sereno
         jniMainThread->SetFloatArrayRegion(arr, 0, 4, qArr);
 
         jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setRotation, arr);
+        jniMainThread->DeleteLocalRef(arr);
+    }
+
+    void VFVData::sendPositionEvent(SubDataset* sd)
+    {
+        //Create the quaternion array
+        jfloatArray arr = jniMainThread->NewFloatArray(3);
+        jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getPosition()));
+
+        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setPosition, arr);
+        jniMainThread->DeleteLocalRef(arr);
+    }
+
+    void VFVData::sendScaleEvent(SubDataset* sd)
+    {
+        //Create the quaternion array
+        jfloatArray arr = jniMainThread->NewFloatArray(3);
+        jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getScale()));
+
+        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setScale, arr);
         jniMainThread->DeleteLocalRef(arr);
     }
 

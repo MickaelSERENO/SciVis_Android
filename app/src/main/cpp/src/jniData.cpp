@@ -22,7 +22,16 @@ namespace sereno
 
     jclass    jSubDatasetClass                 = 0;
     jmethodID jSubDataset_setRotation          = 0;
+    jmethodID jSubDataset_setPosition          = 0;
+    jmethodID jSubDataset_setScale             = 0;
     jmethodID jSubDataset_onSnapshotEvent      = 0;
+
+    jclass    jHeadsetStatusClass              = 0;
+    jfieldID  jHeadsetStatus_position          = 0;
+    jfieldID  jHeadsetStatus_rotation          = 0;
+    jfieldID  jHeadsetStatus_id                = 0;
+    jfieldID  jHeadsetStatus_color             = 0;
+    jfieldID  jHeadsetStatus_currentAction     = 0;
 }
 
 using namespace sereno;
@@ -49,6 +58,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jBitmapConfigClass   = getJNIClassGlobalReference(env, "android/graphics/Bitmap$Config");
     jDatasetClass        = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/Dataset");
     jSubDatasetClass     = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
+    jHeadsetStatusClass  = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetsStatusMessage$HeadsetStatus");
 
     //Load methods
     jVFVSurfaceView_getCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "getCurrentAction", "()I");
@@ -58,11 +68,19 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
 
     jSubDataset_setRotation     = env->GetMethodID(jSubDatasetClass, "setRotation", "([F)V");
+    jSubDataset_setPosition     = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
+    jSubDataset_setScale        = env->GetMethodID(jSubDatasetClass, "setScale", "([F)V");
     jSubDataset_onSnapshotEvent = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
 
     //Load fields
     jBitmapConfig_ARGB   = env->GetStaticFieldID(jBitmapConfigClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
     jBitmap_createBitmap = env->GetStaticMethodID(jBitmapClass, "createBitmap", "([IIILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+
+    jHeadsetStatus_position      = env->GetFieldID(jHeadsetStatusClass, "position",      "[F");
+    jHeadsetStatus_rotation      = env->GetFieldID(jHeadsetStatusClass, "rotation",      "[F");
+    jHeadsetStatus_id            = env->GetFieldID(jHeadsetStatusClass, "id",            "I");
+    jHeadsetStatus_color         = env->GetFieldID(jHeadsetStatusClass, "color",         "I");
+    jHeadsetStatus_currentAction = env->GetFieldID(jHeadsetStatusClass, "currentAction", "I");
     
     //Load static object
     jobject bmpConfARGB = env->GetStaticObjectField(jBitmapConfigClass, jBitmapConfig_ARGB);

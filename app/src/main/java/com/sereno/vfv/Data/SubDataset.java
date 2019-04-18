@@ -27,6 +27,16 @@ public class SubDataset
          * @param quaternion the quaternion rotation*/
         void onRotationEvent(SubDataset dataset, float[] quaternion);
 
+        /** Method called when a translation on the current SubDataset is performed
+         * @param dataset the dataset being rotated
+         * @param position the new 3D position*/
+        void onPositionEvent(SubDataset dataset, float[] position);
+
+        /** Method called when a new scaling on the current SubDataset is performed
+         * @param dataset the dataset being rotated
+         * @param scale the new scaling factors*/
+        void onScaleEvent(SubDataset dataset, float[] scale);
+
         /** Method called when a new snapshot on the current SubDataset is performed
          * @param dataset the dataset creating a new snapshot
          * @param snapshot the snapshot created*/
@@ -173,7 +183,9 @@ public class SubDataset
      * @param position the new position to apply*/
     public void setPosition(float[] position)
     {
-        nativeSetScale(m_ptr, position);
+        nativeSetPosition(m_ptr, position);
+        for(ISubDatasetListener l : m_listeners)
+            l.onPositionEvent(this, position);
     }
 
     /** Set the scaling of this SubDataset
@@ -181,6 +193,8 @@ public class SubDataset
     public void setScale(float[] scale)
     {
         nativeSetScale(m_ptr, scale);
+        for(ISubDatasetListener l : m_listeners)
+            l.onScaleEvent(this, scale);
     }
 
     /** Get the SubDataset name

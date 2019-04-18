@@ -25,7 +25,16 @@ namespace sereno
 
     extern jclass    jSubDatasetClass;
     extern jmethodID jSubDataset_setRotation;
+    extern jmethodID jSubDataset_setPosition;
+    extern jmethodID jSubDataset_setScale;
     extern jmethodID jSubDataset_onSnapshotEvent;
+
+    extern jclass    jHeadsetStatusClass;
+    extern jfieldID  jHeadsetStatus_position;
+    extern jfieldID  jHeadsetStatus_rotation;
+    extern jfieldID  jHeadsetStatus_id;
+    extern jfieldID  jHeadsetStatus_color;
+    extern jfieldID  jHeadsetStatus_currentAction;
 }
 
 extern "C"

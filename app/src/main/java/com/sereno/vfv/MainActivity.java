@@ -37,9 +37,11 @@ import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
+import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
+import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
@@ -236,6 +238,26 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onPositionEvent(SubDataset dataset, float[] position)
+    {
+        DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
+
+        //If everything is correct, send the rotation event
+        if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
+            m_socket.push(SocketManager.createPositionEvent(idBinding, dataset.getPosition()));
+    }
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale)
+    {
+        DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
+
+        //If everything is correct, send the rotation event
+        if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
+            m_socket.push(SocketManager.createScaleEvent(idBinding, dataset.getScale()));
+    }
+
+    @Override
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
@@ -293,6 +315,36 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    /** Get the SubDataset from its ID
+     * @param dID the dataset ID
+     * @param sdID the subdataset ID*/
+    private SubDataset getSubDatasetFromID(int dID, int sdID)
+    {
+        Dataset dataset = null;
+        for(BinaryDataset d : m_model.getBinaryDatasets())
+        {
+            if(d.getID() == dID)
+            {
+                dataset = d;
+                break;
+            }
+        }
+
+        if(dataset == null)
+            for(VTKDataset d : m_model.getVTKDatasets())
+            {
+                if(d.getID() == dID)
+                {
+                    dataset = d;
+                    break;
+                }
+            }
+
+        if(dataset == null)
+            return null;
+        return dataset.getSubDataset(sdID);
+    }
+
     @Override
     public void onRotateDatasetMessage(final RotateDatasetMessage msg)
     {
@@ -300,46 +352,69 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Dataset dataset = null;
-                for(BinaryDataset d : m_model.getBinaryDatasets())
-                {
-                    if(d.getID() == msg.getDatasetID())
-                    {
-                        dataset = d;
-                        break;
-                    }
-                }
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
 
-                if(dataset == null)
-                    for(VTKDataset d : m_model.getVTKDatasets())
-                    {
-                        if(d.getID() == msg.getDatasetID())
-                        {
-                            dataset = d;
-                            break;
-                        }
-                    }
-
-                if(dataset != null)
+                if(sd != null)
                 {
                     //Remove and re add the listener for not ending in a while loop
-                    dataset.getSubDataset(msg.getSubDatasetID()).removeListener(MainActivity.this);
-                        dataset.getSubDataset(msg.getSubDatasetID()).setRotation(msg.getRotation());
-                    dataset.getSubDataset(msg.getSubDatasetID()).addListener(MainActivity.this);
+                    sd.removeListener(MainActivity.this);
+                        sd.setRotation(msg.getRotation());
+                    sd.addListener(MainActivity.this);
                 }
             }
         });
     }
 
     @Override
-    public void onMoveDatasetMessage(MoveDatasetMessage msg)
+    public void onMoveDatasetMessage(final MoveDatasetMessage msg)
     {
-        //TODO
+        //Find the dataset
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+
+                if(sd != null)
+                {
+                    //Remove and re add the listener for not ending in a while loop
+                    sd.removeListener(MainActivity.this);
+                        sd.setPosition(msg.getPosition());
+                    sd.addListener(MainActivity.this);
+                }
+            }
+        });
     }
 
     @Override
-    public void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg)
-    {}
+    public void onScaleDatasetMessage(final ScaleDatasetMessage msg)
+    {
+        //Find the dataset
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+
+                if(sd != null)
+                {
+                    //Remove and re add the listener for not ending in a while loop
+                    sd.removeListener(MainActivity.this);
+                        sd.setScale(msg.getScale());
+                    sd.addListener(MainActivity.this);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onHeadsetBindingInfoMessage(final HeadsetBindingInfoMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_model.setBindingInfo(msg);
+            }
+        });
+    }
 
     @Override
     public void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg)
@@ -348,8 +423,26 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_model.setHeadsetsStatus(msg.getStatus());
+            }
+        });
+    }
+
+    @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {}
+
+    @Override
+    public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus)
+    {}
+
+    @Override
+    public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info) {}
 
     @Override
     public void onEnableSwipping(Fragment fragment)

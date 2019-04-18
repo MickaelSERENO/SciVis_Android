@@ -9,6 +9,8 @@ import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
+import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
+import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
 
 import java.util.ArrayList;
@@ -107,6 +109,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeChangeCurrentSubDataset(m_ptr, sd.getNativePtr());
     }
 
+    @Override
+    public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus)
+    {
+        nativeUpdateHeadsetsStatus(m_ptr, headsetsStatus);
+    }
+
+    @Override
+    public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
+    {
+        //TODO
+    }
+
     public void onAddDataset(ApplicationModel model, Dataset d)
     {
         for(int i = 0; i < d.getNbSubDataset(); i++)
@@ -123,6 +137,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {
         nativeOnRotationChange(m_ptr, dataset.getNativePtr());
+    }
+
+    @Override
+    public void onPositionEvent(SubDataset dataset, float[] position)
+    {
+        nativeOnPositionChange(m_ptr, dataset.getNativePtr());
+    }
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale)
+    {
+        nativeOnScaleChange(m_ptr, dataset.getNativePtr());
     }
 
     @Override
@@ -189,8 +215,23 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param sdPtr the SubDataset native pointer*/
     private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode, long sdPtr);
 
-    /** Send an event regarding an update from a SubDataset roation
+    /** Send an event regarding an update from a SubDataset rotation
      * @param ptr the ptr associated with the main Argument
      * @param sdPtr the SubDataset native pointer*/
     private native void nativeOnRotationChange(long ptr, long sdPtr);
+
+    /** Send an event regarding an update from a SubDataset position
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the SubDataset native pointer*/
+    private native void nativeOnPositionChange(long ptr, long sdPtr);
+
+    /** Send an event regarding an update from a SubDataset scaling
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the SubDataset native pointer*/
+    private native void nativeOnScaleChange(long ptr, long sdPtr);
+
+    /** Update the headsets status in the native code to display correctly the status of each persons
+     * @param ptr the ptr associated with the main Argument
+     * @param status array of the current Headsets Status*/
+    private native void nativeUpdateHeadsetsStatus(long ptr, HeadsetsStatusMessage.HeadsetStatus[] status);
 }

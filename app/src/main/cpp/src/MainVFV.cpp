@@ -111,9 +111,7 @@ namespace sereno
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        std::map<const SubDataset*, SubDatasetChangement> modelChanged;
-
-        bool visible = true;
+        bool     visible = true;
         uint32_t cameraAnimT = 0;
 
         while(!m_surfaceData->isClosed())
@@ -236,7 +234,7 @@ namespace sereno
                         if(m_currentVis)
                         {
                             m_surfaceData->lock();
-                                handleTouchAction(&event->touchEvent, modelChanged);
+                                handleTouchAction(&event->touchEvent);
                             m_surfaceData->unlock();
                         }
                         break;
@@ -255,113 +253,10 @@ namespace sereno
             }
 
             //Handle events sent from JNI for our application (application wise)
-            while(VFVEvent* event = m_mainData->pollEvent())
-            {
-                switch(event->getType())
-                {
-                    //Add binary dataset
-                    case VFV_ADD_BINARY_DATA:
-                        if(m_arrowMesh)
-                        {
-                            //Create the visualization
-                            m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
-                                                                     event->binaryData.dataset, m_arrowMesh, 
-                                                                     m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
-                            m_sciVis.push_back(m_vectorFields.back());
-                            m_sciVisDefaultTF.insert(SciVisPair(m_vectorFields.back(), RAINBOW_DefaultTF));
-
-                            //Set state
-                            m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_DefaultTF]);
-                            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
-                            m_snapshots.insert(snap);
-                            m_sciVis.back()->getModel()->setSnapshot(snap.second);
-
-                            if(m_currentVis == NULL)
-                                m_currentVis = m_sciVis[0];
-                            break;
-                        }
-
-                    //Add VTK Dataset
-                    case VFV_ADD_VTK_DATA:
-                        m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
-                                                                                             m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
-                        m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
-                        float dim[3];
-                        for(uint8_t i = 0; i < 3; i++)
-                            dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i];
-                        m_colorGridMtl->setDimension(dim);
-
-                        for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
-                        {
-                            m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
-                            m_sciVisDefaultTF.insert(SciVisPair(m_sciVis.back(), RAINBOW_TriangularGTF));
-
-                            //Set internal state
-                            m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
-                            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
-                            m_snapshots.insert(snap);
-                            m_sciVis.back()->getModel()->setSnapshot(snap.second);
-                            m_sciVis.back()->setPosition(glm::vec3(0.0, 0.0, 0.0f));
-                        }
-                        if(m_currentVis == NULL)
-                            m_currentVis = m_sciVis[0];
-                        break;
-
-                    case VFV_DEL_DATA:
-                    {
-                        //Check if the current sci vis is being deleted
-                        if(m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
-                            m_currentVis = NULL;
-
-                        //Check vector field
-                        for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
-                            if((*it)->getModel()->getParent() == event->dataset.dataset.get())
-                            {
-                                delete (*it);
-                                m_vectorFields.erase(it);
-                                break;
-                            }
-                        break;
-                    }
-
-                    case VFV_COLOR_RANGE_CHANGED:
-                    {
-                        auto it = modelChanged.find(event->sdEvent.sd);
-                        if(it == modelChanged.end())
-                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{true, false, false, false}));
-                        else
-                            modelChanged[event->sdEvent.sd].updateColor = true;
-                        break;
-                    }
-                    case VFV_SET_ROTATION_DATA:
-                    {
-                        auto it = modelChanged.find(event->sdEvent.sd);
-                        if(it == modelChanged.end())
-                            modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(event->sdEvent.sd, SubDatasetChangement{false, true, false, false}));
-                        else
-                            modelChanged[event->sdEvent.sd].updateRotation = true;
-                        break;
-                    }
-                    case VFV_SET_CURRENT_DATA:
-                    {
-                        //Find which SciVis this sub dataset belongs to and change the current sci vis
-                        for(auto it : m_sciVis)
-                            if(it->getModel() == event->sdEvent.sd)
-                            {
-                                m_currentVis = it;
-                                break;
-                            }
-                        break;
-                    }
-                    default:
-                        LOG_ERROR("type %d still has to be done\n", event->getType());
-                        break;
-                }
-                delete event;
-            }
+            handleVFVDataEvent();
 
             //Apply the model changement (rotation + color)
-            for(auto& it : modelChanged)
+            for(auto& it : m_modelChanged)
             {
                 for(auto sciVis : m_sciVis)
                 {
@@ -388,14 +283,14 @@ namespace sereno
                 else
                     m_currentVis->setPosition(glm::vec3(0, 0, 0));
             }
-            modelChanged.clear();
+            m_modelChanged.clear();
 
             if(visible)
             {
 
-                if(m_surfaceData->renderer.getCameraParams().w == 0.0 && cameraAnimT < 60)
+                if(m_surfaceData->renderer.getCameraParams().w == 0.0 && cameraAnimT < 20)
                 {
-                    lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)5.0f+cameraAnimT)*glm::vec3(0.15f, 0.15f, -0.15f), glm::vec3(0.0, 0.0, 0.0), false);
+                    lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)5.0f+cameraAnimT)*glm::vec3(0.50f, 0.50f, -0.50f), glm::vec3(0.0, 0.0, 0.0), false);
                     cameraAnimT++;
                 }
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -442,7 +337,7 @@ namespace sereno
         }
     }
 
-    void MainVFV::handleTouchAction(TouchEvent* event, std::map<const SubDataset*, SubDatasetChangement>& modelChanged)
+    void MainVFV::handleTouchAction(TouchEvent* event)
     {
         switch(m_currentWidgetAction)
         {
@@ -469,14 +364,9 @@ namespace sereno
                     glm::vec3 currentScale = m_currentVis->getModel()->getScale();
                     currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
                     m_currentVis->getModel()->setScale(currentScale);
-
-                    auto it = modelChanged.find(m_currentVis->getModel());
-                    if(it == modelChanged.end())
-                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, true, false}));
-                    else
-                        modelChanged[m_currentVis->getModel()].updateScale = true;
-                    break;
+                    m_mainData->sendScaleEvent(m_currentVis->getModel());
                 }
+                break;
             }
 
             case TOP_IMAGE:
@@ -485,11 +375,7 @@ namespace sereno
                 if(m_currentVis)
                 {
                     m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(0.0f, event->y - event->oldY, 0.0f));
-                    auto it = modelChanged.find(m_currentVis->getModel());
-                    if(it == modelChanged.end())
-                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, false, true}));
-                    else
-                        modelChanged[m_currentVis->getModel()].updatePos = true;
+                    m_mainData->sendPositionEvent(m_currentVis->getModel());
                 }
                 break;
             }
@@ -499,11 +385,7 @@ namespace sereno
                 if(m_currentVis)
                 {
                     m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(event->x - event->oldX, 0.0f, 0.0f));
-                    auto it = modelChanged.find(m_currentVis->getModel());
-                    if(it == modelChanged.end())
-                        modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, false, true}));
-                    else
-                        modelChanged[m_currentVis->getModel()].updatePos = true;
+                    m_mainData->sendPositionEvent(m_currentVis->getModel());
                 }
                 break;
             }
@@ -563,11 +445,7 @@ namespace sereno
                                 float factor = distanceAfter - distanceBefore;
 
                                 m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(0.0f, 0.0f, factor));
-                                auto it = modelChanged.find(m_currentVis->getModel());
-                                if(it == modelChanged.end())
-                                    modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(m_currentVis->getModel(), SubDatasetChangement{false, false, false, true}));
-                                else
-                                    modelChanged[m_currentVis->getModel()].updatePos = true;
+                                m_mainData->sendPositionEvent(m_currentVis->getModel());
                             }
                         }
                     }
@@ -589,6 +467,129 @@ namespace sereno
             default:
             {}
         }
+    }
+
+    void MainVFV::handleVFVDataEvent()
+    {
+        while(VFVEvent* event = m_mainData->pollEvent())
+        {
+            switch(event->getType())
+            {
+                //Add binary dataset
+                case VFV_ADD_BINARY_DATA:
+                    if(m_arrowMesh)
+                    {
+                        //Create the visualization
+                        m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
+                                                                 event->binaryData.dataset, m_arrowMesh, 
+                                                                 m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
+                        m_sciVis.push_back(m_vectorFields.back());
+                        m_sciVisDefaultTF.insert(SciVisPair(m_vectorFields.back(), RAINBOW_DefaultTF));
+
+                        //Set state
+                        m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_DefaultTF]);
+                        std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
+                        m_snapshots.insert(snap);
+                        m_sciVis.back()->getModel()->setSnapshot(snap.second);
+
+                        if(m_currentVis == NULL)
+                            m_currentVis = m_sciVis[0];
+                        break;
+                    }
+
+                //Add VTK Dataset
+                case VFV_ADD_VTK_DATA:
+                    m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
+                                                                                         m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
+                    m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
+                    float dim[3];
+                    for(uint8_t i = 0; i < 3; i++)
+                        dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i];
+                    m_colorGridMtl->setDimension(dim);
+
+                    for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
+                    {
+                        m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
+                        m_sciVisDefaultTF.insert(SciVisPair(m_sciVis.back(), RAINBOW_TriangularGTF));
+
+                        //Set internal state
+                        m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
+                        std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
+                        m_snapshots.insert(snap);
+                        m_sciVis.back()->getModel()->setSnapshot(snap.second);
+                    }
+                    if(m_currentVis == NULL)
+                        m_currentVis = m_sciVis[0];
+                    break;
+
+                case VFV_DEL_DATA:
+                {
+                    //Check if the current sci vis is being deleted
+                    if(m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
+                        m_currentVis = NULL;
+
+                    //Check vector field
+                    for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
+                        if((*it)->getModel()->getParent() == event->dataset.dataset.get())
+                        {
+                            delete (*it);
+                            m_vectorFields.erase(it);
+                            break;
+                        }
+                    break;
+                }
+
+                case VFV_COLOR_RANGE_CHANGED:
+                {
+                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, false, false, false));
+                    break;
+                }
+
+                case VFV_SET_ROTATION_DATA:
+                {
+                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(false, true, false, false));
+                    break;
+                }
+
+                case VFV_SET_POSITION_DATA:
+                {
+                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(false, false, false, true));
+                    break;
+                }
+
+                case VFV_SET_SCALE_DATA:
+                {
+                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(false, false, true, false));
+                    break;
+                }
+
+                case VFV_SET_CURRENT_DATA:
+                {
+                    //Find which SciVis this sub dataset belongs to and change the current sci vis
+                    for(auto it : m_sciVis)
+                        if(it->getModel() == event->sdEvent.sd)
+                        {
+                            m_currentVis = it;
+                            break;
+                        }
+                    break;
+                }
+                default:
+                    LOG_ERROR("type %d still has to be done\n", event->getType());
+                    break;
+            }
+            delete event;
+        }
+    }
+
+    void MainVFV::addSubDataChangement(const SubDataset* sd, const SubDatasetChangement& sdChangement)
+    {
+        auto it = m_modelChanged.find(sd);
+        if(it == m_modelChanged.end())
+            m_modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(sd, sdChangement));
+        else
+            for(int i = 0; i < sizeof(sdChangement._data)/sizeof(sdChangement._data[0]); i++)
+                m_modelChanged[m_currentVis->getModel()]._data[i] |= sdChangement._data[i];
     }
 
     void MainVFV::onRemoveData(const std::string& dataPath)

@@ -20,6 +20,8 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
+import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
+import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
@@ -172,6 +174,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd) {
 
     }
+
+    @Override
+    public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus) {}
+
+    @Override
+    public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info) {}
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -400,6 +408,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+    @Override
+    public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale) {}
 
     @Override
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}

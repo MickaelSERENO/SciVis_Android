@@ -111,10 +111,39 @@ namespace sereno
 
     struct SubDatasetChangement
     {
-        bool updateColor    = false; /*!< Has the color been updated ?*/
-        bool updateRotation = false; /*!< Has the rotation been updated ?*/
-        bool updateScale    = false; /*!< Has the scaling been updated ?*/
-        bool updatePos      = false; /*!< Has the position been updated ?*/
+        SubDatasetChangement(bool col = false, bool rot = false, bool sca = false, bool pos = false)
+        {
+            bool cpy[] = {col, rot, sca, pos};
+            for(int i = 0; i < sizeof(cpy)/sizeof(cpy[0]); i++)
+                _data[i] = cpy[i];
+        }
+
+        SubDatasetChangement(const SubDatasetChangement& cpy)
+        {
+            *this = cpy;
+        }
+
+        SubDatasetChangement& operator=(const SubDatasetChangement& cpy)
+        {
+            for(int i = 0; i < sizeof(_data)/sizeof(_data[0]); i++)
+                _data[i] = cpy._data[i];
+            return *this;
+        }
+
+        ~SubDatasetChangement()
+        {}
+
+        union
+        {
+            struct
+            {
+                bool updateColor;    /*!< Has the color been updated ?*/
+                bool updateRotation; /*!< Has the rotation been updated ?*/
+                bool updateScale;    /*!< Has the scaling been updated ?*/
+                bool updatePos;      /*!< Has the position been updated ?*/
+            };
+            bool _data[4];
+        };
     };
 
 
@@ -146,9 +175,16 @@ namespace sereno
             void placeWidgets();
 
             /* \brief Handles the touch event 
-             * \param event the touch event received 
-             * \param modelChanged the hashmap storing what model changed*/
-            void handleTouchAction(TouchEvent* event, std::map<const SubDataset*, SubDatasetChangement>& modelChanged);
+             * \param event the touch event received*/ 
+            void handleTouchAction(TouchEvent* event);
+
+            /** \brief Handles the VFVData event*/
+            void handleVFVDataEvent();
+
+            /* \brief  Add a new subdataset changement into the m_modelCHanged list
+             * \param sd the subdataset being updated
+             * \param sdChangement the changement metadata*/
+            void addSubDataChangement(const SubDataset* sd, const SubDatasetChangement& sdChangement);
 
             GLSurfaceViewData* m_surfaceData; /*!< The GL Surface associated with this application */
             VFVData*           m_mainData;    /*!< The main data*/
@@ -173,7 +209,9 @@ namespace sereno
             Texture*              m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
             DefaultGameObject*    m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
 
-            uint32_t              m_currentWidgetAction = NO_IMAGE;
+            uint32_t              m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
+
+            std::map<const SubDataset*, SubDatasetChangement> m_modelChanged; /*!< Map of the current model being changed*/
 
             typedef std::pair<SciVis*, SciVisTFEnum> SciVisPair;
     };

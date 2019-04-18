@@ -9,6 +9,8 @@
 #include <memory>
 #include <cstdint>
 #include <jni.h>
+#include <vector>
+#include "HeadsetStatus.h"
 #include "Datasets/BinaryDataset.h"
 #include "Datasets/VTKDataset.h"
 #include "ColorMode.h"
@@ -23,6 +25,8 @@ namespace sereno
         VFV_DEL_DATA,            /*!< Data removed*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
+        VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
+        VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
         VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
     };
 
@@ -134,6 +138,10 @@ namespace sereno
              * \return the next event or NULL if no event exists */
             VFVEvent* pollEvent();
 
+            /* \brief  Update the headsets status known
+             * \param status pointer to the list of status*/
+            void updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status);
+
             /* \brief Add a new Binary Dataset in this application
              * \param dataset the Binary dataset to add
              * \param jSubDatasets the java dataset objects*/
@@ -159,6 +167,14 @@ namespace sereno
              * \param data the SubDataset changing */
             void onRotationChange(SubDataset* data);
 
+            /* \brief Function called when a SubDataset position has changed
+             * \param data the SubDataset changing */
+            void onPositionChange(SubDataset* data);
+
+            /* \brief Function called when a SubDataset scaling has changed
+             * \param data the SubDataset changing */
+            void onScaleChange(SubDataset* data);
+
             /* \brief Set the current data displayed in the application
              * \param sd the new SubDataset to display*/
             void setCurrentSubDataset(SubDataset* sd);
@@ -175,14 +191,34 @@ namespace sereno
              * \param subDataset the subDataset being modified.*/ 
             void sendRotationEvent(SubDataset* subDataset);
 
+            /* \brief  Send a translation event. Must be called after subDataset has been moved
+             * \param subDataset the subDataset being modified.*/ 
+            void sendPositionEvent(SubDataset* subDataset);
+
+            /* \brief  Send a scaling event. Must be called after subDataset has been scaled
+             * \param subDataset the subDataset being modified.*/ 
+            void sendScaleEvent(SubDataset* subDataset);
+
+            /** \brief  Lock this object*/
+            void lock() {pthread_mutex_lock(&m_mutex);}
+
+            /** \brief  unlock this object */
+            void unlock() {pthread_mutex_unlock(&m_mutex);}
+
             /* \brief Get the Java object bound to this model
              * \return the Java object*/
             jobject getJavaObj() {return m_javaObj;}
         private:
+            /* \brief  Add a subdataset event without parameter (update only)
+             * \param sd the subdataset 
+             * \param type the event type */
+            void addSubDatasetEvent(SubDataset* sd, VFVEventType type);
+
             /* \brief Add an event 
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
 
+            std::shared_ptr<std::vector<HeadsetStatus>> m_headsetsStatus; /*!< The headsets status*/
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
 

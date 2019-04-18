@@ -21,9 +21,11 @@ import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
+import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
+import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
@@ -31,7 +33,7 @@ import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
 
-public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, MessageBuffer.IMessageBufferCallback
+public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
 {
     private VFVSurfaceView   m_surfaceView       = null; /*!< The surface view displaying the vector field*/
     private TreeView         m_previewLayout     = null; /*!< The preview layout*/
@@ -66,6 +68,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         m_model = model;
         m_model.addListener(this);
+
+        onUpdateBindingInformation(m_model, m_model.getBindingInfo());
+        for(BinaryDataset d : m_model.getBinaryDatasets())
+            onAddBinaryDataset(m_model, d);
+        for(VTKDataset d : m_model.getVTKDatasets())
+            onAddVTKDataset(m_model, d);
+
         if(m_surfaceView != null)
             model.addListener(m_surfaceView);
     }
@@ -107,41 +116,29 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {}
 
     @Override
+    public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+    @Override
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onEmptyMessage(EmptyMessage msg)
-    {
-    }
-
-    @Override
-    public void onAcknowledgeAddDatasetMessage(AcknowledgeAddDatasetMessage msg)
-    {}
-
-    @Override
-    public void onAddVTKDatasetMessage(AddVTKDatasetMessage msg)
-    {}
-
-    @Override
-    public void onRotateDatasetMessage(RotateDatasetMessage msg)
-    {}
-
-    @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     { }
 
     @Override
-    public void onMoveDatasetMessage(MoveDatasetMessage msg)
-    {
-        //TODO
-    }
+    public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus) {}
 
     @Override
-    public void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg)
+    public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage msg)
     {
+        if(msg == null)
+            return;
         final int color = msg.getHeadsetColor();
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -151,9 +148,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
     }
-
-    @Override
-    public void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg) {}
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -239,6 +233,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
                         @Override
                         public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+                        @Override
+                        public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+                        @Override
+                        public void onScaleEvent(SubDataset dataset, float[] scale) {}
 
                         @Override
                         public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)

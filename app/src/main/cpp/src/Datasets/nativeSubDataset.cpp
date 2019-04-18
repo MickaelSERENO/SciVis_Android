@@ -115,7 +115,7 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetScale(JNIEnv
     float* sArr = jenv->GetFloatArrayElements(s, 0);
 
     SubDataset* sd = (SubDataset*)ptr;
-    sd->setPosition(glm::vec3(sArr[0], sArr[1], sArr[2]));
+    sd->setScale(glm::vec3(sArr[0], sArr[1], sArr[2]));
 }
 
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetScale(JNIEnv* jenv, jobject jobj, jlong ptr)

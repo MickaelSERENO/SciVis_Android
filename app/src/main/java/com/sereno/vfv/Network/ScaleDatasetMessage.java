@@ -1,6 +1,6 @@
 package com.sereno.vfv.Network;
 
-public class RotateDatasetMessage extends ServerMessage
+public class ScaleDatasetMessage extends ServerMessage
 {
     /** The datasetID of the message*/
     private int m_datasetID;
@@ -12,7 +12,7 @@ public class RotateDatasetMessage extends ServerMessage
     private int m_headsetID;
 
     /** The new rotation to apply*/
-    private float[] m_rotation = new float[4];
+    private float[] m_scale = new float[3];
 
     @Override
     public byte getCurrentType()
@@ -37,14 +37,14 @@ public class RotateDatasetMessage extends ServerMessage
     @Override
     public void pushValue(float val)
     {
-        m_rotation[cursor-3] = val;
+        m_scale[cursor-3] = val;
         super.pushValue(val);
     }
 
     @Override
     public int getMaxCursor()
     {
-        return 6;
+        return 5;
     }
 
     /** Get the dataset ID parsed
@@ -62,13 +62,13 @@ public class RotateDatasetMessage extends ServerMessage
     }
 
     /** Get the headset ID parsed.
-     * @return the headset ID rotating this dataset. -1 == server call*/
+     * @return the headset ID moving this dataset. -1 == server call*/
     public int getHeadsetID() {return m_headsetID;}
 
-    /** The rotation parsed. 0 -> w, 1 -> i, 2 -> j, 3 ->k
-     * @return the rotation quaternion parsed*/
-    public float[] getRotation()
+    /** The scale parsed.
+     * @return the Vector3 scale parsed*/
+    public float[] getScale()
     {
-        return m_rotation;
+        return m_scale;
     }
 }

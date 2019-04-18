@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.util.Range;
 import android.widget.ImageView;
 
+import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
+import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 
@@ -43,6 +45,16 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
          * @param model the app data
          * @param sd the new current sub dataset*/
         void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd);
+
+        /** Method called when the headsets status changed
+         * @param model the app data
+         * @param headsetsStatus the new headsets status. If a headset ID disappeares, it means it has been disconnected*/
+        void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus);
+
+        /** Method called when the binding information changed
+         * @param model the app data
+         * @param info the new binding information*/
+        void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info);
     }
 
     /** Annotation meta data*/
@@ -90,6 +102,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;          /**!< The configuration object*/
     private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
+
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
 
@@ -99,6 +112,11 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     /** The current subdataset*/
     private SubDataset m_currentSubDataset = null;
 
+    /** The headsets status*/
+    private HeadsetsStatusMessage.HeadsetStatus[] m_headsetsStatus = null;
+
+    /** The headset binding information*/
+    private HeadsetBindingInfoMessage m_bindingInfo = null;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -247,6 +265,12 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
 
     @Override
+    public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+    @Override
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
@@ -259,6 +283,33 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     {
         return m_currentSubDataset;
     }
+
+    public void setHeadsetsStatus(HeadsetsStatusMessage.HeadsetStatus[] status)
+    {
+        m_headsetsStatus = status;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onUpdateHeadsetsStatus(this, status);
+    }
+
+    /** Get the current available headsets status
+     * @return array of headsets status or null if no data have been received yet*/
+    public HeadsetsStatusMessage.HeadsetStatus[] getHeadsetsStatus()
+    {
+        return m_headsetsStatus;
+    }
+
+    /** Set the binding information
+     * @param info the new binding information regarding this device and the headset*/
+    public void setBindingInfo(HeadsetBindingInfoMessage info)
+    {
+        m_bindingInfo = info;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onUpdateBindingInformation(this, info);
+    }
+
+    /** Get the binding information
+     * @return the binding information regarding this device and the headset*/
+    public HeadsetBindingInfoMessage getBindingInfo() {return m_bindingInfo;}
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/

@@ -71,6 +71,10 @@ public class MessageBuffer
          * @param msg the message parsed*/
         void onMoveDatasetMessage(MoveDatasetMessage msg);
 
+        /** Called when the message "SCALE DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onScaleDatasetMessage(ScaleDatasetMessage msg);
+
         /** Called when the message "HEADSET_BINDING_INFO" has been successfully parsed
          * @param msg the message parsed*/
         void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg);
@@ -78,6 +82,10 @@ public class MessageBuffer
         /** Called when the message "GET_SUBDATASET_OWNER" has been successfully parsed
          * @param msg the message parsed*/
         void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg);
+
+        /** Called when the message "GET_HEADSETS_STATUS" has been successfully parsed
+         * @param msg the message parsed*/
+        void onHeadsetsStatusMessage(HeadsetsStatusMessage msg);
     }
 
     /** No current type received*/
@@ -98,8 +106,14 @@ public class MessageBuffer
     /** Move dataset received*/
     public static final int GET_MOVE_DATASET            = 3;
 
+    /** Headsets Status received*/
+    public static final int GET_HEADSETS_STATUS         = 5;
+
     /** Received the subdataset owning information*/
     public static final int GET_SUBDATASET_OWNER        = 8;
+
+    /** Scale dataset received*/
+    public static final int GET_SCALE_DATASET           = 9;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -218,9 +232,17 @@ public class MessageBuffer
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onHeadsetBindingInfoMessage((HeadsetBindingInfoMessage) m_curMsg);
                     break;
+                case GET_HEADSETS_STATUS:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onHeadsetsStatusMessage((HeadsetsStatusMessage) m_curMsg);
+                    break;
                 case GET_SUBDATASET_OWNER:
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage) m_curMsg);
+                    break;
+                case GET_SCALE_DATASET:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onScaleDatasetMessage((ScaleDatasetMessage)m_curMsg);
                     break;
                 default:
                     Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
@@ -266,6 +288,12 @@ public class MessageBuffer
                 break;
             case GET_SUBDATASET_OWNER:
                 m_curMsg = new SubDatasetOwnerMessage();
+                break;
+            case GET_SCALE_DATASET:
+                m_curMsg = new ScaleDatasetMessage();
+                break;
+            case GET_HEADSETS_STATUS:
+                m_curMsg = new HeadsetsStatusMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

@@ -17,7 +17,7 @@ public class MoveDatasetMessage extends ServerMessage
     @Override
     public byte getCurrentType()
     {
-        if(cursor <= 1)
+        if(cursor <= 2)
             return 'I';
         return 'f';
     }
@@ -37,7 +37,7 @@ public class MoveDatasetMessage extends ServerMessage
     @Override
     public void pushValue(float val)
     {
-        m_position[cursor-2] = val;
+        m_position[cursor-3] = val;
         super.pushValue(val);
     }
 

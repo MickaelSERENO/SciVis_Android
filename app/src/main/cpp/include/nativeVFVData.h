@@ -68,8 +68,28 @@ extern "C"
      * \param sd the SubDataset being modified*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRotationChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd);
 
-    /**
-     * \brief  Poll a native event from C++ for the UI
+    /* \brief Function called from Java in order to update the view from a SubDataset position
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param sd the SubDataset being modified*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnPositionChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd);
+
+    /* \brief Function called from Java in order to update the view from a SubDataset scaling
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param sd the SubDataset being modified*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnScaleChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd);
+
+    /* \brief Function called from Java in order to update the current headsets status known by the native code
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param headsetsStatus the headsets status*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsStatus(JNIEnv* env, jobject instance, jlong ptr, jobjectArray headsetsStatus);
+
+    /* \brief  Poll a native event from C++ for the UI
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr

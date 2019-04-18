@@ -49,6 +49,8 @@ public class SocketManager
     public static final short SEND_ANNOTATION         = 6;
     public static final short SEND_CURRENT_ACTION     = 9;
     public static final short SEND_CURRENT_SUBDATASET = 10;
+    public static final short TRANSLATE_DATASET       = 11;
+    public static final short SCALE_DATASET           = 12;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -408,6 +410,44 @@ public class SocketManager
 
         for(int i = 0; i < 4; i++)
             buf.putFloat(qArr[i]);
+
+        return buf.array();
+    }
+
+    /** Create a Translation event data to send to the server
+     * @param ids the dataset and subdatasets IDs
+     * @param pArr the array of the new position to send (x, y, z)
+     * @return array of byte to send to push*/
+    public static byte[] createPositionEvent(MainActivity.DatasetIDBinding ids, float[] pArr)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(TRANSLATE_DATASET);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+
+        for(int i = 0; i < 3; i++)
+            buf.putFloat(pArr[i]);
+
+        return buf.array();
+    }
+
+    /** Create a Scale event data to send to the server
+     * @param ids the dataset and subdatasets IDs
+     * @param sArr the array of the new scale to send (x, y, z)
+     * @return array of byte to send to push*/
+    public static byte[] createScaleEvent(MainActivity.DatasetIDBinding ids, float[] sArr)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SCALE_DATASET);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+
+        for(int i = 0; i < 3; i++)
+            buf.putFloat(sArr[i]);
 
         return buf.array();
     }

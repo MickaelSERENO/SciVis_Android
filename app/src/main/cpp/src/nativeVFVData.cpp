@@ -1,8 +1,10 @@
 #include "nativeVFVData.h"
 
 #include <memory>
+#include <vector>
 #include "VFVData.h"
 #include "jniData.h"
+#include "HeadsetStatus.h"
 
 using namespace sereno;
 
@@ -71,4 +73,53 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRotationChange
 {
     VFVData* data = (VFVData*)ptr;
     data->onRotationChange((SubDataset*)sd);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnPositionChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->onPositionChange((SubDataset*)sd);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnScaleChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->onScaleChange((SubDataset*)sd);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsStatus(JNIEnv* env, jobject instance, jlong ptr, jobjectArray jheadsetsStatus)
+{
+    if(jheadsetsStatus == NULL)
+        return;
+    VFVData* data = (VFVData*)ptr;
+
+    jsize nbHS = env->GetArrayLength(jheadsetsStatus);
+    std::vector<HeadsetStatus>* hs = new std::vector<HeadsetStatus>(nbHS);
+
+    for(jsize i = 0; i < nbHS; i++)
+    {
+        jobject jstatus = env->GetObjectArrayElement(jheadsetsStatus, i);
+        HeadsetStatus current;
+        (*hs)[i].id            = env->GetIntField(jstatus, jHeadsetStatus_id);
+        (*hs)[i].color         = env->GetIntField(jstatus, jHeadsetStatus_color);
+        (*hs)[i].currentAction = (HeadsetCurrentAction)env->GetIntField(jstatus, jHeadsetStatus_currentAction);
+
+        jfloatArray jPos = (jfloatArray)env->GetObjectField(jstatus, jHeadsetStatus_position);
+        jfloatArray jRot = (jfloatArray)env->GetObjectField(jstatus, jHeadsetStatus_position);
+
+        jfloat* jPosArr = env->GetFloatArrayElements(jPos, 0);
+        jfloat* jRotArr = env->GetFloatArrayElements(jRot, 0);
+
+        for(int j = 0; j < 3; j++)
+            (*hs)[i].position[j] = jPosArr[j];
+        for(int j = 0; j < 4; j++)
+            (*hs)[i].rotation[j] = jRotArr[j];
+
+        env->ReleaseFloatArrayElements(jPos, jPosArr, 0);
+        env->ReleaseFloatArrayElements(jRot, jRotArr, 0);
+
+        hs->push_back(current);
+    }
+
+    data->updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>>(hs));
 }
