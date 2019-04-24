@@ -179,17 +179,16 @@ namespace sereno
                     {
                         m_animationEndingPoint = glm::vec3(0, 0, -10);
                         m_animationRotation    = Quaternionf();
+                        m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
                     }
                     else
                     {
+                        m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
                         glm::vec3 eulerAngles = m_animationRotation.toEulerAngles();
-                        LOG_INFO("Old quaternion : %f %f %f %f, magnitude : %f\n", m_animationRotation[0], m_animationRotation[1], m_animationRotation[2], m_animationRotation[3], m_animationRotation.getMagnitude());
-                        LOG_INFO("Euler angles : %f %f %f", eulerAngles.x, eulerAngles.y, eulerAngles.z);
                         eulerAngles.x = eulerAngles.z = 0;
+                        eulerAngles.y *= -1.0f;
                         m_animationRotation = Quaternionf::fromEulerAngles(eulerAngles);
-                        LOG_INFO("New quaternion : %f %f %f %f, magnitude : %f\n", m_animationRotation[0], m_animationRotation[1], m_animationRotation[2], m_animationRotation[3], m_animationRotation.getMagnitude());
                     }
-                    m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
                 }
                 m_animationTimer = 0;
             }
