@@ -2,9 +2,9 @@
 #define  GLRENDERER_INC
 
 #include <pthread.h>
-#include <GLES3/gl3.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <GLES3/gl3.h>
 #include <android/native_window.h>
 #include <utils.h>
 
@@ -32,8 +32,9 @@ namespace sereno
             void destroySurface();
 
             /* \brief Initialize the EGL Context
+             * \param nativeWindow the native window to draw on. If NULL, no surface will be bound yet (EGL_NO_SURFACE)
              * \return wheter or not the context is initialized */
-            bool initializeContext();
+            bool initializeContext(ANativeWindow* nativeWindow);
 
             /* \brief Function called by Java when the surface is being created 
              * \param nativeWindow the nativeWindow associated with the surface*/
@@ -56,19 +57,35 @@ namespace sereno
 
             /* \brief Set the current in used shader */
             void setCurrentShader(Shader* shader);
+
+            /* \brief Get the OpenGL Version loaded. -1 == error
+             * \param the opengl es version loaded*/
+            int getGLESVersion() const {return m_glVersion;}
         private:
             /* \brief Destroy the EGL surface without locking any mutex */
             void internalEglDestroySurface();
 
-            /* \brief Create the EGL surface in the correct thread*/
-            void internalCreateSurface(ANativeWindow* nativeWindow);
+            /* \brief Create the EGL surface in the correct thread
+             * \return true on success, false on failure*/
+            bool internalCreateSurface(ANativeWindow* nativeWindow);
+
+            /* \brief Set the Surface size
+             * \param the new width
+             * \param the new height*/
+            void setSize(uint32_t width, uint32_t height);
+
+            /* \brief Print the EGL config*/
+            void printEGLConfig() const;
+
+            /* \brief Load every shaders*/
+            void loadShaders();
 
             GLSurfaceViewData* m_surfaceData = NULL; /*!< The data sent from Java at the creation of this Renderer*/
 
             EGLDisplay m_disp    = EGL_NO_DISPLAY; /*!< The EGL display*/
             EGLSurface m_surface = EGL_NO_SURFACE; /*!< The EGL surface*/
             EGLContext m_context = EGL_NO_CONTEXT; /*!< The EGL context*/
-            EGLConfig  m_conf;                     /*!< The EGL configuration*/
+            EGLConfig  m_conf[1];                  /*!< The EGL configuration*/
 
             EGLint m_nbConf = 0; /*!< Number of available EGL configuration */
             EGLint m_format = 0; /*!< EGL_NATIVE_VISUAL_ID value*/
@@ -80,6 +97,8 @@ namespace sereno
 
             ResourcesManager<Shader*> m_shaders;              /*!< The shaders loaded by this OpenGL Renderer*/
             Shader*                   m_currentShader = NULL; /*!< The current in used shader program*/
+
+            int m_glVersion = -1;
 
             friend GLSurfaceViewData;
     };

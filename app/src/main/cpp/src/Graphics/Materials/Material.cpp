@@ -41,10 +41,15 @@ namespace sereno
             glUniformMatrix4fv(m_uInvMVP,    1, false, glm::value_ptr(invMVPMat));
             glUniformMatrix4fv(m_uProjMat,   1, false, glm::value_ptr(projMat));
             if(m_uInvP != -1)
-                glUniformMatrix4fv(m_uInvP, 1, false, glm::value_ptr(glm::inverse(projMat)));
+            {
+                glm::mat4 temp = glm::inverse(projMat);
+                glUniformMatrix4fv(m_uInvP, 1, false, glm::value_ptr(temp));
+            }
             if(m_uInvMV != -1)
-                glUniformMatrix4fv(m_uInvMV, 1, false, glm::value_ptr(invMVPMat * projMat));
-
+            {
+                glm::mat4 temp = invMVPMat * projMat;
+                glUniformMatrix4fv(m_uInvMV, 1, false, glm::value_ptr(temp));
+            }
             glUniform4fv(m_uCameraParams, 1, glm::value_ptr(cameraParams));
 
             for(int i = 0; i < MATERIAL_MAXTEXTURE; i++)

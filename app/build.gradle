@@ -12,15 +12,29 @@ android {
             cmake {
                 println("Use cmakeArguments for adding arguments to this script. Use ',' for separating the arguments !")
                 getCMakeArgument().each {arguments.add(it.trim())}
+                arguments.addAll("-DANDROID_STL=c++_shared", "-DENABLE_SANITIZER=TRUE")
                 cppFlags "-std=c++14 -frtti -fexceptions"
                 abiFilters 'armeabi-v7a','x86'
             }
         }
     }
+    packagingOptions{
+        doNotStrip '**/.*so'
+        doNotStrip '*/x86/*.so'
+        doNotStrip '*/x86/libnative-lib.so'
+    }
+
     buildTypes {
         release {
+            debuggable true
+            jniDebuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
         }
     }
     externalNativeBuild {
@@ -36,11 +50,12 @@ android {
     }
 }
 
+
 def List getCMakeArgument()
 {
     File cmakeFile = new File(projectDir.absolutePath + '/cmakeArguments')
     if(cmakeFile.exists())
-        return (cmakeFile.getText() + ',-DANDROID_PLATFORM=android-21').split(/,/) as List
+        return (cmakeFile.getText() + ',-DANDROID_PLATFORM=android-21,-DDEBUG=TRUE').split(/,/) as List
     return []
 }
 

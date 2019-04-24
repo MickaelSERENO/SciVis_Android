@@ -124,8 +124,10 @@ namespace sereno
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER_OES);
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER_OES);
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER_OES);
+            glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP_HINT, GL_TRUE);
             setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
         glBindTexture(GL_TEXTURE_3D, 0);
+        m_glVersion = renderer->getGLESVersion();
 
         setScale(glm::vec3(1.0f, 1.0f, 1.0f));
 
@@ -327,9 +329,8 @@ namespace sereno
 
         glBindTexture(GL_TEXTURE_3D, m_texture);
             glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32F,
-                         m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2], 
+                         m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2],
                          0, GL_RG, GL_FLOAT, vals);
-            glGenerateMipmap(GL_TEXTURE_3D);
         glBindBuffer(GL_TEXTURE_3D, 0);
         free(vals);
     }

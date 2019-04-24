@@ -123,3 +123,11 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsSt
 
     data->updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>>(hs));
 }
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInformation(JNIEnv* env, jobject instance, jlong ptr, jobject info)
+{
+    int headsetID = env->CallIntMethod(info, jHeadsetBindingInfoMessage_getHeadsetID);
+
+    VFVData* data = (VFVData*)ptr;
+    data->setHeadsetID(headsetID);
+}

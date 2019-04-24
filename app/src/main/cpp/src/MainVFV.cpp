@@ -3,9 +3,9 @@
 
 namespace sereno
 {
-    MainVFV::MainVFV(GLSurfaceViewData* surfaceData, VFVData* mainData) : m_surfaceData(surfaceData), m_mainData(mainData)
+    MainVFV::MainVFV(GLSurfaceViewData* surfaceData, ANativeWindow* nativeWindow, VFVData* mainData) : m_surfaceData(surfaceData), m_mainData(mainData)
     {
-        surfaceData->renderer.initializeContext();
+        surfaceData->renderer.initializeContext(nativeWindow);
         if(mainData)
             mainData->setCallback(this);
 
@@ -104,6 +104,93 @@ namespace sereno
         m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
     }
 
+    bool MainVFV::findHeadsetCameraTransformation(glm::vec3* outPos, Quaternionf* outRot)
+    {
+        bool found = false;
+        m_mainData->lock();
+        {
+            std::shared_ptr<std::vector<HeadsetStatus>> headsetsStatus = m_mainData->getHeadsetsStatus();
+            int headsetID = m_mainData->getHeadsetID();
+
+            if(headsetID == -1 || headsetsStatus.get() == NULL)
+                goto end;
+
+            for(HeadsetStatus& hs : *headsetsStatus)
+            {
+                if(hs.id == headsetID)
+                {
+                    if(outPos)
+                        *outPos = hs.position;
+                    if(outRot)
+                        *outRot = hs.rotation;
+                    found = true;
+                    break;
+                }
+            }
+        }
+    end:
+        m_mainData->unlock();
+        return found;
+    }
+
+    void MainVFV::placeCamera(bool forceReset)
+    {
+        //Reset the animation
+        if(forceReset)
+        {
+            m_animationTimer = 0;
+            m_inAnimation    = false;
+        }
+
+        switch(m_currentWidgetAction)
+        {
+            //Cancel the animation
+            case NO_IMAGE:
+            {
+                if(m_inAnimation || forceReset)
+                {
+                    m_animationTimer = 0;
+
+                    m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
+                                                                  -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                                   ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                                  -10.0f, 10.0f, false);
+
+                    //Reset camera position
+                    m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+                    m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
+                }
+                m_inAnimation = false;
+                break;
+            }
+
+            //Go into an animation
+            default:
+            {
+                if(!m_inAnimation || forceReset)
+                {
+                    m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
+                    if(m_currentVis)
+                    {
+                        m_animationStartingPoint = m_currentVis->getPosition();
+                        if(!findHeadsetCameraTransformation(&m_animationEndingPoint, NULL))
+                            m_animationEndingPoint = glm::vec3(0, 0, -10);
+                    }
+                    m_animationTimer = 0;
+                }
+
+                if(m_currentVis && m_animationTimer <= MAX_CAMERA_ANIMATION_TIMER)
+                {
+                    glm::vec3 dir = m_animationEndingPoint - m_animationStartingPoint;
+                    lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir, m_animationStartingPoint, false);
+                    m_animationTimer++;
+                }
+                m_inAnimation = true;
+                break;
+            }
+        }
+    }
+
     void MainVFV::run()
     {
         glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
@@ -112,7 +199,6 @@ namespace sereno
         glEnable(GL_CULL_FACE);
 
         bool     visible = true;
-        uint32_t cameraAnimT = 0;
 
         while(!m_surfaceData->isClosed())
         {
@@ -132,13 +218,6 @@ namespace sereno
                         if(numberFinger == 0)
                         {
                             m_currentWidgetAction = NO_IMAGE;
-                            cameraAnimT = 0;
-                            m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
-                                                                          -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                           ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                          -1.0f, 1.0f, false);
-                            m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-                            m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
                             m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
                         }
                         break;
@@ -201,7 +280,6 @@ namespace sereno
                                m_currentWidgetAction == LEFT_IMAGE ||
                                m_currentWidgetAction == RIGHT_IMAGE)
                             {
-                                m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
                                 m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
                             }
 
@@ -210,9 +288,8 @@ namespace sereno
                             else
                                 m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SCALING);
                         }
-                        else //Pinch
+                        else
                         {
-                            m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
                             m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
                         }
                         break;
@@ -220,13 +297,9 @@ namespace sereno
 
                     case RESIZE:
                         //Redo the viewport
-                        m_surfaceData->renderer.swapBuffers();
                         glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
-                        m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
-                                                                      -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                       ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                      -1.0f, 1.0f, false);
                         placeWidgets();
+                        placeCamera(true);
                         break;
 
                     case TOUCH_MOVE:
@@ -287,12 +360,8 @@ namespace sereno
 
             if(visible)
             {
+                placeCamera();
 
-                if(m_surfaceData->renderer.getCameraParams().w == 0.0 && cameraAnimT < 20)
-                {
-                    lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)5.0f+cameraAnimT)*glm::vec3(0.50f, 0.50f, -0.50f), glm::vec3(0.0, 0.0, 0.0), false);
-                    cameraAnimT++;
-                }
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

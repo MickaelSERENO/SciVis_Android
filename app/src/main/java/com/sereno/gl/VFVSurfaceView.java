@@ -118,7 +118,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
     {
-        //TODO
+        nativeUpdateBindingInformation(m_ptr, info);
     }
 
     public void onAddDataset(ApplicationModel model, Dataset d)
@@ -234,4 +234,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param ptr the ptr associated with the main Argument
      * @param status array of the current Headsets Status*/
     private native void nativeUpdateHeadsetsStatus(long ptr, HeadsetsStatusMessage.HeadsetStatus[] status);
+
+    /** Update the binding information
+     * @param ptr the ptr associated with the main Argument
+     * @param info the new binding information*/
+    private native void nativeUpdateBindingInformation(long ptr, HeadsetBindingInfoMessage info);
 }

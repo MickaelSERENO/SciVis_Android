@@ -89,6 +89,7 @@ namespace sereno
     void VFVData::setCurrentAction(VFVCurrentAction a)
     {
         jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_setCurrentAction, (int)a);
+        m_currentAction = a;
     }
 
 

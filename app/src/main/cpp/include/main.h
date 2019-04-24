@@ -9,7 +9,7 @@ using namespace sereno;
 
 extern "C"
 {
-    void GLSurface_main(GLSurfaceViewData* data, void* arg);
+    void GLSurface_main(GLSurfaceViewData* data, ANativeWindow* nativeWindow, void* arg);
 };
 
 #endif

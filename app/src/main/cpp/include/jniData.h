@@ -35,6 +35,9 @@ namespace sereno
     extern jfieldID  jHeadsetStatus_id;
     extern jfieldID  jHeadsetStatus_color;
     extern jfieldID  jHeadsetStatus_currentAction;
+
+    extern jclass    jHeadsetBindingInfoMessageClass;
+    extern jmethodID jHeadsetBindingInfoMessage_getHeadsetID;
 }
 
 extern "C"

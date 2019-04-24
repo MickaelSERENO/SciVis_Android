@@ -101,7 +101,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         }catch(Exception e)
         {}
 
-        nativeMain(m_internalData, mainLibrary, getMainFunction(), getMainArgument());
+        nativeMain(m_internalData, mainLibrary, getMainFunction(), getHolder().getSurface(), getMainArgument());
     }
 
     @Override
@@ -211,7 +211,8 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
                     m_thread.start();
                     m_isCreated = true;
                 }
-                nativeOnSurfaceCreated(m_internalData, getHolder().getSurface());
+                else
+                    nativeOnSurfaceCreated(m_internalData, getHolder().getSurface());
                 break;
             }
 
@@ -237,7 +238,7 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
      * @param mainLibrary the main library to read containing the main function
      * @param mainFunc the name of the mainFunction. Must have the following proptotype : void mainFunc(long data, long arg)
      * @param arg the argument to pass*/
-    private native void nativeMain(long data, String mainLibrary, String mainFunc, long arg);
+    private native void nativeMain(long data, String mainLibrary, String mainFunc, Surface surface, long arg);
 
     /** \brief OnSurfaceDestroyed handled in C++
      * @param data the C++ internal data*/

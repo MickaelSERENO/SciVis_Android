@@ -89,6 +89,13 @@ extern "C"
      * \param headsetsStatus the headsets status*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsStatus(JNIEnv* env, jobject instance, jlong ptr, jobjectArray headsetsStatus);
 
+    /* \brief  Function called from Java in order to update the current binding information between this device and the associated headset
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param info the binding information*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInformation(JNIEnv* env, jobject instance, jlong ptr, jobject info);
+
     /* \brief  Poll a native event from C++ for the UI
      * \param env the JNI environment
      * \param instance the Java object calling this function

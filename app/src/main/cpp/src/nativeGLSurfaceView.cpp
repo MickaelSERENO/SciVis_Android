@@ -17,7 +17,7 @@ JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeMain(JNIEnv* jenv, jobject jobj,
-                                                                        jlong data, jstring mainLibrary, jstring mainFunction, jlong arg)
+                                                                        jlong data, jstring mainLibrary, jstring mainFunction, jobject jNativeWindow, jlong arg)
 {
     //Load parameters
     const char*        libraryFile = jenv->GetStringUTFChars(mainLibrary, 0);
@@ -38,7 +38,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeMain(JNIEnv* jenv
     mainFunc = (GLSurfaceViewMain)dlsym(libraryHandle, cMainFunc);
     if(mainFunc)
     {
-        mainFunc((GLSurfaceViewData*)data, (void*)arg);
+        ANativeWindow* nativeWindow = ANativeWindow_fromSurface(jenv, jNativeWindow);
+        mainFunc((GLSurfaceViewData*)data, nativeWindow, (void*)arg);
     }
     else
     {

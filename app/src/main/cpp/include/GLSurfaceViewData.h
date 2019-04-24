@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include "Event.h"
 #include "Graphics/GLRenderer.h"
+#include <android/native_window.h>
 
 #define MAX_TOUCH_FINGER  10
 
@@ -15,7 +16,7 @@ namespace sereno
     {
         public:
             /* \brief Constructor.
-             * \param _dataPath the path of the data for this application (something like /sdcard/Android/data/com.sereno.vfs/files) */
+             * \param _dataPath the path of the data for this application (something like /sdcard/Android/data/com.sereno.vfs/files)*/
             GLSurfaceViewData(const std::string& _dataPath);
 
             /* \brief Destructor.*/

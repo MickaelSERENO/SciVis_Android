@@ -179,9 +179,33 @@ namespace sereno
              * \param sd the new SubDataset to display*/
             void setCurrentSubDataset(SubDataset* sd);
 
+            /* \brief Get the headsets status. You should probably lock this object before calling this function 
+             * \return  Pointer of an array of headsets status*/
+            std::shared_ptr<std::vector<HeadsetStatus>> getHeadsetsStatus() {return m_headsetsStatus;}
+
             /* \brief  Set the current action the device is performing
              * \param action */
             void setCurrentAction(VFVCurrentAction action);
+
+            /* \brief Get the current action this device is performing
+             * \return this device's current action*/
+            VFVCurrentAction getCurrentAction() const {return m_currentAction;}
+
+            /* \brief  Set the headset ID this device is bound to. -1 == no headset bound
+             * \param headsetID the new headset ID */
+            void setHeadsetID(int headsetID)
+            {
+                lock();
+                    m_headsetID = headsetID;
+                unlock();
+            }
+
+            /* \brief  Get the headset ID this device is bound to. -1 == no headset bound
+             * \return   The headset ID*/
+            int getHeadsetID() const
+            {
+                return m_headsetID;
+            }
 
             /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/
@@ -221,6 +245,9 @@ namespace sereno
             std::shared_ptr<std::vector<HeadsetStatus>> m_headsetsStatus; /*!< The headsets status*/
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
+
+            int m_headsetID = -1; /*!< The headset ID this device is bound to*/
+            VFVCurrentAction m_currentAction = VFV_CURRENT_ACTION_NOTHING;
 
             jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
             IVFVCallback*            m_clbk    = NULL; /*!< The callback interface */

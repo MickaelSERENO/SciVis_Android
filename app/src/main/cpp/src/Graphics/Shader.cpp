@@ -88,15 +88,24 @@ namespace sereno
         shader->bindAttributes();
 
         glLinkProgram(shader->m_programID);
+
+        //Display log
+        int length=0;
+        glGetProgramiv(shader->m_programID, GL_INFO_LOG_LENGTH, &length);
+        if(length > 1)
+        {
+            char* error = (char*) malloc((length + 1)* sizeof(char));
+            glGetProgramInfoLog(shader->m_programID, length, 0, error);
+            LOG_ERROR("Shader log : %s", error);
+            free(error);
+        }
+
         int linkStatus;
         glGetProgramiv(shader->m_programID, GL_LINK_STATUS, &linkStatus);
+
         if(linkStatus == GL_FALSE)
         {
-            char* error = (char*) malloc(ERROR_MAX_LENGTH * sizeof(char));
-            int length=0;
-            glGetProgramInfoLog(shader->m_programID, ERROR_MAX_LENGTH, &length, error);
-            LOG_ERROR("Could not link shader-> : \n %s", error);
-
+            LOG_ERROR("Could not link the shader...");
             delete shader;
             return NULL;
         }
@@ -108,19 +117,27 @@ namespace sereno
     {
         int shader = glCreateShader(type);
         const GLchar* s = code.c_str();
-        glShaderSource(shader, 1, &s, 0);
+        GLint l = code.length();
+        glShaderSource(shader, 1, &s, &l);
         glCompileShader(shader);
+
+        //Display log
+        int length=0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+        if(length > 1)
+        {
+            char* error = (char*) malloc((length + 1)* sizeof(char));
+            glGetShaderInfoLog(shader, length, 0, error);
+            LOG_ERROR("Shader log : %s", error);
+            free(error);
+        }
 
         int compiled = 0;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 
         if(compiled == GL_FALSE)
         {
-            char* error = (char*) malloc(ERROR_MAX_LENGTH * sizeof(char));
-            int length=0;
-            glGetShaderInfoLog(shader, ERROR_MAX_LENGTH, &length, error);
-
-            LOG_ERROR("Could not compile shader %d : \n %s", type, error);
+            LOG_ERROR("Could not compile shader typed %d...", type);
             glDeleteShader(shader);
             return 0;
         }

@@ -22,6 +22,7 @@
 #define MAX_SNAPSHOT_COUNTER             30
 #define VTK_STRUCTURED_POINT_VIS_DENSITY 128
 #define WIDGET_WIDTH_PX     64
+#define MAX_CAMERA_ANIMATION_TIMER 20
 
 #define SCIVIS_TF_COLOR(_, __, ___)\
     _(RAINBOW, __, ___)            \
@@ -152,8 +153,9 @@ namespace sereno
         public:
             /* \brief Initialize the Main Object for VFV application.
              * \param surfaceData the Java surface data
+             * \param nativeWindow the native window to draw on
              * \param mainData the main application data sent via JNI */
-            MainVFV(GLSurfaceViewData* surfaceData, VFVData* mainData);
+            MainVFV(GLSurfaceViewData* surfaceData, ANativeWindow* nativeWindow, VFVData* mainData);
 
             /* \brief destructor */
             ~MainVFV();
@@ -173,6 +175,16 @@ namespace sereno
         private:
             /** \brief  Place the widgets on the screen */
             void placeWidgets();
+
+            /* \brief  Find the headset camera transformation if possible
+             * \param outPos[out] the headset camera position. NULL if no position required
+             * \param outRot[out] the headset camera rotation. NULL if no rotation required
+             * \return true if headset camera found, false otherwise. In the later case, no values are modified*/
+            bool findHeadsetCameraTransformation(glm::vec3* outPos = NULL, Quaternionf* outRot = NULL);
+
+            /** \brief  Place the 3D Camera in space 
+             * \param forceReset should we force the reset ?*/
+            void placeCamera(bool forceReset = false);
 
             /* \brief Handles the touch event 
              * \param event the touch event received*/ 
@@ -210,6 +222,11 @@ namespace sereno
             DefaultGameObject*    m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
 
             uint32_t              m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
+
+            uint32_t              m_animationTimer = 0; /*!< The annimation timer*/
+            bool                  m_inAnimation    = false; /*!< Are we in an animation?*/ 
+            glm::vec3             m_animationStartingPoint; /*!< The animation starting point*/
+            glm::vec3             m_animationEndingPoint;   /*!< The animation ending point*/
 
             std::map<const SubDataset*, SubDatasetChangement> m_modelChanged; /*!< Map of the current model being changed*/
 

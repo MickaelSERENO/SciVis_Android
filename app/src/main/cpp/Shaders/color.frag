@@ -1,5 +1,7 @@
 #version 300 es
+
 precision mediump float;
+precision mediump sampler2D;
 
 uniform vec4 uMaskColor;
 uniform bool uUseTexture;
@@ -14,7 +16,7 @@ void main()
 {
 	if(uUseTexture)
 	{
-		vec4 textColor = texture2D(uTexture0, varyUV);
+		vec4 textColor = texture(uTexture0, varyUV);
 
 		if(uMaskColor[3] == 0.0 && textColor[3] == 0.0)
 			discard;

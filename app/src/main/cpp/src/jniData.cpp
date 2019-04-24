@@ -2,36 +2,39 @@
 
 namespace sereno
 {
-    JavaVM*   javaVM                           = NULL;
-    JNIEnv*   jniMainThread                    = NULL;
+    JavaVM*   javaVM                                  = NULL;
+    JNIEnv*   jniMainThread                           = NULL;
 
-    jclass    jVFVSurfaceViewClass             = 0;
-    jmethodID jVFVSurfaceView_setCurrentAction = 0;
-    jmethodID jVFVSurfaceView_getCurrentAction = 0;
+    jclass    jVFVSurfaceViewClass                    = 0;
+    jmethodID jVFVSurfaceView_setCurrentAction        = 0;
+    jmethodID jVFVSurfaceView_getCurrentAction        = 0;
 
-    jclass    jBitmapClass                     = 0;
-    jmethodID jBitmap_createBitmap             = 0;
+    jclass    jBitmapClass                            = 0;
+    jmethodID jBitmap_createBitmap                    = 0;
 
-    jclass    jBitmapConfigClass               = 0;
-    jfieldID  jBitmapConfig_ARGB               = 0;
-    jobject   jBitmapConfigARGB                = 0;
+    jclass    jBitmapConfigClass                      = 0;
+    jfieldID  jBitmapConfig_ARGB                      = 0;
+    jobject   jBitmapConfigARGB                       = 0;
 
-    jclass    jDatasetClass                    = 0;
-    jmethodID jDataset_getNbSubDataset         = 0;
-    jmethodID jDataset_getSubDataset           = 0;
+    jclass    jDatasetClass                           = 0;
+    jmethodID jDataset_getNbSubDataset                = 0;
+    jmethodID jDataset_getSubDataset                  = 0;
 
-    jclass    jSubDatasetClass                 = 0;
-    jmethodID jSubDataset_setRotation          = 0;
-    jmethodID jSubDataset_setPosition          = 0;
-    jmethodID jSubDataset_setScale             = 0;
-    jmethodID jSubDataset_onSnapshotEvent      = 0;
+    jclass    jSubDatasetClass                        = 0;
+    jmethodID jSubDataset_setRotation                 = 0;
+    jmethodID jSubDataset_setPosition                 = 0;
+    jmethodID jSubDataset_setScale                    = 0;
+    jmethodID jSubDataset_onSnapshotEvent             = 0;
 
-    jclass    jHeadsetStatusClass              = 0;
-    jfieldID  jHeadsetStatus_position          = 0;
-    jfieldID  jHeadsetStatus_rotation          = 0;
-    jfieldID  jHeadsetStatus_id                = 0;
-    jfieldID  jHeadsetStatus_color             = 0;
-    jfieldID  jHeadsetStatus_currentAction     = 0;
+    jclass    jHeadsetStatusClass                     = 0;
+    jfieldID  jHeadsetStatus_position                 = 0;
+    jfieldID  jHeadsetStatus_rotation                 = 0;
+    jfieldID  jHeadsetStatus_id                       = 0;
+    jfieldID  jHeadsetStatus_color                    = 0;
+    jfieldID  jHeadsetStatus_currentAction            = 0;
+
+    jclass    jHeadsetBindingInfoMessageClass         = 0;
+    jmethodID jHeadsetBindingInfoMessage_getHeadsetID = 0;
 }
 
 using namespace sereno;
@@ -53,12 +56,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return -1;
 
     //Load classes
-    jVFVSurfaceViewClass = getJNIClassGlobalReference(env, "com/sereno/gl/VFVSurfaceView");
-    jBitmapClass         = getJNIClassGlobalReference(env, "android/graphics/Bitmap");
-    jBitmapConfigClass   = getJNIClassGlobalReference(env, "android/graphics/Bitmap$Config");
-    jDatasetClass        = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/Dataset");
-    jSubDatasetClass     = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
-    jHeadsetStatusClass  = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetsStatusMessage$HeadsetStatus");
+    jVFVSurfaceViewClass            = getJNIClassGlobalReference(env, "com/sereno/gl/VFVSurfaceView");
+    jBitmapClass                    = getJNIClassGlobalReference(env, "android/graphics/Bitmap");
+    jBitmapConfigClass              = getJNIClassGlobalReference(env, "android/graphics/Bitmap$Config");
+    jDatasetClass                   = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/Dataset");
+    jSubDatasetClass                = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
+    jHeadsetStatusClass             = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetsStatusMessage$HeadsetStatus");
+    jHeadsetBindingInfoMessageClass = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetBindingInfoMessage");
 
     //Load methods
     jVFVSurfaceView_getCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "getCurrentAction", "()I");
@@ -71,6 +75,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jSubDataset_setPosition     = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
     jSubDataset_setScale        = env->GetMethodID(jSubDatasetClass, "setScale", "([F)V");
     jSubDataset_onSnapshotEvent = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
+
+    jHeadsetBindingInfoMessage_getHeadsetID = env->GetMethodID(jHeadsetBindingInfoMessageClass,  "getHeadsetID", "()I");
 
     //Load fields
     jBitmapConfig_ARGB   = env->GetStaticFieldID(jBitmapConfigClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
@@ -103,4 +109,6 @@ void JNI_OnUnload(JavaVM *vm, void *reserved)
     env->DeleteGlobalRef(jDatasetClass);
     env->DeleteGlobalRef(jSubDatasetClass);
     env->DeleteGlobalRef(jBitmapConfigARGB);
+    env->DeleteGlobalRef(jHeadsetStatusClass);
+    env->DeleteGlobalRef(jHeadsetBindingInfoMessageClass);
 }

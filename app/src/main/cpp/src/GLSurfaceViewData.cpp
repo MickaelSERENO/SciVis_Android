@@ -16,8 +16,7 @@ namespace sereno
 
     void GLSurfaceViewData::changeSurfaceSize(uint32_t width, uint32_t height)
     {
-        renderer.m_recreate = true;
-
+        renderer.setSize(width, height);
         Event* ev            = new Event;
         ev->type             = RESIZE;
         ev->sizeEvent.width  = width;

@@ -68,7 +68,7 @@ int startLogger()
 /*------------------------------------Main------------------------------------*/
 /*----------------------------------------------------------------------------*/
 
-void GLSurface_main(GLSurfaceViewData* data, void* arg)
+void GLSurface_main(GLSurfaceViewData* data, ANativeWindow* nativeWindow, void* arg)
 {
     int getEnvStat = javaVM->GetEnv((void **)&jniMainThread, JNI_VERSION_1_6);
     if(getEnvStat == JNI_EDETACHED)
@@ -80,7 +80,7 @@ void GLSurface_main(GLSurfaceViewData* data, void* arg)
         std::cerr << "GetEnv: version not supported" << std::endl;
 
     startLogger();
-    MainVFV mainVFV(data, (VFVData*)arg);
+    MainVFV mainVFV(data, nativeWindow, (VFVData*)arg);
     mainVFV.run();
 
     javaVM->DetachCurrentThread();

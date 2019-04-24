@@ -79,6 +79,7 @@ namespace sereno
             VTKStructuredGridPointVBO* m_gridPointVBO; /*!< The Grid point VBO associated with this data*/
             float*   m_vals;                           /*!< The property captured value*/
             GLuint   m_texture;                        /*!< The 3D texture containing the dataset values*/
+            int      m_glVersion = -1;                 /*!< The OpenGL version*/
             float    m_maxVal;                         /*!< The property max value*/
             float    m_minVal;                         /*!< The property min value*/
             uint32_t m_propID;                         /*!< The property ID*/

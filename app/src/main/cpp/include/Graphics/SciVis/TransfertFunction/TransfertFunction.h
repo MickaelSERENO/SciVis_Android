@@ -136,6 +136,7 @@ namespace sereno
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texSize[0], texSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, texels);
             else
                 glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, texSize[0], texSize[1], texSize[2], 0, GL_RGBA, GL_UNSIGNED_BYTE, texels);
+            glTexParameteri(getTextureTarget(), GL_GENERATE_MIPMAP_HINT, GL_TRUE);
         glBindTexture(getTextureTarget(), 0);
         return tex;
     }

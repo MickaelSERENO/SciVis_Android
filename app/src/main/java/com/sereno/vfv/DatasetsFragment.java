@@ -139,14 +139,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         if(msg == null)
             return;
-        final int color = msg.getHeadsetColor();
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                m_headsetColor.setImageBitmap(null);
-                m_headsetColor.setBackgroundColor((color & 0xffffff) + ((byte)0xff << 24));
-            }
-        });
+        if(msg.getHeadsetID() != -1)
+        {
+            final int color = msg.getHeadsetColor();
+            m_headsetColor.setImageBitmap(null);
+            m_headsetColor.setBackgroundColor((color & 0xffffff) + ((byte)0xff << 24));
+        }
     }
 
     /** Set up the main layout

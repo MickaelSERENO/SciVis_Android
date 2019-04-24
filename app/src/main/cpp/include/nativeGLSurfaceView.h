@@ -11,8 +11,9 @@ extern "C"
 {
     /* \brief Prototype of the main function
      * \param surfaceData the data handled both by Java and C++
+     * \param nativeWindow the native window to draw on.
      * \param arg the data sent by Java.*/
-    typedef void(*GLSurfaceViewMain)(GLSurfaceViewData* surfaceData, void* arg);
+    typedef void(*GLSurfaceViewMain)(GLSurfaceViewData* surfaceData, ANativeWindow* nativeWindow, void* arg);
 
     /* \brief Initialize the internal data state of the native thread handling the GLSurfaceView
      * \param jenv the JNI environment variable
@@ -28,9 +29,10 @@ extern "C"
      * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData
      * \param mainLibrary the name of the main library
      * \param mainFunction the name of the main function
+     * \param jNativeWindow the native windows from android
      * \param arg the argument to pass to the main function*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeMain(JNIEnv* jenv, jobject jobj, jlong data, 
-                                                                        jstring mainLibrary, jstring mainFunction, jlong arg);
+                                                                        jstring mainLibrary, jstring mainFunction, jobject jNativeWindow, jlong arg);
 
     /* \brief Initialize the internal data state of the native thread handling the GLSurfaceView
      * \param jenv the JNI environment variable
