@@ -5,6 +5,7 @@
 #include "VFVData.h"
 #include "jniData.h"
 #include "HeadsetStatus.h"
+#include "utils.h"
 
 using namespace sereno;
 
@@ -91,6 +92,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsSt
 {
     if(jheadsetsStatus == NULL)
         return;
+
+    LOG_INFO("HEADSET entry");
     VFVData* data = (VFVData*)ptr;
 
     jsize nbHS = env->GetArrayLength(jheadsetsStatus);
@@ -98,30 +101,41 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsSt
 
     for(jsize i = 0; i < nbHS; i++)
     {
+        //Fetch java object
         jobject jstatus = env->GetObjectArrayElement(jheadsetsStatus, i);
+
+        jfloatArray jPos = (jfloatArray)env->GetObjectField(jstatus, jHeadsetStatus_position);
+        jfloatArray jRot = (jfloatArray)env->GetObjectField(jstatus, jHeadsetStatus_rotation);
+
+        jfloat* jPosArr = env->GetFloatArrayElements(jPos, 0);
+        jfloat* jRotArr = env->GetFloatArrayElements(jRot, 0);
+
+        //Set values
         HeadsetStatus current;
         (*hs)[i].id            = env->GetIntField(jstatus, jHeadsetStatus_id);
         (*hs)[i].color         = env->GetIntField(jstatus, jHeadsetStatus_color);
         (*hs)[i].currentAction = (HeadsetCurrentAction)env->GetIntField(jstatus, jHeadsetStatus_currentAction);
 
-        jfloatArray jPos = (jfloatArray)env->GetObjectField(jstatus, jHeadsetStatus_position);
-        jfloatArray jRot = (jfloatArray)env->GetObjectField(jstatus, jHeadsetStatus_position);
-
-        jfloat* jPosArr = env->GetFloatArrayElements(jPos, 0);
-        jfloat* jRotArr = env->GetFloatArrayElements(jRot, 0);
-
+        //Position
         for(int j = 0; j < 3; j++)
             (*hs)[i].position[j] = jPosArr[j];
+        //Rotation
         for(int j = 0; j < 4; j++)
             (*hs)[i].rotation[j] = jRotArr[j];
-
+        LOG_INFO("Rotation : %f %f %f %f", jRotArr[0], jRotArr[1], jRotArr[2], jRotArr[3]);
         env->ReleaseFloatArrayElements(jPos, jPosArr, 0);
         env->ReleaseFloatArrayElements(jRot, jRotArr, 0);
+
+        //Delete local references
+        env->DeleteLocalRef(jPos);
+        env->DeleteLocalRef(jRot);
+        env->DeleteLocalRef(jstatus);
 
         hs->push_back(current);
     }
 
     data->updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>>(hs));
+    LOG_INFO("HEADSET exit");
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInformation(JNIEnv* env, jobject instance, jlong ptr, jobject info)

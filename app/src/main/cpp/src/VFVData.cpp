@@ -67,7 +67,6 @@ namespace sereno
             for(int i = 0; i < jSubDatasets.size(); i++)
                 m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
-
         unlock();
         addEvent(ev);
     }

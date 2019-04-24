@@ -12,6 +12,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -544,6 +545,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onPageScrollStateChanged(int state) {}
         });
+
+        getFragmentManager().beginTransaction().commit();
     }
 
     /** \brief Set up the drawer layout (root layout)*/
@@ -697,7 +700,7 @@ public class MainActivity extends AppCompatActivity
 
     /** Function called for gathering common actions when adding a new Dataset
      * @param d the Dataset added*/
-    private void onAddDataset(Dataset d)
+    private void onAddDataset(final Dataset d)
     {
         m_pendingDataset.push(d);
         runOnUiThread(new Runnable() {

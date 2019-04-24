@@ -19,6 +19,7 @@ public class SubDatasetOwnerMessage extends ServerMessage
             m_sdID = v;
         else
             m_headsetID = v;
+        super.pushValue(v);
     }
 
     @Override

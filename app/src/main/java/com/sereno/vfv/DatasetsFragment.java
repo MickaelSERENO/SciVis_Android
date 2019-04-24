@@ -1,5 +1,6 @@
 package com.sereno.vfv;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -77,6 +78,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
         if(m_surfaceView != null)
             model.addListener(m_surfaceView);
+    }
+
+    @Override
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+        setUpModel(m_model);
     }
 
     /** @brief Set the visibility of this fragment. Useful for optimization (do not draw what is not on screen)
@@ -193,70 +201,66 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private void addDataset(final Dataset d)
     {
         //Add the preview
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                TextView dataText = new TextView(getContext());
-                dataText.setText(d.getName());
-                Tree<View> dataView = new Tree<View>(dataText);
-                m_previewLayout.getModel().addChild(dataView, -1);
+        TextView dataText = new TextView(getContext());
+        dataText.setText(d.getName());
+        Tree<View> dataView = new Tree<View>(dataText);
+        m_previewLayout.getModel().addChild(dataView, -1);
 
-                for(int i = 0; i < d.getNbSubDataset(); i++)
-                {
-                    //Set the color range listener
-                    final SubDataset sd = d.getSubDataset(i);
-                    if(m_model.getCurrentSubDataset() == null)
-                        m_model.setCurrentSubDataset(sd);
-                    sd.addListener(DatasetsFragment.this);
+        for(int i = 0; i < d.getNbSubDataset(); i++)
+        {
+            //Set the color range listener
+            final SubDataset sd = d.getSubDataset(i);
+            if(m_model.getCurrentSubDataset() == null)
+                m_model.setCurrentSubDataset(sd);
+            sd.addListener(DatasetsFragment.this);
 
-                    //Add the snap image
-                    final ImageView snapImg = new ImageView(getContext());
-                    snapImg.setAdjustViewBounds(true);
-                    snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    snapImg.setMaxWidth(256);
-                    snapImg.setMaxHeight(256);
-                    snapImg.setImageResource(R.drawable.no_snapshot);
-                    snapImg.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            m_model.setCurrentSubDataset(sd);
-                        }
-                    });
-
-                    //Snapshot event
-                    sd.addListener(new SubDataset.ISubDatasetListener() {
-                        @Override
-                        public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
-
-
-                        @Override
-                        public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
-
-                        @Override
-                        public void onPositionEvent(SubDataset dataset, float[] position) {}
-
-                        @Override
-                        public void onScaleEvent(SubDataset dataset, float[] scale) {}
-
-                        @Override
-                        public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
-                        {
-                            final Bitmap s = snapshot;
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    snapImg.setImageBitmap(s);
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
-                    });
-                    dataView.addChild(new Tree<View>(snapImg), -1);
+            //Add the snap image
+            final ImageView snapImg = new ImageView(getContext());
+            snapImg.setAdjustViewBounds(true);
+            snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            snapImg.setMaxWidth(256);
+            snapImg.setMaxHeight(256);
+            snapImg.setImageResource(R.drawable.no_snapshot);
+            snapImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    m_model.setCurrentSubDataset(sd);
                 }
-            }
-        });
+            });
+
+            //Snapshot event
+            sd.addListener(new SubDataset.ISubDatasetListener() {
+                @Override
+                public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
+
+
+                @Override
+                public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+                @Override
+                public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+                @Override
+                public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+                @Override
+                public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
+                {
+                    final Bitmap s = snapshot;
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            snapImg.setImageBitmap(s);
+                        }
+                    });
+                }
+
+                @Override
+                public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+            });
+            dataView.addChild(new Tree<View>(snapImg), -1);
+        }
+
 
     }
 }

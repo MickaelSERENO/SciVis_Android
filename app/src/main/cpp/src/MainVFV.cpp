@@ -142,52 +142,68 @@ namespace sereno
             m_inAnimation    = false;
         }
 
-        switch(m_currentWidgetAction)
+        uint32_t numberFinger = 0;
+        TouchCoord* tc = NULL;
+        for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+            if(tc->type != TOUCH_TYPE_UP)
+                numberFinger++;
+
+        if(m_currentWidgetAction == NO_IMAGE && numberFinger <= 1)
         {
             //Cancel the animation
-            case NO_IMAGE:
+            if(m_inAnimation || forceReset)
             {
-                if(m_inAnimation || forceReset)
-                {
-                    m_animationTimer = 0;
+                m_animationTimer = 0;
 
-                    m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
-                                                                  -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                   ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                                  -10.0f, 10.0f, false);
+                m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
+                                                              -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                               ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                              -10.0f, 10.0f, false);
 
-                    //Reset camera position
-                    m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-                    m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
-                }
-                m_inAnimation = false;
-                break;
+                //Reset camera position
+                m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+                m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
             }
-
+            m_inAnimation = false;
+        }
+        else
+        {
             //Go into an animation
-            default:
+            if(!m_inAnimation || forceReset)
             {
-                if(!m_inAnimation || forceReset)
+                m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
+                if(m_currentVis)
                 {
-                    m_surfaceData->renderer.setPerspectiveMatrix(45.0f*3.14f/180.0f, ((float)m_surfaceData->renderer.getWidth())/m_surfaceData->renderer.getHeight(), 0.1, 100.0f, false);
-                    if(m_currentVis)
+                    m_animationStartingPoint = m_currentVis->getPosition();
+                    if(!findHeadsetCameraTransformation(&m_animationEndingPoint, &m_animationRotation))
                     {
-                        m_animationStartingPoint = m_currentVis->getPosition();
-                        if(!findHeadsetCameraTransformation(&m_animationEndingPoint, NULL))
-                            m_animationEndingPoint = glm::vec3(0, 0, -10);
+                        m_animationEndingPoint = glm::vec3(0, 0, -10);
+                        m_animationRotation    = Quaternionf();
                     }
-                    m_animationTimer = 0;
+                    else
+                    {
+                        glm::vec3 eulerAngles = m_animationRotation.toEulerAngles();
+                        LOG_INFO("Old quaternion : %f %f %f %f, magnitude : %f\n", m_animationRotation[0], m_animationRotation[1], m_animationRotation[2], m_animationRotation[3], m_animationRotation.getMagnitude());
+                        LOG_INFO("Euler angles : %f %f %f", eulerAngles.x, eulerAngles.y, eulerAngles.z);
+                        eulerAngles.x = eulerAngles.z = 0;
+                        m_animationRotation = Quaternionf::fromEulerAngles(eulerAngles);
+                        LOG_INFO("New quaternion : %f %f %f %f, magnitude : %f\n", m_animationRotation[0], m_animationRotation[1], m_animationRotation[2], m_animationRotation[3], m_animationRotation.getMagnitude());
+                    }
+                    m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
                 }
-
-                if(m_currentVis && m_animationTimer <= MAX_CAMERA_ANIMATION_TIMER)
-                {
-                    glm::vec3 dir = m_animationEndingPoint - m_animationStartingPoint;
-                    lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir, m_animationStartingPoint, false);
-                    m_animationTimer++;
-                }
-                m_inAnimation = true;
-                break;
+                m_animationTimer = 0;
             }
+
+            if(m_currentVis && m_animationTimer <= MAX_CAMERA_ANIMATION_TIMER)
+            {
+                glm::vec3 dir = m_animationEndingPoint - m_animationStartingPoint;
+                m_surfaceData->renderer.getCameraTransformable().setPosition(((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir);
+
+                //Old version using look at
+                //lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir, m_animationStartingPoint, false);
+                m_animationTimer++;
+            }
+            m_inAnimation = true;
         }
     }
 
@@ -196,7 +212,6 @@ namespace sereno
         glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
 
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
 
         bool     visible = true;
 
@@ -408,6 +423,9 @@ namespace sereno
 
     void MainVFV::handleTouchAction(TouchEvent* event)
     {
+        bool inMovement = false;
+        glm::vec3 movement;
+
         switch(m_currentWidgetAction)
         {
             case TOP_RIGHT_IMAGE:
@@ -443,8 +461,8 @@ namespace sereno
             {
                 if(m_currentVis)
                 {
-                    m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(0.0f, event->y - event->oldY, 0.0f));
-                    m_mainData->sendPositionEvent(m_currentVis->getModel());
+                    inMovement = true;
+                    movement = 3.0f*glm::vec3(0.0f, event->y - event->oldY, 0.0f);
                 }
                 break;
             }
@@ -453,8 +471,8 @@ namespace sereno
             {
                 if(m_currentVis)
                 {
-                    m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(event->x - event->oldX, 0.0f, 0.0f));
-                    m_mainData->sendPositionEvent(m_currentVis->getModel());
+                    inMovement = true;
+                    movement = 3.0f*glm::vec3(event->x - event->oldX, 0.0f, 0.0f);
                 }
                 break;
             }
@@ -491,39 +509,35 @@ namespace sereno
                         glm::vec2 vec2(tc2->x - tc2->oldX,
                                        tc2->y - tc2->oldY);
 
-                        if((vec1.x != 0 || vec1.x != 0) &&
-                                (vec2.x != 0 || vec2.x != 0))
+                        if((vec1.x != 0 || vec1.y != 0) &&
+                           (vec2.x != 0 || vec2.y != 0))
                         {
                             vec1 = glm::normalize(vec1);
                             vec2 = glm::normalize(vec2);
 
-                            float cosVec = vec1.x*vec2.x + vec1.y*vec2.y;
+                            //Determine the scaling factor
+                            float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) +
+                                    (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
 
-                            if(cosVec <= -0.8f)
-                            {
-                                //Determine the scaling factor
-                                float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) +
-                                        (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+                            float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) +
+                                    (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
 
-                                float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) +
-                                        (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+                            float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) +
+                                    (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
 
-                                float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) +
-                                        (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+                            float factor = distanceAfter - distanceBefore;
 
-                                float factor = distanceAfter - distanceBefore;
-
-                                m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + 3.0f*glm::vec3(0.0f, 0.0f, factor));
-                                m_mainData->sendPositionEvent(m_currentVis->getModel());
-                            }
+                            inMovement = true;
+                            movement   = 3.0f*glm::vec3(0.0f, 0.0f, factor);
                         }
                     }
 
                     //Rotation
                     else
                     {
-                        float roll  = event->x - event->oldX;
-                        float pitch = event->y - event->oldY;
+                        //Allow a full rotation in only one movement
+                        float roll  = (event->x - event->oldX)*M_PI;
+                        float pitch = (event->y - event->oldY)*M_PI;
                         pitch = 0; //Disable pitch rotation
 
                         m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
@@ -536,6 +550,19 @@ namespace sereno
             default:
             {}
         }
+
+        //Move the dataset if asked
+        Quaternionf cameraRot(0, 0, 0, 1.0);
+        if(inMovement)
+        {
+            findHeadsetCameraTransformation(NULL, &cameraRot);
+            glm::vec3 newPos = m_animationRotation.rotateVector(movement);
+            LOG_INFO("old Movement : %f %f %f, new Movement : %f %f %f", movement.x, movement.y, movement.z,
+                                                                         newPos.x,   newPos.y,   newPos.z);
+            m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + newPos);
+            m_mainData->sendPositionEvent(m_currentVis->getModel());
+        }
+
     }
 
     void MainVFV::handleVFVDataEvent()

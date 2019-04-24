@@ -1,5 +1,7 @@
 package com.sereno.vfv.Network;
 
+import android.util.Log;
+
 public class HeadsetsStatusMessage extends ServerMessage
 {
     public static final int HEADSET_CURRENT_ACTION_NOTHING   = 0;
@@ -33,11 +35,11 @@ public class HeadsetsStatusMessage extends ServerMessage
     public void pushValue(float value)
     {
         int headset = (cursor-1)/10;
-        int id      = (cursor-1) % 10;
+        int id      = (cursor-1)%10;
 
         if(id < 6) //Position
             m_status[headset].position[id - 3] = value;
-        else if(id % 9 < 10) //Rotation
+        else if(id < 10) //Rotation
             m_status[headset].rotation[id - 6] = value;
         super.pushValue(value);
     }
@@ -54,8 +56,8 @@ public class HeadsetsStatusMessage extends ServerMessage
         }
         else
         {
-            int id = (cursor-1)%9;
-            int headset = (cursor-1)/9;
+            int id = (cursor-1)%10;
+            int headset = (cursor-1)/10;
 
             if(id == 0)
                 m_status[headset].id = value;
@@ -74,9 +76,9 @@ public class HeadsetsStatusMessage extends ServerMessage
             return (byte)'I';
         else
         {
-            int id = (cursor-1) % 9;
+            int id = (cursor-1) % 10;
 
-            if(id < 3) //Color / ID
+            if(id < 3) //Color / ID / current action
                 return (byte)'I';
 
             if(id < 6) //Position

@@ -227,6 +227,7 @@ namespace sereno
             bool                  m_inAnimation    = false; /*!< Are we in an animation?*/ 
             glm::vec3             m_animationStartingPoint; /*!< The animation starting point*/
             glm::vec3             m_animationEndingPoint;   /*!< The animation ending point*/
+            Quaternionf           m_animationRotation;      /*!< The animation rotation to apply (camera rotation)*/
 
             std::map<const SubDataset*, SubDatasetChangement> m_modelChanged; /*!< Map of the current model being changed*/
 
