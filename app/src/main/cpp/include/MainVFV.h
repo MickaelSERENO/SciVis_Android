@@ -11,9 +11,9 @@
 #include "Graphics/Materials/SimpleTextureMaterial.h"
 #include "Graphics/Materials/ColorMaterial.h"
 #include "Graphics/Materials/ColorGridMaterial.h"
-#include "Graphics/SciVis/TransferFunction/TransferFunction.h"
-#include "Graphics/SciVis/TransferFunction/GTF.h"
-#include "Graphics/SciVis/TransferFunction/TriangularGTF.h"
+#include "Graphics/SciVis/TransferFunction/TFTexture.h"
+#include "TransferFunction/GTF.h"
+#include "TransferFunction/TriangularGTF.h"
 
 #include <memory>
 #include <map>

@@ -104,7 +104,6 @@ void main()
     else //Orthographic mode, normal already computed
         rayNormal = varyNormal;
 
-
     //Compute ray - cube intersections
     float t[6];
     bool  tValidity[6];
