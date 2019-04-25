@@ -43,11 +43,6 @@ namespace sereno
             m_textureMtl[i].bindTexture(m_3dImageManipTex[i].getTextureID(), 2, 0);
             new(m_3dImageManipGO+i) DefaultGameObject(NULL, &surfaceData->renderer, m_textureMtl+i, m_gpuTexVBO);
         }
-
-        //Load the default scientific vis transfer functions
-        uint32_t texSize[2] = {256, 256};
-        for(uint32_t i = 0; i < SciVisTFEnum_End; i++)
-            m_sciVisTFs.push_back(sciVisTFGenTexture((SciVisTFEnum)i, texSize));
     }
 
     MainVFV::~MainVFV()
@@ -349,11 +344,11 @@ namespace sereno
                 {
                     if(sciVis->getModel() == it.first)
                     {
-                        if(it.second.updateColor)
-                        {
-                            sciVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping(), it.first->getColorMode());
-                            sciVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
-                        }
+//                        if(it.second.updateColor)
+//                        {
+//                            sciVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping(), it.first->getColorMode());
+//                            sciVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
+//                        }
                         if(it.second.updateRotation)
                             sciVis->setRotate(it.first->getGlobalRotate());
                         if(it.second.updateScale)
@@ -574,15 +569,19 @@ namespace sereno
                 case VFV_ADD_BINARY_DATA:
                     if(m_arrowMesh)
                     {
+                        //Compute the Transfer Function
+                        TF tf(2, RAINBOW);
+                        uint32_t texSize[2] = {256, 256};
+                        GLuint texture = generateTexture(texSize, tf);
+                        m_sciVisTFs.push_back(texture);
+
                         //Create the visualization
                         m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
                                                                  event->binaryData.dataset, m_arrowMesh, 
-                                                                 m_sciVisTFs[RAINBOW_DefaultTF], sciVisTFGetDimension(RAINBOW_DefaultTF)));
+                                                                 texture, 2));
                         m_sciVis.push_back(m_vectorFields.back());
-                        m_sciVisDefaultTF.insert(SciVisPair(m_vectorFields.back(), RAINBOW_DefaultTF));
 
-                        //Set state
-                        m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_DefaultTF]);
+                        //Set the snapshot
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
                         m_snapshots.insert(snap);
                         m_sciVis.back()->getModel()->setSnapshot(snap.second);
@@ -595,7 +594,7 @@ namespace sereno
                 //Add VTK Dataset
                 case VFV_ADD_VTK_DATA:
                     m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
-                                                                                         m_sciVisTFs[RAINBOW_TriangularGTF], sciVisTFGetDimension(RAINBOW_TriangularGTF)));
+                                                                                         0, 2));
                     m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
                     float dim[3];
                     for(uint8_t i = 0; i < 3; i++)
@@ -605,10 +604,15 @@ namespace sereno
                     for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
                     {
                         m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
-                        m_sciVisDefaultTF.insert(SciVisPair(m_sciVis.back(), RAINBOW_TriangularGTF));
 
-                        //Set internal state
-                        m_sciVis.back()->setTFTexture(m_sciVisTFs[m_sciVis.back()->getModel()->getColorMode() + RAINBOW_TriangularGTF]);
+                        //Set the transfer function
+                        TriangularGTF tGTF(2, RAINBOW);
+                        uint32_t texSize[2] = {256, 256};
+                        GLuint texture = generateTexture(texSize, tGTF);
+                        m_sciVis.back()->setTFTexture(texture);
+                        m_sciVisTFs.push_back(texture);
+
+                        //Update the snapshot
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
                         m_snapshots.insert(snap);
                         m_sciVis.back()->getModel()->setSnapshot(snap.second);
