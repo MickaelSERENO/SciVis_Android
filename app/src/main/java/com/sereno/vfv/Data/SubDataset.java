@@ -15,12 +15,11 @@ public class SubDataset
     /** Callback interface called when the SubDataset is modified*/
     public interface ISubDatasetListener
     {
-        /** On range color change callback, called when the color changed
+        /** On range color change callback, called when the clamping changed
          * @param sd the SubDataset being modified
          * @param min the minimum clamping color (normalized : between 0.0f and 1.0f)
-         * @param max the maximum clamping color (normalized : between 0.0f and 1.0f)
-         * @param mode the ColorMode*/
-        void onRangeColorChange(SubDataset sd, float min, float max, int mode);
+         * @param max the maximum clamping color (normalized : between 0.0f and 1.0f)*/
+        void onClampingChange(SubDataset sd, float min, float max);
 
         /** Method called when a new rotation on the current SubDataset is performed
          * @param dataset the dataset being rotated
@@ -129,15 +128,14 @@ public class SubDataset
         return m_ptr;
     }
 
-    /** Set the range color of this SubDataset being displayed
+    /** Set the range clamping of this SubDataset being displayed
      * @param min the minimum (between 0.0 and 1.0) value to display. Values lower than min will be discarded
-     * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded
-     * @param mode the ColorMode to apply*/
-    public void setRangeColor(float min, float max, int mode)
+     * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded*/
+    public void setClamping(float min, float max)
     {
-        nativeSetRangeColor(m_ptr, min, max, mode);
+        nativeSetClamping(m_ptr, min, max);
         for(int i = 0; i < m_listeners.size(); i++)
-            m_listeners.get(i).onRangeColorChange(this, min, max, mode);
+            m_listeners.get(i).onClampingChange(this, min, max);
     }
 
     /** Get the current minimum clamping color of this SubDataset
@@ -283,15 +281,14 @@ public class SubDataset
 
     /** Set the 3D scale components. In order: x, y, z
      * @param ptr the native pointer
-     * @param p the 3D scale vector*/
+     * @param s the 3D scale vector*/
     private native void nativeSetScale(long ptr, float[] s);
 
-    /** Native code to set the range color of this SubDataset being displayed
+    /** Native code to set the clamping of this SubDataset being displayed
      * @param ptr the native pointer
      * @param min the minimum (between 0.0 and 1.0) value to display. Values lower than min will be discarded
-     * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded
-     * @param mode the ColorMode to apply*/
-    private native void nativeSetRangeColor(long ptr, float min, float max, int mode);
+     * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded*/
+    private native void nativeSetClamping(long ptr, float min, float max);
 
     /** Native code to get the SubDataset name
      * @param ptr the native pointer

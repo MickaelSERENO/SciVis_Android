@@ -72,12 +72,18 @@ namespace sereno
             /** \brief  Destructor */
             ~VTKStructuredGridPointGameObject();
 
+            void onTFChange();
+
             void draw(const Render& render);
 
-            void setColorRange(float min, float max, ColorMode colorMode);
+            void setColorRange(float min, float max);
         private:
+            /* \brief Compute the gradient values*/
+            void computeGradient();
+
             VTKStructuredGridPointVBO* m_gridPointVBO; /*!< The Grid point VBO associated with this data*/
             float*   m_vals;                           /*!< The property captured value*/
+            float*   m_grads;                          /*!< The gradient values*/
             GLuint   m_texture;                        /*!< The 3D texture containing the dataset values*/
             int      m_glVersion = -1;                 /*!< The OpenGL version*/
             float    m_maxVal;                         /*!< The property max value*/

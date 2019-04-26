@@ -125,12 +125,12 @@ namespace sereno
             GLSurfaceViewData* m_surfaceData; /*!< The GL Surface associated with this application */
             VFVData*           m_mainData;    /*!< The main data*/
 
-            MeshLoader*               m_arrowMesh;    /*!< The arrow mesh for the vector fields*/
-            Material*                 m_vfMtl;        /*!< The vector field material*/
-            ColorGridMaterial*        m_colorGridMtl; /*!< The color grid material for the VTK StructuredGridPoints*/
-            SimpleTextureMaterial*    m_textureMtl;
-            std::vector<VectorField*> m_vectorFields; /*!< The loaded vector fields*/
-            std::vector<GLuint>       m_sciVisTFs;    /*!< The TF texture used for Scientific Visualization*/
+            MeshLoader*               m_arrowMesh;       /*!< The arrow mesh for the vector fields*/
+            Material*                 m_vfMtl;           /*!< The vector field material*/
+            ColorGridMaterial*        m_colorGridMtl;    /*!< The color grid material for the VTK StructuredGridPoints*/
+            SimpleTextureMaterial*    m_textureMtl;      /*!< Material to draw simple textures*/
+            std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
+            std::vector<GLuint>       m_sciVisTFTextures;/*!< The TF texture used for Scientific Visualization*/
 
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
@@ -138,18 +138,19 @@ namespace sereno
             uint32_t             m_snapshotCnt     = 0;    /*!< The snapshot counter*/
 
             std::map<SciVis*, std::shared_ptr<Snapshot>> m_snapshots; /*!< The snapshot pixels per Scientific Visualization*/
+            std::map<SubDataset*, TF*> m_sciVisTFs; /*!< The subdataset personal transfer function*/
 
-            TextureRectangleData* m_gpuTexVBO;       /*!< GPU VBO information for drawing textures*/
-            Texture*              m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
-            DefaultGameObject*    m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
+            TextureRectangleData*  m_gpuTexVBO; /*!< GPU VBO information for drawing textures*/
+            Texture*               m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
+            DefaultGameObject*     m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
 
-            uint32_t              m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
+            uint32_t               m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
 
-            uint32_t              m_animationTimer = 0; /*!< The annimation timer*/
-            bool                  m_inAnimation    = false; /*!< Are we in an animation?*/ 
-            glm::vec3             m_animationStartingPoint; /*!< The animation starting point*/
-            glm::vec3             m_animationEndingPoint;   /*!< The animation ending point*/
-            Quaternionf           m_animationRotation;      /*!< The animation rotation to apply (camera rotation)*/
+            uint32_t               m_animationTimer = 0; /*!< The annimation timer*/
+            bool                   m_inAnimation    = false; /*!< Are we in an animation?*/ 
+            glm::vec3              m_animationStartingPoint; /*!< The animation starting point*/
+            glm::vec3              m_animationEndingPoint;   /*!< The animation ending point*/
+            Quaternionf            m_animationRotation;      /*!< The animation rotation to apply (camera rotation)*/
 
             std::map<const SubDataset*, SubDatasetChangement> m_modelChanged; /*!< Map of the current model being changed*/
     };

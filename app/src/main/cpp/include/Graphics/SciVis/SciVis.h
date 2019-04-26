@@ -29,7 +29,7 @@ namespace sereno
             /* \brief Set the color range to display. All the color OUTSIDE [min, max] will be discarded (i.e transparent)
              * \param min the minimum value (ratio : 0.0, 1.0)
              * \param max the maximum value (ratio : 0.0, 1.0)*/
-            virtual void setColorRange(float min, float max, ColorMode colorMode) = 0;
+            virtual void setColorRange(float min, float max) = 0;
 
             /* \brief  Set the Transfer Function texture
              * \param tfTexture the new transfer function texture*/
@@ -42,6 +42,9 @@ namespace sereno
             /* \brief  Get the SubDataset model in use
              * \return  The SubDataset model */
             SubDataset* getModel() {return m_model;}
+
+            /* \brief Function to call when the transfer function attached to the model has changed*/
+            virtual void onTFChange() {};
         protected:
             SubDataset* m_model          = NULL; /*!< The model bound to this visualization*/
             GLuint      m_tfTexture;             /*!< The transfer function texture*/

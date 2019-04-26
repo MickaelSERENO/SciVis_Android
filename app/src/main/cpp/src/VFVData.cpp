@@ -91,8 +91,7 @@ namespace sereno
         m_currentAction = a;
     }
 
-
-    void VFVData::onRangeColorChange(float min, float max, ColorMode mode, SubDataset* sd)
+    void VFVData::onClampingChange(float min, float max, SubDataset* sd)
     {
         addSubDatasetEvent(sd, VFV_COLOR_RANGE_CHANGED);
     }

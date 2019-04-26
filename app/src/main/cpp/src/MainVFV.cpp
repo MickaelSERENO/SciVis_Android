@@ -50,8 +50,11 @@ namespace sereno
         for(VectorField* vf : m_vectorFields)
             if(vf)
                 delete vf;
-        for(GLuint tex : m_sciVisTFs)
+        for(GLuint tex : m_sciVisTFTextures)
             glDeleteTextures(1, &tex);
+        for(auto& it : m_sciVisTFs)
+            delete(it.second);
+
         delete m_arrowMesh;
         delete m_vfMtl;
         delete m_gpuTexVBO;
@@ -344,11 +347,11 @@ namespace sereno
                 {
                     if(sciVis->getModel() == it.first)
                     {
-//                        if(it.second.updateColor)
-//                        {
-//                            sciVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping(), it.first->getColorMode());
+                        if(it.second.updateColor)
+                        {
+                            sciVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping());
 //                            sciVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
-//                        }
+                        }
                         if(it.second.updateRotation)
                             sciVis->setRotate(it.first->getGlobalRotate());
                         if(it.second.updateScale)
@@ -570,16 +573,18 @@ namespace sereno
                     if(m_arrowMesh)
                     {
                         //Compute the Transfer Function
-                        TF tf(2, RAINBOW);
+                        TF *tf = new TF(2, WARM_COLD_CIELAB);
                         uint32_t texSize[2] = {256, 256};
-                        GLuint texture = generateTexture(texSize, tf);
-                        m_sciVisTFs.push_back(texture);
+                        GLuint texture = generateTexture(texSize, *tf);
+                        m_sciVisTFTextures.push_back(texture);
 
                         //Create the visualization
                         m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
                                                                  event->binaryData.dataset, m_arrowMesh, 
                                                                  texture, 2));
                         m_sciVis.push_back(m_vectorFields.back());
+                        m_sciVis.back()->getModel()->setTransferFunction(tf);
+                        m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tf));
 
                         //Set the snapshot
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
@@ -606,11 +611,14 @@ namespace sereno
                         m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
 
                         //Set the transfer function
-                        TriangularGTF tGTF(2, RAINBOW);
+                        TriangularGTF* tGTF = new TriangularGTF(2, RAINBOW);
                         uint32_t texSize[2] = {256, 256};
-                        GLuint texture = generateTexture(texSize, tGTF);
+                        GLuint texture = generateTexture(texSize, *tGTF);
                         m_sciVis.back()->setTFTexture(texture);
-                        m_sciVisTFs.push_back(texture);
+                        m_sciVis.back()->getModel()->setTransferFunction(tGTF);
+                        m_sciVis.back()->onTFChange();
+                        m_sciVisTFTextures.push_back(texture);
+                        m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tGTF));
 
                         //Update the snapshot
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));

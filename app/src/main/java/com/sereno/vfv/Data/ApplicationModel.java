@@ -191,7 +191,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
     {
         if(m_currentSubDataset != null)
-            m_currentSubDataset.setRangeColor(minVal, maxVal, mode);
+            m_currentSubDataset.setClamping(minVal, maxVal);
     }
 
     /** Add a new annotation
@@ -235,14 +235,14 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             m_currentSubDataset.removeListener(this);
         m_currentSubDataset = sd;
 
-        onRangeColorChange(sd, sd.getMinClampingColor(), sd.getMaxClampingColor(), sd.getColorMode());
+        onClampingChange(sd, sd.getMinClampingColor(), sd.getMaxClampingColor());
 
         for(IDataCallback clbk : m_listeners)
             clbk.onChangeCurrentSubDataset(this, sd);
     }
 
     @Override
-    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    public void onClampingChange(SubDataset sd, float min, float max)
     {
         if(m_rangeColorModel == null)
             return;
@@ -251,8 +251,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             m_currentSubDataset.removeListener(this);
         m_rangeColorModel.removeOnRangeChangeListener(this);
 
-        if(mode != m_rangeColorModel.getColorMode())
-            m_rangeColorModel.setColorMode(mode);
         if(min != m_rangeColorModel.getMinRange() || max != m_rangeColorModel.getMaxRange())
             m_rangeColorModel.setRange(min, max);
 

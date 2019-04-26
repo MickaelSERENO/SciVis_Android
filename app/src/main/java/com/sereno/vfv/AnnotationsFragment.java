@@ -404,7 +404,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
+    public void onClampingChange(SubDataset sd, float min, float max) {}
 
     @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion) {}

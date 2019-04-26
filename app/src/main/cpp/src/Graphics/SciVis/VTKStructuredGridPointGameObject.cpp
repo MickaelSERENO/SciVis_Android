@@ -67,24 +67,29 @@ namespace sereno
         m_propID(propID)
     {
         const VTKStructuredPoints& ptsDesc = m_gridPointVBO->m_vtkParser->getStructuredPointsDescriptor();
-
-        //Read and determine the max / min values
         uint8_t* vals = (uint8_t*)m_gridPointVBO->m_vtkParser->parseAllFieldValues(ptFieldValue);
 
-        for(uint32_t i = 0; i < ptFieldValue->nbTuples; i++)
+        //Read and determine the max / min values
+        if(ptFieldValue->nbTuples > 0)
         {
-            float val = readParsedVTKValue<double>(vals + i*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
-                                                   ptFieldValue->format);
-            m_maxVal = std::max(m_maxVal, val);
-            m_minVal = std::min(m_minVal, val);
+            float val = readParsedVTKValue<double>(vals, ptFieldValue->format);
+            m_maxVal = m_minVal = val;
+
+            for(uint32_t i = 1; i < ptFieldValue->nbTuples; i++)
+            {
+                val = readParsedVTKValue<double>(vals + i*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
+                                                 ptFieldValue->format);
+                m_maxVal = std::max(m_maxVal, val);
+                m_minVal = std::min(m_minVal, val);
+            }
         }
 
-        float amp[2] = {m_maxVal, m_minVal};
+        float amp[2] = {m_minVal, m_maxVal};
         subDataset->setAmplitude(amp);
 
         //Store the interesting values
         size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
-        m_vals = (float*)malloc(sizeof(float)*nbValues);
+        m_vals  = (float*)malloc(sizeof(float)*nbValues);
 
         #pragma omp parallel
         {
@@ -97,9 +102,11 @@ namespace sereno
                             size_t destID = i + 
                                             j*m_gridPointVBO->m_dimensions[0] + 
                                             k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+
                             size_t srcID  = i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0] +
                                             j*ptsDesc.size[1]*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[1] + 
                                             k*ptsDesc.size[2]*ptsDesc.size[1]*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[2];
+
                             m_vals[destID] = readParsedVTKValue<float>(vals + srcID*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple,
                                                                        ptFieldValue->format);
                             m_vals[destID] = (m_vals[destID] - m_minVal)/(m_maxVal - m_minVal);
@@ -107,6 +114,8 @@ namespace sereno
             }
         }
         free(vals);
+        m_grads = (float*)malloc(sizeof(float)*nbValues);
+        computeGradient();
 
         //Set VAO
         glGenVertexArrays(1, &m_vaoID);
@@ -124,8 +133,7 @@ namespace sereno
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER_OES);
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER_OES);
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER_OES);
-            glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP_HINT, GL_TRUE);
-            setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
+            setColorRange(m_model->getMinClamping(), m_model->getMaxClamping());
         glBindTexture(GL_TEXTURE_3D, 0);
         m_glVersion = renderer->getGLESVersion();
 
@@ -134,10 +142,16 @@ namespace sereno
         setRotate(m_model->getGlobalRotate());
     }
 
+    void VTKStructuredGridPointGameObject::onTFChange()
+    {
+        setColorRange(getModel()->getMinClamping(), getModel()->getMaxClamping());
+    }
+
     VTKStructuredGridPointGameObject::~VTKStructuredGridPointGameObject()
     {
         glDeleteVertexArrays(1, &m_vaoID);
         free(m_vals);
+        free(m_grads);
     }
 
     void VTKStructuredGridPointGameObject::draw(const Render& render)
@@ -200,7 +214,7 @@ namespace sereno
 
         glm::mat4 invMVP = glm::inverse(mvp);
         m_mtl->bindTexture(m_texture,   3, 0);
-        m_mtl->bindTexture(m_tfTexture, 2, 1);
+        //m_mtl->bindTexture(m_tfTexture, 2, 1);
         m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
 
         glDepthMask(false);
@@ -217,36 +231,14 @@ namespace sereno
         glDisable(GL_BLEND);
     }
 
-    void VTKStructuredGridPointGameObject::setColorRange(float min, float max, ColorMode colorMode)
+    void VTKStructuredGridPointGameObject::computeGradient()
     {
-        size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
-
-        //Update the values of the 3D texture
-        //Store scalar and gradient magnitude values
-        float* vals = (float*)malloc(sizeof(float)*nbValues*2);
-
-        //Compute scalar
-        float maxGrad = 0.0f;
-        #pragma omp parallel
-        {
-            #pragma omp for
-            {
-                for(uint32_t i = 0; i < nbValues; i++)
-                {
-                    float t = m_vals[i];
-
-                    //Test if inside the min-max range.
-                    if(t > max || t < min)
-                        vals[2*i] = -1.0f;
-                    else
-                        vals[2*i] = t;
-                }
-            }
-
         /*----------------------------------------------------------------------------*/
         /*--------------------------Compute gradient values---------------------------*/
         /*----------------------------------------------------------------------------*/
-
+        float maxGrad;
+        #pragma omp parallel
+        {
             //Central difference used
             #pragma omp for reduction(max:maxGrad)
             {
@@ -254,23 +246,25 @@ namespace sereno
                     for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
                         for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
                         {
-                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
+                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] +
                                            k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                            float    x1  = vals[2*(ind-1)];
-                            float    x2  = vals[2*(ind+1)];
-                            float    y1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0])];
-                            float    y2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0])];
-                            float    z1  = vals[2*(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
-                            float    z2  = vals[2*(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
+                            float    x1  = m_vals[(ind-1)];
+                            float    x2  = m_vals[(ind+1)];
+                            float    y1  = m_vals[(ind-m_gridPointVBO->m_dimensions[0])];
+                            float    y2  = m_vals[(ind+m_gridPointVBO->m_dimensions[0])];
+                            float    z1  = m_vals[(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
+                            float    z2  = m_vals[(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
 
-                            vals[2*ind+1] = (x1-x2)*(x1-x2)/(2.0f*m_gridPointVBO->m_spacing[0])+
-                                            (y1-y2)*(y1-y2)/(2.0f*m_gridPointVBO->m_spacing[1])+
-                                            (z1-z2)*(z1-z2)/(2.0f*m_gridPointVBO->m_spacing[2]);
-                            maxGrad = std::max(vals[2*ind+1], maxGrad);
+                            m_grads[ind] = (x1-x2)/(2.0*m_gridPointVBO->m_spacing[0])+
+                                           (y1-y2)/(2.0*m_gridPointVBO->m_spacing[1])+
+                                           (z1-z2)/(2.0*m_gridPointVBO->m_spacing[2]);
+                            maxGrad = std::max(m_grads[ind], maxGrad);
                         }
             }
+        }
 
-
+        #pragma omp parallel
+        {
             //Normalize the gradient
             #pragma omp for
             {
@@ -278,15 +272,15 @@ namespace sereno
                     for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
                         for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
                         {
-                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] + 
+                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] +
                                            k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                            vals[2*ind+1] /= maxGrad;
+                            m_grads[ind] /= maxGrad;
                         }
             }
 
-                /*----------------------------------------------------------------------------*/
-                /*---------------Compute gradient values for Edge (grad = 0.0f)---------------*/
-                /*----------------------------------------------------------------------------*/
+            /*----------------------------------------------------------------------------*/
+            /*---------------Compute gradient values for Edge (grad = 0.0f)---------------*/
+            /*----------------------------------------------------------------------------*/
 
             //for k = 0 and k = max
             #pragma omp for
@@ -295,8 +289,8 @@ namespace sereno
                     for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
                     {
                         uint32_t offset = (m_gridPointVBO->m_dimensions[2]-1)*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                        vals[2*(i+j*m_gridPointVBO->m_dimensions[0])+1]        = 0.0f;
-                        vals[2*(i+j*m_gridPointVBO->m_dimensions[0]+offset)+1] = 0.0f;
+                        m_grads[(i+j*m_gridPointVBO->m_dimensions[0])]        = 0.0f;
+                        m_grads[(i+j*m_gridPointVBO->m_dimensions[0]+offset)] = 0.0f;
                     }
             }
 
@@ -307,32 +301,93 @@ namespace sereno
                     for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
                     {
                         uint32_t offset = (m_gridPointVBO->m_dimensions[1]-1)*m_gridPointVBO->m_dimensions[0];
-                        vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
-                        vals[2*(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+                        m_grads[(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])]        = 0.0f;
+                        m_grads[(i+k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)] = 0.0f;
                     }
             }
 
-                //for i = 0 and i = max
+            //for i = 0 and i = max
             #pragma omp for
             {
                 for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
                     for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
                     {
                         uint32_t offset = m_gridPointVBO->m_dimensions[0]-1;
-                        vals[2*(j*m_gridPointVBO->m_dimensions[0]+
-                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])+1]        = 0.0f;
-                        vals[2*(j*m_gridPointVBO->m_dimensions[0]+
-                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)+1] = 0.0f;
+                        m_grads[(j*m_gridPointVBO->m_dimensions[0]+
+                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])]        = 0.0f;
+                        m_grads[(j*m_gridPointVBO->m_dimensions[0]+
+                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]+offset)] = 0.0f;
                     }
             }
         }
+    }
 
+    void VTKStructuredGridPointGameObject::setColorRange(float min, float max)
+    {
+        size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
+
+        //Compute the RGBA Colors
+        uint8_t* cols = (uint8_t*)malloc(sizeof(uint8_t)*nbValues*4);
+
+        //Apply the transfer function
+        TF* tf = getModel()->getTransferFunction();
+        if(tf && tf->getDimension() <= 2)
+        {
+            #pragma omp parallel
+            {
+                #pragma omp for
+                {
+                    for(uint32_t i = 0; i < nbValues; i++)
+                    {
+                        if(m_vals[i] < min || m_vals[i] > max)
+                        {
+                            for(int k = 0; k < 4; k++)
+                                cols[4*i+k] = 0;
+                        }
+                        else
+                        {
+                            float tfInd[] = {m_vals[i], m_grads[i]};
+                            uint8_t outCol[4];
+                            tf->computeColor(tfInd, outCol);
+                            for(uint8_t k = 0; k < 3; k++)
+                                cols[4*i+k] = outCol[k];
+                            cols[4*i+3] = tf->computeAlpha(tfInd);
+                        }
+                    }
+                }
+            }
+        }
+
+        //Grayscale...
+        else
+        {
+            #pragma omp parallel
+            {
+                #pragma omp for
+                {
+                    for(uint32_t i = 0; i < nbValues; i++)
+                    {
+                        if(m_vals[i] < min || m_vals[i] > max)
+                        {
+                            for(int k = 0; k < 4; k++)
+                                cols[4*i+k] = 0;
+                        }
+                        else
+                        {
+                            for(uint8_t k = 0; k < 3; k++)
+                                cols[4*i+k] = m_vals[i];
+                            cols[4*i+3] = m_grads[i];
+                        }
+                    }
+                }
+            }
+        }
         glBindTexture(GL_TEXTURE_3D, m_texture);
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32F,
+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA,
                          m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2],
-                         0, GL_RG, GL_FLOAT, vals);
+                         0, GL_RGBA, GL_UNSIGNED_BYTE, cols);
         glBindBuffer(GL_TEXTURE_3D, 0);
-        free(vals);
+        free(cols);
     }
 
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, 

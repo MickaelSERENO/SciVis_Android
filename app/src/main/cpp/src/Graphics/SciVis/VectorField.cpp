@@ -118,7 +118,7 @@ namespace sereno
         }
         glBindVertexArray(0);
 
-        setColorRange(m_model->getMinClamping(), m_model->getMaxClamping(), m_model->getColorMode());
+        setColorRange(m_model->getMinClamping(), m_model->getMaxClamping());
 
         free(fieldVertices);
         free(fieldNormals);
@@ -147,7 +147,7 @@ namespace sereno
         glBindVertexArray(0);
     }
 
-    void VectorField::setColorRange(float min, float max, ColorMode colorMode)
+    void VectorField::setColorRange(float min, float max)
     {
         uint32_t     size    = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2]*m_nbVerticesPerArrow;
         float*       propVal = (float*)malloc(sizeof(float)*size);

@@ -42,9 +42,10 @@ namespace sereno
         glGenTextures(1, &tex);
         glBindTexture(target, tex);
             //Parameterize it
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER_OES);
+            glTexParameteri(target, GL_GENERATE_MIPMAP_HINT, GL_TRUE);
             if(tf.getDimension() > 1)
                 glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER_OES);
             if(tf.getDimension() > 2)
@@ -57,7 +58,7 @@ namespace sereno
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texSize[0], texSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, texels);
             else
                 glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, texSize[0], texSize[1], texSize[2], 0, GL_RGBA, GL_UNSIGNED_BYTE, texels);
-            glTexParameteri(target, GL_GENERATE_MIPMAP_HINT, GL_TRUE);
+            glGenerateMipmap(target);
         glBindTexture(target, 0);
 
         free(texels);

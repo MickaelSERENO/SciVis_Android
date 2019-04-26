@@ -50,16 +50,15 @@ extern "C"
      * \param dataIdx the data index to remove*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx);
 
-    /* \brief Function called from Java in order to change the displayed range color
+    /* \brief Function called from Java in order to change the displayed clipping range
      * Note that this function is asynchronous between the main cpp thread and the java UI thread
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
      * \param min the minimum range
      * \param max the maximum range
-     * \param mode the color mode to apply
      * \param sd the SubDataset being modified*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRangeColorChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jint mode, jlong sd);
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnClampingChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jlong sd);
 
     /* \brief Function called from Java in order to update the view from a SubDataset rotation
      * \param env the JNI environment

@@ -26,7 +26,9 @@ JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxClampin
 JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    return sd->getColorMode();
+    if(sd->getTransferFunction())
+        return sd->getTransferFunction()->getColorMode();
+    return RAINBOW;
 }
 
 JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinAmplitude(JNIEnv* jenv, jobject jobj, jlong ptr)
@@ -134,8 +136,8 @@ JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIE
     return jenv->NewStringUTF(name.c_str());
 }
 
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRangeColor(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max, jint mode)
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetClamping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    sd->setColor(min, max, (ColorMode)mode);
+    sd->setClamping(min, max);
 }

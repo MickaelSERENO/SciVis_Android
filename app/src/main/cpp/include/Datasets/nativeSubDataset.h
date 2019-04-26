@@ -31,7 +31,7 @@ extern "C"
 
 	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetScale(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray s);
 
-	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRangeColor(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max, jint mode);
+	JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetClamping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max);
 
 	JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIEnv* jenv, jobject jobj, jlong ptr);
 }

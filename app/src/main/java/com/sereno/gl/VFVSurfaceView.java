@@ -128,9 +128,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    public void onClampingChange(SubDataset sd, float min, float max)
     {
-        nativeOnRangeColorChange(m_ptr, min, max, mode, sd.getNativePtr());
+        nativeOnClampingChange(m_ptr, min, max, sd.getNativePtr());
     }
 
     @Override
@@ -177,11 +177,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         return 0;
     }
 
-    /** \brief Create the argument to send to the main function
+    /** Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();
 
-    /** \brief Delete the arguments sent to the main function
+    /** Delete the arguments sent to the main function
      * @param ptr the ptr to delete*/
     private native long nativeDeleteMainArgs(long ptr);
 
@@ -190,30 +190,30 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param sdPtr the SubDataset native ptr*/
     private native void nativeChangeCurrentSubDataset(long ptr, long sdPtr);
 
-    /** \brief Add the dataset into the cpp application
+    /** Add the dataset into the cpp application
      * @param bd the binary dataset bound to the fd pointer
      * @param ptr the ptr associated with the main Argument
      * @param fd the BinaryDataset to add*/
     private native void nativeAddBinaryDataset(BinaryDataset bd, long ptr, long fd);
 
-    /** @brief Add a VTKParser into the cpp application
+    /** Add a VTKParser into the cpp application
      * @param vtk the VTKDataset bound to the vtkDataPtr
      * @param ptr the ptr associated with the main Argument
      * @param vtkDataPtr the vtk dataset C++ pointer object*/
     private native void nativeAddVTKDataset(VTKDataset vtk, long ptr, long vtkDataPtr);
 
-    /** \brief Remove the dataset index i into the cpp application
+    /** Remove the dataset index i into the cpp application
      * @param ptr the ptr associated with the main argument
      * @param idx the BinaryDataset index*/
     private native void nativeRemoveData(long ptr, int idx);
 
-    /** \brief Set the color of the current dataset
+    /** Set the clamping range of the current dataset
      * @param ptr the ptr associated with the main Argument
      * @param min the minimum range (0.0, 1.0)
      * @param max the maximum range (0.0, 1.0)
      * @param mode the color mode to apply (See ColorMode)
      * @param sdPtr the SubDataset native pointer*/
-    private native void nativeOnRangeColorChange(long ptr, float min, float max, int mode, long sdPtr);
+    private native void nativeOnClampingChange(long ptr, float min, float max, long sdPtr);
 
     /** Send an event regarding an update from a SubDataset rotation
      * @param ptr the ptr associated with the main Argument

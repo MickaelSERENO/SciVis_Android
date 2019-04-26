@@ -1,13 +1,10 @@
 #version 300 es
 
 precision highp float;
-precision highp sampler2D;
-precision highp sampler3D;
 
 uniform vec4 uCameraParams;
 
 uniform sampler3D uTexture0;
-uniform sampler2D uTexture1;
 uniform vec3      uDimension;
 
 in vec3 varyBegRayOrigin;
@@ -26,11 +23,11 @@ out vec4 fragColor;
 bool computeRayPlaneIntersection(in vec3 rayOrigin, in vec3 rayNormal, in vec3 planeNormal, in vec3 planePosition, out float t)
 {
     float nDir = dot(planeNormal, rayNormal);
-    if(nDir == 0.0)
-        return false;
+    //if(nDir == 0.0)
+    //    return false;
 
     t = dot(planeNormal, planePosition-rayOrigin)/nDir;
-    return t >= 0.0;
+    return t > 0.0;
 }
 
 /** \brief  Compute the ray-cube intersection
@@ -114,7 +111,7 @@ void main()
     for(; !tValidity[startValidity] && startValidity < 6; startValidity++);
 
     if(startValidity == 6)
-        discard;
+        return;
 
     //If yes, look at the starting and end points
     float minT = t[startValidity];
@@ -130,21 +127,33 @@ void main()
         }
     }
 
+    //Test if only one intersection (i.e, camera in the middle of the dataset)
+    if(minT == maxT)
+        minT = 0.0;
+
     //compute step and maximum number of steps
-    float rayStep = 1.0/(max(max(uDimension.x, uDimension.y), uDimension.z)*3.0);
-    vec3 rayPos = rayOrigin.xyz + minT*rayNormal + vec3(0.5, 0.5, 0.5);
-    vec3 rayStepNormal = rayNormal*rayStep;
+    vec3 minPos = rayOrigin.xyz + (minT)*rayNormal + vec3(0.5, 0.5, 0.5);
+    vec3 maxPos = rayOrigin.xyz + (maxT)*rayNormal + vec3(0.5, 0.5, 0.5);
+
+    const float rayStep  = 0.50;
+    float nbValues = 1.0 + length((maxPos-minPos)*uDimension)/rayStep;
+
+    vec3 rayStepNormal = rayStep*rayNormal/uDimension;
+    vec3 rayPos = minPos;
 
     //Ray marching algorithm
-    for(; minT < maxT; minT+=rayStep, rayPos += rayStepNormal)
+    while(nbValues >= 0.0)
     {
-        vec2 tfCoord = textureLod(uTexture0, rayPos, 0.0).rg;
-        vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
-
+        nbValues -= 1.0;
+        rayPos += rayStepNormal;
+        vec4 tfColor = textureLod(uTexture0, rayPos,  0.0);
+        //vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
+        //vec4 tfColor = tfCoord.xxxy;
+        tfColor.a *= rayStep;
         vec4 col  = vec4(tfColor.xyz, 1.0);
         fragColor = fragColor + (1.0 - fragColor.a)*tfColor.a*col;
 
-        if(fragColor.a >= 0.90)
+        if(fragColor.a >= 0.95)
         {
             fragColor.a = 1.0;
             return;

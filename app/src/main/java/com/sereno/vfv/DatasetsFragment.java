@@ -116,7 +116,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    public void onClampingChange(SubDataset sd, float min, float max)
     {}
 
     @Override
@@ -231,7 +231,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             //Snapshot event
             sd.addListener(new SubDataset.ISubDatasetListener() {
                 @Override
-                public void onRangeColorChange(SubDataset sd, float min, float max, int mode) {}
+                public void onClampingChange(SubDataset sd, float min, float max) {}
 
 
                 @Override

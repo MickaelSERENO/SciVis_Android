@@ -156,12 +156,11 @@ namespace sereno
              * \param dataID the id of the dataset to remove*/
             void removeData(int dataID);
 
-            /* \brief Function called when the range color has changed
+            /* \brief Function called when the clipping range has changed
              * \param min the minimum range color
              * \param max the maximum range color 
-             * \param mode the current color mode
              * \param data the SubDataset changing*/
-            void onRangeColorChange(float min, float max, ColorMode mode, SubDataset* data);
+            void onClampingChange(float min, float max, SubDataset* data);
 
             /* \brief Function called when a SubDataset rotation has changed
              * \param data the SubDataset changing */

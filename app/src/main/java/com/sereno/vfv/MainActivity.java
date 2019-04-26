@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRangeColorChange(SubDataset sd, float min, float max, int mode)
+    public void onClampingChange(SubDataset sd, float min, float max)
     {}
 
     @Override

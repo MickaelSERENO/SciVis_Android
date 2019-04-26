@@ -41,7 +41,7 @@ namespace sereno
 
             void draw(const Render& render);
 
-            void setColorRange(float min, float max, ColorMode colorMode);
+            void setColorRange(float min, float max);
         private:
             const std::shared_ptr<BinaryDataset> m_binaryDataset = NULL; /*!< The fluid dataset model*/
 
