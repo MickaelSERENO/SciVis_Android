@@ -113,9 +113,9 @@ namespace sereno
                         }
             }
         }
-        free(vals);
         m_grads = (float*)malloc(sizeof(float)*nbValues);
-        computeGradient();
+        computeGradient(vals, ptsDesc, ptFieldValue);
+        free(vals);
 
         //Set VAO
         glGenVertexArrays(1, &m_vaoID);
@@ -231,16 +231,48 @@ namespace sereno
         glDisable(GL_BLEND);
     }
 
-    void VTKStructuredGridPointGameObject::computeGradient()
+    void VTKStructuredGridPointGameObject::computeGradient(uint8_t* vals, const VTKStructuredPoints& ptsDesc, const VTKFieldValue* ptFieldValue)
     {
+        #define _READ_VTK_VALUE(x) readParsedVTKValue<float>(vals + (x)*VTKValueFormatInt(ptFieldValue->format)*ptFieldValue->nbValuePerTuple, ptFieldValue->format);
+
         /*----------------------------------------------------------------------------*/
         /*--------------------------Compute gradient values---------------------------*/
         /*----------------------------------------------------------------------------*/
         float maxGrad;
         #pragma omp parallel
         {
-            //Central difference used
+            //Find maximum gradient
             #pragma omp for reduction(max:maxGrad)
+            {
+                for(uint32_t k = 1; k < ptsDesc.size[2]-1; k++)
+                    for(uint32_t j = 1; j < ptsDesc.size[1]-1; j++)
+                        for(uint32_t i = 1; i < ptsDesc.size[0]-1; i++)
+                        {
+                            uint32_t ind = i + j*ptsDesc.size[0] + k*ptsDesc.size[0]*ptsDesc.size[1];
+
+                            float    x1  = _READ_VTK_VALUE(ind-1);
+                            float    x2  = _READ_VTK_VALUE(ind+1);
+                            float    y1  = _READ_VTK_VALUE(ind-ptsDesc.size[0]);
+                            float    y2  = _READ_VTK_VALUE(ind+ptsDesc.size[0]);
+                            float    z1  = _READ_VTK_VALUE(ind-ptsDesc.size[0]*ptsDesc.size[1]);
+                            float    z2  = _READ_VTK_VALUE(ind+ptsDesc.size[0]*ptsDesc.size[1]);
+
+                            float gradX = (x1-x2)/(2.0f*ptsDesc.spacing[0]);
+                            float gradY = (y1-y2)/(2.0f*ptsDesc.spacing[1]);
+                            float gradZ = (z1-z2)/(2.0f*ptsDesc.spacing[2]);
+
+                            float gradMag = gradX*gradX + gradY*gradY + gradZ*gradZ;
+                            gradMag = sqrt(gradMag);
+                            maxGrad = std::max(gradMag, maxGrad);
+                        }
+            }
+        }
+
+        #pragma omp parallel
+        {
+            //Central difference used
+            //Compute real gradient
+            #pragma omp for
             {
                 for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
                     for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
@@ -255,26 +287,12 @@ namespace sereno
                             float    z1  = m_vals[(ind-m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
                             float    z2  = m_vals[(ind+m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1])];
 
-                            m_grads[ind] = (x1-x2)/(2.0*m_gridPointVBO->m_spacing[0])+
-                                           (y1-y2)/(2.0*m_gridPointVBO->m_spacing[1])+
-                                           (z1-z2)/(2.0*m_gridPointVBO->m_spacing[2]);
-                            maxGrad = std::max(m_grads[ind], maxGrad);
-                        }
-            }
-        }
+                            float gradX = (x1-x2)/(2.0*m_gridPointVBO->m_spacing[0]);
+                            float gradY = (y1-y2)/(2.0*m_gridPointVBO->m_spacing[1]);
+                            float gradZ = (z1-z2)/(2.0*m_gridPointVBO->m_spacing[2]);
 
-        #pragma omp parallel
-        {
-            //Normalize the gradient
-            #pragma omp for
-            {
-                for(uint32_t k = 1; k < m_gridPointVBO->m_dimensions[2]-1; k++)
-                    for(uint32_t j = 1; j < m_gridPointVBO->m_dimensions[1]-1; j++)
-                        for(uint32_t i = 1; i < m_gridPointVBO->m_dimensions[0]-1; i++)
-                        {
-                            uint32_t ind = i + j*m_gridPointVBO->m_dimensions[0] +
-                                           k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-                            m_grads[ind] /= maxGrad;
+                            m_grads[ind] = gradX*gradX + gradY*gradY + gradZ*gradZ;
+                            m_grads[ind] = sqrt(m_grads[ind]) / maxGrad;
                         }
             }
 
@@ -320,6 +338,7 @@ namespace sereno
                     }
             }
         }
+        #undef _READ_VTK_VALUE
     }
 
     void VTKStructuredGridPointGameObject::setColorRange(float min, float max)

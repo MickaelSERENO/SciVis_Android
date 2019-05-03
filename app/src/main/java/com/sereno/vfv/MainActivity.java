@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity
     {
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
 
-        //If everything is correct, send the rotation event
+        //If everything is correct, send the position event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
             m_socket.push(SocketManager.createPositionEvent(idBinding, dataset.getPosition()));
     }
@@ -263,6 +263,16 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    @Override
+    public void onSetVisibility(SubDataset dataset, int visibility)
+    {
+        DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
+
+        //If everything is correct, send the visibility event
+        if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
+            m_socket.push(SocketManager.createVisibilityEvent(idBinding, visibility));
+    }
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -545,8 +555,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onPageScrollStateChanged(int state) {}
         });
-
-        getFragmentManager().beginTransaction().commit();
     }
 
     /** \brief Set up the drawer layout (root layout)*/

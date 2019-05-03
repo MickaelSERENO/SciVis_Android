@@ -23,8 +23,8 @@ out vec4 fragColor;
 bool computeRayPlaneIntersection(in vec3 rayOrigin, in vec3 rayNormal, in vec3 planeNormal, in vec3 planePosition, out float t)
 {
     float nDir = dot(planeNormal, rayNormal);
-    //if(nDir == 0.0)
-    //    return false;
+    if(nDir == 0.0)
+        return false;
 
     t = dot(planeNormal, planePosition-rayOrigin)/nDir;
     return t > 0.0;
@@ -147,9 +147,8 @@ void main()
         nbValues -= 1.0;
         rayPos += rayStepNormal;
         vec4 tfColor = textureLod(uTexture0, rayPos,  0.0);
-        //vec4 tfColor = textureLod(uTexture1, tfCoord, 0.0);
-        //vec4 tfColor = tfCoord.xxxy;
         tfColor.a *= rayStep;
+
         vec4 col  = vec4(tfColor.xyz, 1.0);
         fragColor = fragColor + (1.0 - fragColor.a)*tfColor.a*col;
 

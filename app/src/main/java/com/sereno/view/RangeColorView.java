@@ -84,7 +84,7 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
             {
                 case ColorMode.RAINBOW:
                 {
-                    c = new HSVColor(260.0f * (1.0f-t), 1.0f, 1.0f, 1.0f).toRGB();
+                    c = new HSVColor(260.0f * t, 1.0f, 1.0f, 1.0f).toRGB();
                     break;
                 }
                 case ColorMode.GRAYSCALE:

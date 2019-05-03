@@ -78,8 +78,11 @@ namespace sereno
 
             void setColorRange(float min, float max);
         private:
-            /* \brief Compute the gradient values*/
-            void computeGradient();
+            /* \brief Compute the gradient values
+             * \param vals the volume data
+             * \param ptsDesc the volume descriptor
+             * \param ptFieldValue the field value format*/
+            void computeGradient(uint8_t* vals, const VTKStructuredPoints& ptsDesc, const VTKFieldValue* ptFieldValue);
 
             VTKStructuredGridPointVBO* m_gridPointVBO; /*!< The Grid point VBO associated with this data*/
             float*   m_vals;                           /*!< The property captured value*/

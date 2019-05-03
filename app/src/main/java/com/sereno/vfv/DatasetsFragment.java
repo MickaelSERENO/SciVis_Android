@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sereno.Tree;
@@ -33,14 +34,17 @@ import com.sereno.view.RangeColorData;
 import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
-public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
+public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback
 {
     private VFVSurfaceView   m_surfaceView       = null; /*!< The surface view displaying the vector field*/
     private TreeView         m_previewLayout     = null; /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp     = null; /*!< The bitmap used when no preview is available*/
     private ImageView        m_headsetColor      = null; /*!< Image view representing the headset color*/
     private ApplicationModel m_model             = null; /*!< The application model to use*/
+
+    private HashMap<SubDataset, ImageView> m_sdImages = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
 
     public DatasetsFragment()
     {
@@ -67,24 +71,34 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
      * @param model the model to link with the internal views*/
     public void setUpModel(ApplicationModel model)
     {
-        m_model = model;
-        m_model.addListener(this);
+        if(m_model != model)
+        {
+            if(m_model != null)
+                m_model.removeListener(this);
+            m_model = model;
+            m_model.addListener(this);
+        }
 
-        onUpdateBindingInformation(m_model, m_model.getBindingInfo());
-        for(BinaryDataset d : m_model.getBinaryDatasets())
-            onAddBinaryDataset(m_model, d);
-        for(VTKDataset d : m_model.getVTKDatasets())
-            onAddVTKDataset(m_model, d);
+        if(getContext() != null)
+        {
+            onUpdateBindingInformation(m_model, m_model.getBindingInfo());
+            for (BinaryDataset d : m_model.getBinaryDatasets())
+                onAddBinaryDataset(m_model, d);
+            for (VTKDataset d : m_model.getVTKDatasets())
+                onAddVTKDataset(m_model, d);
 
-        if(m_surfaceView != null)
-            model.addListener(m_surfaceView);
+            if (m_surfaceView != null)
+                model.addListener(m_surfaceView);
+        }
     }
 
     @Override
     public void onAttach(Context context)
     {
         super.onAttach(context);
-        setUpModel(m_model);
+
+        if(m_model != null)
+            setUpModel(m_model);
     }
 
     /** @brief Set the visibility of this fragment. Useful for optimization (do not draw what is not on screen)
@@ -115,29 +129,14 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onChangeCurrentAction(ApplicationModel model, int action) {
     }
 
-    @Override
-    public void onClampingChange(SubDataset sd, float min, float max)
-    {}
-
-    @Override
-    public void onRotationEvent(SubDataset dataset, float[] quaternion)
-    {}
-
-    @Override
-    public void onPositionEvent(SubDataset dataset, float[] position) {}
-
-    @Override
-    public void onScaleEvent(SubDataset dataset, float[] scale) {}
-
-    @Override
-    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
-
-    @Override
-    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
-    { }
+    {
+        for(ImageView v : m_sdImages.values())
+            v.setBackgroundResource(0);
+        m_sdImages.get(sd).setBackgroundResource(R.drawable.round_rectangle_background);
+    }
 
     @Override
     public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus) {}
@@ -208,14 +207,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
         for(int i = 0; i < d.getNbSubDataset(); i++)
         {
-            //Set the color range listener
             final SubDataset sd = d.getSubDataset(i);
-            if(m_model.getCurrentSubDataset() == null)
-                m_model.setCurrentSubDataset(sd);
-            sd.addListener(DatasetsFragment.this);
+
+            //Set the color range listener
+            View layout = getLayoutInflater().inflate(R.layout.dataset_icon_layout, null);
+            final ImageView snapImg = (ImageView)layout.findViewById(R.id.snapshotImageView);
 
             //Add the snap image
-            final ImageView snapImg = new ImageView(getContext());
             snapImg.setAdjustViewBounds(true);
             snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
             snapImg.setMaxWidth(256);
@@ -227,6 +225,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     m_model.setCurrentSubDataset(sd);
                 }
             });
+            snapImg.setPadding(10, 10, 10, 10);
+
+            final ImageView publicIcon  = (ImageView)layout.findViewById(R.id.datasetPublicIcon);
+            final ImageView privateIcon = (ImageView)layout.findViewById(R.id.datasetPrivateIcon);
 
             //Snapshot event
             sd.addListener(new SubDataset.ISubDatasetListener() {
@@ -257,8 +259,44 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
                 @Override
                 public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+                @Override
+                public void onSetVisibility(SubDataset dataset, int visibility)
+                {
+                    if(visibility == SubDataset.VISIBILITY_PUBLIC)
+                    {
+                        privateIcon.setVisibility(View.GONE);
+                        publicIcon.setVisibility(View.VISIBLE);
+                    }
+                    else
+                    {
+                        publicIcon.setVisibility(View.GONE);
+                        privateIcon.setVisibility(View.VISIBLE);
+                    }
+                }
             });
-            dataView.addChild(new Tree<View>(snapImg), -1);
+            m_sdImages.put(sd, snapImg);
+
+            publicIcon.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    sd.setVisibility(SubDataset.VISIBILITY_PRIVATE);
+                    return true;
+                }
+            });
+
+            privateIcon.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    sd.setVisibility(SubDataset.VISIBILITY_PUBLIC);
+                    return true;
+                }
+            });
+
+
+            if(m_model.getCurrentSubDataset() == null)
+                m_model.setCurrentSubDataset(sd);
+            dataView.addChild(new Tree<View>(layout), -1);
         }
 
 

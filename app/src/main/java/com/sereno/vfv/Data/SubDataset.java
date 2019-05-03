@@ -12,6 +12,9 @@ import java.util.List;
 
 public class SubDataset
 {
+    public static int VISIBILITY_PUBLIC  = 0;
+    public static int VISIBILITY_PRIVATE = 1;
+
     /** Callback interface called when the SubDataset is modified*/
     public interface ISubDatasetListener
     {
@@ -45,6 +48,11 @@ public class SubDataset
          * @param dataset the dataset receiving a new annotation
          * @param annotation the annotation added*/
         void onAddAnnotation(SubDataset dataset, AnnotationData annotation);
+
+        /** Method called when the visibility (public/private) status of this SubDataset has changed. See VISIBILITY_PUBLIC and VISIBILITY_PRIVATE for more details
+         * @param dataset the SubDataset being modified
+         * @param visibility the new visibility to apply*/
+        void onSetVisibility(SubDataset dataset, int visibility);
     }
 
     /** The native C++ handle*/
@@ -59,6 +67,8 @@ public class SubDataset
     /** The current headset owning this subdataset*/
     private int m_ownerHeadsetID = -1;
 
+    /** The visibility status of this SubDataset*/
+    private int m_visibility = VISIBILITY_PUBLIC;
 
     /** Constructor. Link the Java object with the C++ native SubDataset object
      * @param ptr the native C++ pointer*/
@@ -216,6 +226,28 @@ public class SubDataset
     public List<AnnotationData> getAnnotations()
     {
         return m_annotations;
+    }
+
+    /** Set the visibility of this SubDataset
+     * @param visibility the new  visibility to apply. Must be either VISIBILITY_PUBLIC or VISIBILITY_PRIVATE
+     * @return true if visibility is correct, false otherwise. In case of false, the SubDataset state  does not change*/
+    public boolean setVisibility(int visibility)
+    {
+        if(visibility == VISIBILITY_PRIVATE || visibility == VISIBILITY_PUBLIC)
+        {
+            m_visibility = visibility;
+            for(ISubDatasetListener l : m_listeners)
+                l.onSetVisibility(this, visibility);
+            return true;
+        }
+        return false;
+    }
+
+    /** Get the visibility of this SubDataset
+     * @return either VISIBILITY_PUBLIC or VISIBILITY_PRIVATE*/
+    public int getVisibility()
+    {
+        return m_visibility;
     }
 
     /** Native code telling is this SubDataset is in a valid state

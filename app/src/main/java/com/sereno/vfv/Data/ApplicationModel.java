@@ -128,6 +128,13 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         readConfig(ctx);
     }
 
+    /** Remove an already registered listener
+     * @param clbk the listener to not call anymore*/
+    public void removeListener(IDataCallback clbk)
+    {
+        m_listeners.remove(clbk);
+    }
+
     /** @brief Add a callback object to call when the model changed
      * @param clbk the new callback to take account of*/
     public void addListener(IDataCallback clbk)
@@ -273,6 +280,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     @Override
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    @Override
+    public void onSetVisibility(SubDataset dataset, int visibility) {}
 
 
     /** Get the current SubDataset

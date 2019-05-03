@@ -51,6 +51,7 @@ public class SocketManager
     public static final short SEND_CURRENT_SUBDATASET = 10;
     public static final short TRANSLATE_DATASET       = 11;
     public static final short SCALE_DATASET           = 12;
+    public static final short VISIBILITY_DATASET      = 13;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -448,6 +449,23 @@ public class SocketManager
 
         for(int i = 0; i < 3; i++)
             buf.putFloat(sArr[i]);
+
+        return buf.array();
+    }
+
+    /** Create a Visibility event data to send to the server
+     * @param ids the dataset and subdatasets IDs
+     * @param visibility the new subdataset's visibility
+     * @return array of byte to send to push*/
+    public static byte[] createVisibilityEvent(MainActivity.DatasetIDBinding ids, int visibility)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(VISIBILITY_DATASET);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+        buf.putInt(visibility);
 
         return buf.array();
     }

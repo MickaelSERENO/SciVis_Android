@@ -454,6 +454,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
+    public void onSetVisibility(SubDataset dataset, int visibility)
+    {
+
+    }
+
+    @Override
     public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);
