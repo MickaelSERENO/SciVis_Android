@@ -186,10 +186,6 @@ namespace sereno
              * \param action */
             void setCurrentAction(VFVCurrentAction action);
 
-            /* \brief Get the current action this device is performing
-             * \return this device's current action*/
-            VFVCurrentAction getCurrentAction() const {return m_currentAction;}
-
             /* \brief  Set the headset ID this device is bound to. -1 == no headset bound
              * \param headsetID the new headset ID */
             void setHeadsetID(int headsetID)
@@ -246,7 +242,6 @@ namespace sereno
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
-            VFVCurrentAction m_currentAction = VFV_CURRENT_ACTION_NOTHING;
 
             jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
             IVFVCallback*            m_clbk    = NULL; /*!< The callback interface */

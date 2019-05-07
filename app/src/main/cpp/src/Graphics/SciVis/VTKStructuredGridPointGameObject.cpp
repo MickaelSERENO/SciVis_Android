@@ -214,21 +214,15 @@ namespace sereno
 
         glm::mat4 invMVP = glm::inverse(mvp);
         m_mtl->bindTexture(m_texture,   3, 0);
-        //m_mtl->bindTexture(m_tfTexture, 2, 1);
         m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
 
-        glDepthMask(false);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_CULL_FACE);
         glBindVertexArray(m_vaoID);
         {
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
         glBindVertexArray(0);
-        glDepthMask(true);
         glEnable(GL_CULL_FACE);
-        glDisable(GL_BLEND);
     }
 
     void VTKStructuredGridPointGameObject::computeGradient(uint8_t* vals, const VTKStructuredPoints& ptsDesc, const VTKFieldValue* ptFieldValue)

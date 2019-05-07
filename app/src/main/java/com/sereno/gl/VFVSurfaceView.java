@@ -172,14 +172,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
             l.onChangeCurrentAction(a);
     }
 
-    /** Function called from the native code to get the current action of the device
-     * Pay attention that this is done asynchronously
-     * @return the current action*/
-    private int getCurrentAction()
-    {
-        return 0;
-    }
-
     /** Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();

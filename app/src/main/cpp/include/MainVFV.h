@@ -128,7 +128,8 @@ namespace sereno
             MeshLoader*               m_arrowMesh;       /*!< The arrow mesh for the vector fields*/
             Material*                 m_vfMtl;           /*!< The vector field material*/
             ColorGridMaterial*        m_colorGridMtl;    /*!< The color grid material for the VTK StructuredGridPoints*/
-            SimpleTextureMaterial*    m_textureMtl;      /*!< Material to draw simple textures*/
+            SimpleTextureMaterial*    m_3dTextureMtl;    /*!< Material to draw the 3d manip texture objects*/
+            SimpleTextureMaterial*    m_notConnectedTextureMtl; /*!< Material to draw the not connected texture object*/
             std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
             std::vector<GLuint>       m_sciVisTFTextures;/*!< The TF texture used for Scientific Visualization*/
 
@@ -143,7 +144,8 @@ namespace sereno
             TextureRectangleData*  m_gpuTexVBO; /*!< GPU VBO information for drawing textures*/
             Texture*               m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
             DefaultGameObject*     m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
-
+            Texture*               m_notConnectedTex; /*!< The texture displayed when no headset is bound*/
+            DefaultGameObject*     m_notConnectedGO;  /*!< The gameobject widget drawing the not connected texture*/
             uint32_t               m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
 
             uint32_t               m_animationTimer = 0; /*!< The annimation timer*/

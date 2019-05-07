@@ -44,22 +44,28 @@ namespace sereno
         png_read_info(pngPtr, infoPtr);
         png_get_IHDR(pngPtr, infoPtr, width, height, &bitDepth, &colorType, NULL, NULL, NULL);
 
+        if(bitDepth == 16)
+            png_set_strip_16(pngPtr);
+
         //Put the data into a 8 depth RGBA buffers
+        if (colorType == PNG_COLOR_TYPE_GRAY &&
+            bitDepth < 8)
+            png_set_expand_gray_1_2_4_to_8(pngPtr);
+
         if(colorType == PNG_COLOR_TYPE_GRAY ||
              colorType == PNG_COLOR_TYPE_GRAY_ALPHA)
-        png_set_gray_to_rgb(pngPtr);
+            png_set_gray_to_rgb(pngPtr);
 
-        if (colorType == PNG_COLOR_TYPE_GRAY &&
-            bitDepth < 8) 
-            png_set_expand_gray_1_2_4_to_8(pngPtr);
+        if(colorType == PNG_COLOR_TYPE_PALETTE)
+            png_set_palette_to_rgb(pngPtr);
 
         if(colorType == PNG_COLOR_TYPE_RGB ||
            colorType == PNG_COLOR_TYPE_GRAY ||
            colorType == PNG_COLOR_TYPE_PALETTE)
             png_set_filler(pngPtr, 0xFF, PNG_FILLER_AFTER);
 
-        if(bitDepth == 16)
-            png_set_strip_16(pngPtr);
+        if(png_get_valid(pngPtr, infoPtr, PNG_INFO_tRNS))
+            png_set_tRNS_to_alpha(pngPtr);
 
         png_read_update_info(pngPtr, infoPtr);
 

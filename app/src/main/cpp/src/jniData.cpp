@@ -7,7 +7,6 @@ namespace sereno
 
     jclass    jVFVSurfaceViewClass                    = 0;
     jmethodID jVFVSurfaceView_setCurrentAction        = 0;
-    jmethodID jVFVSurfaceView_getCurrentAction        = 0;
 
     jclass    jBitmapClass                            = 0;
     jmethodID jBitmap_createBitmap                    = 0;
@@ -65,7 +64,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jHeadsetBindingInfoMessageClass = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetBindingInfoMessage");
 
     //Load methods
-    jVFVSurfaceView_getCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "getCurrentAction", "()I");
     jVFVSurfaceView_setCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "setCurrentAction", "(I)V");
 
     jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");

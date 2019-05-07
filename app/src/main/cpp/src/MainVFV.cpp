@@ -9,6 +9,11 @@ namespace sereno
         if(mainData)
             mainData->setCallback(this);
 
+        Blend transparency;
+        transparency.enable = true;
+        transparency.sFactor = GL_SRC_ALPHA;
+        transparency.dFactor = GL_ONE_MINUS_SRC_ALPHA;
+
         //Load arrow mesh
         m_arrowMesh    = MeshLoader::loadFrom3DS(m_surfaceData->dataPath + "/Models/arrow.3ds");
 
@@ -26,7 +31,9 @@ namespace sereno
         //Load every materials
         m_vfMtl        = new Material(&surfaceData->renderer, surfaceData->renderer.getShader("vectorField"));
         m_colorGridMtl = new ColorGridMaterial(&surfaceData->renderer);
-        m_textureMtl   = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
+        m_colorGridMtl->setBlend(transparency);
+        m_colorGridMtl->setDepthWrite(false);
+        m_3dTextureMtl = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
         m_gpuTexVBO    = new TextureRectangleData();
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
@@ -39,10 +46,22 @@ namespace sereno
             uint8_t* texData = getPNGRGBABytesFromFiles(texPath.c_str(), &texWidth, &texHeight);
             new(m_3dImageManipTex+i) Texture(texWidth, texHeight, texData);
             free(texData);
-            new(m_textureMtl+i) SimpleTextureMaterial(&surfaceData->renderer);
-            m_textureMtl[i].bindTexture(m_3dImageManipTex[i].getTextureID(), 2, 0);
-            new(m_3dImageManipGO+i) DefaultGameObject(NULL, &surfaceData->renderer, m_textureMtl+i, m_gpuTexVBO);
+            new(m_3dTextureMtl+i) SimpleTextureMaterial(&surfaceData->renderer);
+            m_3dTextureMtl[i].bindTexture(m_3dImageManipTex[i].getTextureID(), 2, 0);
+            new(m_3dImageManipGO+i) DefaultGameObject(NULL, &surfaceData->renderer, m_3dTextureMtl+i, m_gpuTexVBO);
         }
+
+        //Not connected texture logo
+        uint32_t texWidth, texHeight;
+        std::string texPath = surfaceData->dataPath + "/Images/" + "notConnected.png";
+        uint8_t* texData    = getPNGRGBABytesFromFiles(texPath.c_str(), &texWidth, &texHeight);
+        m_notConnectedTex   = new Texture(texWidth, texHeight, texData);
+        m_notConnectedTextureMtl = new SimpleTextureMaterial(&surfaceData->renderer);
+        m_notConnectedGO         = new DefaultGameObject(NULL, &surfaceData->renderer, m_notConnectedTextureMtl, m_gpuTexVBO);
+        m_notConnectedTextureMtl->bindTexture(m_notConnectedTex->getTextureID(), 2, 0);
+        m_notConnectedTextureMtl->setBlend(transparency);
+        m_notConnectedTextureMtl->setDepthWrite(false);
+        free(texData);
     }
 
     MainVFV::~MainVFV()
@@ -60,11 +79,15 @@ namespace sereno
         delete m_gpuTexVBO;
         for(int i = 0; i < 8; i++)
         {
-            m_textureMtl[i].~SimpleTextureMaterial();
+            m_3dTextureMtl[i].~SimpleTextureMaterial();
             m_3dImageManipTex[i].~Texture();
             m_3dImageManipGO[i].~DefaultGameObject();
         }
+        free(m_3dImageManipTex);
         free(m_3dImageManipGO);
+        delete m_notConnectedGO;
+        delete m_notConnectedTextureMtl;
+        delete m_notConnectedTex;
     }
 
     void MainVFV::placeWidgets()
@@ -73,6 +96,7 @@ namespace sereno
         if(m_surfaceData->renderer.getWidth() == 0.0)
             return;
 
+        //Variables needed
         float width  = m_surfaceData->renderer.getWidth();
         float height = m_surfaceData->renderer.getHeight();
         float ratio  = height/width;
@@ -80,6 +104,7 @@ namespace sereno
         float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
         float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
 
+        //3D texture manipulation widgets
         m_3dImageManipGO[LEFT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
         m_3dImageManipGO[LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, 0.0f, 0.0f));
 
@@ -100,6 +125,10 @@ namespace sereno
 
         m_3dImageManipGO[BOTTOM_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
         m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
+
+        //Not connected logo
+        m_notConnectedGO->setPosition(glm::vec3(0.0f, 0.0f, -1.0f));
+        m_notConnectedGO->setScale(glm::vec3(2.0f-widgetWidth, 2.0f-widgetWidth, 2.0f));
     }
 
     bool MainVFV::findHeadsetCameraTransformation(glm::vec3* outPos, Quaternionf* outRot)
@@ -237,6 +266,8 @@ namespace sereno
 
                     case TOUCH_DOWN:
                     {
+                        if(m_mainData->getHeadsetID() == -1)
+                            break;
                         uint32_t numberFinger = 0;
                         TouchCoord* tc = NULL;
                         for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
@@ -374,15 +405,21 @@ namespace sereno
             {
                 placeCamera();
 
+                glDepthMask(true);
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 //Draw the scene
-                if(m_currentVis != NULL)
-                    m_currentVis->update(&m_surfaceData->renderer);
                 if(m_surfaceData->renderer.getCameraParams().w == 1.0) //Orthographic mode
+                {
                     for(int i = 0; i < 8; i++)
                         m_3dImageManipGO[i].update(&m_surfaceData->renderer);
+                    if(m_mainData->getHeadsetID() == -1)
+                        m_notConnectedGO->update(&m_surfaceData->renderer);
+                }
+
+                if(m_currentVis != NULL)
+                    m_currentVis->update(&m_surfaceData->renderer);
                 m_surfaceData->renderer.render();
 
                 //Update the snapshot
@@ -420,6 +457,8 @@ namespace sereno
 
     void MainVFV::handleTouchAction(TouchEvent* event)
     {
+        if(m_mainData->getHeadsetID() == -1)
+            return;
         bool inMovement = false;
         glm::vec3 movement;
 

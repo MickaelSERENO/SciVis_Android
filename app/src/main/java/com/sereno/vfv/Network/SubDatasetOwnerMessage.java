@@ -10,6 +10,7 @@ public class SubDatasetOwnerMessage extends ServerMessage
 
     /** The headset ID owning this subdataset*/
     private int m_headsetID = 0;
+
     @Override
     public void pushValue(int v)
     {

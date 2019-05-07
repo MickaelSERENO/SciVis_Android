@@ -1,5 +1,6 @@
 package com.sereno.vfv;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -82,6 +83,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The current text color*/
     private int m_currentTextColor = 0xff000000;
 
+    private Context m_ctx  = null;
+
+
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -102,14 +106,30 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
      * @param model the model to link with the internal views*/
     public void setUpModel(ApplicationModel model)
     {
+        if(m_model != null)
+            m_model.removeListener(this);
         m_model = model;
-        m_model.addListener(this);
+        if(m_ctx != null)
+            m_model.addListener(this);
 
-        //Call the callback functions
-        for(BinaryDataset d : model.getBinaryDatasets())
-            onAddBinaryDataset(m_model, d);
-        for(VTKDataset d : model.getVTKDatasets())
-            onAddVTKDataset(m_model, d);
+        if(m_ctx != null)
+        {
+            //Call the callback functions
+            for (BinaryDataset d : model.getBinaryDatasets())
+                onAddBinaryDataset(m_model, d);
+            for (VTKDataset d : model.getVTKDatasets())
+                onAddVTKDataset(m_model, d);
+        }
+    }
+
+    @Override
+    public void onAttach(Context context)
+    {
+        m_ctx = context;
+        super.onAttach(context);
+
+        if(m_model != null)
+            setUpModel(m_model);
     }
 
     @Override

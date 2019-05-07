@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity
 
         //If everything is correct, send the rotation event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createRotationEvent(idBinding, dataset.getRotation()));
+            m_socket.push(SocketManager.createRotationEvent(idBinding, dataset.getRotation(), dataset.getVisibility()));
     }
 
     @Override
@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity
 
         //If everything is correct, send the position event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createPositionEvent(idBinding, dataset.getPosition()));
+            m_socket.push(SocketManager.createPositionEvent(idBinding, dataset.getPosition(), dataset.getVisibility()));
     }
 
     @Override
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity
 
         //If everything is correct, send the rotation event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createScaleEvent(idBinding, dataset.getScale()));
+            m_socket.push(SocketManager.createScaleEvent(idBinding, dataset.getScale(), dataset.getVisibility()));
     }
 
     @Override
@@ -298,6 +298,7 @@ public class MainActivity extends AppCompatActivity
     public void onAddVTKDatasetMessage(AddVTKDatasetMessage msg)
     {
         //Parse the message information
+        Log.i(TAG, "opening " + msg.getPath());
         File vtkFile = new File(new File(getExternalFilesDir(null), "Datas"), msg.getPath());
         VTKParser parser = new VTKParser(vtkFile);
 
@@ -305,10 +306,12 @@ public class MainActivity extends AppCompatActivity
         ArrayList<VTKFieldValue> cellValuesList = new ArrayList<>();
 
         for(int i : msg.getPtFieldValueIndices())
-            ptValuesList.add(parser.getPointFieldValues()[i]);
+            if(i < parser.getPointFieldValues().length)
+                ptValuesList.add(parser.getPointFieldValues()[i]);
 
         for(int i : msg.getCellFieldValueIndices())
-            cellValuesList.add(parser.getCellFieldValues()[i]);
+            if(i < parser.getCellFieldValues().length)
+                cellValuesList.add(parser.getCellFieldValues()[i]);
 
         VTKFieldValue[] ptValues = new VTKFieldValue[ptValuesList.size()];
         ptValues = ptValuesList.toArray(ptValues);

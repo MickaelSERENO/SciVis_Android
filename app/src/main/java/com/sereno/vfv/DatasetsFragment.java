@@ -43,6 +43,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private Bitmap           m_noSnapshotBmp     = null; /*!< The bitmap used when no preview is available*/
     private ImageView        m_headsetColor      = null; /*!< Image view representing the headset color*/
     private ApplicationModel m_model             = null; /*!< The application model to use*/
+    private Context          m_ctx               = null;
 
     private HashMap<SubDataset, ImageView> m_sdImages = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
 
@@ -71,15 +72,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
      * @param model the model to link with the internal views*/
     public void setUpModel(ApplicationModel model)
     {
-        if(m_model != model)
-        {
-            if(m_model != null)
-                m_model.removeListener(this);
-            m_model = model;
+        if(m_model != null)
+            m_model.removeListener(this);
+        m_model = model;
+        if(m_ctx != null)
             m_model.addListener(this);
-        }
 
-        if(getContext() != null)
+        if(m_ctx != null)
         {
             onUpdateBindingInformation(m_model, m_model.getBindingInfo());
             for (BinaryDataset d : m_model.getBinaryDatasets())
@@ -95,6 +94,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onAttach(Context context)
     {
+        m_ctx = context;
         super.onAttach(context);
 
         if(m_model != null)
@@ -298,7 +298,5 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_model.setCurrentSubDataset(sd);
             dataView.addChild(new Tree<View>(layout), -1);
         }
-
-
     }
 }

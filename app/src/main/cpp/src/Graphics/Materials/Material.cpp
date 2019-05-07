@@ -35,6 +35,7 @@ namespace sereno
     {
         if(m_shader)
         {
+            //Send matrices
             glUniformMatrix4fv(m_uObjMat,    1, false, glm::value_ptr(objMat));
             glUniformMatrix4fv(m_uCameraMat, 1, false, glm::value_ptr(cameraMat));
             glUniformMatrix4fv(m_uMVP,       1, false, glm::value_ptr(mvpMat));
@@ -52,6 +53,7 @@ namespace sereno
             }
             glUniform4fv(m_uCameraParams, 1, glm::value_ptr(cameraParams));
 
+            //Send textures
             for(int i = 0; i < MATERIAL_MAXTEXTURE; i++)
             {
                 if(m_textures[i].valid)
@@ -61,6 +63,20 @@ namespace sereno
                     glUniform1i(m_uTextures[i], i);
                 }
             }
+
+            //Handle blending
+            if(m_blend.enable)
+            {
+                glEnable(GL_BLEND);
+                glBlendFunc(m_blend.sFactor, m_blend.dFactor);
+            }
+            else
+                glDisable(GL_BLEND);
+
+            if(m_depthWrite)
+                glDepthMask(GL_TRUE);
+            else
+                glDepthMask(GL_FALSE);
         }
     }
 

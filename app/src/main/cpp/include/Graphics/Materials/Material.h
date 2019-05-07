@@ -19,6 +19,13 @@ namespace sereno
         GLenum dim;           /*!< The texture dimension*/
     };
 
+    struct Blend
+    {
+        bool   enable  = false;   /*!< Enable the transparency*/
+        GLenum sFactor = GL_ONE;  /*!< See https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml sFactor property*/
+        GLenum dFactor = GL_ZERO; /*!< See https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml dFactor property*/
+    };
+
     /* \brief Material class.*/
     class Material
     {
@@ -56,6 +63,22 @@ namespace sereno
             /** \brief UNbind the texture ID's id
              * \param id the texture ID to unbind*/
             void unbindTexture(uint8_t id);
+
+            /** \brief Set the blending property
+             *  \param b the new blending property*/
+            void setBlend(const Blend& b) {m_blend = b;}
+
+            /** \brief Get the blending property
+             * \return reference to the blending property*/
+            const Blend& getBlend() const {return m_blend;}
+
+            /** \brief Set the depth writting property. See glDepthMask
+             * \param w true if enabled, false otherwise*/
+            void setDepthWrite(bool w) {m_depthWrite = w;}
+
+            /** \brief Get the depth writting property. See glDepthMask
+             * \return true if enabled, false otherwise*/
+            bool getDepthWrite() const {return m_depthWrite;}
         protected:
             /* \brief Initialize the internal state of the Material
              * We ask so many matrix (which some can be calculated) for performance issue (not recomputing these in the material and in the object calling this method)
@@ -85,6 +108,9 @@ namespace sereno
             GLint       m_uInvP;         /*!< The uniform ID of uInvP*/
             GLint       m_uCameraParams; /*!< The uniform ID of the uCameraParams*/
             GLint       m_uTextures[MATERIAL_MAXTEXTURE]; /*!< The uniform IDs of uTexture<i>*/
+
+            Blend m_blend; /*!< Blend property*/
+            bool  m_depthWrite = true; /*!< the depth writting*/
 
             TextureBinding m_textures[MATERIAL_MAXTEXTURE]; /*!< List of texture binding*/
     };

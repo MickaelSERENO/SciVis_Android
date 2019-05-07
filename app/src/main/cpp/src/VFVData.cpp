@@ -88,7 +88,6 @@ namespace sereno
     void VFVData::setCurrentAction(VFVCurrentAction a)
     {
         jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_setCurrentAction, (int)a);
-        m_currentAction = a;
     }
 
     void VFVData::onClampingChange(float min, float max, SubDataset* sd)

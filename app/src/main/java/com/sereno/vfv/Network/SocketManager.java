@@ -4,6 +4,7 @@ import android.graphics.Point;
 import android.util.Log;
 
 import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
 import com.sereno.view.AnnotationData;
@@ -21,6 +22,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+
+import static com.sereno.vfv.Data.SubDataset.VISIBILITY_PRIVATE;
 
 public class SocketManager
 {
@@ -399,15 +402,17 @@ public class SocketManager
     /** Create a Rotation event data to send to the server
      * @param ids the dataset and subdatasets IDs
      * @param qArr the array of the new quaternion to send (w, i, j, k)
+     * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
-    public static byte[] createRotationEvent(MainActivity.DatasetIDBinding ids, float[] qArr)
+    public static byte[] createRotationEvent(MainActivity.DatasetIDBinding ids, float[] qArr, int visibility)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4);
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4+1);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(ROTATE_DATASET);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
+        buf.put((byte)(visibility == SubDataset.VISIBILITY_PUBLIC ? 1 : 0));
 
         for(int i = 0; i < 4; i++)
             buf.putFloat(qArr[i]);
@@ -418,15 +423,17 @@ public class SocketManager
     /** Create a Translation event data to send to the server
      * @param ids the dataset and subdatasets IDs
      * @param pArr the array of the new position to send (x, y, z)
+     * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
-    public static byte[] createPositionEvent(MainActivity.DatasetIDBinding ids, float[] pArr)
+    public static byte[] createPositionEvent(MainActivity.DatasetIDBinding ids, float[] pArr, int visibility)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4);
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4+1);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(TRANSLATE_DATASET);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
+        buf.put((byte)(visibility == SubDataset.VISIBILITY_PUBLIC ? 1 : 0));
 
         for(int i = 0; i < 3; i++)
             buf.putFloat(pArr[i]);
@@ -437,15 +444,17 @@ public class SocketManager
     /** Create a Scale event data to send to the server
      * @param ids the dataset and subdatasets IDs
      * @param sArr the array of the new scale to send (x, y, z)
+     * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
-    public static byte[] createScaleEvent(MainActivity.DatasetIDBinding ids, float[] sArr)
+    public static byte[] createScaleEvent(MainActivity.DatasetIDBinding ids, float[] sArr, int visibility)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4);
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4+1);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(SCALE_DATASET);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
+        buf.put((byte)(visibility == SubDataset.VISIBILITY_PUBLIC ? 1 : 0));
 
         for(int i = 0; i < 3; i++)
             buf.putFloat(sArr[i]);

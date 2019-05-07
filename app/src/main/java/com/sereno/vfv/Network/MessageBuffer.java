@@ -412,6 +412,7 @@ public class MessageBuffer
         {
             val.valid = true;
             val.value = m_stringBuf.toString();
+            m_stringSize = -1;
         }
         return val;
     }
