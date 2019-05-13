@@ -83,4 +83,8 @@ public class RotateDatasetMessage extends ServerMessage
     {
         return m_rotation;
     }
+
+    /** Is this rotation made in public space?
+     * @return true in public space, false otherwise*/
+    public boolean doneIntoPublicSpace() {return m_inPublic != 0;}
 }

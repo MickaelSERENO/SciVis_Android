@@ -86,5 +86,5 @@ public class MoveDatasetMessage extends ServerMessage
 
     /** Was the new position given in the public space?
      * @return true if in the public space, false if in the private space*/
-    public boolean doneIntoPublicSpace() {return m_inPublic == 1;}
+    public boolean doneIntoPublicSpace() {return m_inPublic != 0;}
 }

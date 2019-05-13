@@ -141,3 +141,13 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetClamping(JNI
     SubDataset* sd = (SubDataset*)ptr;
     sd->setClamping(min, max);
 }
+
+JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    return (jlong)(new SubDataset(*(SubDataset*)ptr));
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeFree(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    delete ((SubDataset*)(ptr));
+}

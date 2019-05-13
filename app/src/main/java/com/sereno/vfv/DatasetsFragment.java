@@ -3,6 +3,7 @@ package com.sereno.vfv;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -18,6 +19,7 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
@@ -152,6 +154,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             m_headsetColor.setImageBitmap(null);
             m_headsetColor.setBackgroundColor((color & 0xffffff) + ((byte)0xff << 24));
         }
+        else
+        {
+            m_headsetColor.setImageDrawable(getResources().getDrawable(R.drawable.no_snapshot));
+            m_headsetColor.setBackgroundColor(Color.TRANSPARENT);
+        }
     }
 
     /** Set up the main layout
@@ -230,8 +237,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             final ImageView publicIcon  = (ImageView)layout.findViewById(R.id.datasetPublicIcon);
             final ImageView privateIcon = (ImageView)layout.findViewById(R.id.datasetPrivateIcon);
 
-            //Snapshot event
-            sd.addListener(new SubDataset.ISubDatasetListener() {
+            SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
+            {
                 @Override
                 public void onClampingChange(SubDataset sd, float min, float max) {}
 
@@ -259,28 +266,42 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
                 @Override
                 public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+            };
 
+            //Snapshot event
+            sd.addListener(snapEvent);
+
+            final SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
+
+            metaData.addListener(new SubDatasetMetaData.ISubDatasetMetaDataListener() {
                 @Override
-                public void onSetVisibility(SubDataset dataset, int visibility)
+                public void onSetVisibility(SubDatasetMetaData metaData, final int visibility)
                 {
-                    if(visibility == SubDataset.VISIBILITY_PUBLIC)
-                    {
-                        privateIcon.setVisibility(View.GONE);
-                        publicIcon.setVisibility(View.VISIBLE);
-                    }
-                    else
-                    {
-                        publicIcon.setVisibility(View.GONE);
-                        privateIcon.setVisibility(View.VISIBLE);
-                    }
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(visibility == SubDataset.VISIBILITY_PUBLIC)
+                            {
+                                privateIcon.setVisibility(View.GONE);
+                                publicIcon.setVisibility(View.VISIBLE);
+                            }
+                            else
+                            {
+                                publicIcon.setVisibility(View.GONE);
+                                privateIcon.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    });
                 }
             });
+            metaData.getPrivateState().addListener(snapEvent);
             m_sdImages.put(sd, snapImg);
 
             publicIcon.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                    sd.setVisibility(SubDataset.VISIBILITY_PRIVATE);
+                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                        metaData.setVisibility(SubDataset.VISIBILITY_PRIVATE);
                     return true;
                 }
             });
@@ -288,10 +309,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             privateIcon.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                    sd.setVisibility(SubDataset.VISIBILITY_PUBLIC);
+                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                        metaData.setVisibility(SubDataset.VISIBILITY_PUBLIC);
                     return true;
                 }
             });
+            metaData.setVisibility(metaData.getVisibility());
 
 
             if(m_model.getCurrentSubDataset() == null)

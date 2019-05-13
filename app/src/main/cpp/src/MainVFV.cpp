@@ -374,19 +374,28 @@ namespace sereno
             //Apply the model changement (rotation + color)
             for(auto& it : m_modelChanged)
             {
+                m_mainData->lock();
+                    SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(it.first);
+                    SubDataset* sd = NULL;
+                    if(metaData)
+                        sd = metaData->getCurrentState();
+                m_mainData->unlock();
+
+                if(sd != it.first)
+                    continue;
                 for(auto sciVis : m_sciVis)
                 {
-                    if(sciVis->getModel() == it.first)
+                    if(sciVis->getModel() == metaData->getPublicSubDataset())
                     {
                         if(it.second.updateColor)
                         {
-                            sciVis->setColorRange(it.first->getMinClamping(), it.first->getMaxClamping());
+                            sciVis->setColorRange(sd->getMinClamping(), sd->getMaxClamping());
 //                            sciVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
                         }
                         if(it.second.updateRotation)
-                            sciVis->setRotate(it.first->getGlobalRotate());
+                            sciVis->setRotate(sd->getGlobalRotate());
                         if(it.second.updateScale)
-                            sciVis->setScale(it.first->getScale());
+                            sciVis->setScale(sd->getScale());
                     }
                 }
             }
@@ -395,7 +404,17 @@ namespace sereno
             if(m_currentVis)
             {
                 if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
-                    m_currentVis->setPosition(m_currentVis->getModel()->getPosition());
+                {
+                    m_mainData->lock();
+                        SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
+                        SubDataset* sd = NULL;
+                        if(metaData)
+                            sd = metaData->getCurrentState();
+                    m_mainData->unlock();
+
+                    if(sd != NULL)
+                        m_currentVis->setPosition(sd->getPosition());
+                }
                 else
                     m_currentVis->setPosition(glm::vec3(0, 0, 0));
             }
@@ -429,24 +448,34 @@ namespace sereno
                 }
                 if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
                 {
-                    //Enlarge the pixel array
-                    uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
-                    uint32_t snapHeight = m_surfaceData->renderer.getHeight();
-                    Snapshot* curSnapshot = m_currentVis->getModel()->getSnapshot();
+                    m_mainData->lock();
+                        SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
+                        SubDataset* sd = NULL;
+                        if(metaData)
+                            sd = metaData->getCurrentState();
+                    m_mainData->unlock();
 
-                    if((curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
-                        && (snapWidth * snapHeight != 0))
+                    if(sd != NULL)
                     {
-                        Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
-                        m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
-                        curSnapshot = newSnapshot;
-                        m_currentVis->getModel()->setSnapshot(m_snapshots[m_currentVis]);
-                    }
+                        //Enlarge the pixel array
+                        uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
+                        uint32_t snapHeight = m_surfaceData->renderer.getHeight();
+                        Snapshot* curSnapshot = sd->getSnapshot();
 
-                    //Read pixels
-                    glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
-                    m_mainData->sendSnapshotEvent(m_currentVis->getModel());
-                    m_snapshotCnt = 0;
+                        if((curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
+                            && (snapWidth * snapHeight != 0))
+                        {
+                            Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
+                            m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
+                            curSnapshot = newSnapshot;
+                            sd->setSnapshot(m_snapshots[m_currentVis]);
+                        }
+
+                        //Read pixels
+                        glReadPixels(0, 0, snapWidth, snapHeight, GL_RGBA, GL_UNSIGNED_BYTE, curSnapshot->pixels);
+                        m_mainData->sendSnapshotEvent(sd);
+                        m_snapshotCnt = 0;
+                    }
                 }
             }
             else
@@ -462,6 +491,21 @@ namespace sereno
         bool inMovement = false;
         glm::vec3 movement;
 
+        if(!m_currentVis)
+            return;
+
+        m_mainData->lock();
+            SubDataset* sd = m_currentVis->getModel();
+            SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(sd);
+            if(metaData)
+                sd = metaData->getCurrentState();
+            else
+            {
+                m_mainData->unlock();
+                return;
+            }
+        m_mainData->unlock();
+
         switch(m_currentWidgetAction)
         {
             case TOP_RIGHT_IMAGE:
@@ -469,116 +513,104 @@ namespace sereno
             case TOP_LEFT_IMAGE:
             case BOTTOM_LEFT_IMAGE:
             {
-                if(m_currentVis)
-                {
-                    float factor = sqrt((event->y - event->oldY)*(event->y - event->oldY)+
-                                        (event->x - event->oldX)*(event->x - event->oldX));
+                float factor = sqrt((event->y - event->oldY)*(event->y - event->oldY)+
+                                    (event->x - event->oldX)*(event->x - event->oldX));
 
-                    float inv    = (((event->y - event->startY)*(event->y - event->startY)+
-                                     (event->x - event->startX)*(event->x - event->startX)) > ((event->startY - event->oldY)*(event->startY - event->oldY)+
-                                                                                               (event->startX - event->oldX)*(event->startX - event->oldX))) ? 1.0f : -1.0f;
-                    factor *= inv;
+                float inv    = (((event->y - event->startY)*(event->y - event->startY)+
+                                 (event->x - event->startX)*(event->x - event->startX)) > ((event->startY - event->oldY)*(event->startY - event->oldY)+
+                                                                                           (event->startX - event->oldX)*(event->startX - event->oldX))) ? 1.0f : -1.0f;
+                factor *= inv;
 
-                    if(m_currentWidgetAction == TOP_RIGHT_IMAGE ||
-                       m_currentWidgetAction == TOP_LEFT_IMAGE)
-                        factor *= -1.0f;
+                if(m_currentWidgetAction == TOP_RIGHT_IMAGE ||
+                   m_currentWidgetAction == TOP_LEFT_IMAGE)
+                    factor *= -1.0f;
 
-                    //Modify the scale
-                    glm::vec3 currentScale = m_currentVis->getModel()->getScale();
-                    currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
-                    m_currentVis->getModel()->setScale(currentScale);
-                    m_mainData->sendScaleEvent(m_currentVis->getModel());
-                }
+                //Modify the scale
+                glm::vec3 currentScale = sd->getScale();
+                currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
+                sd->setScale(currentScale);
+                m_mainData->sendScaleEvent(sd);
                 break;
             }
 
             case TOP_IMAGE:
             case BOTTOM_IMAGE:
             {
-                if(m_currentVis)
-                {
-                    inMovement = true;
-                    movement = 3.0f*glm::vec3(0.0f, event->y - event->oldY, 0.0f);
-                }
+                inMovement = true;
+                movement = 3.0f*glm::vec3(0.0f, event->y - event->oldY, 0.0f);
                 break;
             }
             case RIGHT_IMAGE:
             case LEFT_IMAGE:
             {
-                if(m_currentVis)
-                {
-                    inMovement = true;
-                    movement = 3.0f*glm::vec3(event->x - event->oldX, 0.0f, 0.0f);
-                }
+                inMovement = true;
+                movement = 3.0f*glm::vec3(event->x - event->oldX, 0.0f, 0.0f);
                 break;
             }
 
             case NO_IMAGE:
             {
-                if(m_currentVis)
+                //Get the number of fingers down
+                TouchCoord* tc1 = NULL;
+                TouchCoord* tc2 = NULL;
+
+                uint32_t numberFinger = 0;
+                TouchCoord* tc = NULL;
+                for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
                 {
-                    //Get the number of fingers down
-                    TouchCoord* tc1 = NULL;
-                    TouchCoord* tc2 = NULL;
-
-                    uint32_t numberFinger = 0;
-                    TouchCoord* tc = NULL;
-                    for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
+                    if(tc->type != TOUCH_TYPE_UP)
                     {
-                        if(tc->type != TOUCH_TYPE_UP)
-                        {
-                            if(tc1 == NULL)
-                                tc1 = tc;
-                            else if(tc2 == NULL)
-                                tc2 = tc;
-                            numberFinger++;
-                        }
+                        if(tc1 == NULL)
+                            tc1 = tc;
+                        else if(tc2 == NULL)
+                            tc2 = tc;
+                        numberFinger++;
                     }
+                }
 
-                    //Z Translation
-                    if(numberFinger >= 2)
+                //Z Translation
+                if(numberFinger >= 2)
+                {
+                    //Determine if we are having a pitch
+                    glm::vec2 vec1(tc1->x - tc1->oldX,
+                                   tc1->y - tc1->oldY);
+
+                    glm::vec2 vec2(tc2->x - tc2->oldX,
+                                   tc2->y - tc2->oldY);
+
+                    if((vec1.x != 0 || vec1.y != 0) &&
+                       (vec2.x != 0 || vec2.y != 0))
                     {
-                        //Determine if we are having a pitch
-                        glm::vec2 vec1(tc1->x - tc1->oldX,
-                                       tc1->y - tc1->oldY);
+                        vec1 = glm::normalize(vec1);
+                        vec2 = glm::normalize(vec2);
 
-                        glm::vec2 vec2(tc2->x - tc2->oldX,
-                                       tc2->y - tc2->oldY);
+                        //Determine the scaling factor
+                        float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) +
+                                (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
 
-                        if((vec1.x != 0 || vec1.y != 0) &&
-                           (vec2.x != 0 || vec2.y != 0))
-                        {
-                            vec1 = glm::normalize(vec1);
-                            vec2 = glm::normalize(vec2);
+                        float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) +
+                                (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
 
-                            //Determine the scaling factor
-                            float distanceAfter = sqrt((tc1->x - tc2->x) * (tc1->x - tc2->x) +
-                                    (tc1->y - tc2->y) * (tc1->y - tc2->y) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+                        float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) +
+                                (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
 
-                            float distanceBefore = sqrt((tc1->oldX - tc2->oldX) * (tc1->oldX - tc2->oldX) +
-                                    (tc1->oldY - tc2->oldY) * (tc1->oldY - tc2->oldY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
+                        float factor = distanceAfter - distanceBefore;
 
-                            float distanceOrigin = sqrt((tc1->startX - tc2->startX) * (tc1->startX - tc2->startX) +
-                                    (tc1->startY - tc2->startY) * (tc1->startY - tc2->startY) * m_surfaceData->renderer.getHeight() / m_surfaceData->renderer.getWidth());
-
-                            float factor = distanceAfter - distanceBefore;
-
-                            inMovement = true;
-                            movement   = 3.0f*glm::vec3(0.0f, 0.0f, factor);
-                        }
+                        inMovement = true;
+                        movement   = 3.0f*glm::vec3(0.0f, 0.0f, factor);
                     }
+                }
 
-                    //Rotation
-                    else
-                    {
-                        //Allow a full rotation in only one movement
-                        float roll  = (event->x - event->oldX)*M_PI;
-                        float pitch = (event->y - event->oldY)*M_PI;
-                        pitch = 0; //Disable pitch rotation
+                //Rotation
+                else
+                {
+                    //Allow a full rotation in only one movement
+                    float roll  = (event->x - event->oldX)*M_PI;
+                    float pitch = (event->y - event->oldY)*M_PI;
+                    pitch = 0; //Disable pitch rotation
 
-                        m_currentVis->getModel()->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
-                        m_mainData->sendRotationEvent(m_currentVis->getModel());
-                    }
+                    sd->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
+                    m_mainData->sendRotationEvent(sd);
                 }
                 break;
             }
@@ -595,8 +627,8 @@ namespace sereno
             glm::vec3 newPos = m_animationRotation.rotateVector(movement);
             LOG_INFO("old Movement : %f %f %f, new Movement : %f %f %f", movement.x, movement.y, movement.z,
                                                                          newPos.x,   newPos.y,   newPos.z);
-            m_currentVis->getModel()->setPosition(m_currentVis->getModel()->getPosition() + newPos);
-            m_mainData->sendPositionEvent(m_currentVis->getModel());
+            sd->setPosition(sd->getPosition() + newPos);
+            m_mainData->sendPositionEvent(sd);
         }
 
     }
@@ -720,6 +752,13 @@ namespace sereno
                         }
                     break;
                 }
+
+                case VFV_SET_VISIBILITY_DATA:
+                {
+                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, true, true, true));
+                    break;
+                }
+
                 default:
                     LOG_ERROR("type %d still has to be done\n", event->getType());
                     break;

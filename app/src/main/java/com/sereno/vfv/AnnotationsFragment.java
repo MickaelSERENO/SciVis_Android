@@ -19,7 +19,9 @@ import android.widget.TextView;
 import com.sereno.Tree;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -34,7 +36,8 @@ import com.sereno.view.TreeView;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener, SubDataset.ISubDatasetListener
+public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener,
+                                                                SubDataset.ISubDatasetListener, SubDatasetMetaData.ISubDatasetMetaDataListener
 {
     private static class AnnotationBitmap
     {
@@ -135,11 +138,19 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
     {
+        onAddDataset(d);
     }
 
     @Override
     public void onAddVTKDataset(ApplicationModel model, final VTKDataset d)
     {
+        onAddDataset(d);
+    }
+
+    private void onAddDataset(final Dataset d)
+    {
+        for(SubDataset sd : d.getSubDatasets())
+            m_model.getSubDatasetMetaData(sd).addListener(this);
         final Tree<View> t = m_previews.getModel();
 
         getActivity().runOnUiThread(new Runnable() {
@@ -474,7 +485,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onSetVisibility(SubDataset dataset, int visibility)
+    public void onSetVisibility(SubDatasetMetaData dataset, int visibility)
     {
 
     }

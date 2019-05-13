@@ -8,6 +8,7 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -16,7 +17,7 @@ import com.sereno.view.AnnotationData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
+public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, SubDatasetMetaData.ISubDatasetMetaDataListener
 {
     /** VFVSurfaceView Listener interface.*/
     public interface IVFVSurfaceViewListener
@@ -83,16 +84,16 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onAddBinaryDataset(ApplicationModel model, BinaryDataset fd)
     {
-        nativeAddBinaryDataset(fd, m_ptr, fd.getPtr());
         onAddDataset(model, fd);
+        nativeAddBinaryDataset(fd, m_ptr, fd.getPtr());
     }
 
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
         //C++ callback
-        nativeAddVTKDataset(d, m_ptr, d.getPtr());
         onAddDataset(model, d);
+        nativeAddVTKDataset(d, m_ptr, d.getPtr());
     }
 
     @Override
@@ -121,10 +122,19 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeUpdateBindingInformation(m_ptr, info);
     }
 
-    public void onAddDataset(ApplicationModel model, Dataset d)
+    private void onAddDataset(ApplicationModel model, Dataset d)
     {
-        for(int i = 0; i < d.getNbSubDataset(); i++)
-            d.getSubDataset(i).addListener(this);
+        for(SubDataset sd : d.getSubDatasets())
+        {
+            SubDatasetMetaData metaData = model.getSubDatasetMetaData(sd);
+            metaData.addListener(this);
+            metaData.getPublicState().addListener(this);
+            metaData.getPrivateState().addListener(this);
+            nativeInitSubDatasetMetaData(m_ptr,
+                                         metaData.getPublicState().getNativePtr(), metaData.getPublicState(),
+                                         metaData.getPrivateState().getNativePtr(), metaData.getPrivateState(),
+                                         metaData.getVisibility());
+        }
     }
 
     @Override
@@ -161,7 +171,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onSetVisibility(SubDataset dataset, int visibility) {}
+    public void onSetVisibility(SubDatasetMetaData metaData, int v)
+    {
+        nativeSetSubDatasetVisibility(m_ptr, metaData.getPublicState().getNativePtr(), v);
+    }
 
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously
@@ -206,7 +219,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param ptr the ptr associated with the main Argument
      * @param min the minimum range (0.0, 1.0)
      * @param max the maximum range (0.0, 1.0)
-     * @param mode the color mode to apply (See ColorMode)
      * @param sdPtr the SubDataset native pointer*/
     private native void nativeOnClampingChange(long ptr, float min, float max, long sdPtr);
 
@@ -234,4 +246,19 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param ptr the ptr associated with the main Argument
      * @param info the new binding information*/
     private native void nativeUpdateBindingInformation(long ptr, HeadsetBindingInfoMessage info);
+
+    /** Init the subdataset meta data information
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPublicPtr the SubDataset public states native pointer
+     * @param sdPublic the Java SubDataset public states object
+     * @param sdPrivatePtr the SubDataset private states native pointer
+     * @param sdPrivate the Java SubDataset private states object
+     * @param visibility the current visibility*/
+    private native void nativeInitSubDatasetMetaData(long ptr, long sdPublicPtr, SubDataset sdPublic, long sdPrivatePtr, SubDataset sdPrivate, int visibility);
+
+    /** Set the subdataset visibility.
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the SubDataset public or private states native pointer
+     * @param visibility the current visibility*/
+    private native void nativeSetSubDatasetVisibility(long ptr, long sdPtr, int visibility);
 }

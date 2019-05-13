@@ -9,21 +9,6 @@
 
 using namespace sereno;
 
-static std::vector<jobject> jniGetSubDatasets(JNIEnv* env, jobject dataset)
-{
-    std::vector<jobject> subDatasets;
-    jint nbSubDataset = env->CallIntMethod(dataset, jDataset_getNbSubDataset);
-
-    for(int i = 0; i < nbSubDataset; i++)
-    {
-        jobject cur = env->CallObjectMethod(dataset, jDataset_getSubDataset, i);
-        subDatasets.push_back(env->NewGlobalRef(cur));
-        env->DeleteLocalRef(cur);
-    }
-
-    return subDatasets;
-}
-
 JNIEXPORT jlong JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeCreateMainArgs(JNIEnv *env, jobject instance)
 {
     VFVData* data = new VFVData(env->NewGlobalRef(instance));
@@ -46,8 +31,7 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeChangeCurrentSub
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddBinaryDataset(JNIEnv* env, jobject instance, jobject bd, jlong ptr, jlong jData)
 {
     VFVData* data = (VFVData*)ptr;
-    std::vector<jobject> subDatasets = jniGetSubDatasets(env, bd);
-    data->addBinaryData(*((std::shared_ptr<BinaryDataset>*)jData), subDatasets);
+    data->addBinaryData(*((std::shared_ptr<BinaryDataset>*)jData));
 }
 
 
@@ -60,8 +44,7 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEn
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jobject vtk, jlong ptr, jlong jData)
 {
     VFVData* data = (VFVData*)ptr;
-    std::vector<jobject> subDatasets = jniGetSubDatasets(env, vtk);
-    data->addVTKData(*((std::shared_ptr<VTKDataset>*)jData), subDatasets);
+    data->addVTKData(*((std::shared_ptr<VTKDataset>*)jData));
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnClampingChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jlong sd)
@@ -144,4 +127,18 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInf
 
     VFVData* data = (VFVData*)ptr;
     data->setHeadsetID(headsetID);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeInitSubDatasetMetaData(JNIEnv* env, jobject instance, jlong ptr, jlong publicSD, jobject publicJObjectSD, jlong privateSD, jobject privateJObjectSD, int visibility)
+{
+    VFVData* data = (VFVData*)ptr;
+    SubDatasetMetaData metaData((SubDataset*)publicSD, (SubDataset*)privateSD, visibility);
+    data->addSubDatasetMetaData(metaData, env->NewGlobalRef(publicJObjectSD),
+                                          env->NewGlobalRef(privateJObjectSD));
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeSetSubDatasetVisibility(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr, int visibility)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->setSubDatasetVisibility((SubDataset*)sdPtr, visibility);
 }

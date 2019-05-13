@@ -13,6 +13,7 @@
 #include "HeadsetStatus.h"
 #include "Datasets/BinaryDataset.h"
 #include "Datasets/VTKDataset.h"
+#include "Datasets/SubDatasetMetaData.h"
 #include "ColorMode.h"
 
 namespace sereno
@@ -27,7 +28,8 @@ namespace sereno
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
         VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
         VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
-        VFV_COLOR_RANGE_CHANGED  /*!< The color range has changed for the current dataset*/
+        VFV_COLOR_RANGE_CHANGED, /*!< The color range has changed for the current dataset*/
+        VFV_SET_VISIBILITY_DATA, /*!< The visibility data has changed for the current dataset*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -68,30 +70,42 @@ namespace sereno
     {
         union
         {
-            DatasetEvent    dataset;       /*!< General dataset event*/
-            BinaryDataEvent binaryData;    /*!< Binary  dataset event*/
-            VTKDataEvent    vtkData;       /*!< VTK    dataset event*/
-            SubDatasetEvent sdEvent; /*!< SubDataset general event information*/
+            DatasetEvent    dataset;    /*!< General dataset event*/
+            BinaryDataEvent binaryData; /*!< Binary  dataset event*/
+            VTKDataEvent    vtkData;    /*!< VTK    dataset event*/
+            SubDatasetEvent sdEvent;    /*!< SubDataset general event information*/
         };
 
         VFVEvent(VFVEventType t) : type(t)
         {
-            if(type == VFV_ADD_BINARY_DATA)
-                new(&binaryData) BinaryDataEvent;
-            else if(type == VFV_ADD_VTK_DATA)
-                new(&vtkData) VTKDataEvent;
-            if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA || type == VFV_SET_CURRENT_DATA)
-                new(&sdEvent) SubDatasetEvent;
+            switch(type)
+            {
+                case VFV_ADD_BINARY_DATA:
+                    new(&binaryData) BinaryDataEvent;
+                    break;
+                case VFV_ADD_VTK_DATA:
+                    new(&vtkData) VTKDataEvent;
+                    break;
+                default:
+                    new(&sdEvent) SubDatasetEvent;
+                    break;
+            }
         }
 
         ~VFVEvent()
         {
-            if(type == VFV_ADD_BINARY_DATA)
-                binaryData.~BinaryDataEvent();
-            else if(type == VFV_ADD_VTK_DATA)
-                vtkData.~VTKDataEvent();
-            else if(type == VFV_COLOR_RANGE_CHANGED || type == VFV_SET_ROTATION_DATA || type == VFV_SET_CURRENT_DATA)
-                sdEvent.~SubDatasetEvent();
+            switch(type)
+            {
+                case VFV_ADD_BINARY_DATA:
+                    binaryData.~BinaryDataEvent();
+                    break;
+                case VFV_ADD_VTK_DATA:
+                    vtkData.~VTKDataEvent();
+                    break;
+                default:
+                    sdEvent.~SubDatasetEvent();
+                    break;
+            }
         }
 
         /* \brief  Get the type of this event
@@ -143,14 +157,12 @@ namespace sereno
             void updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status);
 
             /* \brief Add a new Binary Dataset in this application
-             * \param dataset the Binary dataset to add
-             * \param jSubDatasets the java dataset objects*/
-            void addBinaryData(std::shared_ptr<BinaryDataset> dataset, const std::vector<jobject>& jSubDatasets);
+             * \param dataset the Binary dataset to add*/
+            void addBinaryData(std::shared_ptr<BinaryDataset> dataset);
 
             /* \brief  Add a new VTK Dataset in this application
-             * \param dataset the VTK dataset to add
-             * \param jSubDatasets the java dataset objects*/
-            void addVTKData(std::shared_ptr<VTKDataset> dataset,  const std::vector<jobject>& jSubDatasets);
+             * \param dataset the VTK dataset to add*/
+            void addVTKData(std::shared_ptr<VTKDataset> dataset);
 
             /* \brief Remove the dataset "dataID"
              * \param dataID the id of the dataset to remove*/
@@ -202,6 +214,30 @@ namespace sereno
                 return m_headsetID;
             }
 
+            /* \brief  Add a new SubDataset metaData
+             * \param metaData the subdataset meta data to add
+             * \param publicJObjectSD the public states java object subdataset
+             * \param privateJObjectSD the private states java object subdataset*/
+            void addSubDatasetMetaData(const SubDatasetMetaData& metaData, jobject publicJObjectSD, jobject privateJObjectSD);
+
+            /* \brief  Get the SubDatasetMetaData associated to a SubDataset
+             * \param sd the subdataset to look at
+             * \return    the associated SubDatasetMetaData or NULL if not found */
+            const SubDatasetMetaData* getSubDatasetMetaData(const SubDataset* sd) const;
+
+            /* \brief  Get the SubDatasetMetaData associated to a SubDataset
+             * \param sd the subdataset to look at
+             * \return    the associated SubDatasetMetaData or NULL if not found */
+            SubDatasetMetaData* getSubDatasetMetaData(const SubDataset* sd);
+
+            /* \brief  Set a SubDataset visibility. This function does something only if a SubDatasetMetaData is associated to the given SubDataset
+             *
+             * \param sd the SubDataset being modified
+             * \param visibility the new visibility to apply. 
+             *
+             * \return true on success (found SubDatasetMetaData counterpart), false otherwise*/
+            bool setSubDatasetVisibility(const SubDataset* sd, int visibility);
+
             /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/
             void sendSnapshotEvent(SubDataset* subDataset);
@@ -240,6 +276,7 @@ namespace sereno
             std::shared_ptr<std::vector<HeadsetStatus>> m_headsetsStatus; /*!< The headsets status*/
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
+            std::map<const SubDataset*, SubDatasetMetaData*> m_sdMetaDatas; /*!< Map linking SubDataset to their meta data counter part*/
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
 

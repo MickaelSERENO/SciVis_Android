@@ -86,6 +86,10 @@ public class MessageBuffer
         /** Called when the message "GET_HEADSETS_STATUS" has been successfully parsed
          * @param msg the message parsed*/
         void onHeadsetsStatusMessage(HeadsetsStatusMessage msg);
+
+        /** Called when the message "GET_SET_VISIBILITY_DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSetVisibility(VisibilityMessage msg);
     }
 
     /** No current type received*/
@@ -114,6 +118,9 @@ public class MessageBuffer
 
     /** Scale dataset received*/
     public static final int GET_SCALE_DATASET           = 9;
+
+    /** Set the dataset visibility*/
+    public static final int GET_SET_VISIBILITY_DATASET  = 10;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -244,6 +251,10 @@ public class MessageBuffer
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onScaleDatasetMessage((ScaleDatasetMessage)m_curMsg);
                     break;
+                case GET_SET_VISIBILITY_DATASET:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onSetVisibility((VisibilityMessage)m_curMsg);
+                    break;
                 default:
                     Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
             }
@@ -294,6 +305,9 @@ public class MessageBuffer
                 break;
             case GET_HEADSETS_STATUS:
                 m_curMsg = new HeadsetsStatusMessage();
+                break;
+            case GET_SET_VISIBILITY_DATASET:
+                m_curMsg = new VisibilityMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

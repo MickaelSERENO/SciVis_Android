@@ -27,6 +27,9 @@ namespace sereno
                 return;
             env->DeleteGlobalRef(it.second);
         }
+
+        for(auto& it : m_sdMetaDatas)
+            delete it.second;
     }
 
     void VFVData::setCallback(IVFVCallback* clbk)
@@ -41,7 +44,7 @@ namespace sereno
         unlock();
     }
 
-    void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset, const std::vector<jobject>& jSubDatasets)
+    void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_BINARY_DATA);
         ev->binaryData.dataset = dataset;
@@ -49,14 +52,12 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
-            for(int i = 0; i < jSubDatasets.size(); i++)
-                m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
         unlock();
         addEvent(ev);
     }
 
-    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset, const std::vector<jobject>& jSubDatasets)
+    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_VTK_DATA);
         ev->vtkData.dataset = dataset;
@@ -64,8 +65,6 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
-            for(int i = 0; i < jSubDatasets.size(); i++)
-                m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(dataset->getSubDataset(i), jSubDatasets[i]));
         }
         unlock();
         addEvent(ev);
@@ -142,9 +141,52 @@ namespace sereno
         unlock();
     }
 
+    void VFVData::addSubDatasetMetaData(const SubDatasetMetaData& metaData, jobject publicJObjectSD, jobject privateJObjectSD)
+    {
+        lock();
+            SubDatasetMetaData* m = new SubDatasetMetaData(metaData);
+            m_sdMetaDatas.insert(std::pair<const SubDataset*, SubDatasetMetaData*>(m->getPublicSubDataset(), m));
+            m_sdMetaDatas.insert(std::pair<const SubDataset*, SubDatasetMetaData*>(m->getPrivateSubDataset(), m));
+            m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(m->getPublicSubDataset(), publicJObjectSD));
+            m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(m->getPrivateSubDataset(), privateJObjectSD));
+
+        unlock();
+    }
+
+    const SubDatasetMetaData* VFVData::getSubDatasetMetaData(const SubDataset* sd) const
+    {
+        auto it = m_sdMetaDatas.find(sd);
+        if(it != m_sdMetaDatas.end())
+            return it->second;
+        return NULL;
+    }
+
+    SubDatasetMetaData* VFVData::getSubDatasetMetaData(const SubDataset* sd)
+    {
+        auto it = m_sdMetaDatas.find(sd);
+        if(it != m_sdMetaDatas.end())
+            return it->second;
+        return NULL;
+    }
+
+    bool VFVData::setSubDatasetVisibility(const SubDataset* sd, int visibility)
+    {
+        SubDatasetMetaData* metaData = getSubDatasetMetaData(sd);
+        if(metaData)
+        {
+            metaData->setVisibility(visibility);
+            VFVEvent* ev = new VFVEvent(VFV_SET_VISIBILITY_DATA);
+            ev->sdEvent.sd = metaData->getCurrentState();
+            addEvent(ev);
+        }
+
+        return metaData != NULL;
+    }
+
     /*----------------------------------------------------------------------------*/
     /*----------------------------Send events to Java-----------------------------*/
     /*----------------------------------------------------------------------------*/
+
     void VFVData::sendRotationEvent(SubDataset* sd)
     {
         //Create the quaternion array

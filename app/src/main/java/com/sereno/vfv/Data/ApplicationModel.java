@@ -103,6 +103,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     private Configuration            m_config;          /**!< The configuration object*/
     private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
 
+    /** The HashMap linking subdatasets to their meta data*/
+    private HashMap<SubDataset, SubDatasetMetaData> m_metaDatas = new HashMap<>();
+
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
 
@@ -143,11 +146,25 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             m_listeners.add(clbk);
     }
 
+    /** Perform common actions when adding datasets
+     * @param d the dataset in adding state.*/
+    private void onAddDataset(Dataset d)
+    {
+        //Create the meta data associated to each subdatasets
+        for(SubDataset sd : d.getSubDatasets())
+        {
+            SubDatasetMetaData metaData = new SubDatasetMetaData(sd);
+            m_metaDatas.put(sd, metaData);
+            m_metaDatas.put(metaData.getPrivateState(), metaData);
+        }
+    }
+
     /** @brief Add a BinaryDataset to our model
      *  @param dataset the dataset to add*/
     public void addBinaryDataset(BinaryDataset dataset)
     {
         m_binaryDatasets.add(dataset);
+        onAddDataset(dataset);
         for(IDataCallback clbk : m_listeners)
             clbk.onAddBinaryDataset(this, dataset);
     }
@@ -157,6 +174,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void addVTKDataset(VTKDataset dataset)
     {
         m_vtkDatasets.add(dataset);
+        onAddDataset(dataset);
         for(IDataCallback clbk : m_listeners)
             clbk.onAddVTKDataset(this, dataset);
     }
@@ -248,43 +266,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             clbk.onChangeCurrentSubDataset(this, sd);
     }
 
-    @Override
-    public void onClampingChange(SubDataset sd, float min, float max)
-    {
-        if(m_rangeColorModel == null)
-            return;
-
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.removeListener(this);
-        m_rangeColorModel.removeOnRangeChangeListener(this);
-
-        if(min != m_rangeColorModel.getMinRange() || max != m_rangeColorModel.getMaxRange())
-            m_rangeColorModel.setRange(min, max);
-
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.addListener(this);
-        m_rangeColorModel.addOnRangeChangeListener(this);
-    }
-
-    @Override
-    public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
-
-    @Override
-    public void onPositionEvent(SubDataset dataset, float[] position) {}
-
-    @Override
-    public void onScaleEvent(SubDataset dataset, float[] scale) {}
-
-    @Override
-    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
-
-    @Override
-    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-    @Override
-    public void onSetVisibility(SubDataset dataset, int visibility) {}
-
-
     /** Get the current SubDataset
      * @return The current SubDataset*/
     public SubDataset getCurrentSubDataset()
@@ -318,6 +299,41 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     /** Get the binding information
      * @return the binding information regarding this device and the headset*/
     public HeadsetBindingInfoMessage getBindingInfo() {return m_bindingInfo;}
+
+    public SubDatasetMetaData getSubDatasetMetaData(SubDataset d) {return m_metaDatas.get(d);}
+
+    @Override
+    public void onClampingChange(SubDataset sd, float min, float max)
+    {
+        if(m_rangeColorModel == null)
+            return;
+
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.removeListener(this);
+        m_rangeColorModel.removeOnRangeChangeListener(this);
+
+        if(min != m_rangeColorModel.getMinRange() || max != m_rangeColorModel.getMaxRange())
+            m_rangeColorModel.setRange(min, max);
+
+        if(m_currentSubDataset != null)
+            m_currentSubDataset.addListener(this);
+        m_rangeColorModel.addOnRangeChangeListener(this);
+    }
+
+    @Override
+    public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+    @Override
+    public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+    @Override
+    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
+
+    @Override
+    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/
