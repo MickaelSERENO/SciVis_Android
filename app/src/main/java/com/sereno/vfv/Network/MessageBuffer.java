@@ -90,6 +90,10 @@ public class MessageBuffer
         /** Called when the message "GET_SET_VISIBILITY_DATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onSetVisibility(VisibilityMessage msg);
+
+        /** Called when the message "GET_ANCHOR_ANNOTATION" has been successfully parsed
+         * @param msg the message parsed*/
+        void onAnchorAnnotation(AnchorAnnotationMessage msg);
     }
 
     /** No current type received*/
@@ -121,6 +125,9 @@ public class MessageBuffer
 
     /** Set the dataset visibility*/
     public static final int GET_SET_VISIBILITY_DATASET  = 10;
+
+    /** Anchor a new annotation*/
+    public static final int GET_ANCHOR_ANNOTATION       = 12;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -255,6 +262,10 @@ public class MessageBuffer
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onSetVisibility((VisibilityMessage)m_curMsg);
                     break;
+                case GET_ANCHOR_ANNOTATION:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onAnchorAnnotation((AnchorAnnotationMessage)m_curMsg);
+                    break;
                 default:
                     Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
             }
@@ -308,6 +319,9 @@ public class MessageBuffer
                 break;
             case GET_SET_VISIBILITY_DATASET:
                 m_curMsg = new VisibilityMessage();
+                break;
+            case GET_ANCHOR_ANNOTATION:
+                m_curMsg = new AnchorAnnotationMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

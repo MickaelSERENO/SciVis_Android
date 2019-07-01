@@ -100,6 +100,16 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
 
     @Override
+    public void onPendingAnnotation(ApplicationModel model, SubDataset sd) {
+
+    }
+
+    @Override
+    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel) {
+
+    }
+
+    @Override
     public void onChangeCurrentAction(ApplicationModel model, int action) {
 
     }

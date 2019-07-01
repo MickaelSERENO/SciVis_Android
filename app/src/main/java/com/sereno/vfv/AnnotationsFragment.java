@@ -54,6 +54,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The annotation view*/
     private AnnotationView m_annotView;
 
+    private View m_pendingView;
+
+    private View m_annotDrawButtonsView;
+
     /** The image view text mode*/
     private ImageView m_textMode;
 
@@ -173,7 +177,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                         public boolean onTouch(View view, MotionEvent motionEvent) {
                             if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                             {
-                                addNewAnnotation(sd);
+                                m_model.pendingAnnotation(sd);
                                 return true;
                             }
                             return false;
@@ -192,8 +196,22 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
-    {
+    { }
 
+    @Override
+    public void onPendingAnnotation(ApplicationModel model, SubDataset sd)
+    {
+        m_pendingView.setVisibility(View.VISIBLE);
+        m_annotView.setVisibility(View.GONE);
+        m_annotDrawButtonsView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
+    {
+        m_pendingView.setVisibility(View.GONE);
+        m_annotView.setVisibility(View.VISIBLE);
+        m_annotDrawButtonsView.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -221,6 +239,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
         m_strokeParamLayout = (LinearLayout)v.findViewById(R.id.annotationStrokeParamLayout);
         m_textParamLayout   = (LinearLayout)v.findViewById(R.id.annotationTextParamLayout);
+        m_pendingView = v.findViewById(R.id.annotPendingView);
+        m_annotDrawButtonsView = v.findViewById(R.id.annotDrawButtons);
+        m_pendingView.setVisibility(View.GONE);
         ColorPickerView strokeColorPicker = (ColorPickerView)v.findViewById(R.id.strokeColorPicker);
         ColorPickerView textColorPicker   = (ColorPickerView)v.findViewById(R.id.textColorPicker);
 
@@ -345,19 +366,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_mode = mode;
         if(m_annotView.getModel() != null && m_annotView.getModel().getMode() != mode) //Not fire for nothing
             m_annotView.getModel().setMode(mode);
-    }
-
-    /** Add a new annotation bound to a SubDataset
-     * @param sd the SubDataset to bind an annotation*/
-    private void addNewAnnotation(SubDataset sd)
-    {
-        if(m_model != null)
-        {
-            AnnotationData data = new AnnotationData(m_annotView.getWidth(), m_annotView.getHeight());
-            ApplicationModel.AnnotationMetaData metaData = new ApplicationModel.AnnotationMetaData(sd, -1);
-            data.setMode(m_mode); //Set to the current mode
-            m_model.addAnnotation(data, metaData);
-        }
     }
 
     /**Update the bitmap bound to an annotation data

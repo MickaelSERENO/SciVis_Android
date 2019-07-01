@@ -37,6 +37,7 @@ import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
 import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
+import com.sereno.vfv.Network.AnchorAnnotationMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -221,6 +222,23 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
     {
         annot.addListener(this);
+    }
+
+    @Override
+    public void onPendingAnnotation(ApplicationModel model, SubDataset sd)
+    {
+        if(m_model.getBindingInfo() != null && m_model.getBindingInfo().getHeadsetID() != -1)
+        {
+            DatasetIDBinding idBinding = getDatasetIDBinding(sd);
+            if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
+                m_socket.push(SocketManager.createStartAnnotationEvent(idBinding, SocketManager.POINTING_WIM, m_model.getSubDatasetMetaData(sd).getVisibility() == SubDataset.VISIBILITY_PUBLIC));
+        }
+    }
+
+    @Override
+    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
+    {
+
     }
 
     @Override
@@ -441,6 +459,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 m_model.setBindingInfo(msg);
+                if(msg.getHeadsetID() == -1)
+                    m_model.endPendingAnnotation(true);
             }
         });
     }
@@ -463,15 +483,36 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSetVisibility(VisibilityMessage msg)
+    public void onSetVisibility(final VisibilityMessage msg)
     {
-        SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
-        if(sd != null)
-        {
-            SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-            if(metaData != null)
-                metaData.setVisibility(msg.getVisibility());
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if (sd != null) {
+                    SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
+                    if (metaData != null)
+                        metaData.setVisibility(msg.getVisibility());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onAnchorAnnotation(final AnchorAnnotationMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                AnnotationData data = new AnnotationData(640, 640);
+                ApplicationModel.AnnotationMetaData metaData = new ApplicationModel.AnnotationMetaData(sd, -1);
+                m_model.addAnnotation(data, metaData);
+
+                if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
+                    m_model.endPendingAnnotation(false);
+            }
+        });
     }
 
     @Override

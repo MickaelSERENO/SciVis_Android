@@ -35,12 +35,20 @@ public class SocketManager
     }
 
     /** The connection timeout in milliseconds*/
-    public static final int    CONNECT_TIMEOUT    = 100;
+    public static final int CONNECT_TIMEOUT    = 100;
     /** How many milliseconds the thread has to sleep before reattempting to connect ?*/
-    public static final int    FAIL_CONNECT_SLEEP = 200;
+    public static final int FAIL_CONNECT_SLEEP = 200;
     /** How many milliseconds the thread has to sleep before resending data ?*/
-    public static final int    THREAD_SLEEP       = 1000/90;
-    public static final int    READ_TIMEOUT       = 0;
+    public static final int THREAD_SLEEP       = 1000/90;
+    public static final int READ_TIMEOUT       = 0;
+
+    /** The pointing technique IDs*/
+    public static final int POINTING_NONE        = -1;
+    public static final int POINTING_MANUAL      = 0;
+    public static final int POINTING_WIM         = 1;
+    public static final int POINTING_WIM_POINTER = 1;
+    public static final int POINTING_GOGO        = 2;
+
 
     /* ************************************************************ */
     /* ******************Recognizable server type****************** */
@@ -55,6 +63,7 @@ public class SocketManager
     public static final short TRANSLATE_DATASET       = 11;
     public static final short SCALE_DATASET           = 12;
     public static final short VISIBILITY_DATASET      = 13;
+    public static final short SEND_START_ANNOTATION   = 14;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -546,6 +555,22 @@ public class SocketManager
             buf.putInt(t.getText().length());
             buf.put(t.getText().getBytes(StandardCharsets.US_ASCII));
         }
+
+        return buf.array();
+    }
+
+    public static byte[] createStartAnnotationEvent(MainActivity.DatasetIDBinding ids, int pointingID, boolean inPublic)
+    {
+        int size = 2+3*4+1;
+
+        ByteBuffer buf = ByteBuffer.allocate(size);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SEND_START_ANNOTATION);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+        buf.putInt(pointingID);
+        buf.put((byte)(inPublic == true ? 1 : 0));
 
         return buf.array();
     }

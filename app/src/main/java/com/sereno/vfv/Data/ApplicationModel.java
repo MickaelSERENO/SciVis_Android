@@ -36,6 +36,17 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
          * @param metaData the annotation meta data value*/
         void onAddAnnotation(ApplicationModel model, AnnotationData annot, AnnotationMetaData metaData);
 
+        /** @brief Function called when an annotation is waiting to be added
+         * @param model the app data
+         * @param sd the targeted subdataset */
+        void onPendingAnnotation(ApplicationModel model, SubDataset sd);
+
+        /** @brief Function called when a pending annotation ended
+         * @param model the app data
+         * @param sd the targeted subdataset
+         * @param cancel true if the annotation has been canceled, false otherwise*/
+        void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel);
+
         /** @brief Method called when the current device action changed
          * @param model the app data
          * @param action the new current action*/
@@ -120,6 +131,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     /** The headset binding information*/
     private HeadsetBindingInfoMessage m_bindingInfo = null;
+
+    private SubDataset m_pendingSubDataset = null;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -301,6 +314,23 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public HeadsetBindingInfoMessage getBindingInfo() {return m_bindingInfo;}
 
     public SubDatasetMetaData getSubDatasetMetaData(SubDataset d) {return m_metaDatas.get(d);}
+
+    public void pendingAnnotation(SubDataset sd)
+    {
+        if(m_pendingSubDataset != null)
+            endPendingAnnotation(true);
+
+        m_pendingSubDataset = sd;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onPendingAnnotation(this, sd);
+    }
+
+    public void endPendingAnnotation(boolean cancel)
+    {
+        for(IDataCallback clbk : m_listeners)
+            clbk.onEndPendingAnnotation(this, m_pendingSubDataset, cancel);
+        m_pendingSubDataset = null;
+    }
 
     @Override
     public void onClampingChange(SubDataset sd, float min, float max)

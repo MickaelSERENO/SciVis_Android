@@ -40,12 +40,13 @@ import java.util.HashMap;
 
 public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback
 {
-    private VFVSurfaceView   m_surfaceView       = null; /*!< The surface view displaying the vector field*/
-    private TreeView         m_previewLayout     = null; /*!< The preview layout*/
-    private Bitmap           m_noSnapshotBmp     = null; /*!< The bitmap used when no preview is available*/
-    private ImageView        m_headsetColor      = null; /*!< Image view representing the headset color*/
-    private ApplicationModel m_model             = null; /*!< The application model to use*/
-    private Context          m_ctx               = null;
+    private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
+    private TreeView         m_previewLayout     = null;  /*!< The preview layout*/
+    private Bitmap           m_noSnapshotBmp     = null;  /*!< The bitmap used when no preview is available*/
+    private ImageView        m_headsetColor      = null;  /*!< Image view representing the headset color*/
+    private ApplicationModel m_model             = null;  /*!< The application model to use*/
+    private Context          m_ctx               = null;  /*!< The application context*/
+    private boolean          m_modelBound        = false; /*!< Is the model bound?*/
 
     private HashMap<SubDataset, ImageView> m_sdImages = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
 
@@ -70,7 +71,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         return v;
     }
 
-    /** Set up the model callback through this fragment
+    /** Set up the model callback through this fragment. Call this method only once!!!
      * @param model the model to link with the internal views*/
     public void setUpModel(ApplicationModel model)
     {
@@ -78,10 +79,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             m_model.removeListener(this);
         m_model = model;
         if(m_ctx != null)
-            m_model.addListener(this);
-
-        if(m_ctx != null)
         {
+            m_modelBound = true;
+            m_model.addListener(this);
             onUpdateBindingInformation(m_model, m_model.getBindingInfo());
             for (BinaryDataset d : m_model.getBinaryDatasets())
                 onAddBinaryDataset(m_model, d);
@@ -99,7 +99,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_ctx = context;
         super.onAttach(context);
 
-        if(m_model != null)
+        if(m_model != null && !m_modelBound)
             setUpModel(m_model);
     }
 
@@ -126,6 +126,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
     {}
+
+    @Override
+    public void onPendingAnnotation(ApplicationModel model, SubDataset sd) {
+
+    }
+
+    @Override
+    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel) {
+
+    }
 
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action) {
@@ -315,7 +325,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 }
             });
             metaData.setVisibility(metaData.getVisibility());
-
 
             if(m_model.getCurrentSubDataset() == null)
                 m_model.setCurrentSubDataset(sd);
