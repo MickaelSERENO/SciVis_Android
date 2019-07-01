@@ -1,0 +1,10 @@
+Android application which communicates with github.com/MickaelSereno/SciVis_Server and github.com/MickaelSereno/SciVis_HoloLens.
+
+You need first to compile :
+    -glm
+    -lib3ds
+    -github.com/MickaelSereno/VTKParser
+    -github.com/MickaelSereno/Math_Library
+    -github.com/MickaelSereno/SciVis_Library
+
+In app/cmakeArguments you can modify the pkgconfig prefix (default: my computer) for the different architecture. See also app/CMakeLists.txt for more details.
