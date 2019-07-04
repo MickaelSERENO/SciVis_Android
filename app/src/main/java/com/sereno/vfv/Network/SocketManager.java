@@ -64,6 +64,7 @@ public class SocketManager
     public static final short SCALE_DATASET           = 12;
     public static final short VISIBILITY_DATASET      = 13;
     public static final short SEND_START_ANNOTATION   = 14;
+    public static final short SEND_NEXT_TRIAL         = 17;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -567,6 +568,16 @@ public class SocketManager
         buf.putInt(ids.subDatasetID);
         buf.putInt(pointingID);
         buf.put((byte)(inPublic == true ? 1 : 0));
+
+        return buf.array();
+    }
+
+    public static byte[] createNextTrialEvent()
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SEND_NEXT_TRIAL);
 
         return buf.array();
     }

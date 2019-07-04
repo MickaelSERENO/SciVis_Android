@@ -35,6 +35,7 @@
 
 namespace sereno
 {
+    /** Represent the type of changement that is attached to a subdataset*/
     struct SubDatasetChangement
     {
         SubDatasetChangement(bool col = false, bool rot = false, bool sca = false, bool pos = false)
@@ -111,6 +112,10 @@ namespace sereno
              * \param sd the subdataset being updated
              * \param sdChangement the changement metadata*/
             void addSubDataChangement(const SubDataset* sd, const SubDatasetChangement& sdChangement);
+
+            /* \brief Remove a SubDataset from the visualization
+             * \param sd the subdataset to remove. This function will fetch all scivis related to this subdataset*/
+            void removeSubDataset(SubDataset* sd);
 
             /* \brief Remove the sci vis data
              * \param sciVis the sciVis data to remove*/

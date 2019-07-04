@@ -1,6 +1,8 @@
 package com.sereno.vfv;
 
+import android.app.AlertDialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -141,7 +143,8 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onDialogNegativeClick(DialogFragment dialogFrag, View view)
-                    {}
+                    {
+                    }
                 });
                 dialogFragment.show(getFragmentManager(), "dialog");
                 return true;
@@ -149,7 +152,7 @@ public class MainActivity extends AppCompatActivity
 
             case R.id.nextStep_item:
             {
-
+                openQuitTrainingDialog();
             }
         }
         return super.onOptionsItemSelected(item);
@@ -496,7 +499,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
-                AnnotationData data = new AnnotationData(640, 640);
+                AnnotationData data = new AnnotationData(320, 160);
                 ApplicationModel.AnnotationMetaData metaData = new ApplicationModel.AnnotationMetaData(sd, -1);
                 m_model.addAnnotation(data, metaData);
 
@@ -593,6 +596,9 @@ public class MainActivity extends AppCompatActivity
                 new Runnable() {
                     @Override
                     public void run() {
+                        m_model.setBindingInfo(null);
+                        m_model.setHeadsetsStatus(null);
+                        
                         //Clean every
                         while(m_model.getVTKDatasets().size() > 0)
                             m_model.removeDataset(m_model.getVTKDatasets().get(0));
@@ -727,6 +733,28 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view){openNewDataDialog();}
         });
+    }
+
+    /** Open an alert dialog to confirm to quit the training stage*/
+    private void openQuitTrainingDialog()
+    {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        m_socket.push(SocketManager.createNextTrialEvent());
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Are you sure you want to quit the training?").setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).show();
     }
 
     /** \brief Dialog about opening a new dataset */

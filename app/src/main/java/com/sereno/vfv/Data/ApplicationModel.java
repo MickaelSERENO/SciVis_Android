@@ -229,6 +229,31 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         m_metaDatas.remove(m_metaDatas.get(sd).getPrivateState());
         m_metaDatas.remove(sd);
         sd.getParent().removeSubDataset(sd);
+
+        //Look for a new current subdataset
+
+        //Search among the vtks' one
+        for(Dataset d : getVTKDatasets())
+        {
+            if (d.getSubDatasets().size() > 0)
+            {
+                setCurrentSubDataset(d.getSubDatasets().get(0));
+                break;
+            }
+        }
+
+        //Search among the binaries' one
+        if(m_currentSubDataset == null)
+        {
+            for(Dataset d : getBinaryDatasets())
+            {
+                if (d.getSubDatasets().size() > 0)
+                {
+                    setCurrentSubDataset(d.getSubDatasets().get(0));
+                    break;
+                }
+            }
+        }
     }
 
     /**Remove a given dataset from the model

@@ -71,6 +71,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         View v = inflater.inflate(R.layout.datasets_fragment, container, false);
         setUpMainLayout(v);
+
+        m_ctx = getContext();
+        if(m_model != null && !m_modelBound)
+            setUpModel(m_model);
+
         return v;
     }
 
@@ -83,27 +88,35 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_model = model;
         if(m_ctx != null)
         {
-            m_modelBound = true;
-            m_model.addListener(this);
             onUpdateBindingInformation(m_model, m_model.getBindingInfo());
             for (BinaryDataset d : m_model.getBinaryDatasets())
                 onAddBinaryDataset(m_model, d);
             for (VTKDataset d : m_model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
+            onChangeCurrentSubDataset(m_model, m_model.getCurrentSubDataset());
 
             if (m_surfaceView != null)
+            {
+                m_surfaceView.onUpdateBindingInformation(m_model, m_model.getBindingInfo());
+                m_surfaceView.onUpdateHeadsetsStatus(m_model, m_model.getHeadsetsStatus());
+                for (BinaryDataset d : m_model.getBinaryDatasets())
+                    m_surfaceView.onAddBinaryDataset(m_model, d);
+                for (VTKDataset d : m_model.getVTKDatasets())
+                    m_surfaceView.onAddVTKDataset(m_model, d);
+                m_surfaceView.onChangeCurrentSubDataset(m_model, m_model.getCurrentSubDataset());
                 model.addListener(m_surfaceView);
+
+            }
+
+            m_modelBound = true;
+            m_model.addListener(this);
         }
     }
 
     @Override
     public void onAttach(Context context)
     {
-        m_ctx = context;
         super.onAttach(context);
-
-        if(m_model != null && !m_modelBound)
-            setUpModel(m_model);
     }
 
     /** @brief Set the visibility of this fragment. Useful for optimization (do not draw what is not on screen)
@@ -160,9 +173,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage msg)
     {
-        if(msg == null)
-            return;
-        if(msg.getHeadsetID() != -1)
+        if(msg != null && msg.getHeadsetID() != -1)
         {
             final int color = msg.getHeadsetColor();
             m_headsetColor.setImageBitmap(null);
@@ -192,9 +203,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.mainView);
         m_previewLayout = (TreeView)v.findViewById(R.id.previewLayout);
         m_headsetColor  = (ImageView)v.findViewById(R.id.headsetColor);
-
-        if(m_model != null)
-            m_model.addListener(m_surfaceView);
 
         //Surface view listeners
         m_surfaceView.setOnTouchListener(new View.OnTouchListener() {

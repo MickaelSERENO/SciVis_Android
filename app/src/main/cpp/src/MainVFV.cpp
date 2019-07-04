@@ -385,7 +385,6 @@ namespace sereno
                         if(it.second.updateColor)
                         {
                             sciVis->setColorRange(sd->getMinClamping(), sd->getMaxClamping());
-//                            sciVis->setTFTexture(m_sciVisTFs[it.first->getColorMode() + m_sciVisDefaultTF[sciVis]]);
                         }
                         if(it.second.updateRotation)
                             sciVis->setRotate(sd->getGlobalRotate());
@@ -466,7 +465,6 @@ namespace sereno
                         m_snapshotCnt = 0;
                     }
                 }
-
                 m_mainData->unlock();
                 m_surfaceData->renderer.render();
             }
@@ -654,6 +652,8 @@ namespace sereno
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
                         m_snapshots.insert(snap);
                         m_sciVis.back()->getModel()->setSnapshot(snap.second);
+                        addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
+
 
                         if(m_currentVis == NULL)
                             m_currentVis = m_sciVis[0];
@@ -688,6 +688,8 @@ namespace sereno
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
                         m_snapshots.insert(snap);
                         m_sciVis.back()->getModel()->setSnapshot(snap.second);
+
+                        addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
                     }
                     if(m_currentVis == NULL)
                         m_currentVis = m_sciVis[0];
@@ -695,23 +697,28 @@ namespace sereno
 
                 case VFV_REMOVE_DATASET:
                 {
-                    //Check if the current sci vis is being deleted
-                    if(m_currentVis && m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
-                        m_currentVis = NULL;
+                    for(uint32_t i = 0; i < event->dataset.dataset.get()->getNbSubDatasets(); i++)
+                        removeSubDataset(event->dataset.dataset.get()->getSubDataset(i));
 
-                    //Remove the bound scientific visualizations
-                    for(uint32_t i = 0; i < m_sciVis.size(); i++)
-                        if(m_sciVis[i]->getModel()->getParent() == event->dataset.dataset.get())
-                            removeSciVis(m_sciVis[i]);
-
-                    if(m_sciVis.size() > 0)
-                        m_currentVis = m_sciVis[0];
+                    //Check if there is "empty" VTKStructuredGridPointSciVis Object to delete
+                    for(uint32_t i = 0; i < m_vtkStructuredGridPoints.size(); i++)
+                    {
+                        if(m_vtkStructuredGridPoints[i]->nbGameObjects == 0)
+                        {
+                            delete m_vtkStructuredGridPoints[i];
+                            auto it = m_vtkStructuredGridPoints.begin();
+                            std::advance(it, i);
+                            m_vtkStructuredGridPoints.erase(it);
+                            i--;
+                        }
+                    }
 
                     break;
                 }
 
                 case VFV_REMOVE_SUBDATASET:
                 {
+                    removeSubDataset(event->sdEvent.sd);
                     break;
                 }
 
@@ -776,6 +783,14 @@ namespace sereno
                 m_modelChanged[m_currentVis->getModel()]._data[i] |= sdChangement._data[i];
     }
 
+    void MainVFV::removeSubDataset(SubDataset* sd)
+    {
+        //Remove the bound scientific visualizations
+        for(uint32_t i = 0; i < m_sciVis.size(); i++)
+            if(m_sciVis[i]->getModel() == sd)
+                removeSciVis(m_sciVis[i]);
+    }
+
     void MainVFV::removeSciVis(SciVis* sciVis)
     {
         //Check if the current sci vis is being deleted
@@ -791,18 +806,22 @@ namespace sereno
             }
 
         //Check VTK data
+        //We do not "delete" the game Objects because it will be at the end of the function
         for(auto it : m_vtkStructuredGridPoints)
         {
             for(int i = 0; i < it->nbGameObjects; i++)
                 if(it->gameObjects[i] == sciVis)
                 {
-                    delete it->gameObjects[i];
+                    for(int j = i; j < it->nbGameObjects-1; j++)
+                        it->gameObjects[j] = it->gameObjects[j+1];
+
                     it->nbGameObjects--;
                     goto endForVTK;
                 }
         }
 endForVTK:
 
+        //Remove the link of this scivis object
         for(std::vector<SciVis*>::iterator it = m_sciVis.begin(); it != m_sciVis.end(); it++)
             if((*it) == sciVis)
                 {
@@ -810,6 +829,11 @@ endForVTK:
                     break;
                 }
 
+        //Delete the scivis object
         delete sciVis;
+
+        //Re assign a new current visualization
+        if(m_sciVis.size() > 0)
+            m_currentVis = m_sciVis[0];
     }
 }

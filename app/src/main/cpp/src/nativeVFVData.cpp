@@ -82,11 +82,14 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnScaleChange(JN
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsStatus(JNIEnv* env, jobject instance, jlong ptr, jobjectArray jheadsetsStatus)
 {
-    if(jheadsetsStatus == NULL)
-        return;
-
-    LOG_INFO("HEADSET entry");
     VFVData* data = (VFVData*)ptr;
+
+    if(jheadsetsStatus == NULL)
+    {
+        std::vector<HeadsetStatus>* hs = new std::vector<HeadsetStatus>();
+        data->updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>>(hs));
+        return;
+    }
 
     jsize nbHS = env->GetArrayLength(jheadsetsStatus);
     std::vector<HeadsetStatus>* hs = new std::vector<HeadsetStatus>(nbHS);
@@ -132,7 +135,9 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsSt
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInformation(JNIEnv* env, jobject instance, jlong ptr, jobject info)
 {
-    int headsetID = env->CallIntMethod(info, jHeadsetBindingInfoMessage_getHeadsetID);
+    int headsetID = -1;
+    if(info != NULL)
+        headsetID = env->CallIntMethod(info, jHeadsetBindingInfoMessage_getHeadsetID);
 
     VFVData* data = (VFVData*)ptr;
     data->setHeadsetID(headsetID);
