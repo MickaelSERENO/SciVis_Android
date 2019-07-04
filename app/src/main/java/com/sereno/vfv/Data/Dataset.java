@@ -26,11 +26,11 @@ public abstract class Dataset
         m_name = name;
 
         for(int i = 0; i < nativeGetNbSubDatasets(m_ptr); i++)
-            m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i)));
+            m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i), this));
     }
 
     @Override
-    protected void finalize() throws Throwable
+    public void finalize() throws Throwable
     {
         m_ptr = 0;
         nativeDelPtr(m_ptr);
@@ -68,6 +68,17 @@ public abstract class Dataset
     /** Set the ID of the Dataset. Must coincide with the Server ID*/
     public void setID(int id) {m_id = id;}
 
+    /** Remove the subdataset 'sd' from the known subdataset
+     * @param sd the subdataset to remove*/
+    public void removeSubDataset(SubDataset sd)
+    {
+        if(!m_subDatasets.contains(sd))
+            return;
+        sd.inRemoving();
+        m_subDatasets.remove(sd);
+        nativeRemoveSubDataset(m_ptr, sd.getNativePtr());
+    }
+
     /** Delete a native pointer
      * @param ptr the native pointer to destroy*/
     private static native void nativeDelPtr(long ptr);
@@ -82,4 +93,9 @@ public abstract class Dataset
      * @param i the SubDataset number #i
      * @return the SubDataset native pointer. 0 if i is invalid*/
     private native long nativeGetSubDataset(long ptr, int i);
+
+    /** Native code removing the subdataset 'sdPtr' from the C++ memory
+     * @param ptr the dataset native pointer
+     * @param sdPtr the subdataset native pointer*/
+    private native void nativeRemoveSubDataset(long ptr, long sdPtr);
 }

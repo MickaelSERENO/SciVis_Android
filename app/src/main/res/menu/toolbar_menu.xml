@@ -12,6 +12,9 @@
             <item android:id="@+id/connect_item"
                 app:showAsAction="ifRoom"
                 android:title="@string/connect"/>
+            <item android:id="@+id/nextStep_item"
+                app:showAsAction="ifRoom"
+                android:title="Next Step"/>
         </menu>
     </item>
 </menu>

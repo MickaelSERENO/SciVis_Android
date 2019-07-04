@@ -23,7 +23,7 @@ public class BinaryDataset extends Dataset
     }
 
     @Override
-    protected void finalize() throws Throwable
+    public void finalize() throws Throwable
     {
         super.finalize();
     }

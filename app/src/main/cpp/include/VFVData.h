@@ -23,13 +23,14 @@ namespace sereno
     {
         VFV_ADD_BINARY_DATA,     /*!< Binary Data added*/
         VFV_ADD_VTK_DATA,        /*!< VTK Data added*/
-        VFV_DEL_DATA,            /*!< Data removed*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
         VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
         VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
         VFV_COLOR_RANGE_CHANGED, /*!< The color range has changed for the current dataset*/
         VFV_SET_VISIBILITY_DATA, /*!< The visibility data has changed for the current dataset*/
+        VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
+        VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -86,6 +87,9 @@ namespace sereno
                 case VFV_ADD_VTK_DATA:
                     new(&vtkData) VTKDataEvent;
                     break;
+                case VFV_REMOVE_DATASET:
+                    new(&dataset) DatasetEvent;
+                    break;
                 default:
                     new(&sdEvent) SubDatasetEvent;
                     break;
@@ -102,6 +106,9 @@ namespace sereno
                 case VFV_ADD_VTK_DATA:
                     vtkData.~VTKDataEvent();
                     break;
+                case VFV_REMOVE_DATASET:
+                    dataset.~DatasetEvent();
+                    break;
                 default:
                     sdEvent.~SubDatasetEvent();
                     break;
@@ -116,20 +123,6 @@ namespace sereno
             VFVEventType type; /*!< The type of the event*/
     };
 
-    /* \brief Callback interface for communication between JNI and CPP applications 
-     * Note that the most part of the communication will not be in the OpenGL thread*/
-    class IVFVCallback
-    {
-        public:
-            /* \brief Function called when a new data has been added
-             * \param dataPath the dataPath asked */
-            virtual void onAddData   (const std::string& dataPath) = 0;
-
-            /* \brief Functon called when a data is asked of being removed
-             * \param dataPath the dataPath to remove */
-            virtual void onRemoveData(const std::string& dataPath) = 0;
-    };
-
     /* \brief Class containing the VFV data application to send to the main function */
     class VFVData
     {
@@ -139,14 +132,6 @@ namespace sereno
             VFVData(jobject instance);
 
             ~VFVData();
-
-            /* \brief Set the callback interface.
-             * The aim is that the JNI application can set arguments and the cpp application can receive through callbacks
-             * what has changed. Note that the most part of the communication will not be in the OpenGL thread
-             *
-             * \param clbk the new callback to discuss with
-             * \param data data to send to this callback*/
-            void setCallback(IVFVCallback* clkb);
 
             /* \brief Poll the next event. If the event is not null, it has to be freed
              * \return the next event or NULL if no event exists */
@@ -164,9 +149,13 @@ namespace sereno
              * \param dataset the VTK dataset to add*/
             void addVTKData(std::shared_ptr<VTKDataset> dataset);
 
-            /* \brief Remove the dataset "dataID"
-             * \param dataID the id of the dataset to remove*/
-            void removeData(int dataID);
+            /* \brief Remove the dataset "subdataset"
+             * \param sd the subdataset to remove*/
+            void onRemoveSubDataset(SubDataset* sd);
+
+            /* \brief Remove the dataset "dataset"
+             * \param dataset the ataset to remove*/
+            void onRemoveDataset(std::shared_ptr<Dataset> dataset);
 
             /* \brief Function called when the clipping range has changed
              * \param min the minimum range color
@@ -269,9 +258,18 @@ namespace sereno
              * \param type the event type */
             void addSubDatasetEvent(SubDataset* sd, VFVEventType type);
 
+            /* \brief  Add a dataset event without parameter (update only)
+             * \param dataset the dataset
+             * \param type the event type */
+            void addDatasetEvent(std::shared_ptr<Dataset> dataset, VFVEventType type);
+
             /* \brief Add an event 
              * \param ev the event to add */
             void addEvent(VFVEvent* ev);
+
+            /* \brief Remove a SubDataset from memory
+             * \param sd the subdataset to remove*/
+            void removeSubDataset(SubDataset* sd);
 
             std::shared_ptr<std::vector<HeadsetStatus>> m_headsetsStatus; /*!< The headsets status*/
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
@@ -281,9 +279,9 @@ namespace sereno
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
 
             jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
-            IVFVCallback*            m_clbk    = NULL; /*!< The callback interface */
             std::deque<VFVEvent*>    m_events;         /*!< The events from Java*/
             pthread_mutex_t          m_mutex;          /*!< The mutex for handling communication between Java and Cpp*/
+            pthread_mutex_t          m_eventMutex;     /*!< The event mutex*/
     };
 }
 

@@ -116,6 +116,7 @@ namespace sereno
         VTKStructuredGridPointVBO*         vbo;         /*!< The VBO to use*/
         std::shared_ptr<VTKDataset>        dataset;     /*!< The dataset bind*/
         VTKStructuredGridPointGameObject** gameObjects; /*!< The gameObjects created. No parent assigned yet*/
+        uint32_t nbGameObjects; /*!< The number of created gameObjects*/
     };
 }
 

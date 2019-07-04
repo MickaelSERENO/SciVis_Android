@@ -11,7 +11,8 @@ namespace sereno
     VFVData::VFVData(jobject javaObj)
     {
 
-        m_mutex = PTHREAD_MUTEX_INITIALIZER;
+        m_mutex      = PTHREAD_MUTEX_INITIALIZER;
+        m_eventMutex = PTHREAD_MUTEX_INITIALIZER;
         m_javaObj = javaObj;
     }
 
@@ -30,11 +31,6 @@ namespace sereno
 
         for(auto& it : m_sdMetaDatas)
             delete it.second;
-    }
-
-    void VFVData::setCallback(IVFVCallback* clbk)
-    {
-        m_clbk = clbk;
     }
 
     void VFVData::updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status)
@@ -68,11 +64,6 @@ namespace sereno
         }
         unlock();
         addEvent(ev);
-    }
-
-    void VFVData::removeData(int dataID)
-    {
-        //TODO
     }
 
     void VFVData::setCurrentSubDataset(SubDataset* sd)
@@ -118,27 +109,97 @@ namespace sereno
         addEvent(ev);
     }
 
+    void VFVData::addDatasetEvent(std::shared_ptr<Dataset> dataset, VFVEventType type)
+    {
+        VFVEvent* ev = NULL;
+        ev = new VFVEvent(type);
+        ev->dataset.dataset = dataset;
+
+        addEvent(ev);
+    }
+
+    void VFVData::onRemoveSubDataset(SubDataset* sd)
+    {
+        addSubDatasetEvent(sd, VFV_REMOVE_SUBDATASET);
+        lock();
+            removeSubDataset(sd);
+        unlock();
+    }
+
+    void VFVData::removeSubDataset(SubDataset* sd)
+    {
+        auto it = m_jSubDatasetMap.find(sd);
+        if(it != m_jSubDatasetMap.end())
+            m_jSubDatasetMap.erase(it);
+
+        auto it2 = m_sdMetaDatas.find(sd);
+        if(it2 != m_sdMetaDatas.end())
+        {
+            //One meta data can share multiple SubDataset. Check if this SubDataset was the last one of an already registered meta data
+            SubDatasetMetaData* metaData = it2->second;
+            delete it2->first;
+            m_sdMetaDatas.erase(it2);
+
+            bool metaDataFound = false;
+            for(auto it3 : m_sdMetaDatas)
+            {
+                if(it3.second == metaData)
+                {
+                    metaDataFound = true;
+                    break;
+                }
+            }
+
+            if(!metaDataFound)
+                delete metaData;
+        }
+    }
+
+
+    void VFVData::onRemoveDataset(std::shared_ptr<Dataset> dataset)
+    {
+        addDatasetEvent(dataset, VFV_REMOVE_DATASET);
+        lock();
+            for(uint32_t i = 0; i < dataset->getNbSubDatasets(); i++)
+            {
+                removeSubDataset(dataset->getSubDataset(i));
+            }
+
+            if(m_datas.size() > 0)
+            {
+                std::vector<std::shared_ptr<Dataset>>::iterator it = m_datas.begin();
+                while(it != m_datas.end())
+                {
+                    if((*it) == dataset)
+                        it = m_datas.erase(it);
+                    else
+                        ++it;
+                }
+            }
+        unlock();
+    }
+
     VFVEvent* VFVData::pollEvent()
     {
         VFVEvent* ev = NULL;
-        lock();
         {
-            if(m_events.size() > 0)
-            {
-                ev = m_events.front();
-                m_events.pop_front();
-            }
+            pthread_mutex_lock(&m_eventMutex);
+                if(m_events.size() > 0)
+                {
+                    ev = m_events.front();
+                    m_events.pop_front();
+                }
+            pthread_mutex_unlock(&m_eventMutex);
         }
-        unlock();
 
         return ev;
     }
 
     void VFVData::addEvent(VFVEvent* ev)
     {
-        lock();
+        pthread_mutex_lock(&m_eventMutex);
             m_events.push_back(ev);
-        unlock();
+        pthread_mutex_unlock(&m_eventMutex);
     }
 
     void VFVData::addSubDatasetMetaData(const SubDatasetMetaData& metaData, jobject publicJObjectSD, jobject privateJObjectSD)
@@ -149,7 +210,6 @@ namespace sereno
             m_sdMetaDatas.insert(std::pair<const SubDataset*, SubDatasetMetaData*>(m->getPrivateSubDataset(), m));
             m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(m->getPublicSubDataset(), publicJObjectSD));
             m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(m->getPrivateSubDataset(), privateJObjectSD));
-
         unlock();
     }
 

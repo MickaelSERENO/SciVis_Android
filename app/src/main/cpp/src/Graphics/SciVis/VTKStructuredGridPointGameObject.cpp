@@ -150,6 +150,7 @@ namespace sereno
     VTKStructuredGridPointGameObject::~VTKStructuredGridPointGameObject()
     {
         glDeleteVertexArrays(1, &m_vaoID);
+        glDeleteTextures(1, &m_texture);
         free(m_vals);
         free(m_grads);
     }
@@ -232,15 +233,15 @@ namespace sereno
         /*----------------------------------------------------------------------------*/
         /*--------------------------Compute gradient values---------------------------*/
         /*----------------------------------------------------------------------------*/
-        float maxGrad;
+        float maxGrad=0;
         #pragma omp parallel
         {
             //Find maximum gradient
             #pragma omp for reduction(max:maxGrad)
             {
-                for(uint32_t k = 1; k < ptsDesc.size[2]-1; k++)
-                    for(uint32_t j = 1; j < ptsDesc.size[1]-1; j++)
-                        for(uint32_t i = 1; i < ptsDesc.size[0]-1; i++)
+                for(int32_t k = 1; k < ptsDesc.size[2]-1; k++)
+                    for(int32_t j = 1; j < ptsDesc.size[1]-1; j++)
+                        for(int32_t i = 1; i < ptsDesc.size[0]-1; i++)
                         {
                             uint32_t ind = i + j*ptsDesc.size[0] + k*ptsDesc.size[0]*ptsDesc.size[1];
 
@@ -412,13 +413,14 @@ namespace sereno
         gameObjects = (VTKStructuredGridPointGameObject**)malloc(sizeof(VTKStructuredGridPointGameObject*)*d->getPtFieldValues().size());
         for(uint32_t i = 0; i < d->getPtFieldValues().size(); i++)
             gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i), tfTexture, tfTextureDim);
+        nbGameObjects = d->getPtFieldValues().size();
     }
 
     VTKStructuredGridPointSciVis::~VTKStructuredGridPointSciVis()
     {
-        for(uint32_t i = 0; i < dataset->getPtFieldValues().size(); i++)
+        for(uint32_t i = 0; i < nbGameObjects; i++)
             delete gameObjects[i];
-        delete gameObjects;
+        free(gameObjects);
         delete vbo;
     }
 }

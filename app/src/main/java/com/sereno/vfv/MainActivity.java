@@ -35,7 +35,6 @@ import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
 import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
-import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.AnchorAnnotationMessage;
 import com.sereno.vfv.Network.EmptyMessage;
@@ -91,7 +90,6 @@ public class MainActivity extends AppCompatActivity
     private Button           m_deleteDataBtn;     /*!< The delete data button*/
     private RangeColorView   m_rangeColorView;    /*!< The range color view*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
-    private ArrayDeque<Dataset> m_pendingDataset = new ArrayDeque<>(); /*!< The Dataset pending to be updated by the Server*/
     private VFVViewPager     m_viewPager;
     private DatasetsFragment m_dataFragment = null;
 
@@ -114,6 +112,7 @@ public class MainActivity extends AppCompatActivity
 
         m_socket = new SocketManager(m_model.getConfiguration().getServerIP(), m_model.getConfiguration().getServerPort());
         m_socket.getMessageBuffer().addListener(this);
+        m_socket.addListener(this);
     }
 
     /** @brief Function called when the options items from the Toolbar are selected
@@ -137,7 +136,7 @@ public class MainActivity extends AppCompatActivity
                     public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
                     {
                         EditText txt = (EditText)view.findViewById(R.id.hololensIP);
-                        m_socket.setHololensIP(txt.getText().toString());
+                        m_socket.setIdentInformation(txt.getText().toString(), m_model.getConfiguration().getTabletID());
                     }
 
                     @Override
@@ -146,6 +145,11 @@ public class MainActivity extends AppCompatActivity
                 });
                 dialogFragment.show(getFragmentManager(), "dialog");
                 return true;
+            }
+
+            case R.id.nextStep_item:
+            {
+
             }
         }
         return super.onOptionsItemSelected(item);
@@ -213,8 +217,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
-        if(d.getID() < 0)
-            m_socket.push(SocketManager.createAddVTKDatasetEvent(d));
         onAddDataset(d);
     }
 
@@ -290,6 +292,11 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
+    public void onRemove(SubDataset dataset) {
+
+    }
+
+    @Override
     public void onSetVisibility(SubDatasetMetaData dataset, int visibility)
     {
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset.getPublicState());
@@ -303,22 +310,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onEmptyMessage(EmptyMessage msg)
     {}
-
-    @Override
-    public void onAcknowledgeAddDatasetMessage(final AcknowledgeAddDatasetMessage msg)
-    {
-        switch(msg.getType())
-        {
-            case MessageBuffer.GET_ADD_DATASET_ACKNOWLEDGE:
-            {
-                Dataset d = m_pendingDataset.poll();
-                d.setID(msg.getID());
-                break;
-            }
-            default:
-                break;
-        }
-    }
 
     @Override
     public void onAddVTKDatasetMessage(AddVTKDatasetMessage msg)
@@ -532,6 +523,12 @@ public class MainActivity extends AppCompatActivity
             resetPrivateState(d);
     }
 
+    @Override
+    public void onRemoveDataset(ApplicationModel model, Dataset dataset)
+    {
+
+    }
+
     /** Reset the private state of a given dataset
      * @param d The dataset to reset*/
     private void resetPrivateState(Dataset d)
@@ -590,10 +587,20 @@ public class MainActivity extends AppCompatActivity
 
 
     @Override
-    public void onReconnection(SocketManager socket)
+    public void onDisconnection(SocketManager socket)
     {
-        socket.push(SocketManager.createCurrentActionEvent(m_model.getCurrentAction()));
-        socket.push(SocketManager.createCurrentSubDatasetEvent(getDatasetIDBinding(m_model.getCurrentSubDataset())));
+        runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        //Clean every
+                        while(m_model.getVTKDatasets().size() > 0)
+                            m_model.removeDataset(m_model.getVTKDatasets().get(0));
+                        while(m_model.getBinaryDatasets().size() > 0)
+                            m_model.removeDataset(m_model.getBinaryDatasets().get(0));
+                    }
+                }
+        );
     }
 
     /** Set up the main layout*/
@@ -769,16 +776,13 @@ public class MainActivity extends AppCompatActivity
                                 VTKFieldValue[] cellValues = new VTKFieldValue[cellValuesList.size()];
                                 cellValues = cellValuesList.toArray(cellValues);
 
-
-
                                 final VTKDataset dataset = new VTKDataset(dialog.getVTKParser(), ptValues, cellValues, df.getFile().getName());
-                                //Add into the model
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        m_model.addVTKDataset(dataset);
-                                    }
-                                });
+                                m_socket.push(SocketManager.createAddVTKDatasetEvent(dataset));
+                                try
+                                {
+                                    dataset.finalize();
+                                }
+                                catch(Throwable e) {}
                             }
                         }
 
@@ -801,7 +805,6 @@ public class MainActivity extends AppCompatActivity
      * @param d the Dataset added*/
     private void onAddDataset(final Dataset d)
     {
-        m_pendingDataset.push(d);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

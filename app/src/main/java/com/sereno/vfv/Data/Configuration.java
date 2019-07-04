@@ -13,10 +13,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+/** This class permits to read the configuration file to define some parameters*/
 public class Configuration
 {
+    /** The server IP address*/
     private String m_serverIP;
+
+    /** The server port address*/
     private int    m_serverPort;
+
+    /** The tablet ID. This may permits to define roles per tablet */
+    private int    m_tabletID = 0;
 
     public Configuration()
     {
@@ -45,6 +52,7 @@ public class Configuration
                 JSONObject ntwk = reader.getJSONObject("network");
                 m_serverIP = ntwk.getString("ip");
                 m_serverPort = ntwk.getInt("port");
+                m_tabletID = ntwk.getInt("tabletID");
             }
             catch (final JSONException e)
             {
@@ -65,5 +73,10 @@ public class Configuration
     public int getServerPort()
     {
         return m_serverPort;
+    }
+
+    public int getTabletID()
+    {
+        return m_tabletID;
     }
 }

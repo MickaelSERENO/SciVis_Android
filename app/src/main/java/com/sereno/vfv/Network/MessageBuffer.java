@@ -55,10 +55,6 @@ public class MessageBuffer
          * @param msg the message parsed*/
         void onEmptyMessage(EmptyMessage msg);
 
-        /** Called when the message acknowledge add dataset has been successfully parsed
-         * @param msg the message parsed*/
-        void onAcknowledgeAddDatasetMessage(AcknowledgeAddDatasetMessage msg);
-
         /** Called when the message "ADD VTK DATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onAddVTKDatasetMessage(AddVTKDatasetMessage msg);
@@ -101,9 +97,6 @@ public class MessageBuffer
 
     /** Add a new VTK Dataset*/
     public static final int GET_ADD_VTK_DATASET         = 0;
-
-    /** Add dataset acknowledge received*/
-    public static final int GET_ADD_DATASET_ACKNOWLEDGE = 1;
 
     /** Rotate dataset received*/
     public static final int GET_ROTATE_DATASET          = 2;
@@ -226,10 +219,6 @@ public class MessageBuffer
             //When the message is finished, send it
             switch(m_curMsg.getType())
             {
-                case GET_ADD_DATASET_ACKNOWLEDGE:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onAcknowledgeAddDatasetMessage((AcknowledgeAddDatasetMessage) m_curMsg);
-                    break;
                 case GET_ADD_VTK_DATASET:
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onAddVTKDatasetMessage((AddVTKDatasetMessage) m_curMsg);
@@ -293,9 +282,6 @@ public class MessageBuffer
     {
         switch(type)
         {
-            case GET_ADD_DATASET_ACKNOWLEDGE:
-                m_curMsg = new AcknowledgeAddDatasetMessage();
-                break;
             case GET_ADD_VTK_DATASET:
                 m_curMsg = new AddVTKDatasetMessage();
                 break;

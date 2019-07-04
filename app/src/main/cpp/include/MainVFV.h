@@ -72,7 +72,7 @@ namespace sereno
         };
     };
 
-    class MainVFV : public IVFVCallback
+    class MainVFV
     {
         public:
             /* \brief Initialize the Main Object for VFV application.
@@ -86,16 +86,6 @@ namespace sereno
 
             /* \brief Run the application */
             void run();
-
-            /* \brief Callback called before a data is being removed. 
-             * Pay attention that this function is asynchronous 
-             * \param dataPath the data path */
-            void onRemoveData(const std::string& dataPath);
-
-            /* \brief Callback called when a data has been added
-             * Pay attention that this function is asynchronous 
-             * \param dataPath the data path */
-            void onAddData(const std::string& dataPath);
         private:
             /** \brief  Place the widgets on the screen */
             void placeWidgets();
@@ -121,6 +111,10 @@ namespace sereno
              * \param sd the subdataset being updated
              * \param sdChangement the changement metadata*/
             void addSubDataChangement(const SubDataset* sd, const SubDatasetChangement& sdChangement);
+
+            /* \brief Remove the sci vis data
+             * \param sciVis the sciVis data to remove*/
+            void removeSciVis(SciVis* sciVis);
 
             GLSurfaceViewData* m_surfaceData; /*!< The GL Surface associated with this application */
             VFVData*           m_mainData;    /*!< The main data*/

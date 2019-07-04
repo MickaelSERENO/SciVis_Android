@@ -81,6 +81,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The trees of SubDataset*/
     private HashMap<SubDataset, Tree<View>> m_subDatasetTrees = new HashMap<>();
 
+    private HashMap<Dataset, Tree<View>> m_datasetTrees = new HashMap<>();
+
     /** The current Drawing mode*/
     private AnnotationData.AnnotationMode m_mode = AnnotationData.AnnotationMode.STROKE;
 
@@ -189,6 +191,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                     m_subDatasetTrees.put(sd, sdTitleTree);
                     titleTree.addChild(sdTitleTree, -1);
                 }
+                m_datasetTrees.put(d, titleTree);
                 t.addChild(titleTree, -1);
             }
         });
@@ -229,6 +232,27 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info) {}
+
+    @Override
+    public void onRemoveDataset(ApplicationModel model, Dataset dataset)
+    {
+        if(!m_datasetTrees.containsKey(dataset))
+            return;
+
+        //Remove every sub datasets
+        for(SubDataset sd : dataset.getSubDatasets())
+        {
+            if (!m_subDatasetTrees.containsKey(sd))
+                continue;
+
+            Tree<View> sdTree = m_subDatasetTrees.get(sd);
+            sdTree.setParent(null, 0);
+        }
+
+        //Remove the dataset entry
+        m_datasetTrees.get(dataset).setParent(null, 0);
+        m_datasetTrees.remove(dataset);
+    }
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -490,6 +514,23 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                     changeCurrentAnnotation(snapImg, annotation);
             }
         });
+    }
+
+    @Override
+    public void onRemove(SubDataset dataset)
+    {
+        if(!m_subDatasetTrees.containsKey(dataset))
+            return;
+
+        for(AnnotationData annot : dataset.getAnnotations())
+        {
+            if(annot == m_annotView.getModel())
+                m_annotView.setModel(null);
+            m_bitmaps.remove(annot);
+        }
+        Tree<View> sdTree = m_subDatasetTrees.get(dataset);
+        sdTree.setParent(null, 0);
+        m_subDatasetTrees.remove(dataset);
     }
 
     @Override

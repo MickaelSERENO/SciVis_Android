@@ -48,10 +48,17 @@ public class SubDataset
          * @param dataset the dataset receiving a new annotation
          * @param annotation the annotation added*/
         void onAddAnnotation(SubDataset dataset, AnnotationData annotation);
+
+        /** Method called when a SubDataset is being removed
+         * @param dataset the subdataset being removed*/
+        void onRemove(SubDataset dataset);
     }
 
     /** The native C++ handle*/
     protected long m_ptr;
+
+    /** The parent dataset*/
+    private Dataset m_parent;
 
     /** List of listeners bound to this SubDataset*/
     private List<ISubDatasetListener> m_listeners = new ArrayList<>();
@@ -64,14 +71,15 @@ public class SubDataset
 
     /** Constructor. Link the Java object with the C++ native SubDataset object
      * @param ptr the native C++ pointer*/
-    public SubDataset(long ptr)
+    public SubDataset(long ptr, Dataset parent)
     {
         m_ptr = ptr;
+        m_parent = parent;
     }
 
     public Object clone()
     {
-        return new SubDataset(nativeClone(m_ptr));
+        return new SubDataset(nativeClone(m_ptr), m_parent);
     }
 
     /** Add a new callback Listener
@@ -209,6 +217,10 @@ public class SubDataset
         return nativeGetName(m_ptr);
     }
 
+    /** Get the parent dataset
+     * @return the parent dataset*/
+    public Dataset getParent() {return m_parent;}
+
     /** Add a new annotation
      * @param annot the annotation to add*/
     public void addAnnotation(AnnotationData annot)
@@ -223,6 +235,14 @@ public class SubDataset
     public List<AnnotationData> getAnnotations()
     {
         return m_annotations;
+    }
+
+    /** unlink the SubDataset*/
+    public void inRemoving()
+    {
+        for(ISubDatasetListener l : m_listeners)
+            l.onRemove(this);
+        m_ptr = 0;
     }
 
     /** Free the internal data. Do that only on CLONED SubDataset*/

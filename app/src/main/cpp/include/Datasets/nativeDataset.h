@@ -25,6 +25,13 @@ extern "C"
      * \param i the indice of the subdataset prompted
      * \return the native pointer of the SubDataset. 0 if i is invalid*/
     JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jint i);
+
+    /* \brief  Remove a subdataset in a given dataset
+     * \param jenv the JNIEnvironment
+     * \param jobj the Java Object calling this function
+     * \param ptr the Dataset ptr 
+     * \param sdPtr the native subdataset pointer*/
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeRemoveSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jlong sdPtr);
 }
 
 #endif   /* ----- #ifndef NATIVEDATASET_INC  ----- */

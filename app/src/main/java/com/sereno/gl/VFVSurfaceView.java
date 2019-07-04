@@ -28,6 +28,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         void onChangeCurrentAction(int action);
     }
 
+    public static final int DATASET_TYPE_VTK    = 0;
+    public static final int DATASET_TYPE_BINARY = 1;
+
     /** The native C++ pointer*/
     private long m_ptr;
 
@@ -110,14 +113,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onChangeCurrentAction(ApplicationModel model, int action) {
+    public void onChangeCurrentAction(ApplicationModel model, int action)
+    {
 
     }
 
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {
-        nativeChangeCurrentSubDataset(m_ptr, sd.getNativePtr());
+        if(sd != null)
+            nativeChangeCurrentSubDataset(m_ptr, sd.getNativePtr());
+        else
+            nativeChangeCurrentSubDataset(m_ptr, 0);
     }
 
     @Override
@@ -130,6 +137,15 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
     {
         nativeUpdateBindingInformation(m_ptr, info);
+    }
+
+    @Override
+    public void onRemoveDataset(ApplicationModel model, Dataset dataset)
+    {
+        if(model.getBinaryDatasets().contains(dataset))
+            nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_BINARY);
+        else if(model.getVTKDatasets().contains(dataset))
+            nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_VTK);
     }
 
     private void onAddDataset(ApplicationModel model, Dataset d)
@@ -181,6 +197,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
+    public void onRemove(SubDataset dataset)
+    {
+        nativeRemoveSubDataset(m_ptr, dataset.getNativePtr());
+    }
+
+    @Override
     public void onSetVisibility(SubDatasetMetaData metaData, int v)
     {
         nativeSetSubDatasetVisibility(m_ptr, metaData.getPublicState().getNativePtr(), v);
@@ -220,10 +242,16 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param vtkDataPtr the vtk dataset C++ pointer object*/
     private native void nativeAddVTKDataset(VTKDataset vtk, long ptr, long vtkDataPtr);
 
-    /** Remove the dataset index i into the cpp application
+    /** Remove the dataset into the cpp application
      * @param ptr the ptr associated with the main argument
-     * @param idx the BinaryDataset index*/
-    private native void nativeRemoveData(long ptr, int idx);
+     * @param sdPtr the subdataset native pointer*/
+    private native void nativeRemoveSubDataset(long ptr, long sdPtr);
+
+    /** Remove the dataset into the cpp application
+     * @param ptr the ptr associated with the main argument
+     * @param datasetPtr the dataset native pointer
+     * @param datasetType  the type of the dataset (VTK, binary, etc.)*/
+    private native void nativeRemoveDataset(long ptr, long datasetPtr, int datasetType);
 
     /** Set the clamping range of the current dataset
      * @param ptr the ptr associated with the main Argument

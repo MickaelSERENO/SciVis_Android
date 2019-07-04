@@ -23,3 +23,9 @@ JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetSubDataset(JNI
     std::shared_ptr<Dataset>* d = (std::shared_ptr<Dataset>*)ptr;
     return (jlong)(*d)->getSubDataset(i);
 }
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeRemoveSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jlong sdPtr)
+{
+    std::shared_ptr<Dataset>* d = (std::shared_ptr<Dataset>*)ptr;
+    (*d)->removeSubDataset((SubDataset*)sdPtr);
+}

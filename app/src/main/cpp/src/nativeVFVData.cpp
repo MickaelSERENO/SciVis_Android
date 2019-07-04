@@ -35,10 +35,19 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddBinaryDataset
 }
 
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx)
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr)
 {
     VFVData* data = (VFVData*)ptr;
-    data->removeData(dataIdx);
+    data->onRemoveSubDataset((SubDataset*)sdPtr);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveDataset(JNIEnv* env, jobject instance, jlong ptr, jlong datasetPtr, jint datasetType)
+{
+    VFVData* data = (VFVData*)ptr;
+    if(datasetType == DATASET_TYPE_VTK)
+        data->onRemoveDataset(*((std::shared_ptr<VTKDataset>*)datasetPtr));
+    else if(datasetType == DATASET_TYPE_BINARY)
+        data->onRemoveDataset(*((std::shared_ptr<BinaryDataset>*)datasetPtr));
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jobject vtk, jlong ptr, jlong jData)

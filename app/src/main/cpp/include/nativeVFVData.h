@@ -5,6 +5,8 @@
 
 extern "C"
 {
+    enum {DATASET_TYPE_VTK = 0, DATASET_TYPE_BINARY = 1};
+
     /* \brief Function called from Java in order to create the main arguments list that the main function will receive
      * Note that this function is asynchronous between the main cpp thread and the java UI thread
      * \param env the JNI environment
@@ -47,8 +49,17 @@ extern "C"
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
-     * \param dataIdx the data index to remove*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveData(JNIEnv* env, jobject instance, jlong ptr, jint dataIdx);
+     * \param sdPtr the subdataset ptr*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr);
+
+    /* \brief Function called from Java in order to remove an existing data on the cpp memory application
+     * Note that this function is asynchronous between the main cpp thread and the java UI thread
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param datasetPtr the dataset ptr
+     * \param datasetType the type of the dataset (VTK, Binary, etc.)*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveDataset(JNIEnv* env, jobject instance, jlong ptr, jlong datasetPtr, jint datasetType);
 
     /* \brief Function called from Java in order to change the displayed clipping range
      * Note that this function is asynchronous between the main cpp thread and the java UI thread

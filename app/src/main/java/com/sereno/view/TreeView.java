@@ -234,6 +234,9 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
             final int width = child.getMeasuredWidth();
             final int height = child.getMeasuredHeight();
 
+            if(child.getParent() != this)
+                return topMargin;
+
             //Place for the expend logo
             if(leaf.getChildren().size() > 0)
             {
@@ -313,7 +316,7 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
 
     /** @brief register this object to the 'child' children listeners
      * @param child the child to look at*/
-    public void recursiveOnAddChildren(Tree<View> child)
+    private void recursiveOnAddChildren(Tree<View> child)
     {
         if(child.value != null)
             addView(child.value);
@@ -330,19 +333,24 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
         invalidate();
     }
 
-    @Override
-    public void onRemoveChild(Tree<View> parent, Tree<View> child)
+    /** @brief remove recursively a child and its children
+     * @param child the child to look at*/
+    private void recursiveOnRemoveChildren(Tree<View> child)
     {
         if(child.value != null)
             removeView(child.value);
         child.removeListener(this);
+
         for(Tree<View> v : child.getChildren())
-        {
-            if(v.value != null)
-                removeView(v.value);
-            v.removeListener(this);
-        }
+            recursiveOnRemoveChildren(v);
+    }
+
+    @Override
+    public void onRemoveChild(Tree<View> parent, Tree<View> child)
+    {
+        recursiveOnRemoveChildren(child);
         invalidate();
+
     }
 
     /** Set the extendability of a leaf

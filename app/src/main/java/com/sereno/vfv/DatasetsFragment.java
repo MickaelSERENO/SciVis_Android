@@ -21,7 +21,6 @@ import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
-import com.sereno.vfv.Network.AcknowledgeAddDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
@@ -48,7 +47,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private Context          m_ctx               = null;  /*!< The application context*/
     private boolean          m_modelBound        = false; /*!< Is the model bound?*/
 
-    private HashMap<SubDataset, ImageView> m_sdImages = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
+
+    private HashMap<SubDataset, Tree<View>> m_sdTrees      = new HashMap<>(); /*!< HashMap binding subdataset to their represented Tree*/
+    private HashMap<Dataset, Tree<View>>    m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
+
+    private HashMap<SubDataset, ImageView> m_sdImages  = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
 
     public DatasetsFragment()
     {
@@ -147,7 +150,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         for(ImageView v : m_sdImages.values())
             v.setBackgroundResource(0);
-        m_sdImages.get(sd).setBackgroundResource(R.drawable.round_rectangle_background);
+        if(sd != null)
+            m_sdImages.get(sd).setBackgroundResource(R.drawable.round_rectangle_background);
     }
 
     @Override
@@ -169,6 +173,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             m_headsetColor.setImageDrawable(getResources().getDrawable(R.drawable.no_snapshot));
             m_headsetColor.setBackgroundColor(Color.TRANSPARENT);
         }
+    }
+
+    @Override
+    public void onRemoveDataset(ApplicationModel model, Dataset dataset)
+    {
+        if(!m_datasetTrees.containsKey(dataset))
+            return;
+
+        m_datasetTrees.get(dataset).setParent(null, -1);
+        m_datasetTrees.remove(dataset);
     }
 
     /** Set up the main layout
@@ -221,6 +235,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         dataText.setText(d.getName());
         Tree<View> dataView = new Tree<View>(dataText);
         m_previewLayout.getModel().addChild(dataView, -1);
+        m_datasetTrees.put(d, dataView);
 
         for(int i = 0; i < d.getNbSubDataset(); i++)
         {
@@ -276,6 +291,17 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
                 @Override
                 public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+                @Override
+                public void onRemove(SubDataset dataset)
+                {
+                    if(!m_sdTrees.containsKey(dataset))
+                        return;
+                    m_sdTrees.get(dataset).setParent(null, 0);
+                    m_sdTrees.remove(dataset);
+                    if(m_sdImages.containsKey(dataset))
+                        m_sdImages.remove(dataset);
+                }
             };
 
             //Snapshot event
@@ -328,7 +354,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             if(m_model.getCurrentSubDataset() == null)
                 m_model.setCurrentSubDataset(sd);
-            dataView.addChild(new Tree<View>(layout), -1);
+
+            Tree<View> layoutTree = new Tree<View>(layout);
+            dataView.addChild(layoutTree, -1);
+            m_sdTrees.put(sd, layoutTree);
         }
     }
 }

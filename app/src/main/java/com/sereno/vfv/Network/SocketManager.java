@@ -29,9 +29,9 @@ public class SocketManager
 {
     public interface ISocketManagerListener
     {
-        /** Function called when the socket has successfully established a connection
+        /** Function called when the socket has been disconnected
          * @param socket The SocketManager calling this Method*/
-        void onReconnection(SocketManager socket);
+        void onDisconnection(SocketManager socket);
     }
 
     /** The connection timeout in milliseconds*/
@@ -88,7 +88,9 @@ public class SocketManager
     private boolean m_isClosed = false;
 
     /** The Hololens IP to bind*/
-    private String  m_hololensIP        = null;
+    private String  m_hololensIP = null;
+    /** The tablet ID (see config.json)*/
+    private int     m_tabletID = 0;
 
     /** Is the hololens bound to this tablet?*/
     private boolean m_isBoundToHololens = false;
@@ -139,10 +141,12 @@ public class SocketManager
             while(!m_isClosed)
             {
                 //Connect the socket
-                boolean isConnected = m_socket.isConnected();
+
+                boolean isConnected = false;
 
                 synchronized (this)
                 {
+                    isConnected = m_socket.isConnected();
                     //Check the connection
                     if(!isConnected)
                         isConnected = connect();
@@ -234,7 +238,7 @@ public class SocketManager
     }
 
     /** Close the socket*/
-    public void close()
+    public synchronized void close()
     {
         if(m_socket.isConnected())
             try{m_socket.close();} catch(Exception e){}
@@ -245,6 +249,9 @@ public class SocketManager
         try{m_socket.setReuseAddress(true);}catch(Exception e){}
         //Needed to resend a new bound
         m_isBoundToHololens = false;
+
+        for(ISocketManagerListener l : m_listeners)
+            l.onDisconnection(this);
     }
 
     /* ************************************************************ */
@@ -258,9 +265,10 @@ public class SocketManager
         return m_msgBuffer;
     }
 
-    /** Set the Hololens IP bound to the Tablet
-     * @param hololensIP the hololens IP bound to the tablet. Will be resent at each disconnection*/
-    public synchronized void setHololensIP(String hololensIP)
+    /** Set Ident information
+     * @param hololensIP the hololens IP bound to the tablet. Will be resent at each disconnection
+     * @param tabletID the tablet ID*/
+    public synchronized void setIdentInformation(String hololensIP, int tabletID)
     {
         m_hololensIP        = hololensIP;
         m_isBoundToHololens = false;
@@ -290,23 +298,13 @@ public class SocketManager
             //We may want to close everything just in case
             //Indeed, the stream output or input may have been the issue into the last attempt
             //In can also be an error from the main application
-            close();
+            if(m_input != null || m_output != null || m_socket.isConnected())
+                close();
 
-            synchronized(this)
-            {
-                m_socket.connect(new InetSocketAddress(m_serverIP, m_serverPort), CONNECT_TIMEOUT);
-                m_socket.setSoTimeout(READ_TIMEOUT);
-            }
+            m_socket.connect(new InetSocketAddress(m_serverIP, m_serverPort), CONNECT_TIMEOUT);
+            m_socket.setSoTimeout(READ_TIMEOUT);
             m_output = new DataOutputStream(m_socket.getOutputStream());
             m_input  = m_socket.getInputStream();
-
-            //Send an ident without hololens information
-            ByteBuffer buf = ByteBuffer.allocate(2+4);
-            buf.order(ByteOrder.BIG_ENDIAN);
-            buf.putShort(IDENT_TABLET);
-            buf.putInt(0);
-            m_output.write(buf.array());
-            m_output.flush();
         }
         catch(Exception e)
         {
@@ -316,21 +314,19 @@ public class SocketManager
             return false;
         }
 
-        for(ISocketManagerListener l : m_listeners)
-            l.onReconnection(this);
-
         return true;
     }
 
     /** Get the IDENT_TABLET byte array to send*/
     private byte[] getIdentData()
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+4+m_hololensIP.length());
+        ByteBuffer buf = ByteBuffer.allocate(2+4+m_hololensIP.length()+4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(IDENT_TABLET);
         buf.putInt(m_hololensIP.length());
         buf.put(m_hololensIP.getBytes(StandardCharsets.US_ASCII));
+        buf.putInt(m_tabletID);
 
         return buf.array();
     }

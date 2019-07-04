@@ -66,6 +66,11 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
          * @param model the app data
          * @param info the new binding information*/
         void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info);
+
+        /** Remove a Dataset
+         * @param model the application model
+         * @param dataset the Dataset to remove*/
+        void onRemoveDataset(ApplicationModel model, Dataset dataset);
     }
 
     /** Annotation meta data*/
@@ -214,6 +219,44 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         return m_rangeColorModel;
     }
 
+    public void removeSubDataset(SubDataset sd)
+    {
+        if(sd == m_currentSubDataset)
+            setCurrentSubDataset(null);
+        else if(sd == m_pendingSubDataset)
+            pendingAnnotation(null);
+
+        m_metaDatas.remove(m_metaDatas.get(sd).getPrivateState());
+        m_metaDatas.remove(sd);
+        sd.getParent().removeSubDataset(sd);
+    }
+
+    /**Remove a given dataset from the model
+     * @param dataset the dataset to remove*/
+    public void removeDataset(Dataset dataset)
+    {
+        //First remove the subdatasets
+        for(SubDataset sd : dataset.getSubDatasets())
+        {
+            removeSubDataset(sd);
+        }
+
+        //Then the dataset in itself
+        if(m_vtkDatasets.contains(dataset))
+        {
+            for(IDataCallback clbk : m_listeners)
+                clbk.onRemoveDataset(this, dataset);
+            m_vtkDatasets.remove(dataset);
+        }
+
+        else if(m_binaryDatasets.contains(dataset))
+        {
+            for(IDataCallback clbk : m_listeners)
+                clbk.onRemoveDataset(this, dataset);
+            m_binaryDatasets.remove(dataset);
+        }
+    }
+
     /**@brief Set the RangeColorData model being used to clamp subdatasets color displayed
      * @param model the RangeColorData model being used to clamp subdatasets color displayed*/
     public void setRangeColorModel(RangeColorData model)
@@ -223,7 +266,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         m_rangeColorModel = model;
         m_rangeColorModel.addOnRangeChangeListener(this);
     }
-
 
     @Override
     public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
@@ -271,9 +313,14 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     {
         if(m_currentSubDataset != null)
             m_currentSubDataset.removeListener(this);
+
         m_currentSubDataset = sd;
 
-        onClampingChange(sd, sd.getMinClampingColor(), sd.getMaxClampingColor());
+        if(sd != null)
+        {
+            sd.addListener(this);
+            onClampingChange(sd, sd.getMinClampingColor(), sd.getMaxClampingColor());
+        }
 
         for(IDataCallback clbk : m_listeners)
             clbk.onChangeCurrentSubDataset(this, sd);
@@ -364,6 +411,10 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     @Override
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    @Override
+    public void onRemove(SubDataset dataset) {}
+
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/

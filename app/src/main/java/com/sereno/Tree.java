@@ -27,13 +27,13 @@ public class Tree<T>
     }
 
     /** @brief The leaves*/
-    private List<Tree> m_leaves = new ArrayList<>();
+    private List<Tree<T>> m_leaves = new ArrayList<>();
     /** @brief The stored value*/
     public T value = null;
     /** @brief The listeners to call when the Tree state changes*/
     private List<ITreeListener<T>> m_listeners = new ArrayList<>();
     /** @brief The parent Tree*/
-    private Tree m_parent = null;
+    private Tree<T> m_parent = null;
     /** Should we extend this tree?*/
     private boolean m_extend = true;
 
@@ -67,7 +67,7 @@ public class Tree<T>
 
     /** @brief Get the list of leaves containing the children data
      * @return the children list*/
-    public List<Tree> getChildren()
+    public List<Tree<T>> getChildren()
     {
         return m_leaves;
     }
@@ -75,27 +75,14 @@ public class Tree<T>
     /** @brief Add a new child to this Tree
      * @param child the child to add. If it has already a parent, the parent changes
      * @param index the index to put this Tree. Value < 0 signifies that the child will be put at the end of the list*/
-    public void addChild(Tree child, int index)
+    public void addChild(Tree<T> child, int index)
     {
-        if(child.m_parent != null)
-        {
-            child.setParent(this, index);
-            //Return because setParent will also call this method
-            return;
-        }
-
-        if(index < 0)
-            m_leaves.add(child);
-        else
-            m_leaves.add(index, child);
-
-        for(ITreeListener l : m_listeners)
-            l.onAddChild(this, child);
+        child.setParent(this, index);
     }
 
     /** @brief Remove a child from this Tree
      * @param child the child to remove. Done only if child.parent == this*/
-    public void removeChild(Tree child)
+    public void removeChild(Tree<T> child)
     {
         if(child.m_parent == this)
         {
@@ -126,12 +113,21 @@ public class Tree<T>
      * If m_parent != null, we first call remove child
      * @param parent the new parent
      * @param index the index in the parent children list. Value < 0 signifies that this object will be put at the end of the parent children list*/
-    public void setParent(Tree parent, int index)
+    public void setParent(Tree<T> parent, int index)
     {
         if(m_parent != null)
             m_parent.removeChild(this);
+        m_parent = parent;
         if(parent != null)
-            parent.addChild(this, index);
+        {
+            if(index < 0)
+                parent.m_leaves.add(this);
+            else
+                parent.m_leaves.add(index, this);
+
+            for(ITreeListener<T> l : parent.m_listeners)
+                l.onAddChild(parent, this);
+        }
     }
 
     @Override

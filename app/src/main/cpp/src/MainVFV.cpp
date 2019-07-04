@@ -6,8 +6,6 @@ namespace sereno
     MainVFV::MainVFV(GLSurfaceViewData* surfaceData, ANativeWindow* nativeWindow, VFVData* mainData) : m_surfaceData(surfaceData), m_mainData(mainData)
     {
         surfaceData->renderer.initializeContext(nativeWindow);
-        if(mainData)
-            mainData->setCallback(this);
 
         Blend transparency;
         transparency.enable = true;
@@ -134,7 +132,6 @@ namespace sereno
     bool MainVFV::findHeadsetCameraTransformation(glm::vec3* outPos, Quaternionf* outRot)
     {
         bool found = false;
-        m_mainData->lock();
         {
             std::shared_ptr<std::vector<HeadsetStatus>> headsetsStatus = m_mainData->getHeadsetsStatus();
             int headsetID = m_mainData->getHeadsetID();
@@ -156,7 +153,6 @@ namespace sereno
             }
         }
     end:
-        m_mainData->unlock();
         return found;
     }
 
@@ -368,18 +364,17 @@ namespace sereno
                 delete event;
             }
 
+            m_mainData->lock();
             //Handle events sent from JNI for our application (application wise)
             handleVFVDataEvent();
 
             //Apply the model changement (rotation + color)
             for(auto& it : m_modelChanged)
             {
-                m_mainData->lock();
-                    SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(it.first);
-                    SubDataset* sd = NULL;
-                    if(metaData)
-                        sd = metaData->getCurrentState();
-                m_mainData->unlock();
+                SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(it.first);
+                SubDataset* sd = NULL;
+                if(metaData)
+                    sd = metaData->getCurrentState();
 
                 if(sd != it.first)
                     continue;
@@ -399,18 +394,15 @@ namespace sereno
                     }
                 }
             }
-            
 
             if(m_currentVis)
             {
                 if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
                 {
-                    m_mainData->lock();
-                        SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
-                        SubDataset* sd = NULL;
-                        if(metaData)
-                            sd = metaData->getCurrentState();
-                    m_mainData->unlock();
+                    SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
+                    SubDataset* sd = NULL;
+                    if(metaData)
+                        sd = metaData->getCurrentState();
 
                     if(sd != NULL)
                         m_currentVis->setPosition(sd->getPosition());
@@ -439,21 +431,18 @@ namespace sereno
 
                 if(m_currentVis != NULL)
                     m_currentVis->update(&m_surfaceData->renderer);
-                m_surfaceData->renderer.render();
 
-                //Update the snapshot
+                //Update the snapshot. It will have "one frame" behind the current one... never mind!
                 if(m_currentVis)
                 {
                     m_snapshotCnt++;
                 }
                 if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
                 {
-                    m_mainData->lock();
-                        SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
-                        SubDataset* sd = NULL;
-                        if(metaData)
-                            sd = metaData->getCurrentState();
-                    m_mainData->unlock();
+                    SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
+                    SubDataset* sd = NULL;
+                    if(metaData)
+                        sd = metaData->getCurrentState();
 
                     if(sd != NULL)
                     {
@@ -477,9 +466,15 @@ namespace sereno
                         m_snapshotCnt = 0;
                     }
                 }
+
+                m_mainData->unlock();
+                m_surfaceData->renderer.render();
             }
             else
+            {
                 usleep(2.0e3);
+                m_mainData->unlock();
+            }
             m_surfaceData->renderer.swapBuffers();
         }
     }
@@ -494,17 +489,15 @@ namespace sereno
         if(!m_currentVis)
             return;
 
-        m_mainData->lock();
-            SubDataset* sd = m_currentVis->getModel();
-            SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(sd);
-            if(metaData)
-                sd = metaData->getCurrentState();
-            else
-            {
-                m_mainData->unlock();
-                return;
-            }
-        m_mainData->unlock();
+        SubDataset* sd = m_currentVis->getModel();
+        SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(sd);
+        if(metaData)
+            sd = metaData->getCurrentState();
+        else
+        {
+            m_mainData->unlock();
+            return;
+        }
 
         switch(m_currentWidgetAction)
         {
@@ -700,20 +693,25 @@ namespace sereno
                         m_currentVis = m_sciVis[0];
                     break;
 
-                case VFV_DEL_DATA:
+                case VFV_REMOVE_DATASET:
                 {
                     //Check if the current sci vis is being deleted
-                    if(m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
+                    if(m_currentVis && m_currentVis->getModel()->getParent() == event->dataset.dataset.get())
                         m_currentVis = NULL;
 
-                    //Check vector field
-                    for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
-                        if((*it)->getModel()->getParent() == event->dataset.dataset.get())
-                        {
-                            delete (*it);
-                            m_vectorFields.erase(it);
-                            break;
-                        }
+                    //Remove the bound scientific visualizations
+                    for(uint32_t i = 0; i < m_sciVis.size(); i++)
+                        if(m_sciVis[i]->getModel()->getParent() == event->dataset.dataset.get())
+                            removeSciVis(m_sciVis[i]);
+
+                    if(m_sciVis.size() > 0)
+                        m_currentVis = m_sciVis[0];
+
+                    break;
+                }
+
+                case VFV_REMOVE_SUBDATASET:
+                {
                     break;
                 }
 
@@ -744,6 +742,7 @@ namespace sereno
                 case VFV_SET_CURRENT_DATA:
                 {
                     //Find which SciVis this sub dataset belongs to and change the current sci vis
+                    m_currentVis = NULL;
                     for(auto it : m_sciVis)
                         if(it->getModel() == event->sdEvent.sd)
                         {
@@ -777,13 +776,40 @@ namespace sereno
                 m_modelChanged[m_currentVis->getModel()]._data[i] |= sdChangement._data[i];
     }
 
-    void MainVFV::onRemoveData(const std::string& dataPath)
+    void MainVFV::removeSciVis(SciVis* sciVis)
     {
-        //TODO
-    }
+        //Check if the current sci vis is being deleted
+        if(m_currentVis == sciVis)
+            m_currentVis = NULL;
 
-    void MainVFV::onAddData(const std::string& dataPath)
-    {
-        //TODO
+        //Check vector field
+        for(std::vector<VectorField*>::iterator it = m_vectorFields.begin(); it != m_vectorFields.end(); it++)
+            if((*it) == sciVis)
+            {
+                m_vectorFields.erase(it);
+                break;
+            }
+
+        //Check VTK data
+        for(auto it : m_vtkStructuredGridPoints)
+        {
+            for(int i = 0; i < it->nbGameObjects; i++)
+                if(it->gameObjects[i] == sciVis)
+                {
+                    delete it->gameObjects[i];
+                    it->nbGameObjects--;
+                    goto endForVTK;
+                }
+        }
+endForVTK:
+
+        for(std::vector<SciVis*>::iterator it = m_sciVis.begin(); it != m_sciVis.end(); it++)
+            if((*it) == sciVis)
+                {
+                    m_sciVis.erase(it);
+                    break;
+                }
+
+        delete sciVis;
     }
 }
