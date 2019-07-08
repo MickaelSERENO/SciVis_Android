@@ -2,11 +2,10 @@ package com.sereno.vfv.Data;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Range;
-import android.widget.ImageView;
 
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
+import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 
@@ -71,6 +70,16 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
          * @param model the application model
          * @param dataset the Dataset to remove*/
         void onRemoveDataset(ApplicationModel model, Dataset dataset);
+
+        /** Method called when the CHI2020 trial data is being updated
+         * @param model the app data
+         * @param data the new information*/
+        void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data);
+
+        /** Method called when the pointing technique is being updated
+         * @param model the app data
+         * @param pt the new pointing technique in use*/
+        void onUpdatePointingTechnique(ApplicationModel model, int pt);
     }
 
     /** Annotation meta data*/
@@ -106,15 +115,22 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         }
     }
 
-    /* All the available current action*/
+    /** All the available current action*/
     public final int CURRENT_ACTION_NOTHING   = 0;
     public final int CURRENT_ACTION_MOVING    = 1;
     public final int CURRENT_ACTION_SCALING   = 2;
     public final int CURRENT_ACTION_ROTATING  = 3;
     public final int CURRENT_ACTION_SKETCHING = 4;
 
+    /** The pointing technique IDs*/
+    public static final int POINTING_MANUAL      = 0;
+    public static final int POINTING_WIM         = 1;
+    public static final int POINTING_WIM_POINTER = 2;
+    public static final int POINTING_GOGO        = 3;
+
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
-    private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open datasets */
+    private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open binary Datasets */
+    private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + binary)*/
     private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;          /**!< The configuration object*/
     private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
@@ -137,13 +153,20 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     /** The headset binding information*/
     private HeadsetBindingInfoMessage m_bindingInfo = null;
 
+    /** The subdataset waiting to be added*/
     private SubDataset m_pendingSubDataset = null;
+
+    /** The current trial data for CHI2020 user study*/
+    private TrialDataCHI2020Message m_trialDataCHI2020 = null;
+
+    private int m_curPointingTechnique = POINTING_MANUAL;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
     {
         m_vtkDatasets    = new ArrayList<>();
         m_binaryDatasets = new ArrayList<>();
+        m_datasets       = new ArrayList<>();
         m_listeners      = new ArrayList<>();
 
         readConfig(ctx);
@@ -168,12 +191,43 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
      * @param d the dataset in adding state.*/
     private void onAddDataset(Dataset d)
     {
+        m_datasets.add(d);
+
         //Create the meta data associated to each subdatasets
         for(SubDataset sd : d.getSubDatasets())
         {
             SubDatasetMetaData metaData = new SubDatasetMetaData(sd);
             m_metaDatas.put(sd, metaData);
             m_metaDatas.put(metaData.getPrivateState(), metaData);
+
+            sd.addListener(new SubDataset.ISubDatasetListener() {
+                @Override
+                public void onClampingChange(SubDataset sd, float min, float max) {}
+
+                @Override
+                public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+                @Override
+                public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+                @Override
+                public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+                @Override
+                public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
+
+                @Override
+                public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+                @Override
+                public void onRemove(SubDataset dataset) {removeSubDataset(dataset);}
+
+                @Override
+                public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation)
+                {
+                    m_annotations.remove(annotation);
+                }
+            });
         }
     }
 
@@ -212,6 +266,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
      * @return the list of Binary Datasets opened*/
     public ArrayList<BinaryDataset> getBinaryDatasets() {return m_binaryDatasets;}
 
+    public ArrayList<Dataset> getDatasets() {return m_datasets;}
+
     /**@brief Get the RangeColorData model being used to clamp subdatasets color displayed
      * @return the RangeColorData model being used to clamp subdatasets color displayed*/
     public RangeColorData getRangeColorModel()
@@ -219,7 +275,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         return m_rangeColorModel;
     }
 
-    public void removeSubDataset(SubDataset sd)
+    /** Remove a SubDataset from the model. Callback what is needed and reinitialize the status of the model
+     * @param sd the SubDataset to remove*/
+    private void removeSubDataset(SubDataset sd)
     {
         if(sd == m_currentSubDataset)
             setCurrentSubDataset(null);
@@ -228,30 +286,17 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
         m_metaDatas.remove(m_metaDatas.get(sd).getPrivateState());
         m_metaDatas.remove(sd);
-        sd.getParent().removeSubDataset(sd);
 
-        //Look for a new current subdataset
+        /////////////////////////////////////
+        //Look for a new current subdataset//
+        /////////////////////////////////////
 
-        //Search among the vtks' one
-        for(Dataset d : getVTKDatasets())
+        for(Dataset d : getDatasets())
         {
             if (d.getSubDatasets().size() > 0)
             {
                 setCurrentSubDataset(d.getSubDatasets().get(0));
                 break;
-            }
-        }
-
-        //Search among the binaries' one
-        if(m_currentSubDataset == null)
-        {
-            for(Dataset d : getBinaryDatasets())
-            {
-                if (d.getSubDatasets().size() > 0)
-                {
-                    setCurrentSubDataset(d.getSubDatasets().get(0));
-                    break;
-                }
             }
         }
     }
@@ -263,7 +308,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         //First remove the subdatasets
         for(SubDataset sd : dataset.getSubDatasets())
         {
-            removeSubDataset(sd);
+            dataset.removeSubDataset(sd);
         }
 
         //Then the dataset in itself
@@ -272,6 +317,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             for(IDataCallback clbk : m_listeners)
                 clbk.onRemoveDataset(this, dataset);
             m_vtkDatasets.remove(dataset);
+            m_datasets.remove(dataset);
         }
 
         else if(m_binaryDatasets.contains(dataset))
@@ -279,6 +325,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             for(IDataCallback clbk : m_listeners)
                 clbk.onRemoveDataset(this, dataset);
             m_binaryDatasets.remove(dataset);
+            m_datasets.remove(dataset);
         }
     }
 
@@ -318,6 +365,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         return m_annotations;
     }
 
+    /** Set the current action of the tablet bound to the tablet
+     * @param action the type of action (see CURRENT_ACTION_*)*/
     public void setCurrentAction(int action)
     {
         m_currentAction = action;
@@ -326,7 +375,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     }
 
     /** Get the current device action
-     * @return The current device action*/
+     * @return The current device action. See CURRENT_ACTION_* values */
     public int getCurrentAction()
     {
         return m_currentAction;
@@ -358,6 +407,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         return m_currentSubDataset;
     }
 
+    /** Set the headsets' status connected to the server
+     * @param status array of headsets' status*/
     public void setHeadsetsStatus(HeadsetsStatusMessage.HeadsetStatus[] status)
     {
         m_headsetsStatus = status;
@@ -385,6 +436,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
      * @return the binding information regarding this device and the headset*/
     public HeadsetBindingInfoMessage getBindingInfo() {return m_bindingInfo;}
 
+    /** Get the SubDatasetMetaData object bound to a particular SubDataset
+     * @param d the SubDataset to investigate*/
     public SubDatasetMetaData getSubDatasetMetaData(SubDataset d) {return m_metaDatas.get(d);}
 
     public void pendingAnnotation(SubDataset sd)
@@ -397,11 +450,50 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             clbk.onPendingAnnotation(this, sd);
     }
 
+    /** Get the SubDataset waiting to create an annotation
+     * @return the subdataset waiting for the annotation. Can be null (no subdataset waiting)*/
+    public SubDataset getPendingSubDatasetForAnnotation()
+    {
+        return m_pendingSubDataset;
+    }
+
     public void endPendingAnnotation(boolean cancel)
     {
         for(IDataCallback clbk : m_listeners)
             clbk.onEndPendingAnnotation(this, m_pendingSubDataset, cancel);
         m_pendingSubDataset = null;
+    }
+
+    /** Set the current trial data for CHI2020
+     * @param data the new trial data for CHI2020 user study*/
+    public void setTrialDataCHI2020(TrialDataCHI2020Message data)
+    {
+        for(IDataCallback clbk : m_listeners)
+            clbk.onUpdateTrialDataCHI2020(this, data);
+        m_trialDataCHI2020 = data;
+    }
+
+    /** Get the trial data for CHI2020 user study
+     * @return the current trial data*/
+    public TrialDataCHI2020Message getTrialDataCHI2020()
+    {
+        return m_trialDataCHI2020;
+    }
+
+    /** Set the current pointing technique to use
+     * @param pt the new pointing technique to use (see POINTING_* )*/
+    public void setCurrentPointingTechnique(int pt)
+    {
+        for(IDataCallback clbk : m_listeners)
+            clbk.onUpdatePointingTechnique(this, pt);
+        m_curPointingTechnique = pt;
+    }
+
+    /** Get the current pointing technique in use
+     * @return the current pointing technique ID. See POINTING_* */
+    public int getCurrentPointingTechnique()
+    {
+        return m_curPointingTechnique;
     }
 
     @Override
@@ -410,6 +502,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         if(m_rangeColorModel == null)
             return;
 
+        //Avoid any "loop" between the range color being changed and the subdataset being changed
         if(m_currentSubDataset != null)
             m_currentSubDataset.removeListener(this);
         m_rangeColorModel.removeOnRangeChangeListener(this);
@@ -439,6 +532,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     @Override
     public void onRemove(SubDataset dataset) {}
+
+    @Override
+    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
 
     /** @brief Read the configuration file

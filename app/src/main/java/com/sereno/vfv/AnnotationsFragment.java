@@ -25,6 +25,7 @@ import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
+import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
@@ -128,6 +129,20 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 onAddBinaryDataset(m_model, d);
             for (VTKDataset d : model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
+
+            for (Dataset d : m_model.getDatasets())
+            {
+                for(SubDataset sd : d.getSubDatasets())
+                {
+                    for(AnnotationData annot : sd.getAnnotations())
+                        onAddAnnotation(sd, annot);
+                }
+            }
+
+            if(m_model.getPendingSubDatasetForAnnotation() != null)
+                onPendingAnnotation(m_model, m_model.getPendingSubDatasetForAnnotation());
+
+            onUpdateTrialDataCHI2020(m_model, m_model.getTrialDataCHI2020());
         }
     }
 
@@ -253,6 +268,22 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_datasetTrees.get(dataset).setParent(null, 0);
         m_datasetTrees.remove(dataset);
     }
+
+    @Override
+    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data)
+    {
+        //Change the visibility of the "add" button
+        int visibility = (data == null || data.getCurrentTabletID() == model.getConfiguration().getTabletID() ? View.VISIBLE : View.GONE);
+
+        for (Tree<View> t : m_subDatasetTrees.values())
+        {
+            View v = t.value;
+            v.findViewById(R.id.annotation_key_entry_add).setVisibility(visibility);
+        }
+    }
+
+    @Override
+    public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -522,15 +553,17 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         if(!m_subDatasetTrees.containsKey(dataset))
             return;
 
-        for(AnnotationData annot : dataset.getAnnotations())
-        {
-            if(annot == m_annotView.getModel())
-                m_annotView.setModel(null);
-            m_bitmaps.remove(annot);
-        }
         Tree<View> sdTree = m_subDatasetTrees.get(dataset);
         sdTree.setParent(null, 0);
         m_subDatasetTrees.remove(dataset);
+    }
+
+    @Override
+    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annot)
+    {
+        if(annot == m_annotView.getModel())
+            m_annotView.setModel(null);
+        m_bitmaps.remove(annot);
     }
 
     @Override

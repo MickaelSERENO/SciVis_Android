@@ -16,4 +16,10 @@
     <string name="openVTKTitle">Select the wanted fields</string>
     <string name="headsetColor">Headset color</string>
     <string name="pendingAnnotation">Anchor the annotation using the HMD</string>
+    <string name="endTraining">End the training</string>
+    <string name="selectPointing">Select the pointing</string>
+    <string name="manualPointing">Manual technique</string>
+    <string name="wimPointing">WIM technique</string>
+    <string name="wimRayPointing">WIM+Ray technique</string>
+    <string name="gogoPointing">GoGo technique</string>
 </resources>

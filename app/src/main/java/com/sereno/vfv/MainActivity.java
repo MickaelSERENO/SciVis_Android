@@ -4,8 +4,8 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
@@ -39,6 +39,7 @@ import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.AnchorAnnotationMessage;
+import com.sereno.vfv.Network.ClearAnnotationsMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -48,6 +49,7 @@ import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
+import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.vfv.Network.VisibilityMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
@@ -56,8 +58,6 @@ import com.sereno.view.RangeColorData;
 import com.sereno.view.RangeColorView;
 
 import java.io.File;
-import java.net.Socket;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
@@ -92,8 +92,9 @@ public class MainActivity extends AppCompatActivity
     private Button           m_deleteDataBtn;     /*!< The delete data button*/
     private RangeColorView   m_rangeColorView;    /*!< The range color view*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
-    private VFVViewPager     m_viewPager;
-    private DatasetsFragment m_dataFragment = null;
+    private VFVViewPager     m_viewPager;           /*!< The view pager handling all our fragments*/
+    private DatasetsFragment m_dataFragment = null; /*!< The Dataset windows*/
+    private Menu      m_menu = null;                  /*!< The menu item (toolbar menu)*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -151,9 +152,24 @@ public class MainActivity extends AppCompatActivity
             }
 
             case R.id.nextStep_item:
-            {
                 openQuitTrainingDialog();
-            }
+                break;
+
+            case R.id.manualPointing_item:
+                m_model.setCurrentPointingTechnique(ApplicationModel.POINTING_MANUAL);
+                break;
+
+            case R.id.wimPointing_item:
+                m_model.setCurrentPointingTechnique(ApplicationModel.POINTING_WIM);
+                break;
+
+            case R.id.wimRayPointing_item:
+                m_model.setCurrentPointingTechnique(ApplicationModel.POINTING_WIM_POINTER);
+                break;
+
+            case R.id.gogoPointing_item:
+                m_model.setCurrentPointingTechnique(ApplicationModel.POINTING_GOGO);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -167,35 +183,17 @@ public class MainActivity extends AppCompatActivity
         if(sd != null)
         {
             //Fetch to which Dataset this SubDataset belongs to
-            for(VTKDataset d : m_model.getVTKDatasets())
+            for(Dataset d : m_model.getDatasets())
             {
                 if(parent != null)
                     break;
+
                 for(int i = 0; i < d.getNbSubDataset(); i++)
                 {
                     if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
                     {
                         parent       = d;
                         subDatasetID = i;
-                    }
-                }
-            }
-
-            if(parent == null)
-            {
-                for(BinaryDataset d : m_model.getBinaryDatasets())
-                {
-                    if(parent != null)
-                        break;
-
-                    for(int i = 0; i < d.getNbSubDataset(); i++)
-                    {
-                        if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
-                        {
-                            parent       = d;
-                            subDatasetID = i;
-                            break;
-                        }
                     }
                 }
             }
@@ -207,6 +205,9 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu)
     {
         getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        m_menu = menu;
+        super.onCreateOptionsMenu(menu);
+        onUpdatePointingTechnique(m_model, m_model.getCurrentPointingTechnique());
         return true;
     }
 
@@ -236,14 +237,16 @@ public class MainActivity extends AppCompatActivity
         {
             DatasetIDBinding idBinding = getDatasetIDBinding(sd);
             if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-                m_socket.push(SocketManager.createStartAnnotationEvent(idBinding, SocketManager.POINTING_WIM, m_model.getSubDatasetMetaData(sd).getVisibility() == SubDataset.VISIBILITY_PUBLIC));
+                m_socket.push(SocketManager.createStartAnnotationEvent(idBinding, m_model.getCurrentPointingTechnique(), m_model.getSubDatasetMetaData(sd).getVisibility() == SubDataset.VISIBILITY_PUBLIC));
         }
     }
 
     @Override
     public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
     {
-
+        //If we added an annotation, send the next trial event to the server
+        if(cancel == false)
+            m_socket.push(SocketManager.createNextTrialEvent());
     }
 
     @Override
@@ -295,9 +298,10 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onRemove(SubDataset dataset) {
+    public void onRemove(SubDataset dataset) {}
 
-    }
+    @Override
+    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
     public void onSetVisibility(SubDatasetMetaData dataset, int visibility)
@@ -312,7 +316,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
-    {}
+    {
+        if(msg.getType() == MessageBuffer.GET_ACK_END_TRAINING)
+        {
+            if(m_menu != null)
+                m_menu.findItem(R.id.nextStep_item).setVisible(false); //Disable the "end of training" item
+        }
+    }
 
     @Override
     public void onAddVTKDatasetMessage(AddVTKDatasetMessage msg)
@@ -355,7 +365,7 @@ public class MainActivity extends AppCompatActivity
     private SubDataset getSubDatasetFromID(int dID, int sdID)
     {
         Dataset dataset = null;
-        for(BinaryDataset d : m_model.getBinaryDatasets())
+        for(Dataset d : m_model.getDatasets())
         {
             if(d.getID() == dID)
             {
@@ -363,16 +373,6 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
         }
-
-        if(dataset == null)
-            for(VTKDataset d : m_model.getVTKDatasets())
-            {
-                if(d.getID() == dID)
-                {
-                    dataset = d;
-                    break;
-                }
-            }
 
         if(dataset == null)
             return null;
@@ -510,6 +510,33 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onClearAnnotations(final ClearAnnotationsMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if(sd != null)
+                {
+                    while(sd.getAnnotations().size() > 0)
+                        sd.removeAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onNextTrialDataCHI2020(final TrialDataCHI2020Message msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_model.setTrialDataCHI2020(msg);
+            }
+        });
+    }
+
+    @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {}
 
@@ -520,16 +547,29 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
     {
-        for(Dataset d : m_model.getBinaryDatasets())
-            resetPrivateState(d);
-        for(Dataset d : m_model.getVTKDatasets())
+        for(Dataset d : m_model.getDatasets())
             resetPrivateState(d);
     }
 
     @Override
-    public void onRemoveDataset(ApplicationModel model, Dataset dataset)
-    {
+    public void onRemoveDataset(ApplicationModel model, Dataset dataset) {}
 
+    @Override
+    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data) {}
+
+    @Override
+    public void onUpdatePointingTechnique(ApplicationModel model, int pt)
+    {
+        if(m_menu == null)
+            return;
+
+        MenuItem[] itms = new MenuItem[4];
+        itms[ApplicationModel.POINTING_MANUAL] = m_menu.findItem(R.id.manualPointing_item);
+        itms[ApplicationModel.POINTING_WIM] = m_menu.findItem(R.id.wimPointing_item);
+        itms[ApplicationModel.POINTING_WIM_POINTER] = m_menu.findItem(R.id.wimRayPointing_item);
+        itms[ApplicationModel.POINTING_GOGO] = m_menu.findItem(R.id.gogoPointing_item);
+
+        itms[pt].setChecked(true);
     }
 
     /** Reset the private state of a given dataset
@@ -598,12 +638,11 @@ public class MainActivity extends AppCompatActivity
                     public void run() {
                         m_model.setBindingInfo(null);
                         m_model.setHeadsetsStatus(null);
+                        m_model.setTrialDataCHI2020(null);
                         
                         //Clean every
-                        while(m_model.getVTKDatasets().size() > 0)
-                            m_model.removeDataset(m_model.getVTKDatasets().get(0));
-                        while(m_model.getBinaryDatasets().size() > 0)
-                            m_model.removeDataset(m_model.getBinaryDatasets().get(0));
+                        while(m_model.getDatasets().size() > 0)
+                            m_model.removeDataset(m_model.getDatasets().get(0));
                     }
                 }
         );

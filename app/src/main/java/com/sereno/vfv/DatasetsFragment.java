@@ -30,6 +30,7 @@ import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
+import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 import com.sereno.view.TreeView;
@@ -46,7 +47,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private ApplicationModel m_model             = null;  /*!< The application model to use*/
     private Context          m_ctx               = null;  /*!< The application context*/
     private boolean          m_modelBound        = false; /*!< Is the model bound?*/
-
 
     private HashMap<SubDataset, Tree<View>> m_sdTrees      = new HashMap<>(); /*!< HashMap binding subdataset to their represented Tree*/
     private HashMap<Dataset, Tree<View>>    m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
@@ -196,6 +196,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_datasetTrees.remove(dataset);
     }
 
+    @Override
+    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data) {}
+
+    @Override
+    public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
@@ -310,6 +316,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     if(m_sdImages.containsKey(dataset))
                         m_sdImages.remove(dataset);
                 }
+
+                @Override
+                public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
             };
 
             //Snapshot event

@@ -52,6 +52,11 @@ public class SubDataset
         /** Method called when a SubDataset is being removed
          * @param dataset the subdataset being removed*/
         void onRemove(SubDataset dataset);
+
+        /** Method called when an annotation is being removed from the SubDataset
+         * @param dataset the dataset bound to the annotation
+         * @param annotation the annotation being removed*/
+        void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation);
     }
 
     /** The native C++ handle*/
@@ -240,9 +245,25 @@ public class SubDataset
     /** unlink the SubDataset*/
     public void inRemoving()
     {
+        /* Remove the annotation*/
+        while(m_annotations.size() > 0)
+            removeAnnotation(m_annotations.get(m_annotations.size()-1));
+
         for(ISubDatasetListener l : m_listeners)
             l.onRemove(this);
         m_ptr = 0;
+    }
+
+    /** Remove an annotation from this SubDataset
+     * @param annot the annotation to remove. This function does nothing if the annotation cannot be found*/
+    public void removeAnnotation(AnnotationData annot)
+    {
+        if(m_annotations.contains(annot))
+        {
+            for(ISubDatasetListener l : m_listeners)
+                l.onRemoveAnnotation(this, annot);
+            m_annotations.remove(annot);
+        }
     }
 
     /** Free the internal data. Do that only on CLONED SubDataset*/

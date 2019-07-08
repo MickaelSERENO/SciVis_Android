@@ -12,6 +12,7 @@ import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
+import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 
 import java.util.ArrayList;
@@ -148,6 +149,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
             nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_VTK);
     }
 
+    @Override
+    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data) {}
+
+    @Override
+    public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
+
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
         for(SubDataset sd : d.getSubDatasets())
@@ -201,6 +208,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         nativeRemoveSubDataset(m_ptr, dataset.getNativePtr());
     }
+
+    @Override
+    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
     public void onSetVisibility(SubDatasetMetaData metaData, int v)

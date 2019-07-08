@@ -26,6 +26,24 @@ public class HeadsetsStatusMessage extends ServerMessage
 
         /**  The headset current action */
         public int currentAction = HEADSET_CURRENT_ACTION_NOTHING;
+
+        /** The pointing interaction technique*/
+        public int pointingIT = -1;
+
+        /** The Dataset being pointed*/
+        public int pointingDatasetID = -1;
+
+        /** The SubDataset being pointed*/
+        public int pointingSubDatasetID = -1;
+
+        /** Is the pointing done in the public space?*/
+        public boolean pointingInPublic = true;
+
+        /** The pointing position in the local subdataset's space*/
+        public float[] pointingLocalSDPosition = new float[3];
+
+        /** The headset start position when the pointing technique started*/
+        public float[] pointingHeadsetStartPosition = new float[3];
     }
 
     /** Array of the headset status*/
@@ -34,13 +52,18 @@ public class HeadsetsStatusMessage extends ServerMessage
     @Override
     public void pushValue(float value)
     {
-        int headset = (cursor-1)/10;
-        int id      = (cursor-1)%10;
+        int headset = (cursor-1)/20;
+        int id      = (cursor-1)%20;
 
         if(id < 6) //Position
             m_status[headset].position[id - 3] = value;
         else if(id < 10) //Rotation
             m_status[headset].rotation[id - 6] = value;
+        else if(id < 17 && id >= 14) //Pointing local position
+            m_status[headset].pointingLocalSDPosition[id-14] = value;
+        else if(id < 20)
+            m_status[headset].pointingHeadsetStartPosition[id-17] = value;
+
         super.pushValue(value);
     }
 
@@ -56,8 +79,8 @@ public class HeadsetsStatusMessage extends ServerMessage
         }
         else
         {
-            int id = (cursor-1)%10;
-            int headset = (cursor-1)/10;
+            int id = (cursor-1)%20;
+            int headset = (cursor-1)/20;
 
             if(id == 0)
                 m_status[headset].id = value;
@@ -65,7 +88,25 @@ public class HeadsetsStatusMessage extends ServerMessage
                 m_status[headset].color = value;
             else if(id == 2)
                 m_status[headset].currentAction = value;
+            else if(id == 10)
+                m_status[headset].pointingIT = value;
+            else if(id == 11)
+                m_status[headset].pointingDatasetID = value;
+            else if(id == 12)
+                m_status[headset].pointingSubDatasetID = value;
         }
+        super.pushValue(value);
+    }
+
+    @Override
+    public void pushValue(byte value)
+    {
+        int id = (cursor-1)%20;
+        int headset = (cursor-1)/20;
+
+        if(id == 13)
+            m_status[headset].pointingInPublic = value != 0;
+
         super.pushValue(value);
     }
 
@@ -76,22 +117,34 @@ public class HeadsetsStatusMessage extends ServerMessage
             return (byte)'I';
         else
         {
-            int id = (cursor-1) % 10;
+            int id = (cursor-1) % 20;
 
             if(id < 3) //Color / ID / current action
                 return (byte)'I';
 
-            if(id < 6) //Position
+            else if(id < 6) //Position
                 return (byte)'f';
 
             else if(id < 10) //Rotation
+                return (byte)'f';
+
+            else if(id < 13)
+                return (byte)'I';
+
+            else if(id == 13)
+                return (byte)'b';
+
+            else if(id < 17)
+                return (byte)'f';
+
+            else if(id < 20)
                 return (byte)'f';
         }
         return 0;
     }
 
     @Override
-    public int getMaxCursor() { return (m_status != null ? m_status.length*10: 0); }
+    public int getMaxCursor() { return (m_status != null ? m_status.length*20: 0); }
 
     /** Get the headsets status parsed
      * @return array of headsets status parsed*/

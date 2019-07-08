@@ -42,14 +42,6 @@ public class SocketManager
     public static final int THREAD_SLEEP       = 1000/90;
     public static final int READ_TIMEOUT       = 0;
 
-    /** The pointing technique IDs*/
-    public static final int POINTING_NONE        = -1;
-    public static final int POINTING_MANUAL      = 0;
-    public static final int POINTING_WIM         = 1;
-    public static final int POINTING_WIM_POINTER = 1;
-    public static final int POINTING_GOGO        = 2;
-
-
     /* ************************************************************ */
     /* ******************Recognizable server type****************** */
     /* ************************************************************ */
