@@ -92,9 +92,10 @@ public class MainActivity extends AppCompatActivity
     private Button           m_deleteDataBtn;     /*!< The delete data button*/
     private RangeColorView   m_rangeColorView;    /*!< The range color view*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
-    private VFVViewPager     m_viewPager;           /*!< The view pager handling all our fragments*/
-    private DatasetsFragment m_dataFragment = null; /*!< The Dataset windows*/
-    private Menu      m_menu = null;                  /*!< The menu item (toolbar menu)*/
+    private VFVViewPager     m_viewPager;              /*!< The view pager handling all our fragments*/
+    private DatasetsFragment m_dataFragment = null;    /*!< The Dataset windows*/
+    private Menu             m_menu = null;            /*!< The menu item (toolbar menu)*/
+    private boolean          m_chi2020Started = false; /*!< Has CHI2020 trials started?*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -208,6 +209,10 @@ public class MainActivity extends AppCompatActivity
         m_menu = menu;
         super.onCreateOptionsMenu(menu);
         onUpdatePointingTechnique(m_model, m_model.getCurrentPointingTechnique());
+
+        //Hide the WIM pointer during CHI 2020 experiment
+        m_menu.findItem(R.id.wimRayPointing_item).setVisible(false);
+
         return true;
     }
 
@@ -499,12 +504,23 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
+                sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
+
                 AnnotationData data = new AnnotationData(320, 160);
-                ApplicationModel.AnnotationMetaData metaData = new ApplicationModel.AnnotationMetaData(sd, -1);
-                m_model.addAnnotation(data, metaData);
+                ApplicationModel.AnnotationMetaData annotMetaData = new ApplicationModel.AnnotationMetaData(sd, -1);
+                m_model.addAnnotation(data, annotMetaData);
 
                 if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
+                {
                     m_model.endPendingAnnotation(false);
+
+                    //Send the next trial of CHI
+                    if((m_model.getTrialDataCHI2020() != null) &&
+                       (m_model.getTrialDataCHI2020().getCurrentStudyID() == 1 || m_model.getTrialDataCHI2020().getCurrentStudyID() ==2) &&
+                       (m_model.getTrialDataCHI2020().getCurrentTabletID() == m_model.getConfiguration().getTabletID()))
+                        m_socket.push(SocketManager.createNextTrialEvent());
+                }
             }
         });
     }
@@ -516,6 +532,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+
+                SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
+                sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
+
                 if(sd != null)
                 {
                     while(sd.getAnnotations().size() > 0)
@@ -555,7 +575,23 @@ public class MainActivity extends AppCompatActivity
     public void onRemoveDataset(ApplicationModel model, Dataset dataset) {}
 
     @Override
-    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data) {}
+    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data)
+    {
+        if(data != null && data.getCurrentStudyID() != 0) //Not the training session
+        {
+            m_menu.findItem(R.id.selectPointing_item).setVisible(false);
+            m_menu.findItem(R.id.nextStep_item).setVisible(false);
+            m_chi2020Started = true;
+            m_model.setCurrentPointingTechnique(data.getPointingID());
+        }
+        else //Issue, restore everything
+        {
+            m_menu.findItem(R.id.selectPointing_item).setVisible(true);
+            m_menu.findItem(R.id.nextStep_item).setVisible(true);
+            m_chi2020Started = false;
+            m_model.setCurrentPointingTechnique(m_model.getCurrentPointingTechnique());
+        }
+    }
 
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt)
@@ -569,7 +605,9 @@ public class MainActivity extends AppCompatActivity
         itms[ApplicationModel.POINTING_WIM_POINTER] = m_menu.findItem(R.id.wimRayPointing_item);
         itms[ApplicationModel.POINTING_GOGO] = m_menu.findItem(R.id.gogoPointing_item);
 
-        itms[pt].setChecked(true);
+        //pt can be "-1"
+        if(pt >= 0 && pt <= 3)
+            itms[pt].setChecked(true);
     }
 
     /** Reset the private state of a given dataset
@@ -793,7 +831,7 @@ public class MainActivity extends AppCompatActivity
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Are you sure you want to quit the training?").setPositiveButton("Yes", dialogClickListener)
-                .setNegativeButton("No", dialogClickListener).show();
+                                                                         .setNegativeButton("No",  dialogClickListener).show();
     }
 
     /** \brief Dialog about opening a new dataset */

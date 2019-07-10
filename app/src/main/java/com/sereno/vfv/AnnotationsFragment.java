@@ -180,6 +180,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 //Add the dataset title
                 TextView title = new TextView(getContext());
                 title.setText(d.getName());
+                title.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
                 Tree<View> titleTree = new Tree<View>(title);
 
                 //Add each subdataset
@@ -188,7 +190,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                     final SubDataset sd = d.getSubDataset(i);
                     sd.addListener(AnnotationsFragment.this);
                     View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
-                    ((TextView)sdTitle.findViewById(R.id.annotation_key_entry_name)).setText(sd.getName());
+                    sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                    TextView sdTitleText = (TextView)sdTitle.findViewById(R.id.annotation_key_entry_name);
+                    sdTitleText.setText(sd.getName());
+
                     ((ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add)).setOnTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -273,12 +279,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data)
     {
         //Change the visibility of the "add" button
-        int visibility = (data == null || data.getCurrentTabletID() == model.getConfiguration().getTabletID() ? View.VISIBLE : View.GONE);
+        boolean visibility = (data == null || data.getCurrentStudyID() == 0) || //Training
+                             (data.getCurrentStudyID() == 1 && (data.getCurrentTabletID() != model.getConfiguration().getTabletID())) || //Study 1
+                             (data.getCurrentStudyID() == 2 && (data.getCurrentTabletID() == model.getConfiguration().getTabletID()));   //Study 2
 
         for (Tree<View> t : m_subDatasetTrees.values())
         {
             View v = t.value;
-            v.findViewById(R.id.annotation_key_entry_add).setVisibility(visibility);
+            v.findViewById(R.id.annotation_key_entry_add).setVisibility(visibility ? View.VISIBLE : View.GONE);
         }
     }
 

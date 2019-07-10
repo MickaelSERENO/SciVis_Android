@@ -66,8 +66,8 @@ public class AnnotationText
     public void setText(String txt)
     {
         m_text = txt;
-        for(IAnnotationTextListener l : m_listeners)
-            l.onSetText(this, txt);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetText(this, txt);
     }
 
     /** Get the current text of this annotation
@@ -82,8 +82,8 @@ public class AnnotationText
     public void setPosition(Point pos)
     {
         m_pos = pos;
-        for(IAnnotationTextListener l : m_listeners)
-            l.onSetPosition(this, pos);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetPosition(this, pos);
     }
 
     /** Get the current position of this annotation
@@ -125,8 +125,8 @@ public class AnnotationText
             m_cursorPos+=strAdd.length();
         }
 
-        for(IAnnotationTextListener l : m_listeners)
-            l.onSetText(this, m_text);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetText(this, m_text);
     }
 
     /** get the annotation text color
@@ -141,8 +141,8 @@ public class AnnotationText
     public void setColor(int color)
     {
         m_color = color;
-        for(IAnnotationTextListener l : m_listeners)
-            l.onSetColor(this, color);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetColor(this, color);
     }
 
     /** Set the current cursor position

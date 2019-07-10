@@ -64,8 +64,8 @@ public class AnnotationStroke
     public void addPoint(Point p)
     {
         m_points.add(p);
-        for(IAnnotationStrokeListener l : m_listeners)
-            l.onAddPoint(this, p);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onAddPoint(this, p);
     }
 
     /** Get the list of points describing the stroke
@@ -87,8 +87,8 @@ public class AnnotationStroke
     public void setColor(int color)
     {
         m_color = color;
-        for(IAnnotationStrokeListener l : m_listeners)
-            l.onSetColor(this, color);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetColor(this, color);
     }
 
     /** Get the stroke width

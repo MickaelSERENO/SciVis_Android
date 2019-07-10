@@ -86,6 +86,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         if(m_model != null)
             m_model.removeListener(this);
         m_model = model;
+
         if(m_ctx != null)
         {
             onUpdateBindingInformation(m_model, m_model.getBindingInfo());
@@ -246,7 +247,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         //Add the preview
         TextView dataText = new TextView(getContext());
+        dataText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         dataText.setText(d.getName());
+
         Tree<View> dataView = new Tree<View>(dataText);
         m_previewLayout.getModel().addChild(dataView, -1);
         m_datasetTrees.put(d, dataView);
@@ -257,6 +260,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             //Set the color range listener
             View layout = getLayoutInflater().inflate(R.layout.dataset_icon_layout, null);
+            layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
             final ImageView snapImg = (ImageView)layout.findViewById(R.id.snapshotImageView);
 
             //Add the snap image

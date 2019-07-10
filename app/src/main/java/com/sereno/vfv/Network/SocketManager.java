@@ -265,6 +265,7 @@ public class SocketManager
     {
         m_hololensIP        = hololensIP;
         m_isBoundToHololens = false;
+        m_tabletID          = tabletID;
     }
 
     /** Push a new value to write to the server

@@ -123,10 +123,10 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public final int CURRENT_ACTION_SKETCHING = 4;
 
     /** The pointing technique IDs*/
-    public static final int POINTING_MANUAL      = 0;
+    public static final int POINTING_GOGO        = 0;
     public static final int POINTING_WIM         = 1;
     public static final int POINTING_WIM_POINTER = 2;
-    public static final int POINTING_GOGO        = 3;
+    public static final int POINTING_MANUAL      = 3;
 
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
     private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open binary Datasets */

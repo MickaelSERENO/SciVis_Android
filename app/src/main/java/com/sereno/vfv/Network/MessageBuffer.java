@@ -236,6 +236,10 @@ public class MessageBuffer
             //When the message is finished, send it
             switch(m_curMsg.getType())
             {
+                case GET_ACK_END_TRAINING:
+                    for(IMessageBufferCallback clbk : m_listeners)
+                        clbk.onEmptyMessage((EmptyMessage)m_curMsg);
+                    break;
                 case GET_ADD_VTK_DATASET:
                     for(IMessageBufferCallback clbk : m_listeners)
                         clbk.onAddVTKDatasetMessage((AddVTKDatasetMessage) m_curMsg);

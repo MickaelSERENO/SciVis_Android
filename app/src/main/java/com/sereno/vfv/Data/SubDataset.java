@@ -184,8 +184,8 @@ public class SubDataset
      * @param bmp the new bitmap snapshot*/
     public void onSnapshotEvent(Bitmap bmp)
     {
-        for(ISubDatasetListener l : m_listeners)
-            l.onSnapshotEvent(this, bmp);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSnapshotEvent(this, bmp);
     }
 
     /** Set the rotation of this SubDataset
@@ -193,8 +193,8 @@ public class SubDataset
     public void setRotation(float[] quaternion)
     {
         nativeSetRotation(m_ptr, quaternion);
-        for(ISubDatasetListener l : m_listeners)
-            l.onRotationEvent(this, quaternion);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onRotationEvent(this, quaternion);
     }
 
     /** Set the position of this SubDataset
@@ -202,8 +202,8 @@ public class SubDataset
     public void setPosition(float[] position)
     {
         nativeSetPosition(m_ptr, position);
-        for(ISubDatasetListener l : m_listeners)
-            l.onPositionEvent(this, position);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onPositionEvent(this, position);
     }
 
     /** Set the scaling of this SubDataset
@@ -211,8 +211,8 @@ public class SubDataset
     public void setScale(float[] scale)
     {
         nativeSetScale(m_ptr, scale);
-        for(ISubDatasetListener l : m_listeners)
-            l.onScaleEvent(this, scale);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onScaleEvent(this, scale);
     }
 
     /** Get the SubDataset name
@@ -231,8 +231,8 @@ public class SubDataset
     public void addAnnotation(AnnotationData annot)
     {
         m_annotations.add(annot);
-        for(ISubDatasetListener l : m_listeners)
-            l.onAddAnnotation(this, annot);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onAddAnnotation(this, annot);
     }
 
     /** Get the list of annotations
@@ -249,8 +249,8 @@ public class SubDataset
         while(m_annotations.size() > 0)
             removeAnnotation(m_annotations.get(m_annotations.size()-1));
 
-        for(ISubDatasetListener l : m_listeners)
-            l.onRemove(this);
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onRemove(this);
         m_ptr = 0;
     }
 
@@ -260,8 +260,8 @@ public class SubDataset
     {
         if(m_annotations.contains(annot))
         {
-            for(ISubDatasetListener l : m_listeners)
-                l.onRemoveAnnotation(this, annot);
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onRemoveAnnotation(this, annot);
             m_annotations.remove(annot);
         }
     }

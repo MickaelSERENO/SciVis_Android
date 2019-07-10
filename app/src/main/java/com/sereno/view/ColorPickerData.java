@@ -40,8 +40,8 @@ public class ColorPickerData
     public void setColor(HSVColor color)
     {
         m_color = color;
-        for(IColorPickerDataListener l : m_listeners)
-            l.onSetColor(this, color.toRGB().toARGB8888());
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetColor(this, color.toRGB().toARGB8888());
     }
 
     /** Get the current color
