@@ -440,6 +440,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
      * @param d the SubDataset to investigate*/
     public SubDatasetMetaData getSubDatasetMetaData(SubDataset d) {return m_metaDatas.get(d);}
 
+    /** Put a new SubDataset in wait for an annotation
+     * @param sd the SubDataset waiting the annotation to be anchored*/
     public void pendingAnnotation(SubDataset sd)
     {
         if(m_pendingSubDataset != null)
@@ -457,6 +459,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         return m_pendingSubDataset;
     }
 
+    /** End the waiting for an annotation to be anchored
+     * @param cancel true if the pending is to be canceled, false otherwise*/
     public void endPendingAnnotation(boolean cancel)
     {
         for(IDataCallback clbk : m_listeners)

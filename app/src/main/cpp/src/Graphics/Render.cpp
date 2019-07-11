@@ -37,10 +37,12 @@ namespace sereno
         else
         {
             float f = cos(fovY/2.0f)/sin(fovY/2.0f);
-            float  persp[16] = {f/aspect, 0, 0,                     0,
-                                0,        f, 0,                     0,
-                                0,        0, (far+near)/(near-far), 1,
-                                0,        0, 2*far*near/(far-near), 0};
+
+            float  persp[16] = {f/aspect, 0, 0,               0,
+                                0,        f, 0,               0,
+                                0,        0, far/(far-near),  1,
+                                0,        0, -2*far*near/(far-near),               0};
+
             float* proj = glm::value_ptr(m_projMatrix);
             for(int i = 0; i < 16; i++)
                 proj[i] = persp[i];

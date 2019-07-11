@@ -248,11 +248,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
-    {
-        //If we added an annotation, send the next trial event to the server
-        if(cancel == false)
-            m_socket.push(SocketManager.createNextTrialEvent());
-    }
+    {}
 
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action) {
@@ -517,7 +513,7 @@ public class MainActivity extends AppCompatActivity
 
                     //Send the next trial of CHI
                     if((m_model.getTrialDataCHI2020() != null) &&
-                       (m_model.getTrialDataCHI2020().getCurrentStudyID() == 1 || m_model.getTrialDataCHI2020().getCurrentStudyID() ==2) &&
+                       (m_model.getTrialDataCHI2020().getCurrentStudyID() == 1 || m_model.getTrialDataCHI2020().getCurrentStudyID() == 2) &&
                        (m_model.getTrialDataCHI2020().getCurrentTabletID() == m_model.getConfiguration().getTabletID()))
                         m_socket.push(SocketManager.createNextTrialEvent());
                 }
@@ -533,14 +529,14 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
 
+                if(sd == null)
+                    return;
+
                 SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
                 sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
 
-                if(sd != null)
-                {
-                    while(sd.getAnnotations().size() > 0)
-                        sd.removeAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
-                }
+                while(sd.getAnnotations().size() > 0)
+                    sd.removeAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
             }
         });
     }

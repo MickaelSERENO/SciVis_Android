@@ -162,7 +162,10 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
      * @param t the current leaf to look at*/
     protected TreeViewMeasureState onMeasureLeaf(int leftOffset, TreeViewMeasureState state, boolean extend, Tree<View> t)
     {
-        if(t.value != null && extend && t.value.getVisibility() != GONE)
+        if(t.value != null && t.value.getVisibility() == GONE)
+            return state;
+
+        if(t.value != null && extend)
         {
             if(t.getChildren().size() > 0)
                 leftOffset += m_extendWidth;
@@ -229,7 +232,10 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
     {
         final View child = leaf.value;
 
-        if(child != null && extend && child.getVisibility() != GONE)
+        if(child != null && child.getVisibility() == GONE)
+            return topMargin;
+
+        if(child != null && extend )
         {
             final int width = child.getMeasuredWidth();
             final int height = child.getMeasuredHeight();
@@ -284,6 +290,9 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
      * @param tree the tree to draw. Actually, this function draws the line and the extends images*/
     public void drawLeaf(Canvas canvas, Tree<View> tree)
     {
+        if(tree.value != null && tree.value.getVisibility() == View.GONE)
+            return;
+
         //Draw extend image
         if(tree.getChildren().size() > 0 && tree.value != null)
         {
@@ -300,7 +309,7 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
         {
             for (Tree<View> t : tree.getChildren())
             {
-                if (tree.value != null && t.value != null)
+                if (tree.value != null && t.value != null && t.value.getVisibility() != View.GONE)
                 {
                     canvas.drawLine(tree.value.getX() - m_extendWidth / 2.0f, tree.value.getY() + Math.max(tree.value.getHeight(), m_extendHeight),
                                     tree.value.getX() - m_extendWidth / 2.0f, t.value.getY() + t.value.getHeight() / 2, m_paint);

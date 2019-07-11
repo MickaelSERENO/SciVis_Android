@@ -82,7 +82,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The trees of SubDataset*/
     private HashMap<SubDataset, Tree<View>> m_subDatasetTrees = new HashMap<>();
 
+    /** The trees per Dataset*/
     private HashMap<Dataset, Tree<View>> m_datasetTrees = new HashMap<>();
+
+    /** The trees per Annotation*/
+    private HashMap<AnnotationData, Tree<View>> m_annotationTrees = new HashMap<>();
 
     /** The current Drawing mode*/
     private AnnotationData.AnnotationMode m_mode = AnnotationData.AnnotationMode.STROKE;
@@ -187,30 +191,43 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 //Add each subdataset
                 for(int i = 0; i < d.getNbSubDataset(); i++)
                 {
-                    final SubDataset sd = d.getSubDataset(i);
-                    sd.addListener(AnnotationsFragment.this);
-                    View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
-                    sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(d.getSubDataset(i));
+                    metaData.addListener(AnnotationsFragment.this);
+                    SubDataset sds[] = new SubDataset[2];
 
-                    TextView sdTitleText = (TextView)sdTitle.findViewById(R.id.annotation_key_entry_name);
-                    sdTitleText.setText(sd.getName());
+                    sds[0] = metaData.getPublicState();
+                    sds[1] = metaData.getPrivateState();
 
-                    ((ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add)).setOnTouchListener(new View.OnTouchListener() {
-                        @Override
-                        public boolean onTouch(View view, MotionEvent motionEvent) {
-                            if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                            {
-                                m_model.pendingAnnotation(sd);
-                                return true;
-                            }
-                            return false;
+                    for(final SubDataset sd : sds)
+                    {
+                        if(sd != null)
+                        {
+                            sd.addListener(AnnotationsFragment.this);
+                            View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
+                            sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                            TextView sdTitleText = (TextView) sdTitle.findViewById(R.id.annotation_key_entry_name);
+                            sdTitleText.setText(sd.getName());
+
+                            ((ImageView) sdTitle.findViewById(R.id.annotation_key_entry_add)).setOnTouchListener(new View.OnTouchListener() {
+                                @Override
+                                public boolean onTouch(View view, MotionEvent motionEvent) {
+                                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                                        m_model.pendingAnnotation(sd);
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                            });
+
+                            //Add the SubDataset title
+                            Tree<View> sdTitleTree = new Tree<View>(sdTitle);
+                            m_subDatasetTrees.put(sd, sdTitleTree);
+                            titleTree.addChild(sdTitleTree, -1);
                         }
-                    });
+                    }
 
-                    //Add the SubDataset title
-                    Tree<View> sdTitleTree = new Tree<View>(sdTitle);
-                    m_subDatasetTrees.put(sd, sdTitleTree);
-                    titleTree.addChild(sdTitleTree, -1);
+                    onSetVisibility(metaData, metaData.getVisibility());
                 }
                 m_datasetTrees.put(d, titleTree);
                 t.addChild(titleTree, -1);
@@ -280,7 +297,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         //Change the visibility of the "add" button
         boolean visibility = (data == null || data.getCurrentStudyID() == 0) || //Training
-                             (data.getCurrentStudyID() == 1 && (data.getCurrentTabletID() != model.getConfiguration().getTabletID())) || //Study 1
+                             (data.getCurrentStudyID() == 1 && (data.getCurrentTabletID() == model.getConfiguration().getTabletID())) || //Study 1
                              (data.getCurrentStudyID() == 2 && (data.getCurrentTabletID() == model.getConfiguration().getTabletID()));   //Study 2
 
         for (Tree<View> t : m_subDatasetTrees.values())
@@ -525,34 +542,31 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         annotation.addListener(this);
 
-        getActivity().runOnUiThread(new Runnable() {
+        Tree<View> tree = m_subDatasetTrees.get(dataset);
+
+        final AnnotationBitmap bmp = new AnnotationBitmap();
+        bmp.bitmap = Bitmap.createBitmap(m_annotView.getWidth(), m_annotView.getHeight(), Bitmap.Config.ARGB_8888);
+
+        final ImageView snapImg = new ImageView(getContext());
+        snapImg.setAdjustViewBounds(true);
+        snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        snapImg.setBackgroundColor(Color.WHITE);
+        snapImg.setImageBitmap(bmp.bitmap);
+        snapImg.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void run() {
-                Tree<View> tree = m_subDatasetTrees.get(dataset);
-
-                final AnnotationBitmap bmp = new AnnotationBitmap();
-                bmp.bitmap = Bitmap.createBitmap(m_annotView.getWidth(), m_annotView.getHeight(), Bitmap.Config.ARGB_8888);
-
-                final ImageView snapImg = new ImageView(getContext());
-                snapImg.setAdjustViewBounds(true);
-                snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                snapImg.setBackgroundColor(Color.WHITE);
-                snapImg.setImageBitmap(bmp.bitmap);
-                snapImg.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        changeCurrentAnnotation(snapImg, annotation);
-                    }
-                });
-                bmp.imageView = snapImg;
-                m_bitmaps.put(annotation, bmp);
-                tree.addChild(new Tree<View>(snapImg), -1);
-
-                //If no annotation yet added
-                if(m_annotView.getModel() == null)
-                    changeCurrentAnnotation(snapImg, annotation);
+            public void onClick(View view) {
+                changeCurrentAnnotation(snapImg, annotation);
             }
         });
+        bmp.imageView = snapImg;
+        m_bitmaps.put(annotation, bmp);
+        Tree<View> annotTree = new Tree<View>(snapImg);
+        tree.addChild(annotTree, -1);
+        m_annotationTrees.put(annotation, annotTree);
+
+        //If no annotation yet added
+        if(m_annotView.getModel() == null)
+            changeCurrentAnnotation(snapImg, annotation);
     }
 
     @Override
@@ -571,13 +585,38 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         if(annot == m_annotView.getModel())
             m_annotView.setModel(null);
-        m_bitmaps.remove(annot);
+
+        if(m_bitmaps.containsKey(annot))
+            m_bitmaps.remove(annot);
+
+        if(m_annotationTrees.containsKey(annot))
+        {
+            m_annotationTrees.get(annot).setParent(null, -1);
+            m_annotationTrees.remove(annot);
+        }
     }
 
     @Override
     public void onSetVisibility(SubDatasetMetaData dataset, int visibility)
     {
+        SubDataset sdRemove = null;
+        SubDataset sd       = null;
+        if(visibility == SubDataset.VISIBILITY_PUBLIC)
+        {
+            sd = dataset.getPublicState();
+            sdRemove = dataset.getPrivateState();
+        }
+        else
+        {
+            sd = dataset.getPrivateState();
+            sdRemove = dataset.getPublicState();
+        }
 
+        //Switch the view
+        if(m_subDatasetTrees.containsKey(sdRemove))
+            m_subDatasetTrees.get(sdRemove).value.setVisibility(View.GONE);
+        if(m_subDatasetTrees.containsKey(sd))
+            m_subDatasetTrees.get(sd).value.setVisibility(View.VISIBLE);
     }
 
     @Override

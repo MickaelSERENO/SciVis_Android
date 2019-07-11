@@ -31,6 +31,7 @@ namespace sereno
         m_colorGridMtl = new ColorGridMaterial(&surfaceData->renderer);
         m_colorGridMtl->setBlend(transparency);
         m_colorGridMtl->setDepthWrite(false);
+        m_colorPhongMtl = new PhongMaterial(&surfaceData->renderer, Color::BLUE_COLOR, 0.3f, 0.7f, 0.1f, 100);
         m_3dTextureMtl = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
         m_gpuTexVBO    = new TextureRectangleData();
 
@@ -662,6 +663,7 @@ namespace sereno
 
                 //Add VTK Dataset
                 case VFV_ADD_VTK_DATA:
+#ifndef CHI2020
                     m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
                                                                                          0, 2));
                     m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
@@ -669,10 +671,16 @@ namespace sereno
                     for(uint8_t i = 0; i < 3; i++)
                         dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i];
                     m_colorGridMtl->setDimension(dim);
+#endif
 
                     for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
                     {
+#ifdef CHI2020
+                        m_defaultSciVis.push_back(new DefaultSciVis(&m_surfaceData->renderer, m_colorPhongMtl, NULL, event->vtkData.dataset->getSubDataset(i), 0, 2));
+                        m_sciVis.push_back(m_defaultSciVis.back());
+#else
                         m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
+#endif
 
                         //Set the transfer function
                         TriangularGTF* tGTF = new TriangularGTF(2, RAINBOW);
@@ -802,6 +810,14 @@ namespace sereno
             if((*it) == sciVis)
             {
                 m_vectorFields.erase(it);
+                break;
+            }
+
+        //Check default visualization
+        for(std::vector<DefaultSciVis*>::iterator it = m_defaultSciVis.begin(); it != m_defaultSciVis.end(); it++)
+            if((*it) == sciVis)
+            {
+                m_defaultSciVis.erase(it);
                 break;
             }
 

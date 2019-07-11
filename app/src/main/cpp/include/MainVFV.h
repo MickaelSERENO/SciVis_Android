@@ -7,10 +7,13 @@
 #include "Graphics/Texture.h"
 #include "Graphics/DefaultGameObject.h"
 #include "Graphics/SciVis/VectorField.h"
+#include "Graphics/SciVis/DefaultSciVis.h"
 #include "Graphics/SciVis/VTKStructuredGridPointGameObject.h"
+#include "Graphics/SciVis/DefaultSciVis.h"
 #include "Graphics/Materials/SimpleTextureMaterial.h"
 #include "Graphics/Materials/ColorMaterial.h"
 #include "Graphics/Materials/ColorGridMaterial.h"
+#include "Graphics/Materials/PhongMaterial.h"
 #include "Graphics/SciVis/TransferFunction/TFTexture.h"
 #include "TransferFunction/GTF.h"
 #include "TransferFunction/TriangularGTF.h"
@@ -32,6 +35,8 @@
 #define BOTTOM_RIGHT_IMAGE 6
 #define BOTTOM_LEFT_IMAGE  7
 #define NO_IMAGE           8 //Need to be placed at the end
+
+#define CHI2020
 
 namespace sereno
 {
@@ -129,9 +134,10 @@ namespace sereno
             ColorGridMaterial*        m_colorGridMtl;    /*!< The color grid material for the VTK StructuredGridPoints*/
             SimpleTextureMaterial*    m_3dTextureMtl;    /*!< Material to draw the 3d manip texture objects*/
             SimpleTextureMaterial*    m_notConnectedTextureMtl; /*!< Material to draw the not connected texture object*/
-            std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
+            PhongMaterial*            m_colorPhongMtl;   /*!< Material to draw default scivis gameobjects*/
             std::vector<GLuint>       m_sciVisTFTextures;/*!< The TF texture used for Scientific Visualization*/
-
+            std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
+            std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualziation*/
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
             SciVis*              m_currentVis      = NULL; /*!< The current visualization*/

@@ -355,7 +355,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             metaData.getPrivateState().addListener(snapEvent);
             m_sdImages.put(sd, snapImg);
 
-            publicIcon.setOnTouchListener(new View.OnTouchListener() {
+            /*publicIcon.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
                     if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
@@ -371,7 +371,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                         metaData.setVisibility(SubDataset.VISIBILITY_PUBLIC);
                     return true;
                 }
-            });
+            });*/
             metaData.setVisibility(metaData.getVisibility());
 
             if(m_model.getCurrentSubDataset() == null)
