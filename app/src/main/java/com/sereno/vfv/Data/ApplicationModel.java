@@ -306,27 +306,24 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void removeDataset(Dataset dataset)
     {
         //First remove the subdatasets
-        for(SubDataset sd : dataset.getSubDatasets())
+        for(int i = 0; i < dataset.getNbSubDataset(); i++)
         {
-            dataset.removeSubDataset(sd);
+            dataset.removeSubDataset(dataset.getSubDataset(i));
         }
 
         //Then the dataset in itself
-        if(m_vtkDatasets.contains(dataset))
+        if(m_datasets.contains(dataset))
         {
             for(IDataCallback clbk : m_listeners)
                 clbk.onRemoveDataset(this, dataset);
-            m_vtkDatasets.remove(dataset);
             m_datasets.remove(dataset);
         }
 
+        if(m_vtkDatasets.contains(dataset))
+            m_vtkDatasets.remove(dataset);
+
         else if(m_binaryDatasets.contains(dataset))
-        {
-            for(IDataCallback clbk : m_listeners)
-                clbk.onRemoveDataset(this, dataset);
             m_binaryDatasets.remove(dataset);
-            m_datasets.remove(dataset);
-        }
     }
 
     /**@brief Set the RangeColorData model being used to clamp subdatasets color displayed

@@ -129,7 +129,7 @@ public class SocketManager
         @Override
         public void run()
         {
-            byte[] buf = new byte[1024];
+            byte[] buf = new byte[65536];
 
             while(!m_isClosed)
             {
@@ -162,19 +162,12 @@ public class SocketManager
                         continue;
                     }
                 }
-                catch(EOFException e)
+                catch(Exception e)
                 {
                     synchronized (this)
                     {
                         close();
                     }
-                }
-                catch(IOException io)
-                {
-                }
-                catch(InterruptedException e)
-                {
-                    e.printStackTrace();
                 }
             }
         }

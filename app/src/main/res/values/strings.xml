@@ -22,4 +22,7 @@
     <string name="wimPointing">WIM technique</string>
     <string name="wimRayPointing">WIM+Ray technique</string>
     <string name="gogoPointing">GoGo technique</string>
+    <string name="endBreak">End the break</string>
+    <string name="endBreakDialog">Are you sure you want to stop the break?</string>
+    <string name="endTrainingDialog">Are you sure you want to quit the training session?</string>
 </resources>

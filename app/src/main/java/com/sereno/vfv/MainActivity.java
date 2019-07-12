@@ -575,10 +575,19 @@ public class MainActivity extends AppCompatActivity
     {
         if(data != null && data.getCurrentStudyID() != 0) //Not the training session
         {
-            m_menu.findItem(R.id.selectPointing_item).setVisible(false);
-            m_menu.findItem(R.id.nextStep_item).setVisible(false);
-            m_chi2020Started = true;
-            m_model.setCurrentPointingTechnique(data.getPointingID());
+            if(data.getCurrentTrialID() == -1) //Break
+            {
+                MenuItem nextStep = m_menu.findItem(R.id.nextStep_item);
+                nextStep.setVisible(true);
+                nextStep.setTitle(R.string.endBreak);
+            }
+            else
+            {
+                m_menu.findItem(R.id.selectPointing_item).setVisible(false);
+                m_menu.findItem(R.id.nextStep_item).setVisible(false);
+                m_chi2020Started = true;
+                m_model.setCurrentPointingTechnique(data.getPointingID());
+            }
         }
         else //Issue, restore everything
         {
@@ -808,7 +817,7 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    /** Open an alert dialog to confirm to quit the training stage*/
+    /** Open an alert dialog to confirm to quit the training session or break stage*/
     private void openQuitTrainingDialog()
     {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -826,8 +835,9 @@ public class MainActivity extends AppCompatActivity
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Are you sure you want to quit the training?").setPositiveButton("Yes", dialogClickListener)
-                                                                         .setNegativeButton("No",  dialogClickListener).show();
+        builder.setMessage(((m_model.getTrialDataCHI2020() == null || m_model.getTrialDataCHI2020().getCurrentStudyID() == 0) ? R.string.endTrainingDialog: R.string.endBreakDialog))
+               .setPositiveButton("Yes", dialogClickListener)
+               .setNegativeButton("No",  dialogClickListener).show();
     }
 
     /** \brief Dialog about opening a new dataset */

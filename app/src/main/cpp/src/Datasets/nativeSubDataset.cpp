@@ -46,8 +46,13 @@ JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxAmplitu
 JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(JNIEnv* env, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
+    if(sd == NULL)
+        return NULL;
     Snapshot* snap = sd->getSnapshot();
     if(snap == NULL)
+        return NULL;
+
+    if(env == NULL)
         return NULL;
 
     //Create the java array

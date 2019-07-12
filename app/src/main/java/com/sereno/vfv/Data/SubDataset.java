@@ -84,6 +84,8 @@ public class SubDataset
 
     public Object clone()
     {
+        if(m_ptr == 0)
+            return null;
         return new SubDataset(nativeClone(m_ptr), m_parent);
     }
 
@@ -105,6 +107,8 @@ public class SubDataset
      * @return true if in a valid state, false otherwise*/
     public boolean isValid()
     {
+        if(m_ptr == 0)
+            return false;
         return nativeIsValid(m_ptr);
     }
 
@@ -112,6 +116,8 @@ public class SubDataset
      * @return the minimum amplitude found in this SubDataset*/
     public float getMinAmplitude()
     {
+        if(m_ptr == 0)
+            return 0;
         return nativeGetMinAmplitude(m_ptr);
     }
 
@@ -119,6 +125,8 @@ public class SubDataset
      * @return the maximum amplitude found in this SubDataset*/
     public float getMaxAmplitude()
     {
+        if(m_ptr == 0)
+            return 1.0f;
         return nativeGetMaxAmplitude(m_ptr);
     }
 
@@ -126,20 +134,37 @@ public class SubDataset
      * @return the snapshot of the subdataset*/
     public Bitmap getSnapshot()
     {
+        if(m_ptr == 0)
+            return null;
         return nativeGetSnapshot(m_ptr);
     }
 
     /** Get the rotation quaternion components. In order: w, i, j, k
      * @return the rotation quaternion components*/
-    public float[] getRotation() {return nativeGetRotation(m_ptr);}
+    public float[] getRotation()
+    {
+        if(m_ptr == 0)
+            return null;
+        return nativeGetRotation(m_ptr);
+    }
 
     /** Get the 3D position components. In order: x, y, z
      * @return the position quaternion components*/
-    public float[] getPosition() {return nativeGetPosition(m_ptr);}
+    public float[] getPosition()
+    {
+        if(m_ptr == 0)
+            return null;
+        return nativeGetPosition(m_ptr);
+    }
 
     /** Get the 3D scaling components. In order: x, y, z
      * @return the 3D scaling components*/
-    public float[] getScale() {return nativeGetScale(m_ptr);}
+    public float[] getScale()
+    {
+        if(m_ptr == 0)
+            return null;
+        return nativeGetScale(m_ptr);
+    }
 
     /** Get the native pointer of the SubDataset
      * @return the native pointer*/
@@ -153,6 +178,8 @@ public class SubDataset
      * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded*/
     public void setClamping(float min, float max)
     {
+        if(m_ptr == 0)
+            return;
         nativeSetClamping(m_ptr, min, max);
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onClampingChange(this, min, max);
@@ -162,6 +189,8 @@ public class SubDataset
      * @return the current minimum clamping color  being displayed*/
     public float getMinClampingColor()
     {
+        if(m_ptr == 0)
+            return 0;
         return nativeGetMinClampingColor(m_ptr);
     }
 
@@ -169,6 +198,8 @@ public class SubDataset
      * @return the current maximum clamping color  being displayed*/
     public float getMaxClampingColor()
     {
+        if(m_ptr == 0)
+            return 1.0f;
         return nativeGetMaxClampingColor(m_ptr);
     }
 
@@ -177,6 +208,8 @@ public class SubDataset
      * @return the current color mode being displayed*/
     public int getColorMode()
     {
+        if(m_ptr == 0)
+            return ColorMode.RAINBOW;
         return nativeGetColorMode(m_ptr);
     }
 
@@ -192,6 +225,8 @@ public class SubDataset
      * @param quaternion the new rotation to apply (w, x, y, z)*/
     public void setRotation(float[] quaternion)
     {
+        if(m_ptr == 0)
+            return;
         nativeSetRotation(m_ptr, quaternion);
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onRotationEvent(this, quaternion);
@@ -201,6 +236,8 @@ public class SubDataset
      * @param position the new position to apply*/
     public void setPosition(float[] position)
     {
+        if(m_ptr == 0)
+            return;
         nativeSetPosition(m_ptr, position);
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onPositionEvent(this, position);
@@ -210,6 +247,8 @@ public class SubDataset
      * @param scale the new scale to apply*/
     public void setScale(float[] scale)
     {
+        if(m_ptr == 0)
+            return;
         nativeSetScale(m_ptr, scale);
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onScaleEvent(this, scale);
@@ -219,6 +258,8 @@ public class SubDataset
      * @return the SubDataset name*/
     public String getName()
     {
+        if(m_ptr == 0)
+            return "";
         return nativeGetName(m_ptr);
     }
 
@@ -251,6 +292,7 @@ public class SubDataset
 
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onRemove(this);
+
         m_ptr = 0;
     }
 
@@ -269,6 +311,8 @@ public class SubDataset
     /** Free the internal data. Do that only on CLONED SubDataset*/
     public void free()
     {
+        if(m_ptr == 0)
+            return;
         nativeDelPtr(m_ptr);
     }
 

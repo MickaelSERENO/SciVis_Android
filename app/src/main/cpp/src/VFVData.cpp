@@ -282,6 +282,8 @@ namespace sereno
     void VFVData::sendSnapshotEvent(SubDataset* sd)
     {
         jobject bitmap = Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(jniMainThread, NULL, (jlong)sd);
+        if(bitmap == NULL || m_jSubDatasetMap[sd] == NULL)
+            return;
         jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onSnapshotEvent, bitmap);
         jniMainThread->DeleteLocalRef(bitmap);
     }

@@ -165,7 +165,7 @@ public class MessageBuffer
     public void push(byte[] buffer, int readSize)
     {
         int bufPos = 0;
-        while(true)
+        while(bufPos < readSize)
         {
             //If no current message -> fetch the next message type
             if(m_curMsg == null)
@@ -181,12 +181,12 @@ public class MessageBuffer
                 continue;
 
             //Read the data
-            while(m_curMsg != null && m_curMsg.cursor <= m_curMsg.getMaxCursor())
+            while(m_curMsg != null && m_curMsg.cursor <= m_curMsg.getMaxCursor() && bufPos < readSize)
             {
                 switch(m_curMsg.getCurrentType())
                 {
                     case 's':
-                     {
+                    {
                         ReadString val = readString(buffer, bufPos, readSize);
                         bufPos = val.bufOff;
                         if (!val.valid)
@@ -233,61 +233,65 @@ public class MessageBuffer
                 }
             }
 
-            //When the message is finished, send it
-            switch(m_curMsg.getType())
+            if(m_curMsg != null && m_curMsg.cursor > m_curMsg.getMaxCursor())
             {
-                case GET_ACK_END_TRAINING:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onEmptyMessage((EmptyMessage)m_curMsg);
-                    break;
-                case GET_ADD_VTK_DATASET:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onAddVTKDatasetMessage((AddVTKDatasetMessage) m_curMsg);
-                    break;
-                case GET_ROTATE_DATASET:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onRotateDatasetMessage((RotateDatasetMessage) m_curMsg);
-                    break;
-                case GET_MOVE_DATASET:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onMoveDatasetMessage((MoveDatasetMessage) m_curMsg);
-                    break;
-                case GET_HEADSET_BINDING_INFO:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onHeadsetBindingInfoMessage((HeadsetBindingInfoMessage) m_curMsg);
-                    break;
-                case GET_HEADSETS_STATUS:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onHeadsetsStatusMessage((HeadsetsStatusMessage) m_curMsg);
-                    break;
-                case GET_SUBDATASET_OWNER:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage) m_curMsg);
-                    break;
-                case GET_SCALE_DATASET:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onScaleDatasetMessage((ScaleDatasetMessage)m_curMsg);
-                    break;
-                case GET_SET_VISIBILITY_DATASET:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onSetVisibility((VisibilityMessage)m_curMsg);
-                    break;
-                case GET_ANCHOR_ANNOTATION:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onAnchorAnnotation((AnchorAnnotationMessage)m_curMsg);
-                    break;
-                case GET_CLEAR_ANNOTATIONS:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onClearAnnotations((ClearAnnotationsMessage) m_curMsg);
-                    break;
-                case GET_NEXT_TRIAL_DATA_CHI2020:
-                    for(IMessageBufferCallback clbk : m_listeners)
-                        clbk.onNextTrialDataCHI2020((TrialDataCHI2020Message)m_curMsg);
-                    break;
-                default:
-                    Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
+                //When the message is finished, send it
+                switch (m_curMsg.getType()) {
+                    case GET_ACK_END_TRAINING:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onEmptyMessage((EmptyMessage) m_curMsg);
+                        break;
+                    case GET_ADD_VTK_DATASET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAddVTKDatasetMessage((AddVTKDatasetMessage) m_curMsg);
+                        break;
+                    case GET_ROTATE_DATASET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onRotateDatasetMessage((RotateDatasetMessage) m_curMsg);
+                        break;
+                    case GET_MOVE_DATASET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onMoveDatasetMessage((MoveDatasetMessage) m_curMsg);
+                        break;
+                    case GET_HEADSET_BINDING_INFO:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onHeadsetBindingInfoMessage((HeadsetBindingInfoMessage) m_curMsg);
+                        break;
+                    case GET_HEADSETS_STATUS:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onHeadsetsStatusMessage((HeadsetsStatusMessage) m_curMsg);
+                        break;
+                    case GET_SUBDATASET_OWNER:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage) m_curMsg);
+                        break;
+                    case GET_SCALE_DATASET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onScaleDatasetMessage((ScaleDatasetMessage) m_curMsg);
+                        break;
+                    case GET_SET_VISIBILITY_DATASET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSetVisibility((VisibilityMessage) m_curMsg);
+                        break;
+                    case GET_ANCHOR_ANNOTATION:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAnchorAnnotation((AnchorAnnotationMessage) m_curMsg);
+                        break;
+                    case GET_CLEAR_ANNOTATIONS:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onClearAnnotations((ClearAnnotationsMessage) m_curMsg);
+                        break;
+                    case GET_NEXT_TRIAL_DATA_CHI2020:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onNextTrialDataCHI2020((TrialDataCHI2020Message) m_curMsg);
+                        break;
+                    default:
+                        Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
+                        break;
+                }
+
+                m_curMsg = null;
             }
-            m_curMsg = null;
         }
     }
 
@@ -366,9 +370,9 @@ public class MessageBuffer
         val.bufOff = offset;
         val.valid  = false;
 
-        if(readSize+m_dataPos - offset < 2)
+        if(readSize - offset < 2 - m_dataPos)
         {
-            for(int i = offset; i < readSize - offset; i++, val.bufOff++)
+            for(int i = offset; i < readSize; i++, val.bufOff++)
                 m_data[m_dataPos++] = data[i];
             return val;
         }
@@ -396,7 +400,7 @@ public class MessageBuffer
 
         if(readSize + m_dataPos - offset < 4)
         {
-            for(int i = offset; i < readSize - offset; i++, val.bufOff++)
+            for(int i = offset; i < readSize; i++, val.bufOff++)
                 m_data[m_dataPos++] = data[i];
             return val;
         }
