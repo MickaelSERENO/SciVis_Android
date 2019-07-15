@@ -7,4 +7,9 @@
         <item>Warm-Cold CIELUV</item>
         <item>Warm-Cold MSH</item>
     </string-array>
+
+    <string-array name="handedness">
+        <item>Left</item>
+        <item>Right</item>
+    </string-array>
 </resources>

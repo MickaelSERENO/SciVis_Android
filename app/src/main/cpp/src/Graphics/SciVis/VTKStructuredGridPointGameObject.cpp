@@ -138,8 +138,8 @@ namespace sereno
         m_glVersion = renderer->getGLESVersion();
 
         setScale(glm::vec3(1.0f, 1.0f, 1.0f));
-
         setRotate(m_model->getGlobalRotate());
+        setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
     }
 
     void VTKStructuredGridPointGameObject::onTFChange()

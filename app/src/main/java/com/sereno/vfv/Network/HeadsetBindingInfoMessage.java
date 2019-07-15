@@ -14,6 +14,9 @@ public class HeadsetBindingInfoMessage extends ServerMessage
     /** Is this headset the first headset connected?*/
     private boolean m_firstConnected;
 
+    /** The handedness*/
+    private int m_handedness;
+
     /** The tablet ID*/
     private int m_tabletID;
 
@@ -25,6 +28,8 @@ public class HeadsetBindingInfoMessage extends ServerMessage
         else if(cursor == 1)
             m_headsetColor = value;
         else if(cursor == 3)
+            m_handedness = value;
+        else if(cursor == 4)
             m_tabletID = value;
         super.pushValue(value);
     }
@@ -34,7 +39,7 @@ public class HeadsetBindingInfoMessage extends ServerMessage
     {
         if(cursor == 2)
             m_tabletConnected = (v!=0);
-        else if(cursor == 4)
+        else if(cursor == 5)
             m_firstConnected = (v!=0);
         super.pushValue(v);
     }
@@ -44,9 +49,9 @@ public class HeadsetBindingInfoMessage extends ServerMessage
     {
         if(cursor == 0)
             return 'I';
-        else if(cursor == 1 || cursor == 3)
+        else if(cursor == 1 || cursor == 3 || cursor == 4)
             return 'I';
-        else if(cursor == 2 || cursor == 4)
+        else if(cursor == 2 || cursor == 5)
             return 'b';
         return 0;
     }
@@ -54,7 +59,7 @@ public class HeadsetBindingInfoMessage extends ServerMessage
     @Override
     public int getMaxCursor()
     {
-        return 4;
+        return 5;
     }
 
     /** Get the headset ID bound with this tablet

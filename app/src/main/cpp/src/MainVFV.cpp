@@ -379,6 +379,7 @@ namespace sereno
 
                 if(sd != it.first)
                     continue;
+
                 for(auto sciVis : m_sciVis)
                 {
                     if(sciVis->getModel() == metaData->getPublicSubDataset())
@@ -432,6 +433,8 @@ namespace sereno
                 if(m_currentVis != NULL)
                     m_currentVis->update(&m_surfaceData->renderer);
 
+                m_surfaceData->renderer.render();
+
                 //Update the snapshot. It will have "one frame" behind the current one... never mind!
                 if(m_currentVis)
                 {
@@ -466,13 +469,12 @@ namespace sereno
                         m_snapshotCnt = 0;
                     }
                 }
-                m_mainData->unlock();
-                m_surfaceData->renderer.render();
+
             }
-            else
+            m_mainData->unlock();
+            if(!visible)
             {
                 usleep(2.0e3);
-                m_mainData->unlock();
             }
             m_surfaceData->renderer.swapBuffers();
         }

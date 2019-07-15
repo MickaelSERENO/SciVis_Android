@@ -74,14 +74,17 @@ public class SocketManager
     /** The port of the server*/
     private int    m_serverPort;
 
-    /** The socket's thread*/
+    /** The socket's write thread*/
     private Thread  m_writeThread;
+    /** The socket's read thread. This thread also handles disconnections.*/
     private Thread  m_readThread;
     /** Is the socket closed ?*/
     private boolean m_isClosed = false;
 
     /** The Hololens IP to bind*/
     private String  m_hololensIP = null;
+    /** The user's handedness (default: right)*/
+    private int     m_handedness = ApplicationModel.HANDEDNESS_RIGHT;
     /** The tablet ID (see config.json)*/
     private int     m_tabletID = 0;
 
@@ -94,6 +97,7 @@ public class SocketManager
     /** The queue buffer storing data to SEND*/
     private ArrayDeque<byte[]> m_queueSendBuf = new ArrayDeque<>();
 
+    /** List of listener to call when the socket status changes*/
     private ArrayList<ISocketManagerListener> m_listeners = new ArrayList<>();
 
 
@@ -253,10 +257,12 @@ public class SocketManager
 
     /** Set Ident information
      * @param hololensIP the hololens IP bound to the tablet. Will be resent at each disconnection
+     * @param handedness the user's handedness (left or right. See ApplicationModel.HANDEDNESS_*)
      * @param tabletID the tablet ID*/
-    public synchronized void setIdentInformation(String hololensIP, int tabletID)
+    public synchronized void setIdentInformation(String hololensIP, int handedness, int tabletID)
     {
         m_hololensIP        = hololensIP;
+        m_handedness        = handedness;
         m_isBoundToHololens = false;
         m_tabletID          = tabletID;
     }
@@ -307,12 +313,13 @@ public class SocketManager
     /** Get the IDENT_TABLET byte array to send*/
     private byte[] getIdentData()
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+4+m_hololensIP.length()+4);
+        ByteBuffer buf = ByteBuffer.allocate(2+4+4+m_hololensIP.length()+4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(IDENT_TABLET);
         buf.putInt(m_hololensIP.length());
         buf.put(m_hololensIP.getBytes(StandardCharsets.US_ASCII));
+        buf.putInt(m_handedness);
         buf.putInt(m_tabletID);
 
         return buf.array();

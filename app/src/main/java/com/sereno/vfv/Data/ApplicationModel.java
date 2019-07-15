@@ -128,6 +128,10 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public static final int POINTING_WIM_POINTER = 2;
     public static final int POINTING_MANUAL      = 3;
 
+    /** The handedness values*/
+    public static final int HANDEDNESS_LEFT = 0;
+    public static final int HANDEDNESS_RIGHT  = 1;
+
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
     private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open binary Datasets */
     private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + binary)*/

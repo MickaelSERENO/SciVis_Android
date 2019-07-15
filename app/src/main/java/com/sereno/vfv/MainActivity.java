@@ -140,7 +140,8 @@ public class MainActivity extends AppCompatActivity
                     public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
                     {
                         EditText txt = (EditText)view.findViewById(R.id.hololensIP);
-                        m_socket.setIdentInformation(txt.getText().toString(), m_model.getConfiguration().getTabletID());
+                        Spinner handedness = (Spinner)view.findViewById(R.id.handedness);
+                        m_socket.setIdentInformation(txt.getText().toString(), (int)handedness.getSelectedItemId(), m_model.getConfiguration().getTabletID());
                     }
 
                     @Override
@@ -750,7 +751,6 @@ public class MainActivity extends AppCompatActivity
 
         m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
         m_model.setRangeColorModel(m_rangeColorView.getModel());
-
 
         //Configure the spinner color mode
         final Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);

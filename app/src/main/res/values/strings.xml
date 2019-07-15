@@ -13,6 +13,7 @@
     <string name="options">Options</string>
     <string name="serverIP">Server IP</string>
     <string name="hololensIP">Hololens IP</string>
+    <string name="handedness">Handedness</string>
     <string name="openVTKTitle">Select the wanted fields</string>
     <string name="headsetColor">Headset color</string>
     <string name="pendingAnnotation">Anchor the annotation using the HMD</string>
