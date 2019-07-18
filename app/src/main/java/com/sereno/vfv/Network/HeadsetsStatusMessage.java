@@ -44,6 +44,9 @@ public class HeadsetsStatusMessage extends ServerMessage
 
         /** The headset start position when the pointing technique started*/
         public float[] pointingHeadsetStartPosition = new float[3];
+
+        /** The headset start orientation when the pointing technique started*/
+        public float[] pointingHeadsetStartOrientation = new float[4];
     }
 
     /** Array of the headset status*/
@@ -52,8 +55,8 @@ public class HeadsetsStatusMessage extends ServerMessage
     @Override
     public void pushValue(float value)
     {
-        int headset = (cursor-1)/20;
-        int id      = (cursor-1)%20;
+        int headset = (cursor-1)/24;
+        int id      = (cursor-1)%24;
 
         if(id < 6) //Position
             m_status[headset].position[id - 3] = value;
@@ -63,6 +66,8 @@ public class HeadsetsStatusMessage extends ServerMessage
             m_status[headset].pointingLocalSDPosition[id-14] = value;
         else if(id < 20)
             m_status[headset].pointingHeadsetStartPosition[id-17] = value;
+        else if(id < 24)
+            m_status[headset].pointingHeadsetStartOrientation[id-20] = value;
 
         super.pushValue(value);
     }
@@ -79,8 +84,8 @@ public class HeadsetsStatusMessage extends ServerMessage
         }
         else
         {
-            int id = (cursor-1)%20;
-            int headset = (cursor-1)/20;
+            int id = (cursor-1)%24;
+            int headset = (cursor-1)/24;
 
             if(id == 0)
                 m_status[headset].id = value;
@@ -101,8 +106,8 @@ public class HeadsetsStatusMessage extends ServerMessage
     @Override
     public void pushValue(byte value)
     {
-        int id = (cursor-1)%20;
-        int headset = (cursor-1)/20;
+        int id = (cursor-1)%24;
+        int headset = (cursor-1)/24;
 
         if(id == 13)
             m_status[headset].pointingInPublic = value != 0;
@@ -117,7 +122,7 @@ public class HeadsetsStatusMessage extends ServerMessage
             return (byte)'I';
         else
         {
-            int id = (cursor-1) % 20;
+            int id = (cursor-1) % 24;
 
             if(id < 3) //Color / ID / current action
                 return (byte)'I';
@@ -139,12 +144,14 @@ public class HeadsetsStatusMessage extends ServerMessage
 
             else if(id < 20)
                 return (byte)'f';
+            else if(id < 24)
+                return (byte)'f';
         }
         return 0;
     }
 
     @Override
-    public int getMaxCursor() { return (m_status != null ? m_status.length*20: 0); }
+    public int getMaxCursor() { return (m_status != null ? m_status.length*24: 0); }
 
     /** Get the headsets status parsed
      * @return array of headsets status parsed*/

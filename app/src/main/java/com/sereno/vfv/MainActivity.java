@@ -564,8 +564,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
     {
-        for(Dataset d : m_model.getDatasets())
-            resetPrivateState(d);
+        /*for(Dataset d : m_model.getDatasets())
+            resetPrivateState(d);*/
     }
 
     @Override
