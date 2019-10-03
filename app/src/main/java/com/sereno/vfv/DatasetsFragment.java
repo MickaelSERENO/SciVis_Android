@@ -30,7 +30,6 @@ import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
-import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 import com.sereno.view.TreeView;
@@ -196,9 +195,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_datasetTrees.get(dataset).setParent(null, -1);
         m_datasetTrees.remove(dataset);
     }
-
-    @Override
-    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data) {}
 
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}

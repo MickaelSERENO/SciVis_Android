@@ -25,7 +25,6 @@ import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
@@ -145,8 +144,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
             if(m_model.getPendingSubDatasetForAnnotation() != null)
                 onPendingAnnotation(m_model, m_model.getPendingSubDatasetForAnnotation());
-
-            onUpdateTrialDataCHI2020(m_model, m_model.getTrialDataCHI2020());
         }
     }
 
@@ -290,21 +287,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         //Remove the dataset entry
         m_datasetTrees.get(dataset).setParent(null, 0);
         m_datasetTrees.remove(dataset);
-    }
-
-    @Override
-    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data)
-    {
-        //Change the visibility of the "add" button
-        boolean visibility = (data == null || data.getCurrentStudyID() == 0) || //Training
-                             (data.getCurrentStudyID() == 1 && (data.getCurrentTabletID() == model.getConfiguration().getTabletID())) || //Study 1
-                             (data.getCurrentStudyID() == 2 && (data.getCurrentTabletID() == model.getConfiguration().getTabletID()));   //Study 2
-
-        for (Tree<View> t : m_subDatasetTrees.values())
-        {
-            View v = t.value;
-            v.findViewById(R.id.annotation_key_entry_add).setVisibility(visibility ? View.VISIBLE : View.GONE);
-        }
     }
 
     @Override

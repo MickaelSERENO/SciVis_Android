@@ -12,9 +12,6 @@
             <item android:id="@+id/connect_item"
                   app:showAsAction="ifRoom"
                   android:title="@string/connect"/>
-            <item android:id="@+id/nextStep_item"
-                app:showAsAction="ifRoom"
-                android:title="@string/endTraining"/>
             <item android:id="@+id/selectPointing_item"
                   android:title="@string/selectPointing"
                   app:showAsAction="ifRoom">

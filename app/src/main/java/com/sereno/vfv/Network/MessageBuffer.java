@@ -94,10 +94,6 @@ public class MessageBuffer
         /** Called when the message "GET_CLEAR_ANNOTATIONS" has been successfully parsed
          * @param msg the message parsed*/
         void onClearAnnotations(ClearAnnotationsMessage msg);
-
-        /** Called when the message "GET_NEXT_TRIAL_DATA_CHI2020" has been successfully parsed
-         * @param msg the message parsed*/
-        void onNextTrialDataCHI2020(TrialDataCHI2020Message msg);
     }
 
     /** No current type received*/
@@ -132,12 +128,6 @@ public class MessageBuffer
 
     /** Clear all the annotations for a particular dataset*/
     public static final int GET_CLEAR_ANNOTATIONS       = 13;
-
-    /** The next trial data*/
-    public static final int GET_NEXT_TRIAL_DATA_CHI2020 = 14;
-
-    /** Acknowledge of the end of the training session*/
-    public static final int GET_ACK_END_TRAINING        = 15;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -237,10 +227,6 @@ public class MessageBuffer
             {
                 //When the message is finished, send it
                 switch (m_curMsg.getType()) {
-                    case GET_ACK_END_TRAINING:
-                        for (IMessageBufferCallback clbk : m_listeners)
-                            clbk.onEmptyMessage((EmptyMessage) m_curMsg);
-                        break;
                     case GET_ADD_VTK_DATASET:
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onAddVTKDatasetMessage((AddVTKDatasetMessage) m_curMsg);
@@ -280,10 +266,6 @@ public class MessageBuffer
                     case GET_CLEAR_ANNOTATIONS:
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onClearAnnotations((ClearAnnotationsMessage) m_curMsg);
-                        break;
-                    case GET_NEXT_TRIAL_DATA_CHI2020:
-                        for (IMessageBufferCallback clbk : m_listeners)
-                            clbk.onNextTrialDataCHI2020((TrialDataCHI2020Message) m_curMsg);
                         break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
@@ -342,14 +324,8 @@ public class MessageBuffer
             case GET_ANCHOR_ANNOTATION:
                 m_curMsg = new AnchorAnnotationMessage();
                 break;
-            case GET_ACK_END_TRAINING:
-                m_curMsg = new EmptyMessage();
-                break;
             case GET_CLEAR_ANNOTATIONS:
                 m_curMsg = new ClearAnnotationsMessage();
-                break;
-            case GET_NEXT_TRIAL_DATA_CHI2020:
-                m_curMsg = new TrialDataCHI2020Message();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

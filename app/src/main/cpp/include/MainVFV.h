@@ -36,8 +36,6 @@
 #define BOTTOM_LEFT_IMAGE  7
 #define NO_IMAGE           8 //Need to be placed at the end
 
-#define CHI2020
-
 namespace sereno
 {
     /** Represent the type of changement that is attached to a subdataset*/

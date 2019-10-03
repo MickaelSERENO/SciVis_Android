@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.RangeColorData;
 
@@ -70,11 +69,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
          * @param model the application model
          * @param dataset the Dataset to remove*/
         void onRemoveDataset(ApplicationModel model, Dataset dataset);
-
-        /** Method called when the CHI2020 trial data is being updated
-         * @param model the app data
-         * @param data the new information*/
-        void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data);
 
         /** Method called when the pointing technique is being updated
          * @param model the app data
@@ -159,9 +153,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     /** The subdataset waiting to be added*/
     private SubDataset m_pendingSubDataset = null;
-
-    /** The current trial data for CHI2020 user study*/
-    private TrialDataCHI2020Message m_trialDataCHI2020 = null;
 
     private int m_curPointingTechnique = POINTING_MANUAL;
 
@@ -467,22 +458,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         for(IDataCallback clbk : m_listeners)
             clbk.onEndPendingAnnotation(this, m_pendingSubDataset, cancel);
         m_pendingSubDataset = null;
-    }
-
-    /** Set the current trial data for CHI2020
-     * @param data the new trial data for CHI2020 user study*/
-    public void setTrialDataCHI2020(TrialDataCHI2020Message data)
-    {
-        for(IDataCallback clbk : m_listeners)
-            clbk.onUpdateTrialDataCHI2020(this, data);
-        m_trialDataCHI2020 = data;
-    }
-
-    /** Get the trial data for CHI2020 user study
-     * @return the current trial data*/
-    public TrialDataCHI2020Message getTrialDataCHI2020()
-    {
-        return m_trialDataCHI2020;
     }
 
     /** Set the current pointing technique to use

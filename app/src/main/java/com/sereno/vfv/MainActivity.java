@@ -49,7 +49,6 @@ import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
-import com.sereno.vfv.Network.TrialDataCHI2020Message;
 import com.sereno.vfv.Network.VisibilityMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
@@ -152,10 +151,6 @@ public class MainActivity extends AppCompatActivity
                 dialogFragment.show(getFragmentManager(), "dialog");
                 return true;
             }
-
-            case R.id.nextStep_item:
-                openQuitTrainingDialog();
-                break;
 
             case R.id.manualPointing_item:
                 m_model.setCurrentPointingTechnique(ApplicationModel.POINTING_MANUAL);
@@ -319,11 +314,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
-        if(msg.getType() == MessageBuffer.GET_ACK_END_TRAINING)
-        {
-            if(m_menu != null)
-                m_menu.findItem(R.id.nextStep_item).setVisible(false); //Disable the "end of training" item
-        }
     }
 
     @Override
@@ -511,12 +501,6 @@ public class MainActivity extends AppCompatActivity
                 if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
                 {
                     m_model.endPendingAnnotation(false);
-
-                    //Send the next trial of CHI
-                    if((m_model.getTrialDataCHI2020() != null) &&
-                       (m_model.getTrialDataCHI2020().getCurrentStudyID() == 1 || m_model.getTrialDataCHI2020().getCurrentStudyID() == 2) &&
-                       (m_model.getTrialDataCHI2020().getCurrentTabletID() == m_model.getConfiguration().getTabletID()))
-                        m_socket.push(SocketManager.createNextTrialEvent());
                 }
             }
         });
@@ -543,17 +527,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onNextTrialDataCHI2020(final TrialDataCHI2020Message msg)
-    {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                m_model.setTrialDataCHI2020(msg);
-            }
-        });
-    }
-
-    @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {}
 
@@ -570,34 +543,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRemoveDataset(ApplicationModel model, Dataset dataset) {}
-
-    @Override
-    public void onUpdateTrialDataCHI2020(ApplicationModel model, TrialDataCHI2020Message data)
-    {
-        if(data != null && data.getCurrentStudyID() != 0) //Not the training session
-        {
-            if(data.getCurrentTrialID() == -1) //Break
-            {
-                MenuItem nextStep = m_menu.findItem(R.id.nextStep_item);
-                nextStep.setVisible(true);
-                nextStep.setTitle(R.string.endBreak);
-            }
-            else
-            {
-                m_menu.findItem(R.id.selectPointing_item).setVisible(false);
-                m_menu.findItem(R.id.nextStep_item).setVisible(false);
-                m_chi2020Started = true;
-                m_model.setCurrentPointingTechnique(data.getPointingID());
-            }
-        }
-        else //Issue, restore everything
-        {
-            m_menu.findItem(R.id.selectPointing_item).setVisible(true);
-            m_menu.findItem(R.id.nextStep_item).setVisible(true);
-            m_chi2020Started = false;
-            m_model.setCurrentPointingTechnique(m_model.getCurrentPointingTechnique());
-        }
-    }
 
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt)
@@ -682,8 +627,7 @@ public class MainActivity extends AppCompatActivity
                     public void run() {
                         m_model.setBindingInfo(null);
                         m_model.setHeadsetsStatus(null);
-                        m_model.setTrialDataCHI2020(null);
-                        
+
                         //Clean every
                         while(m_model.getDatasets().size() > 0)
                             m_model.removeDataset(m_model.getDatasets().get(0));
@@ -815,29 +759,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view){openNewDataDialog();}
         });
-    }
-
-    /** Open an alert dialog to confirm to quit the training session or break stage*/
-    private void openQuitTrainingDialog()
-    {
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which){
-                    case DialogInterface.BUTTON_POSITIVE:
-                        m_socket.push(SocketManager.createNextTrialEvent());
-                        break;
-
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        break;
-                }
-            }
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(((m_model.getTrialDataCHI2020() == null || m_model.getTrialDataCHI2020().getCurrentStudyID() == 0) ? R.string.endTrainingDialog: R.string.endBreakDialog))
-               .setPositiveButton("Yes", dialogClickListener)
-               .setNegativeButton("No",  dialogClickListener).show();
     }
 
     /** \brief Dialog about opening a new dataset */
