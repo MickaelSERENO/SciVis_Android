@@ -10,7 +10,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sereno.Tree;
@@ -19,22 +18,12 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
-import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
-import com.sereno.vfv.Network.AddVTKDatasetMessage;
-import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.vfv.Network.MessageBuffer;
-import com.sereno.vfv.Network.MoveDatasetMessage;
-import com.sereno.vfv.Network.RotateDatasetMessage;
-import com.sereno.vfv.Network.ScaleDatasetMessage;
-import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
-import com.sereno.view.RangeColorData;
 import com.sereno.view.TreeView;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback
@@ -324,51 +313,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             //Snapshot event
             sd.addListener(snapEvent);
-
-            final SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-
-            metaData.addListener(new SubDatasetMetaData.ISubDatasetMetaDataListener() {
-                @Override
-                public void onSetVisibility(SubDatasetMetaData metaData, final int visibility)
-                {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(visibility == SubDataset.VISIBILITY_PUBLIC)
-                            {
-                                privateIcon.setVisibility(View.GONE);
-                                publicIcon.setVisibility(View.VISIBLE);
-                            }
-                            else
-                            {
-                                publicIcon.setVisibility(View.GONE);
-                                privateIcon.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-                }
-            });
-            metaData.getPrivateState().addListener(snapEvent);
             m_sdImages.put(sd, snapImg);
-
-            /*publicIcon.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                        metaData.setVisibility(SubDataset.VISIBILITY_PRIVATE);
-                    return true;
-                }
-            });
-
-            privateIcon.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                        metaData.setVisibility(SubDataset.VISIBILITY_PUBLIC);
-                    return true;
-                }
-            });*/
-            metaData.setVisibility(metaData.getVisibility());
 
             if(m_model.getCurrentSubDataset() == null)
                 m_model.setCurrentSubDataset(sd);

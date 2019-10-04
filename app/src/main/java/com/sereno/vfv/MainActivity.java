@@ -31,7 +31,6 @@ import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
-import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
@@ -49,7 +48,6 @@ import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
-import com.sereno.vfv.Network.VisibilityMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
@@ -61,7 +59,7 @@ import java.util.ArrayList;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
-                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, SubDatasetMetaData.ISubDatasetMetaDataListener,
+                          implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener,
                                      MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener,
                                      SocketManager.ISocketManagerListener
 {
@@ -173,7 +171,6 @@ public class MainActivity extends AppCompatActivity
 
     private DatasetIDBinding getDatasetIDBinding(SubDataset sd)
     {
-        sd = m_model.getSubDatasetMetaData(sd).getPublicState();
         Dataset parent       = null;
         int     subDatasetID = -1;
 
@@ -238,7 +235,7 @@ public class MainActivity extends AppCompatActivity
         {
             DatasetIDBinding idBinding = getDatasetIDBinding(sd);
             if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-                m_socket.push(SocketManager.createStartAnnotationEvent(idBinding, m_model.getCurrentPointingTechnique(), m_model.getSubDatasetMetaData(sd).getVisibility() == SubDataset.VISIBILITY_PUBLIC));
+                m_socket.push(SocketManager.createStartAnnotationEvent(idBinding, m_model.getCurrentPointingTechnique()));
         }
     }
 
@@ -259,33 +256,30 @@ public class MainActivity extends AppCompatActivity
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
-        int visibility = m_model.getSubDatasetMetaData(dataset).getPublicState() == dataset ? SubDataset.VISIBILITY_PUBLIC : SubDataset.VISIBILITY_PRIVATE;
 
         //If everything is correct, send the rotation event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createRotationEvent(idBinding, dataset.getRotation(), visibility));
+            m_socket.push(SocketManager.createRotationEvent(idBinding, dataset.getRotation()));
     }
 
     @Override
     public void onPositionEvent(SubDataset dataset, float[] position)
     {
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
-        int visibility = m_model.getSubDatasetMetaData(dataset).getPublicState() == dataset ? SubDataset.VISIBILITY_PUBLIC : SubDataset.VISIBILITY_PRIVATE;
 
         //If everything is correct, send the position event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createPositionEvent(idBinding, dataset.getPosition(), visibility));
+            m_socket.push(SocketManager.createPositionEvent(idBinding, dataset.getPosition()));
     }
 
     @Override
     public void onScaleEvent(SubDataset dataset, float[] scale)
     {
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
-        int visibility = m_model.getSubDatasetMetaData(dataset).getPublicState() == dataset ? SubDataset.VISIBILITY_PUBLIC : SubDataset.VISIBILITY_PRIVATE;
 
         //If everything is correct, send the rotation event
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createScaleEvent(idBinding, dataset.getScale(), visibility));
+            m_socket.push(SocketManager.createScaleEvent(idBinding, dataset.getScale()));
     }
 
     @Override
@@ -299,17 +293,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-    @Override
-    public void onSetVisibility(SubDatasetMetaData dataset, int visibility)
-    {
-        DatasetIDBinding idBinding = getDatasetIDBinding(dataset.getPublicState());
-
-        Log.i(TAG, "Sending new visibility : " + visibility);
-        //If everything is correct, send the visibility event
-        if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
-            m_socket.push(SocketManager.createVisibilityEvent(idBinding, visibility));
-    }
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -378,17 +361,15 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+            SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
 
-                if(sd != null)
-                {
-                    SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-                    sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
-                    //Remove and re add the listener for not ending in a while loop
-                    sd.removeListener(MainActivity.this);
-                        sd.setRotation(msg.getRotation());
-                    sd.addListener(MainActivity.this);
-                }
+            if(sd != null)
+            {
+                //Remove and re add the listener for not ending in a while loop
+                sd.removeListener(MainActivity.this);
+                    sd.setRotation(msg.getRotation());
+                sd.addListener(MainActivity.this);
+            }
             }
         });
     }
@@ -404,8 +385,6 @@ public class MainActivity extends AppCompatActivity
 
                 if(sd != null)
                 {
-                    SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-                    sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
                         sd.setPosition(msg.getPosition());
@@ -426,9 +405,6 @@ public class MainActivity extends AppCompatActivity
 
                 if(sd != null)
                 {
-                    SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-                    sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
-
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
                         sd.setScale(msg.getScale());
@@ -469,30 +445,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSetVisibility(final VisibilityMessage msg)
-    {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
-                if (sd != null) {
-                    SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-                    if (metaData != null)
-                        metaData.setVisibility(msg.getVisibility());
-                }
-            }
-        });
-    }
-
-    @Override
     public void onAnchorAnnotation(final AnchorAnnotationMessage msg)
     {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
-                SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-                sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
 
                 AnnotationData data = new AnnotationData(320, 160);
                 ApplicationModel.AnnotationMetaData annotMetaData = new ApplicationModel.AnnotationMetaData(sd, -1);
@@ -516,9 +474,6 @@ public class MainActivity extends AppCompatActivity
 
                 if(sd == null)
                     return;
-
-                SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-                sd = (msg.doneIntoPublicSpace() ? metaData.getPublicState() : metaData.getPrivateState());
 
                 while(sd.getAnnotations().size() > 0)
                     sd.removeAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
@@ -559,20 +514,6 @@ public class MainActivity extends AppCompatActivity
         //pt can be "-1"
         if(pt >= 0 && pt <= 3)
             itms[pt].setChecked(true);
-    }
-
-    /** Reset the private state of a given dataset
-     * @param d The dataset to reset*/
-    private void resetPrivateState(Dataset d)
-    {
-        for(SubDataset sd : d.getSubDatasets())
-        {
-            SubDatasetMetaData metaData = m_model.getSubDatasetMetaData(sd);
-            SubDataset privateSD = metaData.getPrivateState();
-            privateSD.setPosition(new float[]{0, 0, 0});
-            privateSD.setRotation(new float[]{1, 0, 0, 0});
-            privateSD.setScale(new float[]{1, 1, 1});
-        }
     }
 
     @Override
@@ -845,11 +786,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         for(SubDataset sd : d.getSubDatasets())
-        {
-            m_model.getSubDatasetMetaData(sd).getPublicState().addListener(this);
-            m_model.getSubDatasetMetaData(sd).getPrivateState().addListener(this);
-            m_model.getSubDatasetMetaData(sd).addListener(this);
-        }
+            sd.addListener(this);
     }
 
     static

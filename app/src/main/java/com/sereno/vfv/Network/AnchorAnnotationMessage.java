@@ -14,9 +14,6 @@ public class AnchorAnnotationMessage extends ServerMessage
     /**The headset ID*/
     private int m_headsetID;
 
-    /**Do this annotation belongs in the subdataset public space?*/
-    private boolean m_inPublic;
-
     /** The annotation's 3D position*/
     private float[] m_position = new float[3];
 
@@ -25,8 +22,6 @@ public class AnchorAnnotationMessage extends ServerMessage
     {
         if(cursor <= 3)
             return 'I';
-        else if(cursor == 4)
-            return 'b';
         return 'f';
     }
 
@@ -45,23 +40,16 @@ public class AnchorAnnotationMessage extends ServerMessage
     }
 
     @Override
-    public void pushValue(byte val)
-    {
-        m_inPublic = (val == 0 ? false : true);
-        super.pushValue(val);
-    }
-
-    @Override
     public void pushValue(float val)
     {
-        m_position[cursor-5] = val;
+        m_position[cursor-4] = val;
         super.pushValue(val);
     }
 
     @Override
     public int getMaxCursor()
     {
-        return 7;
+        return 6;
     }
 
     /** Get the dataset ID parsed
@@ -92,8 +80,4 @@ public class AnchorAnnotationMessage extends ServerMessage
     {
         return m_position;
     }
-
-    /** Was the new position given in the public space?
-     * @return true if in the public space, false if in the private space*/
-    public boolean doneIntoPublicSpace() {return m_inPublic;}
 }

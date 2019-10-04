@@ -8,7 +8,6 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
-import com.sereno.vfv.Data.SubDatasetMetaData;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -17,7 +16,7 @@ import com.sereno.view.AnnotationData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, SubDatasetMetaData.ISubDatasetMetaDataListener
+public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
 {
     /** VFVSurfaceView Listener interface.*/
     public interface IVFVSurfaceViewListener
@@ -155,14 +154,8 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         for(SubDataset sd : d.getSubDatasets())
         {
-            SubDatasetMetaData metaData = model.getSubDatasetMetaData(sd);
-            metaData.addListener(this);
-            metaData.getPublicState().addListener(this);
-            metaData.getPrivateState().addListener(this);
-            nativeInitSubDatasetMetaData(m_ptr,
-                                         metaData.getPublicState().getNativePtr(), metaData.getPublicState(),
-                                         metaData.getPrivateState().getNativePtr(), metaData.getPrivateState(),
-                                         metaData.getVisibility());
+            sd.addListener(this);
+            nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd);
         }
     }
 
@@ -207,12 +200,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-    @Override
-    public void onSetVisibility(SubDatasetMetaData metaData, int v)
-    {
-        nativeSetSubDatasetVisibility(m_ptr, metaData.getPublicState().getNativePtr(), v);
-    }
 
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously
@@ -291,18 +278,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param info the new binding information*/
     private native void nativeUpdateBindingInformation(long ptr, HeadsetBindingInfoMessage info);
 
-    /** Init the subdataset meta data information
+    /** Bind a native C++ SubDataset to its Java counter part
      * @param ptr the ptr associated with the main Argument
-     * @param sdPublicPtr the SubDataset public states native pointer
-     * @param sdPublic the Java SubDataset public states object
-     * @param sdPrivatePtr the SubDataset private states native pointer
-     * @param sdPrivate the Java SubDataset private states object
-     * @param visibility the current visibility*/
-    private native void nativeInitSubDatasetMetaData(long ptr, long sdPublicPtr, SubDataset sdPublic, long sdPrivatePtr, SubDataset sdPrivate, int visibility);
-
-    /** Set the subdataset visibility.
-     * @param ptr the ptr associated with the main Argument
-     * @param sdPtr the SubDataset public or private states native pointer
-     * @param visibility the current visibility*/
-    private native void nativeSetSubDatasetVisibility(long ptr, long sdPtr, int visibility);
+     * @param sdPtr the C++ SubDataset Ptr
+     * @param sdJava Its Java counter part*/
+    private native void nativeBindSubDataset(long ptr, long sdPtr, SubDataset sdJava);
 }

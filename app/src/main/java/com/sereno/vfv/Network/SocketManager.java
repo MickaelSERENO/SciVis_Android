@@ -401,17 +401,15 @@ public class SocketManager
     /** Create a Rotation event data to send to the server
      * @param ids the dataset and subdatasets IDs
      * @param qArr the array of the new quaternion to send (w, i, j, k)
-     * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
-    public static byte[] createRotationEvent(MainActivity.DatasetIDBinding ids, float[] qArr, int visibility)
+    public static byte[] createRotationEvent(MainActivity.DatasetIDBinding ids, float[] qArr)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4+1);
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(ROTATE_DATASET);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
-        buf.put((byte)(visibility == SubDataset.VISIBILITY_PUBLIC ? 1 : 0));
 
         for(int i = 0; i < 4; i++)
             buf.putFloat(qArr[i]);
@@ -422,17 +420,15 @@ public class SocketManager
     /** Create a Translation event data to send to the server
      * @param ids the dataset and subdatasets IDs
      * @param pArr the array of the new position to send (x, y, z)
-     * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
-    public static byte[] createPositionEvent(MainActivity.DatasetIDBinding ids, float[] pArr, int visibility)
+    public static byte[] createPositionEvent(MainActivity.DatasetIDBinding ids, float[] pArr)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4+1);
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(TRANSLATE_DATASET);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
-        buf.put((byte)(visibility == SubDataset.VISIBILITY_PUBLIC ? 1 : 0));
 
         for(int i = 0; i < 3; i++)
             buf.putFloat(pArr[i]);
@@ -445,35 +441,17 @@ public class SocketManager
      * @param sArr the array of the new scale to send (x, y, z)
      * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
-    public static byte[] createScaleEvent(MainActivity.DatasetIDBinding ids, float[] sArr, int visibility)
+    public static byte[] createScaleEvent(MainActivity.DatasetIDBinding ids, float[] sArr)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4+1);
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+3*4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(SCALE_DATASET);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
-        buf.put((byte)(visibility == SubDataset.VISIBILITY_PUBLIC ? 1 : 0));
 
         for(int i = 0; i < 3; i++)
             buf.putFloat(sArr[i]);
-
-        return buf.array();
-    }
-
-    /** Create a Visibility event data to send to the server
-     * @param ids the dataset and subdatasets IDs
-     * @param visibility the new subdataset's visibility
-     * @return array of byte to send to push*/
-    public static byte[] createVisibilityEvent(MainActivity.DatasetIDBinding ids, int visibility)
-    {
-        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4);
-        buf.order(ByteOrder.BIG_ENDIAN);
-
-        buf.putShort(VISIBILITY_DATASET);
-        buf.putInt(ids.dataset.getID());
-        buf.putInt(ids.subDatasetID);
-        buf.putInt(visibility);
 
         return buf.array();
     }
@@ -549,9 +527,9 @@ public class SocketManager
         return buf.array();
     }
 
-    public static byte[] createStartAnnotationEvent(MainActivity.DatasetIDBinding ids, int pointingID, boolean inPublic)
+    public static byte[] createStartAnnotationEvent(MainActivity.DatasetIDBinding ids, int pointingID)
     {
-        int size = 2+3*4+1;
+        int size = 2+3*4;
 
         ByteBuffer buf = ByteBuffer.allocate(size);
         buf.order(ByteOrder.BIG_ENDIAN);
@@ -560,7 +538,6 @@ public class SocketManager
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
         buf.putInt(pointingID);
-        buf.put((byte)(inPublic == true ? 1 : 0));
 
         return buf.array();
     }

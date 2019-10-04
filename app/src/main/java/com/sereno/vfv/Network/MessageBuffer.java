@@ -83,10 +83,6 @@ public class MessageBuffer
          * @param msg the message parsed*/
         void onHeadsetsStatusMessage(HeadsetsStatusMessage msg);
 
-        /** Called when the message "GET_SET_VISIBILITY_DATASET" has been successfully parsed
-         * @param msg the message parsed*/
-        void onSetVisibility(VisibilityMessage msg);
-
         /** Called when the message "GET_ANCHOR_ANNOTATION" has been successfully parsed
          * @param msg the message parsed*/
         void onAnchorAnnotation(AnchorAnnotationMessage msg);
@@ -119,9 +115,6 @@ public class MessageBuffer
 
     /** Scale dataset received*/
     public static final int GET_SCALE_DATASET           = 9;
-
-    /** Set the dataset visibility*/
-    public static final int GET_SET_VISIBILITY_DATASET  = 10;
 
     /** Anchor a new annotation*/
     public static final int GET_ANCHOR_ANNOTATION       = 12;
@@ -255,10 +248,6 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onScaleDatasetMessage((ScaleDatasetMessage) m_curMsg);
                         break;
-                    case GET_SET_VISIBILITY_DATASET:
-                        for (IMessageBufferCallback clbk : m_listeners)
-                            clbk.onSetVisibility((VisibilityMessage) m_curMsg);
-                        break;
                     case GET_ANCHOR_ANNOTATION:
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onAnchorAnnotation((AnchorAnnotationMessage) m_curMsg);
@@ -317,9 +306,6 @@ public class MessageBuffer
                 break;
             case GET_HEADSETS_STATUS:
                 m_curMsg = new HeadsetsStatusMessage();
-                break;
-            case GET_SET_VISIBILITY_DATASET:
-                m_curMsg = new VisibilityMessage();
                 break;
             case GET_ANCHOR_ANNOTATION:
                 m_curMsg = new AnchorAnnotationMessage();

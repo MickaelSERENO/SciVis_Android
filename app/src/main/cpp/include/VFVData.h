@@ -13,7 +13,6 @@
 #include "HeadsetStatus.h"
 #include "Datasets/BinaryDataset.h"
 #include "Datasets/VTKDataset.h"
-#include "Datasets/SubDatasetMetaData.h"
 #include "ColorMode.h"
 
 namespace sereno
@@ -28,7 +27,6 @@ namespace sereno
         VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
         VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
         VFV_COLOR_RANGE_CHANGED, /*!< The color range has changed for the current dataset*/
-        VFV_SET_VISIBILITY_DATA, /*!< The visibility data has changed for the current dataset*/
         VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
         VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
     };
@@ -203,29 +201,10 @@ namespace sereno
                 return m_headsetID;
             }
 
-            /* \brief  Add a new SubDataset metaData
-             * \param metaData the subdataset meta data to add
-             * \param publicJObjectSD the public states java object subdataset
-             * \param privateJObjectSD the private states java object subdataset*/
-            void addSubDatasetMetaData(const SubDatasetMetaData& metaData, jobject publicJObjectSD, jobject privateJObjectSD);
-
-            /* \brief  Get the SubDatasetMetaData associated to a SubDataset
-             * \param sd the subdataset to look at
-             * \return    the associated SubDatasetMetaData or NULL if not found */
-            const SubDatasetMetaData* getSubDatasetMetaData(const SubDataset* sd) const;
-
-            /* \brief  Get the SubDatasetMetaData associated to a SubDataset
-             * \param sd the subdataset to look at
-             * \return    the associated SubDatasetMetaData or NULL if not found */
-            SubDatasetMetaData* getSubDatasetMetaData(const SubDataset* sd);
-
-            /* \brief  Set a SubDataset visibility. This function does something only if a SubDatasetMetaData is associated to the given SubDataset
-             *
-             * \param sd the SubDataset being modified
-             * \param visibility the new visibility to apply. 
-             *
-             * \return true on success (found SubDatasetMetaData counterpart), false otherwise*/
-            bool setSubDatasetVisibility(const SubDataset* sd, int visibility);
+            /* \brief Bind a C++ SubDataset to its Java counter part
+             * \param sd the SubDataset C++ object to bind
+             * \param publicJObjectSD the Java object to bind*/
+            void bindSubDatasetJava(SubDataset* sd, jobject publicJObjectSD);
 
             /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/
@@ -274,7 +253,6 @@ namespace sereno
             std::shared_ptr<std::vector<HeadsetStatus>> m_headsetsStatus; /*!< The headsets status*/
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
-            std::map<const SubDataset*, SubDatasetMetaData*> m_sdMetaDatas; /*!< Map linking SubDataset to their meta data counter part*/
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
 

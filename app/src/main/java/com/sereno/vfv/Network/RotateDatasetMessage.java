@@ -14,16 +14,11 @@ public class RotateDatasetMessage extends ServerMessage
     /** The new rotation to apply*/
     private float[] m_rotation = new float[4];
 
-    /** Was the scaling done in the public view?*/
-    private byte m_inPublic = 1;
-
     @Override
     public byte getCurrentType()
     {
         if(cursor <= 2)
             return 'I';
-        else if(cursor == 3)
-            return 'b';
         return 'f';
     }
 
@@ -40,23 +35,16 @@ public class RotateDatasetMessage extends ServerMessage
     }
 
     @Override
-    public void pushValue(byte val)
-    {
-        m_inPublic = val;
-        super.pushValue(val);
-    }
-
-    @Override
     public void pushValue(float val)
     {
-        m_rotation[cursor-4] = val;
+        m_rotation[cursor-3] = val;
         super.pushValue(val);
     }
 
     @Override
     public int getMaxCursor()
     {
-        return 7;
+        return 6;
     }
 
     /** Get the dataset ID parsed
@@ -83,8 +71,4 @@ public class RotateDatasetMessage extends ServerMessage
     {
         return m_rotation;
     }
-
-    /** Is this rotation made in public space?
-     * @return true in public space, false otherwise*/
-    public boolean doneIntoPublicSpace() {return m_inPublic != 0;}
 }

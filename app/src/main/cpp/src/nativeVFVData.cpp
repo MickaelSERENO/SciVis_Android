@@ -143,16 +143,11 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInf
     data->setHeadsetID(headsetID);
 }
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeInitSubDatasetMetaData(JNIEnv* env, jobject instance, jlong ptr, jlong publicSD, jobject publicJObjectSD, jlong privateSD, jobject privateJObjectSD, int visibility)
+JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeBindSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr, jobject javaSD)
 {
     VFVData* data = (VFVData*)ptr;
-    SubDatasetMetaData metaData((SubDataset*)publicSD, (SubDataset*)privateSD, visibility);
-    data->addSubDatasetMetaData(metaData, env->NewGlobalRef(publicJObjectSD),
-                                          env->NewGlobalRef(privateJObjectSD));
-}
+    SubDataset* sd = (SubDataset*)sdPtr;
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeSetSubDatasetVisibility(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr, int visibility)
-{
-    VFVData* data = (VFVData*)ptr;
-    data->setSubDatasetVisibility((SubDataset*)sdPtr, visibility);
+    if(sd != NULL)
+        data->bindSubDatasetJava(sd, javaSD);
 }

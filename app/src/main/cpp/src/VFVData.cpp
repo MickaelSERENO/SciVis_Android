@@ -28,9 +28,6 @@ namespace sereno
                 return;
             env->DeleteGlobalRef(it.second);
         }
-
-        for(auto& it : m_sdMetaDatas)
-            delete it.second;
     }
 
     void VFVData::updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status)
@@ -131,28 +128,6 @@ namespace sereno
         auto it = m_jSubDatasetMap.find(sd);
         if(it != m_jSubDatasetMap.end())
             m_jSubDatasetMap.erase(it);
-
-        auto it2 = m_sdMetaDatas.find(sd);
-        if(it2 != m_sdMetaDatas.end())
-        {
-            //One meta data can share multiple SubDataset. Check if this SubDataset was the last one of an already registered meta data
-            SubDatasetMetaData* metaData = it2->second;
-            delete it2->first;
-            m_sdMetaDatas.erase(it2);
-
-            bool metaDataFound = false;
-            for(auto it3 : m_sdMetaDatas)
-            {
-                if(it3.second == metaData)
-                {
-                    metaDataFound = true;
-                    break;
-                }
-            }
-
-            if(!metaDataFound)
-                delete metaData;
-        }
     }
 
 
@@ -202,45 +177,11 @@ namespace sereno
         pthread_mutex_unlock(&m_eventMutex);
     }
 
-    void VFVData::addSubDatasetMetaData(const SubDatasetMetaData& metaData, jobject publicJObjectSD, jobject privateJObjectSD)
+    void VFVData::bindSubDatasetJava(SubDataset* sd, jobject publicJObjectSD)
     {
         lock();
-            SubDatasetMetaData* m = new SubDatasetMetaData(metaData);
-            m_sdMetaDatas.insert(std::pair<const SubDataset*, SubDatasetMetaData*>(m->getPublicSubDataset(), m));
-            m_sdMetaDatas.insert(std::pair<const SubDataset*, SubDatasetMetaData*>(m->getPrivateSubDataset(), m));
-            m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(m->getPublicSubDataset(), publicJObjectSD));
-            m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(m->getPrivateSubDataset(), privateJObjectSD));
+            m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(sd, publicJObjectSD));
         unlock();
-    }
-
-    const SubDatasetMetaData* VFVData::getSubDatasetMetaData(const SubDataset* sd) const
-    {
-        auto it = m_sdMetaDatas.find(sd);
-        if(it != m_sdMetaDatas.end())
-            return it->second;
-        return NULL;
-    }
-
-    SubDatasetMetaData* VFVData::getSubDatasetMetaData(const SubDataset* sd)
-    {
-        auto it = m_sdMetaDatas.find(sd);
-        if(it != m_sdMetaDatas.end())
-            return it->second;
-        return NULL;
-    }
-
-    bool VFVData::setSubDatasetVisibility(const SubDataset* sd, int visibility)
-    {
-        SubDatasetMetaData* metaData = getSubDatasetMetaData(sd);
-        if(metaData)
-        {
-            metaData->setVisibility(visibility);
-            VFVEvent* ev = new VFVEvent(VFV_SET_VISIBILITY_DATA);
-            ev->sdEvent.sd = metaData->getCurrentState();
-            addEvent(ev);
-        }
-
-        return metaData != NULL;
     }
 
     /*----------------------------------------------------------------------------*/

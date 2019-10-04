@@ -106,29 +106,20 @@ extern "C"
      * \param info the binding information*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateBindingInformation(JNIEnv* env, jobject instance, jlong ptr, jobject info);
 
-    /* \brief  Function called from Java in order to initialize subdataset meta data
-     * \param env the JNI environment
-     * \param instance the Java object calling this function
-     * \param ptr the VFVData ptr
-     * \param publicSD the SubDataset public states
-     * \param privateSD the SubDataset private states
-     * \param visibility the current SubDataset visibility (see visibility.h)*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeInitSubDatasetMetaData(JNIEnv* env, jobject instance, jlong ptr, jlong publicSD, jobject publicJObjectSD, jlong privateSD, jobject privateJObjectSD, int visibility);
-
-    /* \brief  Function called from Java in order to set the subdataset visibility
-     * \param env the JNI environment
-     * \param instance the Java object calling this function
-     * \param ptr the VFVData ptr
-     * \param sdPtr the SubDataset public or private states native pointer
-     * \param visibility the new SubDataset visibility (see visibility.h)*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeSetSubDatasetVisibility(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr, int visibility);
-
     /* \brief  Poll a native event from C++ for the UI
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
      * \return native pointer to pass to NativeEvent java constructor*/
-    JNIEXPORT jlong JNICALL_Java_com_sereno_gl_VFVSurfaceView_nativePollEvent(JNIEnv* env, jobject instance, jlong ptr);
+    JNIEXPORT jlong JNICALL Java_com_sereno_gl_VFVSurfaceView_nativePollEvent(JNIEnv* env, jobject instance, jlong ptr);
+
+    /* \brief  Bind the SubDataset C++ object to its Java counter part
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param sdPtr the SubDataset C++ ptr to bind
+     * \param javaSD the Java jobject to bind*/
+    JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeBindSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr, jobject javaSD);
 }
 
 #endif

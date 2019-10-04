@@ -133,9 +133,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     private Configuration            m_config;          /**!< The configuration object*/
     private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
 
-    /** The HashMap linking subdatasets to their meta data*/
-    private HashMap<SubDataset, SubDatasetMetaData> m_metaDatas = new HashMap<>();
-
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
 
@@ -191,10 +188,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         //Create the meta data associated to each subdatasets
         for(SubDataset sd : d.getSubDatasets())
         {
-            SubDatasetMetaData metaData = new SubDatasetMetaData(sd);
-            m_metaDatas.put(sd, metaData);
-            m_metaDatas.put(metaData.getPrivateState(), metaData);
-
             sd.addListener(new SubDataset.ISubDatasetListener() {
                 @Override
                 public void onClampingChange(SubDataset sd, float min, float max) {}
@@ -278,9 +271,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             setCurrentSubDataset(null);
         else if(sd == m_pendingSubDataset)
             pendingAnnotation(null);
-
-        m_metaDatas.remove(m_metaDatas.get(sd).getPrivateState());
-        m_metaDatas.remove(sd);
 
         /////////////////////////////////////
         //Look for a new current subdataset//
@@ -427,10 +417,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     /** Get the binding information
      * @return the binding information regarding this device and the headset*/
     public HeadsetBindingInfoMessage getBindingInfo() {return m_bindingInfo;}
-
-    /** Get the SubDatasetMetaData object bound to a particular SubDataset
-     * @param d the SubDataset to investigate*/
-    public SubDatasetMetaData getSubDatasetMetaData(SubDataset d) {return m_metaDatas.get(d);}
 
     /** Put a new SubDataset in wait for an annotation
      * @param sd the SubDataset waiting the annotation to be anchored*/

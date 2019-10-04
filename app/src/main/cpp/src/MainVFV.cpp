@@ -372,17 +372,11 @@ namespace sereno
             //Apply the model changement (rotation + color)
             for(auto& it : m_modelChanged)
             {
-                SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(it.first);
-                SubDataset* sd = NULL;
-                if(metaData)
-                    sd = metaData->getCurrentState();
-
-                if(sd != it.first)
-                    continue;
+                const SubDataset* sd = it.first;
 
                 for(auto sciVis : m_sciVis)
                 {
-                    if(sciVis->getModel() == metaData->getPublicSubDataset())
+                    if(sciVis->getModel() == sd)
                     {
                         if(it.second.updateColor)
                         {
@@ -400,10 +394,7 @@ namespace sereno
             {
                 if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
                 {
-                    SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
-                    SubDataset* sd = NULL;
-                    if(metaData)
-                        sd = metaData->getCurrentState();
+                    SubDataset* sd = m_currentVis->getModel();
 
                     if(sd != NULL)
                         m_currentVis->setPosition(sd->getPosition());
@@ -442,10 +433,7 @@ namespace sereno
                 }
                 if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
                 {
-                    SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(m_currentVis->getModel());
-                    SubDataset* sd = NULL;
-                    if(metaData)
-                        sd = metaData->getCurrentState();
+                    SubDataset* sd  = m_currentVis->getModel();
 
                     if(sd != NULL)
                     {
@@ -491,10 +479,7 @@ namespace sereno
             return;
 
         SubDataset* sd = m_currentVis->getModel();
-        SubDatasetMetaData* metaData = m_mainData->getSubDatasetMetaData(sd);
-        if(metaData)
-            sd = metaData->getCurrentState();
-        else
+        if(sd == NULL)
         {
             m_mainData->unlock();
             return;
@@ -759,12 +744,6 @@ namespace sereno
                             m_currentVis = it;
                             break;
                         }
-                    break;
-                }
-
-                case VFV_SET_VISIBILITY_DATA:
-                {
-                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, true, true, true));
                     break;
                 }
 
