@@ -149,5 +149,14 @@ JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeBindSubDataset(JN
     SubDataset* sd = (SubDataset*)sdPtr;
 
     if(sd != NULL)
-        data->bindSubDatasetJava(sd, javaSD);
+        data->bindSubDatasetJava(sd, env->NewGlobalRef(javaSD));
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnAddSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr)
+{
+    VFVData* data = (VFVData*)ptr;
+    SubDataset* sd = (SubDataset*)sdPtr;
+
+    if(sd != NULL)
+        data->addSubDatasetFromJava(sd);
 }

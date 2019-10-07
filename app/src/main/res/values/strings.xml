@@ -26,4 +26,6 @@
     <string name="endBreak">End the break</string>
     <string name="endBreakDialog">Are you sure you want to stop the break?</string>
     <string name="endTrainingDialog">Are you sure you want to quit the training session?</string>
+    <string name="duplicateSD">Duplicate</string>
+    <string name="removeSD">Remove</string>
 </resources>

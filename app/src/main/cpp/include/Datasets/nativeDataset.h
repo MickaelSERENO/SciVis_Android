@@ -32,6 +32,14 @@ extern "C"
      * \param ptr the Dataset ptr 
      * \param sdPtr the native subdataset pointer*/
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeRemoveSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jlong sdPtr);
+
+    /* \brief  Add a subdataset in a given dataset
+     * \param jenv the JNIEnvironment
+     * \param jobj the Java Object calling this function
+     * \param ptr the Dataset ptr
+     * \param sdPtr the native subdataset pointer
+     * \param updateID update the SubDataset ID. If false, use "Dataset::addSubDataset", else use "Dataset::addSubDatasetWithID". Do not mix the parameters! (if false once, use always false)*/
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeAddSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jlong sdPtr, jboolean updateID);
 }
 
 #endif   /* ----- #ifndef NATIVEDATASET_INC  ----- */

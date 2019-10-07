@@ -36,6 +36,7 @@ import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
 import com.sereno.vfv.Listener.INoticeDialogListener;
 import com.sereno.vfv.Listener.INotiveVTKDialogListener;
+import com.sereno.vfv.Network.AddSubDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.AnchorAnnotationMessage;
 import com.sereno.vfv.Network.ClearAnnotationsMessage;
@@ -61,7 +62,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity
                           implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener,
                                      MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener,
-                                     SocketManager.ISocketManagerListener
+                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener
 {
     /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
     public static class DatasetIDBinding
@@ -184,10 +185,10 @@ public class MainActivity extends AppCompatActivity
 
                 for(int i = 0; i < d.getNbSubDataset(); i++)
                 {
-                    if(d.getSubDataset(i).getNativePtr() == sd.getNativePtr())
+                    if(d.getSubDatasets().get(i).getNativePtr() == sd.getNativePtr())
                     {
                         parent       = d;
-                        subDatasetID = i;
+                        subDatasetID = d.getSubDatasets().get(i).getID();
                     }
                 }
             }
@@ -220,6 +221,16 @@ public class MainActivity extends AppCompatActivity
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
         onAddDataset(d);
+    }
+
+    @Override
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
+    {}
+
+    @Override
+    public void onAddSubDataset(Dataset dataset, SubDataset sd)
+    {
+         sd.addListener(this);
     }
 
     @Override
@@ -289,7 +300,7 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onRemove(SubDataset dataset) {}
+    public void onRemove(SubDataset dataset) {dataset.removeListener(this);}
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
@@ -477,6 +488,25 @@ public class MainActivity extends AppCompatActivity
 
                 while(sd.getAnnotations().size() > 0)
                     sd.removeAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
+            }
+        });
+    }
+
+    @Override
+    public void onAddSubDataset(final AddSubDatasetMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for(Dataset d : m_model.getDatasets())
+                {
+                    if(d.getID() == msg.getDatasetID())
+                    {
+                        SubDataset sd = SubDataset.createNewSubDataset(d, msg.getSubDatasetID(), msg.getSubDatasetName());
+                        d.addSubDataset(sd, false);
+                        break;
+                    }
+                }
             }
         });
     }
@@ -778,6 +808,8 @@ public class MainActivity extends AppCompatActivity
      * @param d the Dataset added*/
     private void onAddDataset(final Dataset d)
     {
+        d.addListener(this);
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -785,8 +817,6 @@ public class MainActivity extends AppCompatActivity
                 m_rangeColorView.getModel().setColorMode(ColorMode.RAINBOW);
             }
         });
-        for(SubDataset sd : d.getSubDatasets())
-            sd.addListener(this);
     }
 
     static

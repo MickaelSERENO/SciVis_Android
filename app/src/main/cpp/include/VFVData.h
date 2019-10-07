@@ -29,6 +29,7 @@ namespace sereno
         VFV_COLOR_RANGE_CHANGED, /*!< The color range has changed for the current dataset*/
         VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
         VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
+        VFV_ADD_SUBDATASET,      /*!< Add a new SubDataset*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -205,6 +206,10 @@ namespace sereno
              * \param sd the SubDataset C++ object to bind
              * \param publicJObjectSD the Java object to bind*/
             void bindSubDatasetJava(SubDataset* sd, jobject publicJObjectSD);
+
+            /* \brief Make the application know that a new SubDataset has been added via the Java interface
+             * \param sd the SubDataset already added*/
+            void addSubDatasetFromJava(SubDataset* sd);
 
             /* \brief Send a new snapshot available event to the Java UI
              * \param subDataset the subDataset bound to this snapshot*/

@@ -16,7 +16,7 @@ import com.sereno.view.AnnotationData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener
+public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, Dataset.IDatasetListener
 {
     /** VFVSurfaceView Listener interface.*/
     public interface IVFVSurfaceViewListener
@@ -99,6 +99,17 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
+    {}
+
+    @Override
+    public void onAddSubDataset(Dataset dataset, SubDataset sd)
+    {
+        sd.addListener(this);
+        nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd);
+    }
+
+    @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
 
     @Override
@@ -152,11 +163,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
-        for(SubDataset sd : d.getSubDatasets())
-        {
-            sd.addListener(this);
-            nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd);
-        }
+        d.addListener(this);
     }
 
     @Override
@@ -195,6 +202,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onRemove(SubDataset dataset)
     {
+        dataset.removeListener(this);
         nativeRemoveSubDataset(m_ptr, dataset.getNativePtr());
     }
 

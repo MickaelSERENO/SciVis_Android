@@ -120,6 +120,13 @@ extern "C"
      * \param sdPtr the SubDataset C++ ptr to bind
      * \param javaSD the Java jobject to bind*/
     JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeBindSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr, jobject javaSD);
+
+    /* \brief Function called when a new SubDataset object has been added via the Java interface
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param ptr the VFVData ptr
+     * \param sdPtr the SubDataset C++ ptr to add*/
+    JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnAddSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr);
 }
 
 #endif

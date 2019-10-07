@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /** @brief The Model component on the MVC architecture */
-public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, SubDataset.ISubDatasetListener
+public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, SubDataset.ISubDatasetListener, Dataset.IDatasetListener
 {
     /** @brief Interface possessing functions called when deleting or adding new datasets */
     public interface IDataCallback
@@ -179,44 +179,48 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             m_listeners.add(clbk);
     }
 
+    /** Add a new SubDataset to the known list
+     * @param sd the SubDataset to add*/
+    private void onAddSubDataset(SubDataset sd)
+    {
+        //Add the listener to the subdatasets
+        sd.addListener(new SubDataset.ISubDatasetListener() {
+            @Override
+            public void onClampingChange(SubDataset sd, float min, float max) {}
+
+            @Override
+            public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+            @Override
+            public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+            @Override
+            public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+            @Override
+            public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
+
+            @Override
+            public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+            @Override
+            public void onRemove(SubDataset dataset) {removeSubDataset(dataset);}
+
+            @Override
+            public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation)
+            {
+                m_annotations.remove(annotation);
+            }
+        });
+    }
+
     /** Perform common actions when adding datasets
      * @param d the dataset in adding state.*/
     private void onAddDataset(Dataset d)
     {
         m_datasets.add(d);
 
-        //Create the meta data associated to each subdatasets
-        for(SubDataset sd : d.getSubDatasets())
-        {
-            sd.addListener(new SubDataset.ISubDatasetListener() {
-                @Override
-                public void onClampingChange(SubDataset sd, float min, float max) {}
-
-                @Override
-                public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
-
-                @Override
-                public void onPositionEvent(SubDataset dataset, float[] position) {}
-
-                @Override
-                public void onScaleEvent(SubDataset dataset, float[] scale) {}
-
-                @Override
-                public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
-
-                @Override
-                public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-                @Override
-                public void onRemove(SubDataset dataset) {removeSubDataset(dataset);}
-
-                @Override
-                public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation)
-                {
-                    m_annotations.remove(annotation);
-                }
-            });
-        }
+        //We do not call "onAddSubDataset" because we need to call the callback "onAddDataset" before calling callbacks regarding the subdataset (initialization issue)
     }
 
     /** @brief Add a BinaryDataset to our model
@@ -227,6 +231,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         onAddDataset(dataset);
         for(IDataCallback clbk : m_listeners)
             clbk.onAddBinaryDataset(this, dataset);
+
+        for(SubDataset sd : dataset.getSubDatasets())
+            onAddSubDataset(sd);
     }
 
     /** @brief Add a VTKParser object into the known object loaded
@@ -237,6 +244,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         onAddDataset(dataset);
         for(IDataCallback clbk : m_listeners)
             clbk.onAddVTKDataset(this, dataset);
+
+        for(SubDataset sd : dataset.getSubDatasets())
+            onAddSubDataset(sd);
     }
 
     /** @brief Get the Configuration object
@@ -497,11 +507,22 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onRemove(SubDataset dataset) {}
+    public void onRemove(SubDataset dataset)
+    {
+        dataset.removeListener(this);
+    }
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
+    @Override
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
+
+    @Override
+    public void onAddSubDataset(Dataset dataset, SubDataset sd)
+    {
+        onAddSubDataset(sd);
+    }
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/

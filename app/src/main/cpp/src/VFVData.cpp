@@ -184,49 +184,71 @@ namespace sereno
         unlock();
     }
 
+    void VFVData::addSubDatasetFromJava(SubDataset* sd)
+    {
+        addSubDatasetEvent(sd, VFV_ADD_SUBDATASET);
+    }
+
     /*----------------------------------------------------------------------------*/
     /*----------------------------Send events to Java-----------------------------*/
     /*----------------------------------------------------------------------------*/
 
     void VFVData::sendRotationEvent(SubDataset* sd)
     {
-        //Create the quaternion array
-        jfloatArray arr = jniMainThread->NewFloatArray(4);
-        Quaternionf q   = sd->getGlobalRotate();
-        float qArr[4] = {q.w, q.x, q.y, q.z};
-        jniMainThread->SetFloatArrayRegion(arr, 0, 4, qArr);
+        auto it = m_jSubDatasetMap.find(sd);
+        if(it != m_jSubDatasetMap.end())
+        {
+            //Create the quaternion array
+            jfloatArray arr = jniMainThread->NewFloatArray(4);
+            Quaternionf q   = sd->getGlobalRotate();
+            float qArr[4] = {q.w, q.x, q.y, q.z};
+            jniMainThread->SetFloatArrayRegion(arr, 0, 4, qArr);
 
-        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setRotation, arr);
-        jniMainThread->DeleteLocalRef(arr);
+            jniMainThread->CallVoidMethod(it->second, jSubDataset_setRotation, arr);
+            jniMainThread->DeleteLocalRef(arr);
+        }
     }
 
     void VFVData::sendPositionEvent(SubDataset* sd)
     {
-        //Create the quaternion array
-        jfloatArray arr = jniMainThread->NewFloatArray(3);
-        jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getPosition()));
+        auto it = m_jSubDatasetMap.find(sd);
+        if(it != m_jSubDatasetMap.end())
+        {
+            //Create the quaternion array
+            jfloatArray arr = jniMainThread->NewFloatArray(3);
+            jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getPosition()));
 
-        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setPosition, arr);
-        jniMainThread->DeleteLocalRef(arr);
+            jniMainThread->CallVoidMethod(it->second, jSubDataset_setPosition, arr);
+            jniMainThread->DeleteLocalRef(arr);
+        }
     }
 
     void VFVData::sendScaleEvent(SubDataset* sd)
     {
-        //Create the quaternion array
-        jfloatArray arr = jniMainThread->NewFloatArray(3);
-        jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getScale()));
+        auto it = m_jSubDatasetMap.find(sd);
+        if(it != m_jSubDatasetMap.end())
+        {
+            //Create the quaternion array
+            jfloatArray arr = jniMainThread->NewFloatArray(3);
+            jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getScale()));
 
-        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_setScale, arr);
-        jniMainThread->DeleteLocalRef(arr);
+            jniMainThread->CallVoidMethod(it->second, jSubDataset_setScale, arr);
+            jniMainThread->DeleteLocalRef(arr);
+        }
     }
 
     void VFVData::sendSnapshotEvent(SubDataset* sd)
     {
-        jobject bitmap = Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(jniMainThread, NULL, (jlong)sd);
-        if(bitmap == NULL || m_jSubDatasetMap[sd] == NULL)
-            return;
-        jniMainThread->CallVoidMethod(m_jSubDatasetMap[sd], jSubDataset_onSnapshotEvent, bitmap);
-        jniMainThread->DeleteLocalRef(bitmap);
+
+        auto it = m_jSubDatasetMap.find(sd);
+        if(it != m_jSubDatasetMap.end())
+        {
+            jobject bitmap = Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(jniMainThread, NULL, (jlong)sd);
+            if(bitmap == NULL || m_jSubDatasetMap[sd] == NULL)
+                return;
+            jniMainThread->CallVoidMethod(it->second, jSubDataset_onSnapshotEvent, bitmap);
+            jniMainThread->DeleteLocalRef(bitmap);
+        }
     }
 
 }

@@ -82,11 +82,22 @@ public class SubDataset
         m_parent = parent;
     }
 
+    @Override
     public Object clone()
     {
         if(m_ptr == 0)
             return null;
         return new SubDataset(nativeClone(m_ptr), m_parent);
+    }
+
+    /** Create a new SubDataset from basic information. It still needs to be attached to the parent afterward
+     * @param parent the parent of this SubDataset
+     * @param id the ID of this SubDataset
+     * @param name the name of this SubDataset
+     * @return the newly created SubDataset. It is not automatically added to the parent though.*/
+    static public SubDataset createNewSubDataset(Dataset parent, int id, String name)
+    {
+        return new SubDataset(nativeCreateNewSubDataset(parent.getPtr(), id, name), parent);
     }
 
     /** Add a new callback Listener
@@ -263,6 +274,15 @@ public class SubDataset
         return nativeGetName(m_ptr);
     }
 
+    /** Get the SubDataset ID
+     * @return the SubDataset ID*/
+    public int getID()
+    {
+        if(m_ptr == 0)
+            return -1;
+        return nativeGetID(m_ptr);
+    }
+
     /** Get the parent dataset
      * @return the parent dataset*/
     public Dataset getParent() {return m_parent;}
@@ -315,6 +335,12 @@ public class SubDataset
             return;
         nativeDelPtr(m_ptr);
     }
+
+    /** Create a new SubDataset native C++ ptr
+     * @param datasetPtr the dataset native C++ pointer
+     * @param id the SubDataset ID
+     * @param name the SubDataset name*/
+    private static native long nativeCreateNewSubDataset(long datasetPtr, int id, String name);
 
     /** Free the resources allocated for the native C++ pointer data
      * @param ptr the native C++ pointer data to free*/
@@ -400,4 +426,9 @@ public class SubDataset
      * @param ptr the native pointer
      * @return the SubDataset name*/
     private native String nativeGetName(long ptr);
+
+    /** Native code to get the SubDataset ID
+     * @param ptr the native pointer
+     * @return the SubDataset id*/
+    private native int nativeGetID(long ptr);
 }

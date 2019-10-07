@@ -116,6 +116,10 @@ namespace sereno
              * \param sdChangement the changement metadata*/
             void addSubDataChangement(const SubDataset* sd, const SubDatasetChangement& sdChangement);
 
+            /* \brief Add a new SubDataset to visualization
+             * \param sd the subdataset to add. This function will first check if it has a bound SciVis*/
+            void addSubDataset(SubDataset* sd);
+
             /* \brief Remove a SubDataset from the visualization
              * \param sd the subdataset to remove. This function will fetch all scivis related to this subdataset*/
             void removeSubDataset(SubDataset* sd);

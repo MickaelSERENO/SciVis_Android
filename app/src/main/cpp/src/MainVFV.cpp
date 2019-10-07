@@ -623,7 +623,7 @@ namespace sereno
                     if(m_arrowMesh)
                     {
                         //Compute the Transfer Function
-                        TF *tf = new TF(2, WARM_COLD_CIELAB);
+                        /*TF *tf = new TF(2, WARM_COLD_CIELAB);
                         uint32_t texSize[2] = {256, 256};
                         GLuint texture = generateTexture(texSize, *tf);
                         m_sciVisTFTextures.push_back(texture);
@@ -644,12 +644,13 @@ namespace sereno
 
 
                         if(m_currentVis == NULL)
-                            m_currentVis = m_sciVis[0];
+                            m_currentVis = m_sciVis[0];*/
                         break;
                     }
 
                 //Add VTK Dataset
                 case VFV_ADD_VTK_DATA:
+                {
                     m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
                                                                                          0, 2));
                     m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
@@ -659,45 +660,24 @@ namespace sereno
                     m_colorGridMtl->setDimension(dim);
 
                     for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
-                    {
-                        m_sciVis.push_back(m_vtkStructuredGridPoints.back()->gameObjects[i]);
+                        addSubDataset(event->vtkData.dataset->getSubDatasets()[i]);
 
-                        //Set the transfer function
-                        TriangularGTF* tGTF = new TriangularGTF(2, RAINBOW);
-                        uint32_t texSize[2] = {256, 256};
-                        GLuint texture = generateTexture(texSize, *tGTF);
-                        m_sciVis.back()->setTFTexture(texture);
-                        m_sciVis.back()->getModel()->setTransferFunction(tGTF);
-                        m_sciVis.back()->onTFChange();
-                        m_sciVisTFTextures.push_back(texture);
-                        m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tGTF));
-
-                        //Update the snapshot
-                        std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
-                        m_snapshots.insert(snap);
-                        m_sciVis.back()->getModel()->setSnapshot(snap.second);
-
-                        addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
-                    }
-                    if(m_currentVis == NULL)
-                        m_currentVis = m_sciVis[0];
                     break;
+                }
 
                 case VFV_REMOVE_DATASET:
                 {
                     for(uint32_t i = 0; i < event->dataset.dataset.get()->getNbSubDatasets(); i++)
-                        removeSubDataset(event->dataset.dataset.get()->getSubDataset(i));
+                        removeSubDataset(event->dataset.dataset.get()->getSubDatasets()[i]);
 
                     //Check if there is "empty" VTKStructuredGridPointSciVis Object to delete
-                    for(uint32_t i = 0; i < m_vtkStructuredGridPoints.size(); i++)
+                    for(auto it = m_vtkStructuredGridPoints.begin(); it != m_vtkStructuredGridPoints.end(); it++)
                     {
-                        if(m_vtkStructuredGridPoints[i]->nbGameObjects == 0)
+                        if((*it)->dataset == event->dataset.dataset)
                         {
-                            delete m_vtkStructuredGridPoints[i];
-                            auto it = m_vtkStructuredGridPoints.begin();
-                            std::advance(it, i);
+                            delete *it;
                             m_vtkStructuredGridPoints.erase(it);
-                            i--;
+                            break;
                         }
                     }
 
@@ -708,6 +688,11 @@ namespace sereno
                 {
                     removeSubDataset(event->sdEvent.sd);
                     break;
+                }
+
+                case VFV_ADD_SUBDATASET:
+                {
+                    addSubDataset(event->sdEvent.sd);
                 }
 
                 case VFV_COLOR_RANGE_CHANGED:
@@ -765,6 +750,51 @@ namespace sereno
                 m_modelChanged[m_currentVis->getModel()]._data[i] |= sdChangement._data[i];
     }
 
+    void MainVFV::addSubDataset(SubDataset* sd)
+    {
+        //First check if this SubDataset was already registered
+        for(auto it : m_sciVis)
+            if(it->getModel() == sd)
+                return;
+
+        //Check what type of Dataset this SubDataset is (the action will not be the same)
+        for(auto it : m_vtkStructuredGridPoints)
+        {
+            if(it->dataset.get() == sd->getParent())
+            {
+                //If no property to look at, discard
+                if(it->dataset->getPtFieldValues().size() == 0)
+                    break;
+
+                VTKStructuredGridPointGameObject* go = new VTKStructuredGridPointGameObject(NULL, &m_surfaceData->renderer, m_colorGridMtl, it->vbo,
+                                                                                            it->gameObjects.size(), it->dataset->getPtFieldValues()[0], sd, 0, 2);
+                it->gameObjects.push_back(go);
+                m_sciVis.push_back(go);
+
+                //Set the transfer function
+                TriangularGTF* tGTF = new TriangularGTF(2, RAINBOW);
+                uint32_t texSize[2] = {256, 256};
+                GLuint texture = generateTexture(texSize, *tGTF);
+                m_sciVis.back()->setTFTexture(texture);
+                m_sciVis.back()->getModel()->setTransferFunction(tGTF);
+                m_sciVis.back()->onTFChange();
+                m_sciVisTFTextures.push_back(texture);
+                m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tGTF));
+
+                //Update the snapshot
+                std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
+                m_snapshots.insert(snap);
+                m_sciVis.back()->getModel()->setSnapshot(snap.second);
+
+                addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
+
+                if(m_currentVis == NULL)
+                    m_currentVis = m_sciVis.back();
+                return;
+            }
+        }
+    }
+
     void MainVFV::removeSubDataset(SubDataset* sd)
     {
         //Remove the bound scientific visualizations
@@ -799,13 +829,10 @@ namespace sereno
         //We do not "delete" the game Objects because it will be at the end of the function
         for(auto it : m_vtkStructuredGridPoints)
         {
-            for(int i = 0; i < it->nbGameObjects; i++)
+            for(int i = 0; i < it->gameObjects.size(); i++)
                 if(it->gameObjects[i] == sciVis)
                 {
-                    for(int j = i; j < it->nbGameObjects-1; j++)
-                        it->gameObjects[j] = it->gameObjects[j+1];
-
-                    it->nbGameObjects--;
+                    it->gameObjects.erase(it->gameObjects.begin()+i);
                     goto endForVTK;
                 }
         }

@@ -410,17 +410,15 @@ namespace sereno
         //Create every objects
         //No parent assigned yet
         vbo         = new VTKStructuredGridPointVBO(renderer, d->getParser(), d->getPtFieldValues().size(), desiredDensity);
-        gameObjects = (VTKStructuredGridPointGameObject**)malloc(sizeof(VTKStructuredGridPointGameObject*)*d->getPtFieldValues().size());
-        for(uint32_t i = 0; i < d->getPtFieldValues().size(); i++)
-            gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i), tfTexture, tfTextureDim);
-        nbGameObjects = d->getPtFieldValues().size();
+
+        //for(uint32_t i = 0; i < d->getPtFieldValues().size(); i++)
+        //    gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i), tfTexture, tfTextureDim);
     }
 
     VTKStructuredGridPointSciVis::~VTKStructuredGridPointSciVis()
     {
-        for(uint32_t i = 0; i < nbGameObjects; i++)
-            delete gameObjects[i];
-        free(gameObjects);
+        for(auto go : gameObjects)
+            delete go;
         delete vbo;
     }
 }

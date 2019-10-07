@@ -5,12 +5,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
@@ -24,10 +28,25 @@ import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.TreeView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback
 {
+    /** Interface proposing callback methods regarding the DatasetsFragment*/
+    public interface IDatasetsFragmentListener
+    {
+        /** Called when a SubDataset needs to be duplicated
+         * @param frag the Fragment calling this method
+         * @param sd the SubDataset to duplicate*/
+        void onDuplicateSubDataset(DatasetsFragment frag, SubDataset sd);
+
+        /** Called when a SubDataset needs to be removed
+         * @param frag the Fragment calling this method
+         * @param sd the SubDataset to duplicate*/
+        void onRemoveSubDataset(DatasetsFragment frag, SubDataset sd);
+    }
+
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
     private TreeView         m_previewLayout     = null;  /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp     = null;  /*!< The bitmap used when no preview is available*/
@@ -40,6 +59,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private HashMap<Dataset, Tree<View>>    m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
 
     private HashMap<SubDataset, ImageView> m_sdImages  = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
+
+    private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
 
     public DatasetsFragment()
     {
@@ -102,6 +123,21 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         }
     }
 
+    /** Remove an already registered listener for the DatasetsFragment specification
+     * @param clbk the listener to not call anymore*/
+    public void removeDFListener(IDatasetsFragmentListener clbk)
+    {
+        m_dfListeners.remove(clbk);
+    }
+
+    /** @brief Add a callback object to call at actions performed by the datasets fragment
+     * @param clbk the new callback to take account of*/
+    public void addDFListener(IDatasetsFragmentListener clbk)
+    {
+        if(!m_dfListeners.contains(clbk))
+            m_dfListeners.add(clbk);
+    }
+
     @Override
     public void onAttach(Context context)
     {
@@ -126,6 +162,141 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onAddVTKDataset(ApplicationModel model, VTKDataset d)
     {
         addDataset(d);
+    }
+
+    @Override
+    public void onAddSubDataset(ApplicationModel model, final SubDataset sd)
+    {
+        Tree<View> dataView = m_datasetTrees.get(sd.getParent());
+
+        //Set the color range listener
+        View layout = getLayoutInflater().inflate(R.layout.dataset_icon_layout, null);
+        layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        final ImageView snapImg = (ImageView)layout.findViewById(R.id.snapshotImageView);
+        final GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.OnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent motionEvent) {return false;}
+
+            @Override
+            public void onShowPress(MotionEvent motionEvent) {}
+
+            @Override
+            public boolean onSingleTapUp(MotionEvent motionEvent) {return false;}
+
+            @Override
+            public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {return false;}
+
+            @Override
+            public void onLongPress(MotionEvent motionEvent)
+            {
+                //Creating the instance of PopupMenu
+                PopupMenu popup = new PopupMenu(getContext(), snapImg);
+                //Inflating the Popup using xml file
+                popup.getMenuInflater().inflate(R.menu.subdataset_menu, popup.getMenu());
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        Toast.makeText(getContext(),"You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
+                        switch(item.getItemId())
+                        {
+                            case R.id.duplicateSD_item:
+                                break;
+
+                            case R.id.removeSD_item:
+                                break;
+                        }
+                        return true;
+                    }
+                });
+                popup.show();//showing popup menu
+            }
+
+            @Override
+            public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {return false;}
+        });
+
+        snapImg.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return gestureDetector.onTouchEvent(motionEvent);
+            }
+        });
+
+        //Add the snap image
+        snapImg.setAdjustViewBounds(true);
+        snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        snapImg.setMaxWidth(256);
+        snapImg.setMaxHeight(256);
+        snapImg.setImageResource(R.drawable.no_snapshot);
+        snapImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                m_model.setCurrentSubDataset(sd);
+            }
+        });
+        snapImg.setPadding(10, 10, 10, 10);
+
+        final ImageView publicIcon  = (ImageView)layout.findViewById(R.id.datasetPublicIcon);
+        final ImageView privateIcon = (ImageView)layout.findViewById(R.id.datasetPrivateIcon);
+
+        SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
+        {
+            @Override
+            public void onClampingChange(SubDataset sd, float min, float max) {}
+
+
+            @Override
+            public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+
+            @Override
+            public void onPositionEvent(SubDataset dataset, float[] position) {}
+
+            @Override
+            public void onScaleEvent(SubDataset dataset, float[] scale) {}
+
+            @Override
+            public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
+            {
+                final Bitmap s = snapshot;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        snapImg.setImageBitmap(s);
+                    }
+                });
+            }
+
+            @Override
+            public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+            @Override
+            public void onRemove(SubDataset dataset)
+            {
+                if(!m_sdTrees.containsKey(dataset))
+                    return;
+                m_sdTrees.get(dataset).setParent(null, 0);
+                m_sdTrees.remove(dataset);
+                if(m_sdImages.containsKey(dataset))
+                    m_sdImages.remove(dataset);
+            }
+
+            @Override
+            public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
+        };
+
+        //Snapshot event
+        sd.addListener(snapEvent);
+        m_sdImages.put(sd, snapImg);
+
+        if(m_model.getCurrentSubDataset() == null)
+            m_model.setCurrentSubDataset(sd);
+
+        Tree<View> layoutTree = new Tree<View>(layout);
+        dataView.addChild(layoutTree, -1);
+        m_sdTrees.put(sd, layoutTree);
     }
 
     @Override
@@ -238,89 +409,5 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         Tree<View> dataView = new Tree<View>(dataText);
         m_previewLayout.getModel().addChild(dataView, -1);
         m_datasetTrees.put(d, dataView);
-
-        for(int i = 0; i < d.getNbSubDataset(); i++)
-        {
-            final SubDataset sd = d.getSubDataset(i);
-
-            //Set the color range listener
-            View layout = getLayoutInflater().inflate(R.layout.dataset_icon_layout, null);
-            layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-            final ImageView snapImg = (ImageView)layout.findViewById(R.id.snapshotImageView);
-
-            //Add the snap image
-            snapImg.setAdjustViewBounds(true);
-            snapImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            snapImg.setMaxWidth(256);
-            snapImg.setMaxHeight(256);
-            snapImg.setImageResource(R.drawable.no_snapshot);
-            snapImg.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    m_model.setCurrentSubDataset(sd);
-                }
-            });
-            snapImg.setPadding(10, 10, 10, 10);
-
-            final ImageView publicIcon  = (ImageView)layout.findViewById(R.id.datasetPublicIcon);
-            final ImageView privateIcon = (ImageView)layout.findViewById(R.id.datasetPrivateIcon);
-
-            SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
-            {
-                @Override
-                public void onClampingChange(SubDataset sd, float min, float max) {}
-
-
-                @Override
-                public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
-
-                @Override
-                public void onPositionEvent(SubDataset dataset, float[] position) {}
-
-                @Override
-                public void onScaleEvent(SubDataset dataset, float[] scale) {}
-
-                @Override
-                public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
-                {
-                    final Bitmap s = snapshot;
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            snapImg.setImageBitmap(s);
-                        }
-                    });
-                }
-
-                @Override
-                public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-                @Override
-                public void onRemove(SubDataset dataset)
-                {
-                    if(!m_sdTrees.containsKey(dataset))
-                        return;
-                    m_sdTrees.get(dataset).setParent(null, 0);
-                    m_sdTrees.remove(dataset);
-                    if(m_sdImages.containsKey(dataset))
-                        m_sdImages.remove(dataset);
-                }
-
-                @Override
-                public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
-            };
-
-            //Snapshot event
-            sd.addListener(snapEvent);
-            m_sdImages.put(sd, snapImg);
-
-            if(m_model.getCurrentSubDataset() == null)
-                m_model.setCurrentSubDataset(sd);
-
-            Tree<View> layoutTree = new Tree<View>(layout);
-            dataView.addChild(layoutTree, -1);
-            m_sdTrees.put(sd, layoutTree);
-        }
     }
 }

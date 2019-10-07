@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener,
-                                                                SubDataset.ISubDatasetListener
+                                                                SubDataset.ISubDatasetListener, Dataset.IDatasetListener
 {
     private static class AnnotationBitmap
     {
@@ -168,11 +168,46 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         onAddDataset(d);
     }
 
+    @Override
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
+
+    @Override
+    public void onAddSubDataset(Dataset dataset, final SubDataset sd)
+    {
+        sd.addListener(this);
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
+                sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                TextView sdTitleText = (TextView) sdTitle.findViewById(R.id.annotation_key_entry_name);
+                sdTitleText.setText(sd.getName());
+
+                ((ImageView) sdTitle.findViewById(R.id.annotation_key_entry_add)).setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                            m_model.pendingAnnotation(sd);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+
+                //Add the SubDataset title
+                Tree<View> sdTitleTree = new Tree<View>(sdTitle);
+                m_subDatasetTrees.put(sd, sdTitleTree);
+                m_datasetTrees.get(sd.getParent()).addChild(sdTitleTree, -1);
+            }
+        });
+    }
+
     private void onAddDataset(final Dataset d)
     {
-        for(SubDataset sd : d.getSubDatasets())
-            sd.addListener(this);
         final Tree<View> t = m_previews.getModel();
+        d.addListener(this);
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -184,35 +219,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
                 Tree<View> titleTree = new Tree<View>(title);
 
-                //Add each subdataset
-                for(final SubDataset sd : d.getSubDatasets())
-                {
-                    if(sd != null)
-                    {
-                        sd.addListener(AnnotationsFragment.this);
-                        View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
-                        sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-                        TextView sdTitleText = (TextView) sdTitle.findViewById(R.id.annotation_key_entry_name);
-                        sdTitleText.setText(sd.getName());
-
-                        ((ImageView) sdTitle.findViewById(R.id.annotation_key_entry_add)).setOnTouchListener(new View.OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View view, MotionEvent motionEvent) {
-                                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                                    m_model.pendingAnnotation(sd);
-                                    return true;
-                                }
-                                return false;
-                            }
-                        });
-
-                        //Add the SubDataset title
-                        Tree<View> sdTitleTree = new Tree<View>(sdTitle);
-                        m_subDatasetTrees.put(sd, sdTitleTree);
-                        titleTree.addChild(sdTitleTree, -1);
-                    }
-                }
                 m_datasetTrees.put(d, titleTree);
                 t.addChild(titleTree, -1);
             }
@@ -547,6 +553,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         Tree<View> sdTree = m_subDatasetTrees.get(dataset);
         sdTree.setParent(null, 0);
         m_subDatasetTrees.remove(dataset);
+        dataset.removeListener(this);
     }
 
     @Override

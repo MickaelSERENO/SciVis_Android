@@ -10,9 +10,10 @@
 JNIEXPORT jlong JNICALL Java_com_sereno_gl_GLSurfaceView_nativeInitInternalData(JNIEnv* jenv, jobject jobj, jstring dataPath)
 {
     const char* cDataPath = jenv->GetStringUTFChars(dataPath, 0);
-    jenv->ReleaseStringUTFChars(dataPath, cDataPath);
 
     GLSurfaceViewData* data = new GLSurfaceViewData(cDataPath);
+    jenv->ReleaseStringUTFChars(dataPath, cDataPath);
+
     return (jlong)data;
 }
 

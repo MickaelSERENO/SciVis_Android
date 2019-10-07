@@ -5,6 +5,16 @@
 
 using namespace sereno;
 
+JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeCreateNewSubDataset(JNIEnv* jenv, jclass jcls, jlong datasetPtr, jint id, jstring name)
+{
+    const char* cName = jenv->GetStringUTFChars(name, 0);
+    SubDataset* sd = new SubDataset((Dataset*)datasetPtr, cName, id);
+    jenv->ReleaseStringUTFChars(name, cName);
+
+    return (jlong)sd;
+}
+
+
 JNIEXPORT bool JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsValid(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
@@ -140,6 +150,13 @@ JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIE
     const std::string& name = sd->getName();
     return jenv->NewStringUTF(name.c_str());
 }
+
+JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    return sd->getID();
+}
+
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetClamping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max)
 {

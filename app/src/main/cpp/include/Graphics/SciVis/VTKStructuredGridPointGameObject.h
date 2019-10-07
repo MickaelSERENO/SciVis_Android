@@ -113,10 +113,9 @@ namespace sereno
         /** \brief  Destructor */
         ~VTKStructuredGridPointSciVis();
 
-        VTKStructuredGridPointVBO*         vbo;         /*!< The VBO to use*/
-        std::shared_ptr<VTKDataset>        dataset;     /*!< The dataset bind*/
-        VTKStructuredGridPointGameObject** gameObjects; /*!< The gameObjects created. No parent assigned yet*/
-        uint32_t nbGameObjects; /*!< The number of created gameObjects*/
+        VTKStructuredGridPointVBO*                     vbo;         /*!< The VBO to use*/
+        std::shared_ptr<VTKDataset>                    dataset;     /*!< The dataset bound*/
+        std::vector<VTKStructuredGridPointGameObject*> gameObjects; /*!< The gameObjects created.*/
     };
 }
 
