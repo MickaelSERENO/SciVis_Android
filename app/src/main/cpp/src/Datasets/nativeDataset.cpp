@@ -32,8 +32,8 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeRemoveSubDataset(J
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeAddSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jlong sdPtr, jboolean updateID)
 {
-    Dataset*    dataset = (Dataset*)ptr;
-    SubDataset* sd      = (SubDataset*)sdPtr;
+    std::shared_ptr<Dataset>* dataset = (std::shared_ptr<Dataset>*)ptr;
+    SubDataset* sd = (SubDataset*)sdPtr;
 
-    (updateID == false) ? (dataset->addSubDataset(sd)) : (dataset->addSubDatasetWithID(sd));
+    (updateID == false) ? ((*dataset)->addSubDataset(sd)) : ((*dataset)->addSubDatasetWithID(sd));
 }

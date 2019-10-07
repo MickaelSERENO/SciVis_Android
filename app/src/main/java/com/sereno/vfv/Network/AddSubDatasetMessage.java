@@ -19,7 +19,7 @@ public class AddSubDatasetMessage extends ServerMessage
     @Override
     public int getMaxCursor()
     {
-        return 3;
+        return 2;
     }
 
     @Override

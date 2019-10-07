@@ -8,7 +8,7 @@ using namespace sereno;
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeCreateNewSubDataset(JNIEnv* jenv, jclass jcls, jlong datasetPtr, jint id, jstring name)
 {
     const char* cName = jenv->GetStringUTFChars(name, 0);
-    SubDataset* sd = new SubDataset((Dataset*)datasetPtr, cName, id);
+    SubDataset* sd = new SubDataset(((std::shared_ptr<Dataset>*)datasetPtr)->get(), cName, id);
     jenv->ReleaseStringUTFChars(name, cName);
 
     return (jlong)sd;

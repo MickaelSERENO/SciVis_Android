@@ -745,7 +745,7 @@ namespace sereno
         auto it = m_modelChanged.find(sd);
         if(it == m_modelChanged.end())
             m_modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(sd, sdChangement));
-        else
+        else if(m_currentVis != NULL)
             for(int i = 0; i < sizeof(sdChangement._data)/sizeof(sdChangement._data[0]); i++)
                 m_modelChanged[m_currentVis->getModel()]._data[i] |= sdChangement._data[i];
     }

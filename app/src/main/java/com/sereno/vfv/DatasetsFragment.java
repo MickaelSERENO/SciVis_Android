@@ -31,7 +31,7 @@ import com.sereno.view.TreeView;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback
+public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, Dataset.IDatasetListener
 {
     /** Interface proposing callback methods regarding the DatasetsFragment*/
     public interface IDatasetsFragmentListener
@@ -165,7 +165,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddSubDataset(ApplicationModel model, final SubDataset sd)
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
+
+    @Override
+    public void onAddSubDataset(Dataset dataset, final SubDataset sd)
     {
         Tree<View> dataView = m_datasetTrees.get(sd.getParent());
 
@@ -401,6 +404,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private void addDataset(final Dataset d)
     {
+        d.addListener(this);
+
         //Add the preview
         TextView dataText = new TextView(getContext());
         dataText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

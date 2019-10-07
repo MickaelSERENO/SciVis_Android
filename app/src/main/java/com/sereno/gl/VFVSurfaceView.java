@@ -106,6 +106,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddSubDataset(Dataset dataset, SubDataset sd)
     {
         sd.addListener(this);
+        nativeOnAddSubDataset(m_ptr, sd.getNativePtr());
         nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd);
     }
 
@@ -285,6 +286,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param ptr the ptr associated with the main Argument
      * @param info the new binding information*/
     private native void nativeUpdateBindingInformation(long ptr, HeadsetBindingInfoMessage info);
+
+    /** Tell the C++ visualization that a new SubDataset was added
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the C++ SubDataset Ptr*/
+    private native void nativeOnAddSubDataset(long ptr, long sdPtr);
 
     /** Bind a native C++ SubDataset to its Java counter part
      * @param ptr the ptr associated with the main Argument
