@@ -402,16 +402,29 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         });
     }
 
+    /** Generic function called when a new Dataset is being added
+     * @param d the Dataset being added*/
     private void addDataset(final Dataset d)
     {
         d.addListener(this);
 
-        //Add the preview
-        TextView dataText = new TextView(getContext());
-        dataText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        //Add the corresponding TreeView.
+        //First initialize the View displayed as "header" of the TreeView
+        View l = getActivity().getLayoutInflater().inflate(R.layout.dataset_key_entry, null);
+        TextView dataText = l.findViewById(R.id.dataset_key_entry_name); //The text
         dataText.setText(d.getName());
+        l.findViewById(R.id.dataset_key_entry_add).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                    //TODO send a "Add" message to the server
+                    return true;
+                }
+                return false;
+            }
+        });
 
-        Tree<View> dataView = new Tree<View>(dataText);
+        Tree<View> dataView = new Tree<View>(l);
         m_previewLayout.getModel().addChild(dataView, -1);
         m_datasetTrees.put(d, dataView);
     }

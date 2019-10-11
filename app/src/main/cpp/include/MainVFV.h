@@ -20,11 +20,19 @@
 
 #include <memory>
 #include <map>
+#include <queue>
+#include <algorithm>
 
 #define MAX_SNAPSHOT_COUNTER             30
 #define VTK_STRUCTURED_POINT_VIS_DENSITY 128
 #define WIDGET_WIDTH_PX     64
 #define MAX_CAMERA_ANIMATION_TIMER 20
+
+#define HISTOGRAM_WIDTH  256
+#define HISTOGRAM_HEIGHT 256
+
+#define CPCP_TEXTURE_WIDTH  1024
+#define CPCP_TEXTURE_HEIGHT 1024
 
 #define BOTTOM_IMAGE       0
 #define LEFT_IMAGE         1
@@ -38,6 +46,9 @@
 
 namespace sereno
 {
+    /** \brief  Type describing a job to run */
+    typedef std::function<void()> MainThreadFunc;
+
     /** Represent the type of changement that is attached to a subdataset*/
     struct SubDatasetChangement
     {
@@ -90,7 +101,21 @@ namespace sereno
 
             /* \brief Run the application */
             void run();
+
+            /* \brief  Add a new job to run on 
+             * \param func the functor */
+            void runOnMainThread(const MainThreadFunc& func);
         private:
+            /* \brief  Function called when values of the VTKDataset are loaded
+             * \param dataset the dataset of interest
+             * \param status the status of the loading */
+            void onLoadVTKDataset(VTKDataset* dataset, uint32_t status);
+
+            /** \brief  Function called when values of a Dataset are loaded
+             * \param dataset the dataset of interest
+             * \param status the status of the loading */
+            void onLoadDataset(Dataset* dataset, uint32_t status);
+
             /** \brief  Place the widgets on the screen */
             void placeWidgets();
 
@@ -149,9 +174,9 @@ namespace sereno
             std::map<SubDataset*, TF*> m_sciVisTFs; /*!< The subdataset personal transfer function*/
 
             TextureRectangleData*  m_gpuTexVBO; /*!< GPU VBO information for drawing textures*/
-            Texture*               m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
+            Texture2D*             m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
             DefaultGameObject*     m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
-            Texture*               m_notConnectedTex; /*!< The texture displayed when no headset is bound*/
+            Texture2D*             m_notConnectedTex; /*!< The texture displayed when no headset is bound*/
             DefaultGameObject*     m_notConnectedGO;  /*!< The gameobject widget drawing the not connected texture*/
             uint32_t               m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
 
@@ -162,6 +187,9 @@ namespace sereno
             Quaternionf            m_animationRotation;      /*!< The animation rotation to apply (camera rotation)*/
 
             std::map<const SubDataset*, SubDatasetChangement> m_modelChanged; /*!< Map of the current model being changed*/
+
+            std::queue<MainThreadFunc> m_mainThreadFuncs;      /*!< Jobs to execute in the Main thread*/
+            std::mutex                 m_mainThreadFuncsMutex; /*!< Mutex bound to the m_mainThreadFuncs object*/
     };
 }
 #endif

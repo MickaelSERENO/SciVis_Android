@@ -58,6 +58,7 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
+            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset))));
         }
         unlock();
         addEvent(ev);

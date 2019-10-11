@@ -19,7 +19,7 @@ namespace sereno
             /* \brief Destructor */
             virtual ~Render();
 
-            /* \brief Render all the Drawable */
+            /* \brief Render all the Drawable. The Viewport is set to this object values (see getViewport) */
             virtual void render();
 
             /* \brief Add the Drawable in parameter in the draw list
@@ -71,11 +71,20 @@ namespace sereno
             /* \brief Returns the height of the render
              * \return the height of the render */
             int getHeight() const {return m_height;}
+
+            /** \brief  Set the Render viewport
+             * \param rect the new viewport */
+            void  setViewport(const Rectangle2i& rect) {m_viewport = rect;}
+
+            /** \brief  Get the render viewport
+             * \return  the render viewport */
+            const Rectangle2i& getViewport() const {return m_viewport;}
         protected:
             std::vector<Drawable*> m_currentDrawable; /*!< What are the current drawable being drawn ?*/
             glm::mat4              m_projMatrix;      /*!< The perspective matrix to apply*/
             glm::vec4              m_cameraParams;    /*!< The camera parameters*/
             Transformable          m_cameraMatrix;    /*!< The camera transformable matrix*/
+            Rectangle2i            m_viewport;        /*!< The render viewport*/
 
             int m_width  = 0; /*!< The width of the surface (pixels)*/
             int m_height = 0; /*!< The height of the surface (pixels)*/

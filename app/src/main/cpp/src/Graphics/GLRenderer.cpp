@@ -156,7 +156,7 @@ endError:
         eglQuerySurface(m_disp, m_surface, EGL_WIDTH, &m_width);
         eglQuerySurface(m_disp, m_surface, EGL_HEIGHT, &m_height);
 
-        glViewport(0, 0, m_width, m_height);
+        setViewport(Rectangle2i(0, 0, m_width, m_height));
         LOG_INFO("Creating surface with width=%d and height=%d\n", m_width, m_height);
         return true;
     }
@@ -325,7 +325,12 @@ endError3:
     void GLRenderer::render()
     {
     //    eglMakeCurrent(m_disp, m_surface, m_surface, m_context);
-        Render::render();
+        GLint curFBO;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &curFBO);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            Render::render();
+        glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
     }
 
     void GLRenderer::setCurrentShader(Shader* shader)

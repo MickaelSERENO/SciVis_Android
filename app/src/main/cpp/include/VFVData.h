@@ -14,6 +14,7 @@
 #include "Datasets/BinaryDataset.h"
 #include "Datasets/VTKDataset.h"
 #include "ColorMode.h"
+#include "Datasets/DatasetMetaData.h"
 
 namespace sereno
 {
@@ -236,6 +237,27 @@ namespace sereno
             /* \brief Get the Java object bound to this model
              * \return the Java object*/
             jobject getJavaObj() {return m_javaObj;}
+
+            /** \brief  Return the stored std::shared_ptr from a Dataset raw pointer
+             * \param ptr a Dataset known by VFVData object
+             * \return   default std::shared_ptr if not found, the corresponding std::shared_ptr otherwise */
+            std::shared_ptr<Dataset> getDatasetSharedPtr(const Dataset* ptr)
+            {
+                for(auto& it : m_datas)
+                    if(it.get() == ptr)
+                        return it;
+                return std::shared_ptr<Dataset>();
+            }
+
+            /** \brief  Get the DatasetMetaData bound to a given dataset
+             * \param dataset the dataset to look at
+             *
+             * \return   the MetaData of the dataset given in parameter. Default std::shared_ptr if not found */
+            std::shared_ptr<DatasetMetaData> getDatasetMetaData(const std::shared_ptr<Dataset>& dataset)
+            {
+                auto it = m_datasetMetaDatas.find(dataset);
+                return (it == m_datasetMetaDatas.end() ? std::shared_ptr<DatasetMetaData>() : it->second);
+            }
         private:
             /* \brief  Add a subdataset event without parameter (update only)
              * \param sd the subdataset 
@@ -258,6 +280,8 @@ namespace sereno
             std::shared_ptr<std::vector<HeadsetStatus>> m_headsetsStatus; /*!< The headsets status*/
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
+
+            std::map<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>> m_datasetMetaDatas; /*!< MetaData of Loaded dataset*/
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
 

@@ -1,5 +1,9 @@
 #include "MainVFV.h"
 #include "jniData.h"
+#include "utils.h"
+#include "Graphics/FBORenderer.h"
+#include "Graphics/DefaultGameObject.h"
+#include "Graphics/Materials/CPCPMaterial.h"
 
 namespace sereno
 {
@@ -36,14 +40,14 @@ namespace sereno
         m_gpuTexVBO    = new TextureRectangleData();
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
-        m_3dImageManipTex = (Texture*)malloc(sizeof(Texture)*8);
+        m_3dImageManipTex = (Texture2D*)malloc(sizeof(Texture2D)*8);
         m_3dImageManipGO = (DefaultGameObject*)malloc(sizeof(DefaultGameObject)*8);
         for(int i = 0; i < 8; i++)
         {
             uint32_t texWidth, texHeight;
             std::string texPath = surfaceData->dataPath + "/Images/" + volumeImageManipPath[i];
             uint8_t* texData = getPNGRGBABytesFromFiles(texPath.c_str(), &texWidth, &texHeight);
-            new(m_3dImageManipTex+i) Texture(texWidth, texHeight, texData);
+            new(m_3dImageManipTex+i) Texture2D(texWidth, texHeight, texData);
             free(texData);
             new(m_3dTextureMtl+i) SimpleTextureMaterial(&surfaceData->renderer);
             m_3dTextureMtl[i].bindTexture(m_3dImageManipTex[i].getTextureID(), 2, 0);
@@ -54,7 +58,7 @@ namespace sereno
         uint32_t texWidth, texHeight;
         std::string texPath = surfaceData->dataPath + "/Images/" + "notConnected.png";
         uint8_t* texData    = getPNGRGBABytesFromFiles(texPath.c_str(), &texWidth, &texHeight);
-        m_notConnectedTex   = new Texture(texWidth, texHeight, texData);
+        m_notConnectedTex   = new Texture2D(texWidth, texHeight, texData);
         m_notConnectedTextureMtl = new SimpleTextureMaterial(&surfaceData->renderer);
         m_notConnectedGO         = new DefaultGameObject(NULL, &surfaceData->renderer, m_notConnectedTextureMtl, m_gpuTexVBO);
         m_notConnectedTextureMtl->bindTexture(m_notConnectedTex->getTextureID(), 2, 0);
@@ -79,7 +83,7 @@ namespace sereno
         for(int i = 0; i < 8; i++)
         {
             m_3dTextureMtl[i].~SimpleTextureMaterial();
-            m_3dImageManipTex[i].~Texture();
+            m_3dImageManipTex[i].~Texture2D();
             m_3dImageManipGO[i].~DefaultGameObject();
         }
         free(m_3dImageManipTex);
@@ -87,6 +91,12 @@ namespace sereno
         delete m_notConnectedGO;
         delete m_notConnectedTextureMtl;
         delete m_notConnectedTex;
+    }
+
+    void MainVFV::runOnMainThread(const MainThreadFunc& func)
+    {
+        std::lock_guard<std::mutex> lock(m_mainThreadFuncsMutex);
+        m_mainThreadFuncs.push(func);
     }
 
     void MainVFV::placeWidgets()
@@ -232,7 +242,7 @@ namespace sereno
 
     void MainVFV::run()
     {
-        glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
+        m_surfaceData->renderer.setViewport(Rectangle2i(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight()));
 
         glEnable(GL_DEPTH_TEST);
 
@@ -337,7 +347,7 @@ namespace sereno
 
                     case RESIZE:
                         //Redo the viewport
-                        glViewport(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight());
+                        m_surfaceData->renderer.setViewport(Rectangle2i(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight()));
                         placeWidgets();
                         placeCamera(true);
                         break;
@@ -368,6 +378,21 @@ namespace sereno
             m_mainData->lock();
             //Handle events sent from JNI for our application (application wise)
             handleVFVDataEvent();
+
+            //Clear GL state
+            glDepthMask(true);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            //Run jobs in main thread
+            {
+                std::lock_guard<std::mutex> lock(m_mainThreadFuncsMutex);
+                while(!m_mainThreadFuncs.empty())
+                {
+                    m_mainThreadFuncs.front()();
+                    m_mainThreadFuncs.pop();
+                }
+            }
 
             //Apply the model changement (rotation + color)
             for(auto& it : m_modelChanged)
@@ -407,10 +432,6 @@ namespace sereno
             if(visible)
             {
                 placeCamera();
-
-                glDepthMask(true);
-                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 //Draw the scene
                 if(m_surfaceData->renderer.getCameraParams().w == 1.0) //Orthographic mode
@@ -609,7 +630,103 @@ namespace sereno
             sd->setPosition(sd->getPosition() + newPos);
             m_mainData->sendPositionEvent(sd);
         }
+    }
 
+    void MainVFV::onLoadVTKDataset(VTKDataset* dataset, uint32_t status)
+    {
+        onLoadDataset(dataset, status);
+    }
+
+    void MainVFV::onLoadDataset(Dataset* dataset, uint32_t status)
+    {
+        //Create every possible 2D histograms
+        uint32_t ptDescSize = dataset->getPointFieldDescs().size();
+        if(ptDescSize > 1)
+        {
+            for(uint32_t i = 0; i < ptDescSize-1; i++)
+            {
+                for(uint32_t j = i+1; j < ptDescSize; j++)
+                {
+                    uint32_t* histogram = (uint32_t*)malloc(sizeof(uint32_t)*HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT);
+                    if(!dataset->create2DHistogram(histogram, HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, dataset->getPointFieldDescs()[i].id, dataset->getPointFieldDescs()[j].id))
+                    {
+                        LOG_ERROR("Could not create histogram between property %s and %s\n", dataset->getPointFieldDescs()[i].name.c_str(), dataset->getPointFieldDescs()[j].name.c_str());
+                        continue;
+                    }
+
+                    //Normalize values in a float array object
+                    //Check type. This is used to earn time regarding histogram* size
+                    static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
+                    uint32_t max = *std::max_element(histogram, histogram+HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT);
+                    for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
+                        (*(float*)(histogram+k)) = (float)histogram[k]/max;
+
+                    //Run a job to make them as Texture objects
+                    runOnMainThread([this, dataset, histogram, i, j]()
+                    {
+                        //Remember that the data of histogram is now "float" (even if declared as a uint32_t, VIVA CASTING OPERATION!).
+                        Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, histogram, GL_RED, GL_RED, GL_FLOAT);
+
+                        //Draw the corresponding CPCP (Continuous Parallel Coordinate Plot) in a Texture
+                        FBO fbo(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, false);
+                        FBORenderer renderer(&fbo);
+                        CPCPMaterial cpcpMtl(&m_surfaceData->renderer, HISTOGRAM_WIDTH*1.5f);
+                        DefaultGameObject go(NULL, &m_surfaceData->renderer, &cpcpMtl, m_gpuTexVBO);
+                        renderer.addToDraw(&go);
+                        renderer.render();
+
+                        //Generate and add a 2DHistogram to the Dataset's meta data
+                        Dataset2DHistogram hist2D;
+                        hist2D.texture    = std::shared_ptr<Texture2D>(text);
+                        hist2D.pcpTexture = std::shared_ptr<Texture2D>(new Texture2D(fbo.stealColorBuffer(), CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT));
+                        hist2D.ptFieldID1 = i;
+                        hist2D.ptFieldID2 = j;
+
+                        std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
+                        if(metaData.get())
+                            metaData->add2DHistogram(hist2D);
+
+                        free(histogram);
+                    });
+                }
+            }
+        }
+
+        //Create every possible 1D histograms
+        for(uint32_t i = 0; i < ptDescSize; i++)
+        {
+            uint32_t* histogram = (uint32_t*)malloc(sizeof(uint32_t)*HISTOGRAM_WIDTH);
+            if(!dataset->create1DHistogram(histogram, HISTOGRAM_WIDTH, dataset->getPointFieldDescs()[i].id))
+            {
+                LOG_ERROR("Could not create histogram of property %s\n", dataset->getPointFieldDescs()[i].name.c_str());
+                continue;
+            }
+
+            //Normalize values in a float array object
+            //Check type. This is used to earn time regarding histogram* size
+            static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
+            uint32_t max = *std::max_element(histogram, histogram+HISTOGRAM_WIDTH);
+            for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
+                (*(float*)(histogram+k)) = (float)histogram[k]/max;
+
+            //Run a job to make them as Texture objects
+            runOnMainThread([this, dataset, histogram, i]()
+            {
+                //Remember that the data of histogram is now "float" (even if declared as a uint32_t, VIVA casting type!).
+                Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, 1, histogram, GL_RED, GL_RED, GL_FLOAT);
+
+                //Generate and add a 2DHistogram to the Dataset's meta data
+                Dataset1DHistogram hist1D;
+                hist1D.texture   = std::shared_ptr<Texture2D>(text);
+                hist1D.ptFieldID = i;
+
+                std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
+                if(metaData.get())
+                    metaData->add1DHistogram(hist1D);
+
+                free(histogram);
+            });
+        }
     }
 
     void MainVFV::handleVFVDataEvent()
@@ -661,6 +778,12 @@ namespace sereno
 
                     for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
                         addSubDataset(event->vtkData.dataset->getSubDatasets()[i]);
+
+                    //Load VTK data in a separate thread
+                    event->vtkData.dataset->loadValues([](Dataset* dataset, uint32_t status, void* data)
+                    {
+                        ((MainVFV*)data)->onLoadVTKDataset((VTKDataset*)dataset, status);
+                    }, this);
 
                     break;
                 }
