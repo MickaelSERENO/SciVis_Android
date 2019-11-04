@@ -1,4 +1,5 @@
 #include "jniData.h"
+#include <iostream>
 
 namespace sereno
 {
@@ -7,6 +8,7 @@ namespace sereno
 
     jclass    jVFVSurfaceViewClass                    = 0;
     jmethodID jVFVSurfaceView_setCurrentAction        = 0;
+    jmethodID jVFVSurfaceView_onLoadDataset           = 0;
 
     jclass    jBitmapClass                            = 0;
     jmethodID jBitmap_createBitmap                    = 0;
@@ -34,6 +36,9 @@ namespace sereno
 
     jclass    jHeadsetBindingInfoMessageClass         = 0;
     jmethodID jHeadsetBindingInfoMessage_getHeadsetID = 0;
+
+    jclass    jPointFieldDescClass                    = 0;
+    jmethodID jPointFieldDesc_constructor             = 0;
 }
 
 using namespace sereno;
@@ -62,9 +67,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jSubDatasetClass                = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
     jHeadsetStatusClass             = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetsStatusMessage$HeadsetStatus");
     jHeadsetBindingInfoMessageClass = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetBindingInfoMessage");
+    jPointFieldDescClass            = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/PointFieldDesc");
 
     //Load methods
     jVFVSurfaceView_setCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "setCurrentAction", "(I)V");
+    jVFVSurfaceView_onLoadDataset    = env->GetMethodID(jVFVSurfaceViewClass, "onLoadDataset",    "(Lcom/sereno/vfv/Data/Dataset;Z)V");
 
     jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");
     jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
@@ -75,6 +82,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jSubDataset_onSnapshotEvent = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
 
     jHeadsetBindingInfoMessage_getHeadsetID = env->GetMethodID(jHeadsetBindingInfoMessageClass,  "getHeadsetID", "()I");
+
+    jPointFieldDesc_constructor = env->GetMethodID(jPointFieldDescClass, "<init>", "(IFFZ)V");
 
     //Load fields
     jBitmapConfig_ARGB   = env->GetStaticFieldID(jBitmapConfigClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
@@ -109,4 +118,32 @@ void JNI_OnUnload(JavaVM *vm, void *reserved)
     env->DeleteGlobalRef(jBitmapConfigARGB);
     env->DeleteGlobalRef(jHeadsetStatusClass);
     env->DeleteGlobalRef(jHeadsetBindingInfoMessageClass);
+    env->DeleteGlobalRef(jPointFieldDescClass);
+}
+
+
+JNIEnv* getJNIEnv(bool* shouldDetach)
+{
+    *shouldDetach = false;
+    JNIEnv* env;
+    int status = javaVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+    if(status == JNI_EDETACHED)
+    {
+        if (javaVM->AttachCurrentThread(&env, NULL) != 0) 
+        {
+            std::cerr << "Failed to attach" << std::endl;
+            return NULL;
+        }
+        *shouldDetach = true;
+        return env;
+    }
+
+    else if(status == JNI_OK)
+        return env;
+
+    else
+    {
+        std::cerr << "Error at getting the JNI Environment. Error: " << status << std::endl;
+        return NULL;
+    }
 }

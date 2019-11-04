@@ -21,12 +21,15 @@ namespace sereno
         pthread_mutex_destroy(&m_mutex);
         for(VFVEvent* ev : m_events)
             delete ev;
-        for(auto& it : m_jSubDatasetMap)
+
+        bool shouldDetach;
+        JNIEnv* env = getJNIEnv(&shouldDetach);
+        if(env)
         {
-            JNIEnv* env;
-            if (javaVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK)
-                return;
-            env->DeleteGlobalRef(it.second);
+            for(auto& it : m_jSubDatasetMap)
+                env->DeleteGlobalRef(it.second);
+            if(shouldDetach)
+                javaVM->DetachCurrentThread();
         }
     }
 
@@ -50,7 +53,7 @@ namespace sereno
         addEvent(ev);
     }
 
-    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset)
+    void VFVData::addVTKData(std::shared_ptr<VTKDataset> dataset, jobject jVTK)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_VTK_DATA);
         ev->vtkData.dataset = dataset;
@@ -58,7 +61,7 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
-            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset))));
+            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset, jVTK))));
         }
         unlock();
         addEvent(ev);
@@ -180,9 +183,16 @@ namespace sereno
 
     void VFVData::bindSubDatasetJava(SubDataset* sd, jobject publicJObjectSD)
     {
-        lock();
-            m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(sd, publicJObjectSD));
-        unlock();
+        bool shouldDetach;
+        JNIEnv* env = getJNIEnv(&shouldDetach);
+        if(env != NULL)
+        {
+            lock();
+                m_jSubDatasetMap.insert(std::pair<SubDataset*, jobject>(sd, env->NewGlobalRef(publicJObjectSD)));
+            unlock();
+            if(shouldDetach)
+                javaVM->DetachCurrentThread();
+        }
     }
 
     void VFVData::addSubDatasetFromJava(SubDataset* sd)
@@ -252,4 +262,12 @@ namespace sereno
         }
     }
 
+    void VFVData::sendOnDatasetLoaded(std::shared_ptr<Dataset> pDataset, bool success)
+    {
+        std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
+        if(metaData)
+        {
+            jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_onLoadDataset, metaData->getJavaDatasetObj(), success);
+        }
+    }
 }

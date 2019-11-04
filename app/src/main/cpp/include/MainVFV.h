@@ -4,6 +4,8 @@
 #include "GLSurfaceViewData.h"
 #include "VFVData.h"
 #include "image.h"
+#include "Graphics/FBORenderer.h"
+#include "Graphics/DefaultGameObject.h"
 #include "Graphics/Texture.h"
 #include "Graphics/DefaultGameObject.h"
 #include "Graphics/SciVis/VectorField.h"
@@ -14,6 +16,8 @@
 #include "Graphics/Materials/ColorMaterial.h"
 #include "Graphics/Materials/ColorGridMaterial.h"
 #include "Graphics/Materials/PhongMaterial.h"
+#include "Graphics/Materials/NormalizeMaterial.h"
+#include "Graphics/Materials/CPCPMaterial.h"
 #include "Graphics/SciVis/TransferFunction/TFTexture.h"
 #include "TransferFunction/GTF.h"
 #include "TransferFunction/TriangularGTF.h"
@@ -34,6 +38,7 @@
 #define CPCP_TEXTURE_WIDTH  1024
 #define CPCP_TEXTURE_HEIGHT 1024
 
+//IDs of the images selected on screen
 #define BOTTOM_IMAGE       0
 #define LEFT_IMAGE         1
 #define TOP_IMAGE          2
@@ -157,22 +162,39 @@ namespace sereno
             VFVData*           m_mainData;    /*!< The main data*/
 
             MeshLoader*               m_arrowMesh;       /*!< The arrow mesh for the vector fields*/
+
+            /*----------------------------------------------------------------------------*/
+            /*------------------------All the Materials being used------------------------*/
+            /*----------------------------------------------------------------------------*/
             Material*                 m_vfMtl;           /*!< The vector field material*/
             ColorGridMaterial*        m_colorGridMtl;    /*!< The color grid material for the VTK StructuredGridPoints*/
             SimpleTextureMaterial*    m_3dTextureMtl;    /*!< Material to draw the 3d manip texture objects*/
             SimpleTextureMaterial*    m_notConnectedTextureMtl; /*!< Material to draw the not connected texture object*/
             PhongMaterial*            m_colorPhongMtl;   /*!< Material to draw default scivis gameobjects*/
+            NormalizeMaterial*        m_normalizeMtl;    /*!< Material used to normalize a texture*/
+            CPCPMaterial*             m_cpcpMtl;         /*!< The Continuous Parallel Coordinate Plot material*/
+
+            /*----------------------------------------------------------------------------*/
+            /*---------------------------All the SciVis loaded----------------------------*/
+            /*----------------------------------------------------------------------------*/
             std::vector<GLuint>       m_sciVisTFTextures;/*!< The TF texture used for Scientific Visualization*/
             std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
-            std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualziation*/
+            std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualization*/
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
             SciVis*              m_currentVis      = NULL; /*!< The current visualization*/
-            uint32_t             m_snapshotCnt     = 0;    /*!< The snapshot counter*/
 
+            /*----------------------------------------------------------------------------*/
+            /*-------------------------------Snapshot data--------------------------------*/
+            /*----------------------------------------------------------------------------*/
+            uint32_t             m_snapshotCnt     = 0;    /*!< The snapshot counter*/
             std::map<SciVis*, std::shared_ptr<Snapshot>> m_snapshots; /*!< The snapshot pixels per Scientific Visualization*/
+
             std::map<SubDataset*, TF*> m_sciVisTFs; /*!< The subdataset personal transfer function*/
 
+            /*----------------------------------------------------------------------------*/
+            /*--------------------------------Texture Data--------------------------------*/
+            /*----------------------------------------------------------------------------*/
             TextureRectangleData*  m_gpuTexVBO; /*!< GPU VBO information for drawing textures*/
             Texture2D*             m_3dImageManipTex; /*!< All the textures used by the Widgets used for 3D manipulations*/
             DefaultGameObject*     m_3dImageManipGO;  /*!< 3D manipulation gameobjects widgets*/
@@ -180,6 +202,9 @@ namespace sereno
             DefaultGameObject*     m_notConnectedGO;  /*!< The gameobject widget drawing the not connected texture*/
             uint32_t               m_currentWidgetAction = NO_IMAGE; /*!< The current widget in use*/
 
+            /*----------------------------------------------------------------------------*/
+            /*-------------------------------Animation data-------------------------------*/
+            /*----------------------------------------------------------------------------*/
             uint32_t               m_animationTimer = 0; /*!< The annimation timer*/
             bool                   m_inAnimation    = false; /*!< Are we in an animation?*/ 
             glm::vec3              m_animationStartingPoint; /*!< The animation starting point*/
@@ -188,6 +213,15 @@ namespace sereno
 
             std::map<const SubDataset*, SubDatasetChangement> m_modelChanged; /*!< Map of the current model being changed*/
 
+            /*----------------------------------------------------------------------------*/
+            /*---------------------------------CPCP data----------------------------------*/
+            /*----------------------------------------------------------------------------*/
+            FBO*         m_rawCPCPFBO;      /*!< The framebuffer containing raw values of the current CPCP */
+            FBORenderer* m_cpcpFBORenderer; /*!< The CPCP renderer*/
+
+            /*----------------------------------------------------------------------------*/
+            /*------------------------------Main Thread Data------------------------------*/
+            /*----------------------------------------------------------------------------*/
             std::queue<MainThreadFunc> m_mainThreadFuncs;      /*!< Jobs to execute in the Main thread*/
             std::mutex                 m_mainThreadFuncsMutex; /*!< Mutex bound to the m_mainThreadFuncs object*/
     };

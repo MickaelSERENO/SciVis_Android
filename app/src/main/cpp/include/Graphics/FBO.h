@@ -16,8 +16,9 @@ namespace sereno
              *
              * \param width the FBO width
              * \param height the FBO height
+             * \param colorInternalFormat the internal format of the color texture
              * \param hasDepthBuffer should this FBO has any depth information? */
-            FBO(uint32_t width, uint32_t height, bool hasDepthBuffer = true);
+            FBO(uint32_t width, uint32_t height, GLenum colorInternalFormat = GL_RGBA, bool hasDepthBuffer = true);
 
             /** \brief  Copy constructor. This class is NOT assignable
              * \param copy the copy variable */

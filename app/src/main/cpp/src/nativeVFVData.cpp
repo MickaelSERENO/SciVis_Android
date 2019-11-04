@@ -53,7 +53,7 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveDataset(JN
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jobject vtk, jlong ptr, jlong jData)
 {
     VFVData* data = (VFVData*)ptr;
-    data->addVTKData(*((std::shared_ptr<VTKDataset>*)jData));
+    data->addVTKData(*((std::shared_ptr<VTKDataset>*)jData), vtk);
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnClampingChange(JNIEnv* env, jobject instance, jlong ptr, jfloat min, jfloat max, jlong sd)
@@ -149,7 +149,7 @@ JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeBindSubDataset(JN
     SubDataset* sd = (SubDataset*)sdPtr;
 
     if(sd != NULL)
-        data->bindSubDatasetJava(sd, env->NewGlobalRef(javaSD));
+        data->bindSubDatasetJava(sd, javaSD);
 }
 
 JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnAddSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr)

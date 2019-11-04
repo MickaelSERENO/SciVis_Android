@@ -1,6 +1,7 @@
 #include "Graphics/FBO.h"
 #include "utils.h"
 #include <utility>
+#include <algorithm>
 
 namespace sereno
 {
@@ -16,7 +17,7 @@ namespace sereno
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
 
-    FBO::FBO(uint32_t width, uint32_t height, bool hasDepthBuffer) : m_width(width), m_height(height)
+    FBO::FBO(uint32_t width, uint32_t height, GLenum colorInternalFormat, bool hasDepthBuffer) : m_width(width), m_height(height)
     {
         //Create and bind FBO
         glGenFramebuffers(1, &m_buffer);
@@ -27,7 +28,12 @@ namespace sereno
             glBindTexture(GL_TEXTURE_2D, m_colorBuffer);
             {
                 _setTextureParams();
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+                for(int i = 0; width != 1 && height != 1; i++)
+                {
+                    glTexStorage2D(GL_TEXTURE_2D, i, colorInternalFormat, width, height);
+                    width = std::max(1U, (width / 2));
+                    height = std::max(1U, (height / 2));
+                }
             }
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorBuffer, 0); 
             m_hasColorBuffer = true;
@@ -57,6 +63,7 @@ namespace sereno
                 clear();
             }
         }
+        m_hasBuffer = true;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 

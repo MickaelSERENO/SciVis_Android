@@ -88,13 +88,20 @@ namespace sereno
     void GLRenderer::loadShaders()
     {
         //Initialize Shaders
-        const char* shaders[] = {"color", "uniColor", "colorGrid", "vectorField", "simpleTexture", "planeVolumeRendering", "colorPhong"};
-        const bool  hasGeom[] = {false, false, false, false, false, false, false};
+        
+        const struct {const char* name; bool hasGeom;} shaders[] = {{"color", false}, {"uniColor", false},
+                                                                    {"colorGrid", false},
+                                                                    {"vectorField", false},
+                                                                    {"simpleTexture", false},
+                                                                    {"planeVolumeRendering", false},
+                                                                    {"colorPhong", false},
+                                                                    {"cpcp", false},
+                                                                    {"normalize1D", false}};
         for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
         {
             Shader* shader = NULL;
-            std::string vertDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i] + ".vert";
-            std::string fragDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i] + ".frag";
+            std::string vertDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i].name + ".vert";
+            std::string fragDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i].name + ".frag";
 
             FILE* vertShadFile = fopen(vertDataPath.c_str(), "r");
             FILE* fragShadFile = fopen(fragDataPath.c_str(), "r");
@@ -103,9 +110,9 @@ namespace sereno
             if(vertShadFile == NULL || fragShadFile == NULL)
                 goto error;
 
-            if(hasGeom[i])
+            if(shaders[i].hasGeom)
             {
-                std::string geomDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i] + ".geom";
+                std::string geomDataPath = m_surfaceData->dataPath + "/Shaders/" + shaders[i].name + ".geom";
                 geomShadFile = fopen(geomDataPath.c_str(), "r");
                 if(geomShadFile == NULL)
                     goto error;
@@ -116,10 +123,10 @@ namespace sereno
             if(shader == NULL)
                 goto error;
 
-            m_shaders.add(shaders[i], shader);
+            m_shaders.add(shaders[i].name, shader);
             goto endError;
 error:
-            LOG_ERROR("Could not initialize shader %s\n", shaders[i]);
+            LOG_ERROR("Could not initialize shader %s\n", shaders[i].name);
             if(shader != NULL)
                 delete shader;
 endError:

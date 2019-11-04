@@ -25,6 +25,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
          * This method can be called asynchronously
          * @param action the current action asked*/
         void onChangeCurrentAction(int action);
+
+        /** Method called when a Dataset has been loaded
+         * @param dataset the Dataset that has been loaded
+         * @param success the result of the loading. True on success, False on failure*/
+        void onLoadDataset(Dataset dataset, boolean success);
     }
 
     public static final int DATASET_TYPE_VTK    = 0;
@@ -217,6 +222,16 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         for(IVFVSurfaceViewListener l : m_listeners)
             l.onChangeCurrentAction(a);
+    }
+
+    /** Function called from the native code when the native code has loaded values of a given Dataset
+     * Pay attention that this is done asynchronously
+     * @param d the Dataset that has seen its values loaded
+     * @param success true on success, false on failure*/
+    private void onLoadDataset(Dataset d, boolean success)
+    {
+        for(IVFVSurfaceViewListener l : m_listeners)
+            l.onLoadDataset(d, success);
     }
 
     /** Create the argument to send to the main function

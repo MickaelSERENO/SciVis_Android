@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "Datasets/Dataset.h"
+#include "jniData.h"
 
 using namespace sereno;
 
@@ -36,4 +37,22 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeAddSubDataset(JNIE
     SubDataset* sd = (SubDataset*)sdPtr;
 
     (updateID == false) ? ((*dataset)->addSubDataset(sd)) : ((*dataset)->addSubDatasetWithID(sd));
+}
+
+JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetPointFieldDescs(JNIEnv* jenv, jclass jcls, jlong ptr)
+{
+    //Fetch pointers
+    std::shared_ptr<Dataset>* dataset = (std::shared_ptr<Dataset>*)ptr;
+    Dataset* d = dataset->get();
+    const std::vector<PointFieldDesc>& descs = d->getPointFieldDescs();
+
+    //Create and initialize the array
+    jobjectArray jArr = jenv->NewObjectArray(descs.size(), jPointFieldDescClass, NULL);
+    for(uint32_t i = 0; i < descs.size(); i++)
+    {
+        jobject jobj = jenv->CallStaticObjectMethod(jPointFieldDescClass, jPointFieldDesc_constructor, descs[i].id, descs[i].minVal, descs[i].maxVal, descs[i].values.get() != NULL);
+        jenv->SetObjectArrayElement(jArr, i, jobj);
+    }
+
+    return jArr;
 }
