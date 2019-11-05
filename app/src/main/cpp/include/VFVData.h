@@ -146,8 +146,9 @@ namespace sereno
             void addBinaryData(std::shared_ptr<BinaryDataset> dataset);
 
             /* \brief  Add a new VTK Dataset in this application
-             * \param dataset the VTK dataset to add*/
-            void addVTKData(std::shared_ptr<VTKDataset> dataset);
+             * \param dataset the VTK dataset to add
+             * \param jVTK the Java VTKDataset object*/
+            void addVTKData(std::shared_ptr<VTKDataset> dataset, jobject jVTK);
 
             /* \brief Remove the dataset "subdataset"
              * \param sd the subdataset to remove*/
@@ -227,6 +228,11 @@ namespace sereno
             /* \brief  Send a scaling event. Must be called after subDataset has been scaled
              * \param subDataset the subDataset being modified.*/ 
             void sendScaleEvent(SubDataset* subDataset);
+
+            /** \brief  Send the even "on Dataset loaded"
+             * \param pDataset the Dataset loaded
+             * \param success true on success, false on failure */
+            void sendOnDatasetLoaded(std::shared_ptr<Dataset> pDataset, bool success);
 
             /** \brief  Lock this object*/
             void lock() {pthread_mutex_lock(&m_mutex);}

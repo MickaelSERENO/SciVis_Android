@@ -399,6 +399,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     }
                 });
             }
+
+            @Override
+            public void onLoadDataset(Dataset dataset, boolean success){
+                //TODO, the application should know about this
+            }
         });
     }
 

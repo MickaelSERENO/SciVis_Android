@@ -15,6 +15,11 @@ namespace sereno
             FBORenderer(FBO* fbo);
 
             virtual void render();
+
+            /** \brief  Set the FBO being bound
+             * \param fbo the new FBO to use 
+             * \param resetViewport should the viewport be reset?*/
+            void setFBO(FBO* fbo, bool resetViewport=true);
         private:
             FBO* m_fbo = NULL; /*!< The FBO to draw into*/
     };

@@ -2,10 +2,19 @@
 
 namespace sereno
 {
-    FBORenderer::FBORenderer(FBO* fbo) : m_fbo(fbo)
+    FBORenderer::FBORenderer(FBO* fbo) : Render(), m_fbo(fbo)
     {
         //Reinitialize the viewport
         if(m_fbo)
+            setViewport(Rectangle2i(0, 0, m_fbo->getWidth(), m_fbo->getHeight()));
+    }
+
+    void FBORenderer::setFBO(FBO* fbo, bool resetViewport)
+    {
+        m_fbo = fbo;
+
+        //Reinitialize the viewport
+        if(m_fbo && resetViewport)
             setViewport(Rectangle2i(0, 0, m_fbo->getWidth(), m_fbo->getHeight()));
     }
 

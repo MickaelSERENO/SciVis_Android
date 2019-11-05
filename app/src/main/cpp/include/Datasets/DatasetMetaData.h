@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstdint>
 #include <vector>
+#include "jniData.h"
 #include "Graphics/Texture.h"
 #include "Datasets/Dataset.h"
 
@@ -30,8 +31,22 @@ namespace sereno
     {
         public:
             /* \brief  Constructor
-             * \param dataset The related Dataset */
-            DatasetMetaData(std::shared_ptr<Dataset> dataset);
+             * \param dataset The related Dataset
+             * \param jDataset the jni Dataset object */
+            DatasetMetaData(std::shared_ptr<Dataset> dataset, jobject jDataset);
+
+            /* \brief  Movement constructor
+             * \param mvt the object to move */
+            DatasetMetaData(DatasetMetaData&& mvt);
+
+            /* \brief  Copy constructor
+             * \param copy the object to copy */
+            DatasetMetaData(const DatasetMetaData& copy);
+
+            /* \brief  Copy assignment
+             * \param copy the object to copy
+             * \return   reference to this */
+            DatasetMetaData& operator=(const DatasetMetaData& copy);
 
             /** \brief  Destructor */
             virtual ~DatasetMetaData();
@@ -46,35 +61,44 @@ namespace sereno
 
             /** \brief  Add a 1D Histogram for this Dataset
              * \param hist the histogram to add */
-            void add1DHistogram(const Dataset1DHistogram& hist)
+            void add1DHistogram(Dataset1DHistogram& hist)
             {
                 m_1dHistograms.push_back(hist);
             }
 
             /** \brief  Add a 2D Histogram to this Dataset
              * \param hist the histogram to add */
-            void add2DHistogram(const Dataset2DHistogram& hist)
+            void add2DHistogram(Dataset2DHistogram& hist)
             {
                 m_2dHistograms.push_back(hist);
             }
 
             /** \brief  Get the list of 1D Histograms registered
              * \return  The 1D Histograms registered */
-            const std::vector<const Dataset1DHistogram>& get1DHistograms() const
+            const std::vector<Dataset1DHistogram>& get1DHistograms() const
             {
                 return m_1dHistograms;
             }
 
             /** \brief  Get the list of 2D Histograms registered
              * \return  The 2D Histograms registered */
-            const std::vector<const Dataset2DHistogram>& get2DHistograms() const
+            const std::vector<Dataset2DHistogram>& get2DHistograms() const
             {
                 return m_2dHistograms;
             }
+
+            /** \brief  Get the Java object bound to this Dataset
+             * \return   the Java Obj */
+            jobject getJavaDatasetObj() const
+            {
+                return m_jDataset;
+            }
         private:
-            std::shared_ptr<Dataset>        m_dataset;            /*!< The Dataset possessing this metadata*/
-            std::vector<const Dataset1DHistogram> m_1dHistograms; /*!< List of generated 1D histograms*/
-            std::vector<const Dataset2DHistogram> m_2dHistograms; /*!< List of generated 2D histograms*/
+            std::shared_ptr<Dataset> m_dataset;                   /*!< The Dataset possessing this metadata*/
+            std::vector<Dataset1DHistogram> m_1dHistograms; /*!< List of generated 1D histograms*/
+            std::vector<Dataset2DHistogram> m_2dHistograms; /*!< List of generated 2D histograms*/
+
+            jobject m_jDataset;                                   /*!< The Java object corresponding to this Dataset. A global reference is made*/
     };
 }
 

@@ -1,9 +1,10 @@
 #include "MainVFV.h"
 #include "jniData.h"
 #include "utils.h"
-#include "Graphics/FBORenderer.h"
-#include "Graphics/DefaultGameObject.h"
-#include "Graphics/Materials/CPCPMaterial.h"
+
+#ifndef MAX
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#endif
 
 namespace sereno
 {
@@ -38,6 +39,8 @@ namespace sereno
         m_colorPhongMtl = new PhongMaterial(&surfaceData->renderer, Color::BLUE_COLOR, 0.3f, 0.7f, 0.1f, 100);
         m_3dTextureMtl = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
         m_gpuTexVBO    = new TextureRectangleData();
+        m_cpcpMtl      = new CPCPMaterial(&m_surfaceData->renderer, HISTOGRAM_WIDTH*sqrt(2.0f));
+        m_normalizeMtl = new NormalizeMaterial(&m_surfaceData->renderer);
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
         m_3dImageManipTex = (Texture2D*)malloc(sizeof(Texture2D)*8);
@@ -65,20 +68,44 @@ namespace sereno
         m_notConnectedTextureMtl->setBlend(transparency);
         m_notConnectedTextureMtl->setDepthWrite(false);
         free(texData);
+
+        //Load CPCP data
+        m_rawCPCPFBO      = new FBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_R32F, false);
+        m_cpcpFBORenderer = new FBORenderer(m_rawCPCPFBO);
     }
 
     MainVFV::~MainVFV()
     {
+        /*----------------------------------------------------------------------------*/
+        /*----------------------------Delete visualization----------------------------*/
+        /*----------------------------------------------------------------------------*/
         for(VectorField* vf : m_vectorFields)
             if(vf)
                 delete vf;
+        for(VTKStructuredGridPointSciVis* vis : m_vtkStructuredGridPoints) //This ensure that the parallel threads have finished (because of a join call)
+            delete vis;
+
+        /*----------------------------------------------------------------------------*/
+        /*---------------------Delete transfer functions texture----------------------*/
+        /*----------------------------------------------------------------------------*/
         for(GLuint tex : m_sciVisTFTextures)
             glDeleteTextures(1, &tex);
         for(auto& it : m_sciVisTFs)
             delete(it.second);
 
-        delete m_arrowMesh;
+        /*----------------------------------------------------------------------------*/
+        /*------------------------------Delete materials------------------------------*/
+        /*----------------------------------------------------------------------------*/
         delete m_vfMtl;
+        delete m_colorGridMtl;
+        delete m_notConnectedTextureMtl;
+        delete m_colorPhongMtl;
+        delete m_cpcpMtl;
+
+        /*----------------------------------------------------------------------------*/
+        /*-----------------Delete the 4 DOF manipulation texture data-----------------*/
+        /*----------------------------------------------------------------------------*/
+        delete m_arrowMesh;
         delete m_gpuTexVBO;
         for(int i = 0; i < 8; i++)
         {
@@ -89,8 +116,13 @@ namespace sereno
         free(m_3dImageManipTex);
         free(m_3dImageManipGO);
         delete m_notConnectedGO;
-        delete m_notConnectedTextureMtl;
         delete m_notConnectedTex;
+
+        /*----------------------------------------------------------------------------*/
+        /*------------------------------Delete FBO data-------------------------------*/
+        /*----------------------------------------------------------------------------*/
+        delete m_rawCPCPFBO;
+        delete m_cpcpFBORenderer;
     }
 
     void MainVFV::runOnMainThread(const MainThreadFunc& func)
@@ -386,11 +418,14 @@ namespace sereno
 
             //Run jobs in main thread
             {
-                std::lock_guard<std::mutex> lock(m_mainThreadFuncsMutex);
                 while(!m_mainThreadFuncs.empty())
                 {
-                    m_mainThreadFuncs.front()();
-                    m_mainThreadFuncs.pop();
+                    //Cut the job like this for not blocking the other thread too much
+                    m_mainThreadFuncsMutex.lock();
+                        auto func = m_mainThreadFuncs.front();
+                        m_mainThreadFuncs.pop();
+                    m_mainThreadFuncsMutex.unlock();
+                    func();
                 }
             }
 
@@ -642,6 +677,7 @@ namespace sereno
         LOG_INFO("Creating dataset's histograms");
         //Create every possible 2D histograms
         uint32_t ptDescSize = dataset->getPointFieldDescs().size();
+        bool     loaded     = true;
         if(ptDescSize > 1)
         {
             for(uint32_t i = 0; i < ptDescSize-1; i++)
@@ -652,6 +688,8 @@ namespace sereno
                     if(!dataset->create2DHistogram(histogram, HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, dataset->getPointFieldDescs()[i].id, dataset->getPointFieldDescs()[j].id))
                     {
                         LOG_ERROR("Could not create histogram between property %s and %s\n", dataset->getPointFieldDescs()[i].name.c_str(), dataset->getPointFieldDescs()[j].name.c_str());
+                        loaded = false;
+                        free(histogram);
                         continue;
                     }
 
@@ -659,6 +697,8 @@ namespace sereno
 
                     //Normalize values in a float array object
                     //Check type. This is used to earn time regarding histogram* size
+
+                    //First get max element
                     static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
                     uint32_t maxVal = 0;
 #if defined(_OPENMP)
@@ -677,15 +717,49 @@ namespace sereno
                     runOnMainThread([this, dataset, histogram, i, j]()
                     {
                         //Remember that the data of histogram is now "float" (even if declared as a uint32_t, VIVA CASTING OPERATION!).
-                        Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, histogram, GL_RED, GL_RED, GL_FLOAT);
+                        Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, histogram, GL_R32F, GL_RED, GL_FLOAT);
 
                         //Draw the corresponding CPCP (Continuous Parallel Coordinate Plot) in a Texture
-                        FBO fbo(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, false);
-                        FBORenderer renderer(&fbo);
-                        CPCPMaterial cpcpMtl(&m_surfaceData->renderer, HISTOGRAM_WIDTH*1.5f);
-                        DefaultGameObject go(NULL, &m_surfaceData->renderer, &cpcpMtl, m_gpuTexVBO);
-                        go.update(&renderer);
-                        renderer.render();
+                        //This texture will not be normalized (i.e., pixels values will not be clamped to [0,1])
+                        m_cpcpMtl->bindTexture(text->getTextureID(), 2, 0);
+                        m_cpcpFBORenderer->setFBO(m_rawCPCPFBO);
+                        DefaultGameObject rawGO(NULL, &m_surfaceData->renderer, m_cpcpMtl, m_gpuTexVBO);
+                        rawGO.update(m_cpcpFBORenderer);
+                        m_cpcpFBORenderer->render();
+
+                        //delete text;
+
+                        //Get the min and max values of this newly created texture
+                        //And normalize this texture
+                        //
+                        //TODO optimize this using compute shader if they are available (OpenGL ES 3.X)
+                        GLint curFBO;
+                        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &curFBO);
+                        glBindFramebuffer(GL_FRAMEBUFFER, m_rawCPCPFBO->getBuffer());
+                            void* pixels = malloc(sizeof(float)*CPCP_TEXTURE_WIDTH*CPCP_TEXTURE_HEIGHT);
+                            glReadPixels(0, 0, CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RED, GL_FLOAT, pixels);
+                        glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
+
+                        //Parallel reduction to get the max
+                        float maxVal = std::numeric_limits<float>::min();
+#ifdef _OPENMP
+                        #pragma omp parallel for reduction(max:maxVal)
+#endif
+                        for(uint32_t k = 0; k < CPCP_TEXTURE_WIDTH*CPCP_TEXTURE_HEIGHT; k++)
+                            maxVal = std::max(maxVal, ((float*)pixels)[k]);
+
+                        free(pixels);
+
+                        //Normalize the texture
+                        m_normalizeMtl->setRange(0, maxVal);
+                        FBO fbo(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_R32F, false);
+                        m_cpcpFBORenderer->setFBO(&fbo);
+                        m_normalizeMtl->bindTexture(m_rawCPCPFBO->getColorBuffer(), 2, 0);
+                        DefaultGameObject go(NULL, &m_surfaceData->renderer, m_normalizeMtl, m_gpuTexVBO);
+                        go.update(m_cpcpFBORenderer);
+                        m_cpcpFBORenderer->render();
+
+                        m_cpcpFBORenderer->setFBO(NULL); //Reset the FBO to NULL
 
                         //Generate and add a 2DHistogram to the Dataset's meta data
                         Dataset2DHistogram hist2D;
@@ -713,13 +787,16 @@ namespace sereno
             if(!dataset->create1DHistogram(histogram, HISTOGRAM_WIDTH, dataset->getPointFieldDescs()[i].id))
             {
                 LOG_ERROR("Could not create histogram of property %s\n", dataset->getPointFieldDescs()[i].name.c_str());
+                loaded = false;
+                free(histogram);
                 continue;
             }
 
             //Normalize values in a float array object
             //Check type. This is used to earn time regarding histogram* size
+            //First get max element
             static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
-            uint32_t maxVal = INT_MIN;
+            uint32_t maxVal = 0;
 #if defined(_OPENMP)
             #pragma omp parallel for reduction(max:maxVal)
 #endif
@@ -750,6 +827,13 @@ namespace sereno
                 free(histogram);
             });
         }
+
+        //Notify Java side that everything is loaded.
+        //We can do this in this way because every thread are called one after the other
+        runOnMainThread([this, dataset, loaded]()
+        {
+            m_mainData->sendOnDatasetLoaded(m_mainData->getDatasetSharedPtr(dataset), loaded);
+        });
     }
 
     void MainVFV::handleVFVDataEvent()
@@ -805,7 +889,7 @@ namespace sereno
                     //Load VTK data in a separate thread
                     event->vtkData.dataset->loadValues([](Dataset* dataset, uint32_t status, void* data)
                     {
-                        ((MainVFV*)data)->onLoadVTKDataset((VTKDataset*)dataset, status);
+                        ((MainVFV*)data)->onLoadVTKDataset(reinterpret_cast<VTKDataset*>(dataset), status);
                     }, this);
 
                     break;

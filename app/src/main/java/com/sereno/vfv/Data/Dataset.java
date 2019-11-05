@@ -130,6 +130,14 @@ public abstract class Dataset
             listener.onAddSubDataset(this, sd);
     }
 
+    /** Get the point field descriptor of this Dataset.
+     * This function does recreate the array at each call, so better to store the result
+     * @return an array of the point field descriptor loaded by the Dataset*/
+    public PointFieldDesc[] getPointFieldDescs()
+    {
+        return nativeGetPointFieldDescs(m_ptr);
+    }
+
     /** Delete a native pointer
      * @param ptr the native pointer to destroy*/
     private static native void nativeDelPtr(long ptr);
@@ -155,4 +163,9 @@ public abstract class Dataset
      * @param sdPtr the subdataset native pointer
      * @param changeID should this function update the SubDataset ID? Please, do not mix "true" and "false" since conflicts can be created (and will not be detected)*/
     private native void nativeAddSubDataset(long ptr, long sdPtr, boolean changeID);
+
+    /** Native code creating a Java array of PointFieldDesc point to this Dataset
+     * @param ptr the Dataset native pointer
+     * @return the newly created point field descriptors*/
+    private native PointFieldDesc[] nativeGetPointFieldDescs(long ptr);
 }
