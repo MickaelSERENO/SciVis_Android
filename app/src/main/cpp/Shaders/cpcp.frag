@@ -24,7 +24,7 @@ void main()
     //Prevent division by zero
     if(eta1 <= 1.e-8)
     {
-        fragColor = vec4(0,0,0,255);
+        fragColor = vec4(0,0,0,1);
         return;
     }
 
@@ -43,11 +43,11 @@ void main()
     vec2 p1 = vec2(x1, y1);
     vec2 d = p1 - p0;
     float ld = length(d);
-    int realSamples = int(ceil(ld * float(uNBSamples)));
+    int realSamples = int(ld * float(uNBSamples));
 
     if(realSamples == 0) 
     {
-    	fragColor = vec4(0);
+    	fragColor = vec4(0,0,0,1);
         return;
     }
 

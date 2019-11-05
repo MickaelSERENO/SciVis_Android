@@ -28,12 +28,16 @@ namespace sereno
             glBindTexture(GL_TEXTURE_2D, m_colorBuffer);
             {
                 _setTextureParams();
-                for(int i = 0; width != 1 && height != 1; i++)
+                uint32_t tempWidth=width, tempHeight=height;
+                uint32_t level = 0;
+                for(; tempWidth != 1 && tempHeight != 1; level++)
                 {
-                    glTexStorage2D(GL_TEXTURE_2D, i, colorInternalFormat, width, height);
-                    width = std::max(1U, (width / 2));
-                    height = std::max(1U, (height / 2));
+                    tempWidth = std::max(1U, (tempWidth / 2));
+                    tempHeight = std::max(1U, (tempHeight / 2));
                 }
+
+                glTexStorage2D(GL_TEXTURE_2D, level, colorInternalFormat, width, height);
+
             }
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorBuffer, 0); 
             m_hasColorBuffer = true;

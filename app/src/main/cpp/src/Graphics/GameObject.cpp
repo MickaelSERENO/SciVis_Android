@@ -4,12 +4,15 @@
 
 namespace sereno
 {
-    GameObject::GameObject(GameObject* parent, GLRenderer* renderer, Material* mtl) : Drawable(renderer, mtl), m_parent(parent)
+    GameObject::GameObject(GameObject* parent, GLRenderer* renderer, Material* mtl) : Drawable(renderer, mtl), Transformable(), m_parent(parent)
     {
         if(parent)
             parent->addChild(this);
+        setScale(glm::vec3(1, 1, 1));
         setPosition(glm::vec3(0, 0, 0));
         setRotate(Quaternionf(0, 0, 0, 1));
+
+        setApplyTransformation(parent);
     }
 
     GameObject::~GameObject()

@@ -12,6 +12,7 @@ namespace sereno
 
     void Render::render()
     {
+        glViewport(m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
         for(Drawable* d : m_currentDrawable)
             d->draw(*this);
         m_currentDrawable.clear();

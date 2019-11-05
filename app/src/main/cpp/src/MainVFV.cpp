@@ -724,6 +724,7 @@ namespace sereno
                         m_cpcpMtl->bindTexture(text->getTextureID(), 2, 0);
                         m_cpcpFBORenderer->setFBO(m_rawCPCPFBO);
                         DefaultGameObject rawGO(NULL, &m_surfaceData->renderer, m_cpcpMtl, m_gpuTexVBO);
+                        rawGO.setScale(glm::vec3(2.0f, 2.0f, 2.0f));
                         rawGO.update(m_cpcpFBORenderer);
                         m_cpcpFBORenderer->render();
 
@@ -741,7 +742,7 @@ namespace sereno
                         glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
 
                         //Parallel reduction to get the max
-                        float maxVal = std::numeric_limits<float>::min();
+                        float maxVal = 0;
 #ifdef _OPENMP
                         #pragma omp parallel for reduction(max:maxVal)
 #endif
@@ -756,6 +757,7 @@ namespace sereno
                         m_cpcpFBORenderer->setFBO(&fbo);
                         m_normalizeMtl->bindTexture(m_rawCPCPFBO->getColorBuffer(), 2, 0);
                         DefaultGameObject go(NULL, &m_surfaceData->renderer, m_normalizeMtl, m_gpuTexVBO);
+                        go.setScale(glm::vec3(2.0f, 2.0f, 2.0f));
                         go.update(m_cpcpFBORenderer);
                         m_cpcpFBORenderer->render();
 
@@ -768,7 +770,7 @@ namespace sereno
                         hist2D.ptFieldID1 = i;
                         hist2D.ptFieldID2 = j;
 
-                        m_notConnectedTextureMtl->bindTexture(hist2D.pcpTexture->getTextureID(), 2, 0);
+                        m_notConnectedTextureMtl->bindTexture(m_rawCPCPFBO->stealColorBuffer(), 2, 0);
 
                         std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
                         if(metaData.get())
