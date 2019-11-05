@@ -57,11 +57,10 @@ elseif(${ANDROID_ABI} STREQUAL "x86")
     set(ENV{PKG_CONFIG_PATH} "${CMAKE_PREFIX_PATH_X86}")
 endif()
 
-
 #Check module in PKG
 find_package(PkgConfig              REQUIRED)
 PKG_CHECK_MODULES(LIB3DS            REQUIRED lib3ds)
-PKG_CHECK_MODULES(LIBPNG            REQUIRED libpng)
+PKG_CHECK_MODULES(LIBPNG            REQUIRED libpng16)
 PKG_CHECK_MODULES(GLM               REQUIRED glm)
 PKG_CHECK_MODULES(SERENO_VTK_PARSER REQUIRED serenoVTKParser)
 PKG_CHECK_MODULES(SERENO_MATH       REQUIRED serenoMath)
@@ -71,7 +70,7 @@ PKG_CHECK_MODULES(SERENO_SCI_VIS    REQUIRED serenoSciVis)
 find_library(log-lib     log)
 find_library(android-lib android)
 find_library(egl-lib     EGL)
-find_library(gles-lib    GLESv2)
+find_library(gles-lib    GLESv3)
 find_library(z-lib       z)
 
 #######################

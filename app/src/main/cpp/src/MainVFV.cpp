@@ -639,6 +639,7 @@ namespace sereno
 
     void MainVFV::onLoadDataset(Dataset* dataset, uint32_t status)
     {
+        LOG_INFO("Creating dataset's histograms");
         //Create every possible 2D histograms
         uint32_t ptDescSize = dataset->getPointFieldDescs().size();
         if(ptDescSize > 1)
@@ -654,12 +655,23 @@ namespace sereno
                         continue;
                     }
 
+                    LOG_INFO("Creating an histogram between %s and %s\n", dataset->getPointFieldDescs()[i].name.c_str(), dataset->getPointFieldDescs()[j].name.c_str());
+
                     //Normalize values in a float array object
                     //Check type. This is used to earn time regarding histogram* size
                     static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
-                    uint32_t max = *std::max_element(histogram, histogram+HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT);
+                    uint32_t maxVal = 0;
+#if defined(_OPENMP)
+                    #pragma omp parallel for reduction(max:maxVal)
+#endif
                     for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
-                        (*(float*)(histogram+k)) = (float)histogram[k]/max;
+                        maxVal = (histogram[k] > maxVal ? histogram[k] : maxVal);
+
+#if defined(_OPENMP)
+                    #pragma omp parallel for
+#endif
+                    for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
+                        ((float*)histogram)[k] = ((float)histogram[k])/(float)maxVal; //This work because sizeof(float) == sizeof(uint32_t)
 
                     //Run a job to make them as Texture objects
                     runOnMainThread([this, dataset, histogram, i, j]()
@@ -672,7 +684,7 @@ namespace sereno
                         FBORenderer renderer(&fbo);
                         CPCPMaterial cpcpMtl(&m_surfaceData->renderer, HISTOGRAM_WIDTH*1.5f);
                         DefaultGameObject go(NULL, &m_surfaceData->renderer, &cpcpMtl, m_gpuTexVBO);
-                        renderer.addToDraw(&go);
+                        go.update(&renderer);
                         renderer.render();
 
                         //Generate and add a 2DHistogram to the Dataset's meta data
@@ -681,6 +693,8 @@ namespace sereno
                         hist2D.pcpTexture = std::shared_ptr<Texture2D>(new Texture2D(fbo.stealColorBuffer(), CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT));
                         hist2D.ptFieldID1 = i;
                         hist2D.ptFieldID2 = j;
+
+                        m_notConnectedTextureMtl->bindTexture(hist2D.pcpTexture->getTextureID(), 2, 0);
 
                         std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
                         if(metaData.get())
@@ -705,9 +719,18 @@ namespace sereno
             //Normalize values in a float array object
             //Check type. This is used to earn time regarding histogram* size
             static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
-            uint32_t max = *std::max_element(histogram, histogram+HISTOGRAM_WIDTH);
+            uint32_t maxVal = INT_MIN;
+#if defined(_OPENMP)
+            #pragma omp parallel for reduction(max:maxVal)
+#endif
             for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
-                (*(float*)(histogram+k)) = (float)histogram[k]/max;
+                maxVal = (histogram[k] > maxVal ? histogram[k] : maxVal);
+
+#if defined(_OPENMP)
+            #pragma omp parallel for
+#endif
+            for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
+                ((float*)histogram)[k] = (float)histogram[k]/(float)maxVal;
 
             //Run a job to make them as Texture objects
             runOnMainThread([this, dataset, histogram, i]()
@@ -885,6 +908,7 @@ namespace sereno
         {
             if(it->dataset.get() == sd->getParent())
             {
+                break;
                 //If no property to look at, discard
                 if(it->dataset->getPtFieldValues().size() == 0)
                     break;
