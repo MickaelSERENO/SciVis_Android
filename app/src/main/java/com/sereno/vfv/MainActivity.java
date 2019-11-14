@@ -27,6 +27,7 @@ import android.widget.Spinner;
 import com.sereno.VFVViewPager;
 import com.sereno.color.ColorMode;
 import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
@@ -231,6 +232,15 @@ public class MainActivity extends AppCompatActivity
     public void onAddSubDataset(Dataset dataset, SubDataset sd)
     {
          sd.addListener(this);
+    }
+
+    @Override
+    public void onLoadDataset(Dataset dataset, boolean success) {}
+
+    @Override
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture)
+    {
+
     }
 
     @Override

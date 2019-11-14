@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.sereno.Tree;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
@@ -203,6 +204,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
         });
     }
+
+    @Override
+    public void onLoadDataset(Dataset dataset, boolean success) {}
+
+    @Override
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
 
     private void onAddDataset(final Dataset d)
     {

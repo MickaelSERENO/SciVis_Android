@@ -39,7 +39,7 @@ namespace sereno
         m_colorPhongMtl = new PhongMaterial(&surfaceData->renderer, Color::BLUE_COLOR, 0.3f, 0.7f, 0.1f, 100);
         m_3dTextureMtl = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
         m_gpuTexVBO    = new TextureRectangleData();
-        m_cpcpMtl      = new CPCPMaterial(&m_surfaceData->renderer, HISTOGRAM_WIDTH*sqrt(2.0f));
+        m_cpcpMtl      = new CPCPMaterial(&m_surfaceData->renderer, HISTOGRAM_WIDTH*sqrt(2));
         m_normalizeMtl = new NormalizeMaterial(&m_surfaceData->renderer);
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
@@ -749,11 +749,9 @@ namespace sereno
                         for(uint32_t k = 0; k < CPCP_TEXTURE_WIDTH*CPCP_TEXTURE_HEIGHT; k++)
                             maxVal = std::max(maxVal, ((float*)pixels)[k]);
 
-                        free(pixels);
-
                         //Normalize the texture
                         m_normalizeMtl->setRange(0, maxVal);
-                        FBO fbo(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_R32F, false);
+                        FBO fbo(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, false);
                         m_cpcpFBORenderer->setFBO(&fbo);
                         m_normalizeMtl->bindTexture(m_rawCPCPFBO->getColorBuffer(), 2, 0);
                         DefaultGameObject go(NULL, &m_surfaceData->renderer, m_normalizeMtl, m_gpuTexVBO);
@@ -770,12 +768,18 @@ namespace sereno
                         hist2D.ptFieldID1 = i;
                         hist2D.ptFieldID2 = j;
 
-                        m_notConnectedTextureMtl->bindTexture(m_rawCPCPFBO->stealColorBuffer(), 2, 0);
-
                         std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
                         if(metaData.get())
                             metaData->add2DHistogram(hist2D);
 
+                        //Read back the 2DHistogram and send it to the Java thread
+                        glBindFramebuffer(GL_FRAMEBUFFER, fbo.getBuffer());
+                            glReadPixels(0, 0, CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, GL_BYTE, pixels); //This work because sizeof(float) = =sizeof(uint32_t)
+                        glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
+                        m_mainData->sendCPCPTexture(m_mainData->getDatasetSharedPtr(dataset), (uint32_t*)pixels, CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, i, j);
+
+                        //Free allocations
+                        free(pixels);
                         free(histogram);
                     });
                 }
@@ -994,7 +998,6 @@ namespace sereno
         {
             if(it->dataset.get() == sd->getParent())
             {
-                break;
                 //If no property to look at, discard
                 if(it->dataset->getPtFieldValues().size() == 0)
                     break;

@@ -1,5 +1,9 @@
 package com.sereno.vfv.Data;
 
+import android.graphics.Bitmap;
+
+import com.sereno.gl.VFVSurfaceView;
+
 import java.util.ArrayList;
 
 /** The Dataset abstract class*/
@@ -17,6 +21,16 @@ public abstract class Dataset
          * @param dataset the Dataset calling this method
          * @param sd the SubDataset being added*/
         void onAddSubDataset(Dataset dataset, SubDataset sd);
+
+        /** Method called when a Dataset has been loaded asynchronously
+         * @param dataset the Dataset that has been loaded
+         * @param success the result of the loading. True on success, False on failure*/
+        void onLoadDataset(Dataset dataset, boolean success);
+
+        /** Method called when a Dataset has loaded a new CPCPTexture asynchronously
+         * @param dataset the Dataset that has loaded the CPCPTexture
+         * @param texture the CPCPTexture generated*/
+        void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture);
     }
 
     /** The native C++ handle*/
@@ -33,6 +47,12 @@ public abstract class Dataset
 
     /** The Listener to calls on operation on this Dataset*/
     protected ArrayList<IDatasetListener> m_listeners = new ArrayList<>();
+
+    /** All the generated CPCPTexture*/
+    protected ArrayList<CPCPTexture> m_cpcpTextures = new ArrayList<>();
+
+    /** Has this Dataset finished to load?*/
+    protected boolean m_isLoaded = false;
 
     /** The constructor. Private because the class is abstract
      * @param ptr the native C++ handle created in derived class. The handle must inherits from Dataset C++ object
@@ -95,6 +115,10 @@ public abstract class Dataset
      * @return an ArrayList of SubDataset*/
     public ArrayList<SubDataset> getSubDatasets() {return m_subDatasets;}
 
+    /** Get the list of generated CPCPTexture. The list if full once isLoaded() == true
+     * @return an ArrayList of CPCPTexture*/
+    public ArrayList<CPCPTexture> getCPCPTextures() {return m_cpcpTextures;}
+
     /** @brief Get the ID of this Dataset. The ID is shared with the Server
      * @return the Dataset ID*/
     public int getID(){return m_id;}
@@ -128,6 +152,33 @@ public abstract class Dataset
 
         for(IDatasetListener listener : m_listeners)
             listener.onAddSubDataset(this, sd);
+    }
+
+    /** Get whether or not this Dataset has finished to load
+     * @return true if yes, false otherwise*/
+    public boolean isLoaded() {return m_isLoaded;}
+
+    /** Function called from the native code when the native code has loaded values of a given Dataset
+     * Pay attention that this is done asynchronously
+     * @param success true on success, false on failure*/
+    private void onLoadDataset(boolean success)
+    {
+        m_isLoaded = success;
+        for(IDatasetListener l : m_listeners)
+            l.onLoadDataset(this, success);
+    }
+
+    /** Method called from the native code when a Dataset has loaded a new CPCPTexture asynchronously
+     * @param bitmap the bitmap generated
+     * @param pIDLeft the point field ID represented on the left axis
+     * @param pIDRight the point field ID represented on the right axis*/
+    private void onLoadCPCPTexture(Bitmap bitmap, int pIDLeft, int pIDRight)
+    {
+        CPCPTexture texture = new CPCPTexture(this, bitmap, pIDLeft, pIDRight);
+        m_cpcpTextures.add(texture);
+
+        for(IDatasetListener l : m_listeners)
+            l.onLoadCPCPTexture(this, texture);
     }
 
     /** Get the point field descriptor of this Dataset.

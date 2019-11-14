@@ -58,39 +58,12 @@ JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(
     SubDataset* sd = (SubDataset*)ptr;
     if(sd == NULL)
         return NULL;
+
     Snapshot* snap = sd->getSnapshot();
     if(snap == NULL)
         return NULL;
 
-    if(env == NULL)
-        return NULL;
-
-    //Create the java array
-    uint32_t  size   = snap->width * snap->height;
-    jintArray pixels = env->NewIntArray(size);
-
-    jint* pixelsPtr  = env->GetIntArrayElements(pixels, 0);
-
-    //Transform RGBA to ARGB
-    for(uint32_t j = 0; j < snap->height; j++)
-        for(uint32_t i = 0; i < snap->width; i++)
-        {
-            uint32_t ind = i+(snap->height-1-j)*snap->width;
-            uint8_t a = (snap->pixels[ind] >> 24);
-            uint8_t b = (snap->pixels[ind] >> 16);
-            uint8_t g = (snap->pixels[ind] >> 8);
-            uint8_t r =  snap->pixels[ind];
-
-            pixelsPtr[i+j*snap->width] = (a << 24) + (r << 16) +
-                                         (g << 8)  + b;
-        }
-    env->ReleaseIntArrayElements(pixels, (jint*)pixelsPtr, 0);
-
-    //Create and fill the bitmap
-    jobject  bmp = env->CallStaticObjectMethod(jBitmapClass, jBitmap_createBitmap, pixels, snap->width, snap->height, jBitmapConfigARGB);
-
-    env->DeleteLocalRef(pixels); //Delete local reference
-    return bmp;
+    return createjARGBBitmap(snap->pixels, snap->width, snap->height, env);
 }
 
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetRotation(JNIEnv* jenv, jobject jobj, jlong ptr)

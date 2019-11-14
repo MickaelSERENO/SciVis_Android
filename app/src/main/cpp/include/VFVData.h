@@ -229,10 +229,21 @@ namespace sereno
              * \param subDataset the subDataset being modified.*/ 
             void sendScaleEvent(SubDataset* subDataset);
 
-            /** \brief  Send the even "on Dataset loaded"
+            /** \brief  Send the event "on Dataset loaded"
+             * This function will call asynchronously the method Dataset::onLoadDataset (which is private)
              * \param pDataset the Dataset loaded
              * \param success true on success, false on failure */
             void sendOnDatasetLoaded(std::shared_ptr<Dataset> pDataset, bool success);
+
+            /** \brief Send a CPCP Texture bound to a Dataset and its point field IDs
+             * \param pDataset the Dataset which possess the Data
+             * \param pixels the texture pixel array. Size: width*height. Format: ARGB32
+             * \param width the texture width
+             * \param height the texture height
+             * \param pIDLeft the left axis of the parallel coordinate plot point field ID
+             * \param pIDRight the right axis of the parallel coordinate plot point field ID */
+            void sendCPCPTexture(std::shared_ptr<Dataset> pDataset, uint32_t* pixels, uint32_t width, uint32_t height,
+                                 uint32_t pIDLeft, uint32_t pIDRight);
 
             /** \brief  Lock this object*/
             void lock() {pthread_mutex_lock(&m_mutex);}

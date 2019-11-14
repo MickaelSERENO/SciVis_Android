@@ -8,7 +8,6 @@ namespace sereno
 
     jclass    jVFVSurfaceViewClass                    = 0;
     jmethodID jVFVSurfaceView_setCurrentAction        = 0;
-    jmethodID jVFVSurfaceView_onLoadDataset           = 0;
 
     jclass    jBitmapClass                            = 0;
     jmethodID jBitmap_createBitmap                    = 0;
@@ -20,6 +19,8 @@ namespace sereno
     jclass    jDatasetClass                           = 0;
     jmethodID jDataset_getNbSubDataset                = 0;
     jmethodID jDataset_getSubDataset                  = 0;
+    jmethodID jDataset_onLoadDataset                  = 0;
+    jmethodID jDataset_onLoadCPCPTexture              = 0;
 
     jclass    jSubDatasetClass                        = 0;
     jmethodID jSubDataset_setRotation                 = 0;
@@ -71,17 +72,18 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     //Load methods
     jVFVSurfaceView_setCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "setCurrentAction", "(I)V");
-    jVFVSurfaceView_onLoadDataset    = env->GetMethodID(jVFVSurfaceViewClass, "onLoadDataset",    "(Lcom/sereno/vfv/Data/Dataset;Z)V");
 
-    jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");
-    jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
+    jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset",      "()I");
+    jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset",        "(I)Lcom/sereno/vfv/Data/SubDataset;");
+    jDataset_onLoadDataset      = env->GetMethodID(jDatasetClass, "onLoadDataset", "(Z)V");
+    jDataset_onLoadCPCPTexture  = env->GetMethodID(jDatasetClass, "onLoadCPCPTexture", "(Landroid/graphics/Bitmap;II)V");
 
     jSubDataset_setRotation     = env->GetMethodID(jSubDatasetClass, "setRotation", "([F)V");
     jSubDataset_setPosition     = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
-    jSubDataset_setScale        = env->GetMethodID(jSubDatasetClass, "setScale", "([F)V");
+    jSubDataset_setScale        = env->GetMethodID(jSubDatasetClass, "setScale",    "([F)V");
     jSubDataset_onSnapshotEvent = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
 
-    jHeadsetBindingInfoMessage_getHeadsetID = env->GetMethodID(jHeadsetBindingInfoMessageClass,  "getHeadsetID", "()I");
+    jHeadsetBindingInfoMessage_getHeadsetID = env->GetMethodID(jHeadsetBindingInfoMessageClass, "getHeadsetID", "()I");
 
     jPointFieldDesc_constructor = env->GetMethodID(jPointFieldDescClass, "<init>", "(IFFZ)V");
 
@@ -146,4 +148,44 @@ JNIEnv* getJNIEnv(bool* shouldDetach)
         std::cerr << "Error at getting the JNI Environment. Error: " << status << std::endl;
         return NULL;
     }
+}
+
+jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNIEnv* env)
+{
+    //Get the java environment if needed
+    bool shouldDetach;
+    if(env == NULL)
+        env = getJNIEnv(&shouldDetach);
+
+    //Create the java array
+    uint32_t  size   = width * height;
+    jintArray jPixels = env->NewIntArray(size);
+
+    jint* jPixelsPtr  = env->GetIntArrayElements(jPixels, 0);
+
+    //Transform RGBA to ARGB
+    for(uint32_t j = 0; j < height; j++)
+        for(uint32_t i = 0; i < width; i++)
+        {
+            uint32_t ind = i+(height-1-j)*width;
+            uint8_t a = (pixels[ind] >> 24);
+            uint8_t b = (pixels[ind] >> 16);
+            uint8_t g = (pixels[ind] >> 8);
+            uint8_t r =  pixels[ind];
+
+            jPixelsPtr[i+j*width] = (a << 24) + (r << 16) +
+                                          (g << 8)  + b;
+        }
+
+    env->ReleaseIntArrayElements(jPixels, (jint*)jPixelsPtr, 0);
+
+    //Create and fill the bitmap
+    jobject  bmp = env->CallStaticObjectMethod(jBitmapClass, jBitmap_createBitmap, jPixels, width, height, jBitmapConfigARGB);
+
+    env->DeleteLocalRef(jPixels); //Delete local reference
+
+    if(shouldDetach)
+        javaVM->DetachCurrentThread();
+
+    return bmp;
 }

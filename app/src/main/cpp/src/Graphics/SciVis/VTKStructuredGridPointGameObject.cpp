@@ -407,12 +407,7 @@ namespace sereno
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, 
                                                                uint32_t desiredDensity, GLuint tfTexture, uint8_t tfTextureDim) : dataset(d)
     {
-        //Create every objects
-        //No parent assigned yet
-        vbo         = new VTKStructuredGridPointVBO(renderer, d->getParser(), d->getPtFieldValues().size(), desiredDensity);
-
-        //for(uint32_t i = 0; i < d->getPtFieldValues().size(); i++)
-        //    gameObjects[i] = new VTKStructuredGridPointGameObject(NULL, renderer, material, vbo, i, d->getPtFieldValues()[i], d->getSubDataset(i), tfTexture, tfTextureDim);
+        vbo = new VTKStructuredGridPointVBO(renderer, d->getParser(), d->getPtFieldValues().size(), desiredDensity);
     }
 
     VTKStructuredGridPointSciVis::~VTKStructuredGridPointSciVis()

@@ -14,6 +14,6 @@ out vec4 fragColor;
 void main()
 {
     vec4 textColor = texture(uTexture0, varyUV);
-    fragColor      = vec4((textColor.rgb-uMin)/(uMax-uMin), textColor.a);
+    fragColor      = vec4((textColor.rgb-uMin)/(uMax-uMin), 1.0);
 }
 

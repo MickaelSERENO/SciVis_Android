@@ -2,6 +2,7 @@
 #define  JNIDATA_INC
 
 #include <jni.h>
+#include <cstdint>
 
 namespace sereno
 {
@@ -10,7 +11,6 @@ namespace sereno
 
     extern jclass    jVFVSurfaceViewClass;
     extern jmethodID jVFVSurfaceView_setCurrentAction;
-    extern jmethodID jVFVSurfaceView_onLoadDataset;
 
     extern jclass    jBitmapClass;
     extern jmethodID jBitmap_createBitmap;
@@ -22,6 +22,8 @@ namespace sereno
     extern jclass    jDatasetClass;
     extern jmethodID jDataset_getNbSubDataset;
     extern jmethodID jDataset_getSubDataset;
+    extern jmethodID jDataset_onLoadDataset;
+    extern jmethodID jDataset_onLoadCPCPTexture;
 
     extern jclass    jSubDatasetClass;
     extern jmethodID jSubDataset_setRotation;
@@ -54,5 +56,12 @@ extern "C"
  * \param shouldDetach[out] pointer to a value permitting to know if the called has to Detach (see DetachCurrentThread) or not the JNIEnv got. Must not be NULL
  * \return   NULL on error, the jniEnv on success.*/
 JNIEnv* getJNIEnv(bool* shouldDetach);
+
+/* \brief Create an ARGB java Bitmap using Pixel data
+ * \param pixels the ARGB pixels array. Each int value should contain ARGB data. Length: width*height
+ * \param width the bitmap width.
+ * \param height the bitmap height
+ * \param env the jni environment to use. If NULL, getJNIEnv will be used instead*/
+jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNIEnv* env = NULL);
 
 #endif

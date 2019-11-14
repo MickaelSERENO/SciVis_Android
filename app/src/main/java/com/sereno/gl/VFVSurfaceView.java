@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
@@ -16,6 +17,8 @@ import com.sereno.view.AnnotationData;
 import java.util.ArrayList;
 import java.util.List;
 
+/** This class represents the C++ SurfaceView in use.
+ * This object launches also a C++ thread which computes what ever is needed for this application (e.g., loading Datasets)*/
 public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener, Dataset.IDatasetListener
 {
     /** VFVSurfaceView Listener interface.*/
@@ -25,11 +28,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
          * This method can be called asynchronously
          * @param action the current action asked*/
         void onChangeCurrentAction(int action);
-
-        /** Method called when a Dataset has been loaded
-         * @param dataset the Dataset that has been loaded
-         * @param success the result of the loading. True on success, False on failure*/
-        void onLoadDataset(Dataset dataset, boolean success);
     }
 
     public static final int DATASET_TYPE_VTK    = 0;
@@ -114,6 +112,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeOnAddSubDataset(m_ptr, sd.getNativePtr());
         nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd);
     }
+
+    @Override
+    public void onLoadDataset(Dataset dataset, boolean success) {}
+
+    @Override
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
 
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
@@ -222,16 +226,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         for(IVFVSurfaceViewListener l : m_listeners)
             l.onChangeCurrentAction(a);
-    }
-
-    /** Function called from the native code when the native code has loaded values of a given Dataset
-     * Pay attention that this is done asynchronously
-     * @param d the Dataset that has seen its values loaded
-     * @param success true on success, false on failure*/
-    private void onLoadDataset(Dataset d, boolean success)
-    {
-        for(IVFVSurfaceViewListener l : m_listeners)
-            l.onLoadDataset(d, success);
     }
 
     /** Create the argument to send to the main function

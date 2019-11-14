@@ -20,6 +20,7 @@ import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
@@ -303,6 +304,14 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
+    public void onLoadDataset(Dataset dataset, boolean success) {
+
+    }
+
+    @Override
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
+
+    @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
     {}
 
@@ -398,11 +407,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                             m_model.setCurrentAction(action);
                     }
                 });
-            }
-
-            @Override
-            public void onLoadDataset(Dataset dataset, boolean success){
-                //TODO, the application should know about this
             }
         });
     }

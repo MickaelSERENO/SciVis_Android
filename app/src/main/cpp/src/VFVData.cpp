@@ -267,7 +267,17 @@ namespace sereno
         std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
         if(metaData)
         {
-            jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_onLoadDataset, metaData->getJavaDatasetObj(), success);
+            jniMainThread->CallVoidMethod(metaData->getJavaDatasetObj(), jDataset_onLoadDataset, success);
+        }
+    }
+
+    void VFVData::sendCPCPTexture(std::shared_ptr<Dataset> pDataset, uint32_t* pixels, uint32_t width, uint32_t height,
+                                  uint32_t pIDLeft, uint32_t pIDRight)
+    {
+        std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
+        if(metaData)
+        {
+            jniMainThread->CallVoidMethod(metaData->getJavaDatasetObj(), jDataset_onLoadCPCPTexture, createjARGBBitmap(pixels, width, height, jniMainThread));
         }
     }
 }

@@ -524,6 +524,12 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         onAddSubDataset(sd);
     }
 
+    @Override
+    public void onLoadDataset(Dataset dataset, boolean success) {}
+
+    @Override
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
+
     /** @brief Read the configuration file
      * @param ctx The Context object*/
     private void readConfig(Context ctx)
