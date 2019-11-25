@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import com.sereno.gl.VFVSurfaceView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /** The Dataset abstract class*/
 public abstract class Dataset
@@ -31,6 +32,12 @@ public abstract class Dataset
          * @param dataset the Dataset that has loaded the CPCPTexture
          * @param texture the CPCPTexture generated*/
         void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture);
+
+        /** Method called when a Dataset has loaded a new 1D Histogram asynchronously
+         * @param dataset the Dataset that has loaded the CPCPTexture
+         * @param values the histogram values (normalized)
+         * @param pID the bound point field ID*/
+        void onLoad1DHistogram(Dataset dataset, float[] values, int pID);
     }
 
     /** The native C++ handle*/
@@ -50,6 +57,9 @@ public abstract class Dataset
 
     /** All the generated CPCPTexture*/
     protected ArrayList<CPCPTexture> m_cpcpTextures = new ArrayList<>();
+
+    /** The loaded 1D Histogram*/
+    protected HashMap<Integer, float[]> m_1DHistograms = new HashMap();
 
     /** Has this Dataset finished to load?*/
     protected boolean m_isLoaded = false;
@@ -119,6 +129,11 @@ public abstract class Dataset
      * @return an ArrayList of CPCPTexture*/
     public ArrayList<CPCPTexture> getCPCPTextures() {return m_cpcpTextures;}
 
+    /** Get the 1D histogram corresponding to the ID id
+     * @param id the point field ID to look at
+     * @return the 1D histogram floating values corresponding, null if not found. */
+    public float[] get1DHistogram(int id) {return m_1DHistograms.get(id);}
+
     /** @brief Get the ID of this Dataset. The ID is shared with the Server
      * @return the Dataset ID*/
     public int getID(){return m_id;}
@@ -133,8 +148,11 @@ public abstract class Dataset
         if(!m_subDatasets.contains(sd))
             return;
 
-        for(IDatasetListener listener : m_listeners)
+        for(int i = 0; i < m_listeners.size(); i++)
+        {
+            IDatasetListener listener = m_listeners.get(i);
             listener.onRemoveSubDataset(this, sd);
+        }
         sd.inRemoving();
         m_subDatasets.remove(sd);
         nativeRemoveSubDataset(m_ptr, sd.getNativePtr());
@@ -150,8 +168,11 @@ public abstract class Dataset
         nativeAddSubDataset(m_ptr, sd.getNativePtr(), changeID);
         m_subDatasets.add(sd);
 
-        for(IDatasetListener listener : m_listeners)
+        for(int i = 0; i < m_listeners.size(); i++)
+        {
+            IDatasetListener listener = m_listeners.get(i);
             listener.onAddSubDataset(this, sd);
+        }
     }
 
     /** Get whether or not this Dataset has finished to load
@@ -164,8 +185,11 @@ public abstract class Dataset
     private void onLoadDataset(boolean success)
     {
         m_isLoaded = success;
-        for(IDatasetListener l : m_listeners)
-            l.onLoadDataset(this, success);
+        for(int i = 0; i < m_listeners.size(); i++)
+        {
+            IDatasetListener listener = m_listeners.get(i);
+            listener.onLoadDataset(this, success);
+        }
     }
 
     /** Method called from the native code when a Dataset has loaded a new CPCPTexture asynchronously
@@ -177,8 +201,25 @@ public abstract class Dataset
         CPCPTexture texture = new CPCPTexture(this, bitmap, pIDLeft, pIDRight);
         m_cpcpTextures.add(texture);
 
-        for(IDatasetListener l : m_listeners)
-            l.onLoadCPCPTexture(this, texture);
+        for(int i = 0; i < m_listeners.size(); i++)
+        {
+            IDatasetListener listener = m_listeners.get(i);
+            listener.onLoadCPCPTexture(this, texture);
+        }
+    }
+
+    /** Method called from the native code when a Dataset has loaded a new 1D Histogram asynchronously
+     * @param values the computed histogram
+     * @param pID the point field ID associated*/
+    private void onLoad1DHistogram(float[] values, int pID)
+    {
+        m_1DHistograms.put(pID, values);
+
+        for(int i = 0; i < m_listeners.size(); i++)
+        {
+            IDatasetListener listener = m_listeners.get(i);
+            listener.onLoad1DHistogram(this, values, pID);
+        }
     }
 
     /** Get the point field descriptor of this Dataset.

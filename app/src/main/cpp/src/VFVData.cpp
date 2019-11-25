@@ -81,11 +81,6 @@ namespace sereno
         jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_setCurrentAction, (int)a);
     }
 
-    void VFVData::onClampingChange(float min, float max, SubDataset* sd)
-    {
-        addSubDatasetEvent(sd, VFV_COLOR_RANGE_CHANGED);
-    }
-
     void VFVData::onRotationChange(SubDataset* data)
     {
         addSubDatasetEvent(data, VFV_SET_ROTATION_DATA);
@@ -277,7 +272,21 @@ namespace sereno
         std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
         if(metaData)
         {
-            jniMainThread->CallVoidMethod(metaData->getJavaDatasetObj(), jDataset_onLoadCPCPTexture, createjARGBBitmap(pixels, width, height, jniMainThread));
+            jobject bitmap = createjARGBBitmap(pixels, width, height, jniMainThread);
+            jniMainThread->CallVoidMethod(metaData->getJavaDatasetObj(), jDataset_onLoadCPCPTexture, bitmap, pIDLeft, pIDRight);
+            jniMainThread->DeleteLocalRef(bitmap);
         }
     }
+
+    void VFVData::send1DHistogram(std::shared_ptr<Dataset> pDataset, float* values, uint32_t width, uint32_t pID)
+    {
+        std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
+        if(metaData)
+        {
+            jfloatArray jarr = createjFloatArray(values, width, jniMainThread);
+            jniMainThread->CallVoidMethod(metaData->getJavaDatasetObj(), jDataset_onLoad1DHistogram, jarr, pID);
+            jniMainThread->DeleteLocalRef(jarr);
+        }
+    }
+
 }

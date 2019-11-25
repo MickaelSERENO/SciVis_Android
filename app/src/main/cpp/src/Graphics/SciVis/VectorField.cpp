@@ -3,14 +3,14 @@
 namespace sereno
 {
     VectorField::VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent, 
-                             const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader, GLuint tfTexture, uint8_t tfTextureDim) : 
-        SciVis(parent, renderer, mtl, dataset->getSubDataset(0), tfTexture, tfTextureDim), m_binaryDataset(dataset)
+                             const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader) : 
+        SciVis(parent, renderer, mtl, dataset->getSubDataset(0)), m_binaryDataset(dataset)
     {
         //Field variables
         const float*    vel      = dataset->getVelocity();
         const uint32_t* gridSize = dataset->getGridSize();
-        float           minAmp   = m_model->getMinAmplitude();
-        float           maxAmp   = m_model->getMaxAmplitude();
+        float           minAmp   = m_model->getParent()->getPointFieldDescs()[0].minVal;
+        float           maxAmp   = m_model->getParent()->getPointFieldDescs()[0].maxVal;
 
         //Determine the displayable size
         //The displayable size is useful since we cannot represent every value in the screen
@@ -118,8 +118,6 @@ namespace sereno
         }
         glBindVertexArray(0);
 
-        setColorRange(m_model->getMinClamping(), m_model->getMaxClamping());
-
         free(fieldVertices);
         free(fieldNormals);
     }
@@ -139,7 +137,6 @@ namespace sereno
         glm::mat4 invMVP = glm::inverse(mvp);
 
         m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
-        m_mtl->bindTexture(m_tfTexture, m_tfTextureDim, 0);
         glBindVertexArray(m_vaoID);
         {
             glDrawArrays(GL_TRIANGLES, 0, m_nbPoints);
@@ -147,7 +144,7 @@ namespace sereno
         glBindVertexArray(0);
     }
 
-    void VectorField::setColorRange(float min, float max)
+    void VectorField::onTFChanged()
     {
         uint32_t     size    = m_displayableSize[0]*m_displayableSize[1]*m_displayableSize[2]*m_nbVerticesPerArrow;
         float*       propVal = (float*)malloc(sizeof(float)*size);
@@ -155,8 +152,8 @@ namespace sereno
         //Store fluid dataset constants
         const float*    vel      = m_binaryDataset->getVelocity();
         const uint32_t* gridSize = m_binaryDataset->getGridSize();
-        float           minAmp   = m_binaryDataset->getSubDataset(0)->getMinAmplitude();
-        float           maxAmp   = m_binaryDataset->getSubDataset(0)->getMaxAmplitude();
+        float           minAmp   = m_binaryDataset->getPointFieldDescs()[0].minVal;
+        float           maxAmp   = m_binaryDataset->getPointFieldDescs()[0].maxVal;
 
         //Set the property value for every vector
         for(uint32_t k = 0; k < m_displayableSize[2]; k++)
@@ -175,16 +172,9 @@ namespace sereno
                     amp = sqrt(amp);
 
                     float t = (amp-minAmp)/(maxAmp-minAmp);
-                    
-                    //Clamp
-                    if(t < min || t > max)
-                        for(uint32_t v = 0; v < m_nbVerticesPerArrow; v++)
-                            propVal[m_nbVerticesPerArrow*propPos+v] = -1.0f;
 
-                    //If inside the range, set the property value
-                    else
-                        for(uint32_t v = 0; v < m_nbVerticesPerArrow; v++)
-                            propVal[m_nbVerticesPerArrow*propPos+v] = t;
+                    for(uint32_t v = 0; v < m_nbVerticesPerArrow; v++)
+                        propVal[m_nbVerticesPerArrow*propPos+v] = t;
                 }
             }
         }

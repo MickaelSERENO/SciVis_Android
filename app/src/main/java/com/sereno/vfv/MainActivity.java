@@ -53,6 +53,7 @@ import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
+import com.sereno.view.GTFView;
 import com.sereno.view.RangeColorData;
 import com.sereno.view.RangeColorView;
 
@@ -89,11 +90,11 @@ public class MainActivity extends AppCompatActivity
     private ApplicationModel m_model;             /*!< The application data model */
     private DrawerLayout     m_drawerLayout;      /*!< The root layout. DrawerLayout permit to have a left menu*/
     private Button           m_deleteDataBtn;     /*!< The delete data button*/
-    private RangeColorView   m_rangeColorView;    /*!< The range color view*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
     private VFVViewPager     m_viewPager;              /*!< The view pager handling all our fragments*/
     private DatasetsFragment m_dataFragment = null;    /*!< The Dataset windows*/
     private Menu             m_menu = null;            /*!< The menu item (toolbar menu)*/
+    private GTFView          m_gtfWidget = null;       /*!< The Gaussian transfer function to us*/
     private boolean          m_chi2020Started = false; /*!< Has CHI2020 trials started?*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
@@ -238,10 +239,10 @@ public class MainActivity extends AppCompatActivity
     public void onLoadDataset(Dataset dataset, boolean success) {}
 
     @Override
-    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture)
-    {
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
 
-    }
+    @Override
+    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
 
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
@@ -268,10 +269,6 @@ public class MainActivity extends AppCompatActivity
     public void onChangeCurrentAction(ApplicationModel model, int action) {
         m_socket.push(SocketManager.createCurrentActionEvent(action));
     }
-
-    @Override
-    public void onClampingChange(SubDataset sd, float min, float max)
-    {}
 
     @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
@@ -523,7 +520,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
-    {}
+    {
+        m_gtfWidget.setModel(model.getGTFData(sd));
+    }
 
     @Override
     public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus)
@@ -531,10 +530,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
-    {
-        /*for(Dataset d : m_model.getDatasets())
-            resetPrivateState(d);*/
-    }
+    {}
 
     @Override
     public void onRemoveDataset(ApplicationModel model, Dataset dataset) {}
@@ -673,27 +669,16 @@ public class MainActivity extends AppCompatActivity
     private void setUpDrawerLayout()
     {
         m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
-
-        m_rangeColorView = (RangeColorView)findViewById(R.id.rangeColorView);
-        m_model.setRangeColorModel(m_rangeColorView.getModel());
+        m_gtfWidget     = m_drawerLayout.findViewById(R.id.gtfView);
 
         //Configure the spinner color mode
         final Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
 
-        m_rangeColorView.getModel().addOnRangeChangeListener(new RangeColorData.IOnRangeChangeListener()
-        {
-            @Override
-            public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
-            {
-                colorModeSpinner.setSelection(mode);
-            }
-        });
         colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
-                m_rangeColorView.getModel().setColorMode(i);
             }
 
             @Override
@@ -703,7 +688,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        m_rangeColorView.setOnTouchListener(new View.OnTouchListener()
+        m_gtfWidget.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent)
@@ -819,14 +804,6 @@ public class MainActivity extends AppCompatActivity
     private void onAddDataset(final Dataset d)
     {
         d.addListener(this);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                m_rangeColorView.getModel().setRange(0.0f, 1.0f);
-                m_rangeColorView.getModel().setColorMode(ColorMode.RAINBOW);
-            }
-        });
     }
 
     static

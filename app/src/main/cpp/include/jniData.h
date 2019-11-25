@@ -24,6 +24,7 @@ namespace sereno
     extern jmethodID jDataset_getSubDataset;
     extern jmethodID jDataset_onLoadDataset;
     extern jmethodID jDataset_onLoadCPCPTexture;
+    extern jmethodID jDataset_onLoad1DHistogram;
 
     extern jclass    jSubDatasetClass;
     extern jmethodID jSubDataset_setRotation;
@@ -51,7 +52,6 @@ extern "C"
     void JNI_OnUnload(JavaVM *vm, void *reserved);
 }
 
-
 /* \brief  Get a new JNI Environment object
  * \param shouldDetach[out] pointer to a value permitting to know if the called has to Detach (see DetachCurrentThread) or not the JNIEnv got. Must not be NULL
  * \return   NULL on error, the jniEnv on success.*/
@@ -61,7 +61,13 @@ JNIEnv* getJNIEnv(bool* shouldDetach);
  * \param pixels the ARGB pixels array. Each int value should contain ARGB data. Length: width*height
  * \param width the bitmap width.
  * \param height the bitmap height
- * \param env the jni environment to use. If NULL, getJNIEnv will be used instead*/
-jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNIEnv* env = NULL);
+ * \param env the jni environment to use.*/
+jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNIEnv* env);
+
+/** \brief Create a JNI Float Array from a C++ array
+ * \param values the float array to transmit
+ * \param size the float array size
+ * \param env the jni environment to use.*/
+jfloatArray createjFloatArray(float* values, size_t size, JNIEnv* env);
 
 #endif

@@ -61,22 +61,17 @@ namespace sereno
              * \param parent the GameObject parent
              * \param propID the property ID in the VBO (useful for writting at the correct place)
              * \param ptFieldValue the point field value to use
-             * \param subDataset the subDataset to use 
-             * \param tfTexture the transfert function texture to apply
-             * \param tfTextureDim the transfert function texture dimension*/
+             * \param subDataset the subDataset to use*/
             VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, 
                                              VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, 
-                                             const VTKFieldValue* ptFieldValue, SubDataset* subDataset, 
-                                             GLuint tfTexture, uint8_t tfTextureDim);
+                                             const VTKFieldValue* ptFieldValue, SubDataset* subDataset);
 
             /** \brief  Destructor */
             ~VTKStructuredGridPointGameObject();
 
-            void onTFChange();
-
             void draw(const Render& render);
 
-            void setColorRange(float min, float max);
+            void onTFChanged();
         private:
             /* \brief Compute the gradient values
              * \param vals the volume data
@@ -85,8 +80,6 @@ namespace sereno
             void computeGradient(uint8_t* vals, const VTKStructuredPoints& ptsDesc, const VTKFieldValue* ptFieldValue);
 
             VTKStructuredGridPointVBO* m_gridPointVBO; /*!< The Grid point VBO associated with this data*/
-            float*   m_vals;                           /*!< The property captured value*/
-            float*   m_grads;                          /*!< The gradient values*/
             GLuint   m_texture;                        /*!< The 3D texture containing the dataset values*/
             int      m_glVersion = -1;                 /*!< The OpenGL version*/
             float    m_maxVal;                         /*!< The property max value*/
@@ -104,11 +97,8 @@ namespace sereno
          * \param renderer The OpenGL Context object
          * \param mtl The material to use
          * \param d the dataset to use
-         * \param desiredDensity the desired displayed density
-         * \param tfTexture the transfert function texture to apply
-         * \param tfTextureDim the transfert function texture dimension*/
-        VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, 
-                                     uint32_t desiredDensity, GLuint tfTexture, uint8_t tfTextureDim);
+         * \param desiredDensity the desired displayed density*/
+        VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity);
 
         /** \brief  Destructor */
         ~VTKStructuredGridPointSciVis();

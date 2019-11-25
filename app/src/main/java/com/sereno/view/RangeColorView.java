@@ -73,56 +73,21 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
 
         //Draw the colors
         int width  = getWidth()  - TRIANGLE_SIZE;
-        int height = (int)(getHeight() - TRIANGLE_SIZE*Math.sqrt(3.0f)/2.0f);
+        int height = (int)(getHeight() - 1 - TRIANGLE_SIZE*Math.sqrt(3.0f)/2.0f);
 
         for(int i = 0; i < width; i+=3)
         {
             float t = (float)(i) / (float)(width);
-            Color c = null;
+            Color c = ColorMode.computeRGBColor(t, m_model.getColorMode());
+            c.a = 1.0f;
+            int intColor = c.toARGB8888();
 
-            switch(m_model.getColorMode())
-            {
-                case ColorMode.RAINBOW:
-                {
-                    c = new HSVColor(260.0f * t, 1.0f, 1.0f, 1.0f).toRGB();
-                    break;
-                }
-                case ColorMode.GRAYSCALE:
-                {
-                    c = new Color(t, t, t, 1.0f);
-                    break;
-                }
-                case ColorMode.WARM_COLD_CIELAB:
-                {
-                    if(t < 0.5)
-                        c = LABColor.lerp(ColorMode.coldLAB, ColorMode.whiteLAB, 2.0f*t).toRGB();
-                    else
-                        c = LABColor.lerp(ColorMode.whiteLAB, ColorMode.warmLAB, 2.0f*t-1.0f).toRGB();
-                    break;
-                }
-                case ColorMode.WARM_COLD_CIELUV:
-                {
-                    if(t < 0.5)
-                        c = LUVColor.lerp(ColorMode.coldLUV, ColorMode.whiteLUV, 2.0f*t).toRGB();
-                    else
-                        c = LUVColor.lerp(ColorMode.whiteLUV, ColorMode.warmLUV, 2.0f*t-1.0f).toRGB();
-                    break;
-                }
-                case ColorMode.WARM_COLD_MSH:
-                {
-                    c = MSHColor.fromColorInterpolation(ColorMode.coldRGB, ColorMode.warmRGB, t).toRGB();
-                    break;
-                }
-                default:
-                    return;
-            }
-            int intColor = (255 << 24) + ((int)(c.r*255) << 16) +
-                           ((int)(c.g*255) << 8) + (int)(c.b*255);
             m_paint.setColor(intColor);
             m_paint.setStyle(Paint.Style.STROKE);
             for(int j = 0; j < 3; j++)
                 canvas.drawLine(i+j+TRIANGLE_SIZE/2.0f, 0, i+j+TRIANGLE_SIZE/2.0f, height, m_paint);
         }
+
         //Draw the handles
         int[] v = new int[]{(int)(width*m_model.getMinRange()), (int)(width*m_model.getMaxRange())};
         for(int j = 0; j < 2; j++)

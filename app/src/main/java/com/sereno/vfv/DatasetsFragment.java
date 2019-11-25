@@ -249,10 +249,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
         {
             @Override
-            public void onClampingChange(SubDataset sd, float min, float max) {}
-
-
-            @Override
             public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
 
             @Override
@@ -310,6 +306,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
+
+    @Override
+    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
 
     @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)

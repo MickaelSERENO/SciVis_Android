@@ -177,7 +177,6 @@ namespace sereno
             /*----------------------------------------------------------------------------*/
             /*---------------------------All the SciVis loaded----------------------------*/
             /*----------------------------------------------------------------------------*/
-            std::vector<GLuint>       m_sciVisTFTextures;/*!< The TF texture used for Scientific Visualization*/
             std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
             std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualization*/
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/

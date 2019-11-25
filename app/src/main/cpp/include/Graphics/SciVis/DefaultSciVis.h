@@ -15,17 +15,16 @@ namespace sereno
              * \param parent The parent GameObject 
              * \param renderer the GLRenderer containing the OpenGL Context
              * \param mtl the material to use
-             * \paremt model the model to use
-             * \param tfTexture the transfert function texture to apply
-             * \param tfTextureDim the transfert function texture dimension*/
-            DefaultSciVis(GLRenderer* renderer, Material* mtl, GameObject* parent, SubDataset* model, GLuint tfTexture, uint8_t tfTextureDim);
+             * \paremt model the model to use*/
+            DefaultSciVis(GLRenderer* renderer, Material* mtl, GameObject* parent, SubDataset* model);
 
             /** \brief  Destructor, clear graphical objects */
             ~DefaultSciVis();
 
             void draw(const Render& render);
 
-            void setColorRange(float min, float max) {}
+            /** \brief The default visualization does not depend on the transfer function in use*/
+            void onTFChanged() {}
         private:
             GLuint m_vaoID;
             GLuint m_vboID;

@@ -20,4 +20,9 @@
         <attr name="pickerHueHeight"   format="dimension"/>
         <attr name="sliderHeight"      format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="GTFView">
+        <attr name="sliderDim" format="dimension"/>
+        <attr name="textSize"  format="dimension"/>
+    </declare-styleable>
 </resources>

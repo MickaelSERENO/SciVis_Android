@@ -86,10 +86,8 @@ namespace sereno
             delete vis;
 
         /*----------------------------------------------------------------------------*/
-        /*---------------------Delete transfer functions texture----------------------*/
+        /*-------------------------Delete transfer functions--------------------------*/
         /*----------------------------------------------------------------------------*/
-        for(GLuint tex : m_sciVisTFTextures)
-            glDeleteTextures(1, &tex);
         for(auto& it : m_sciVisTFs)
             delete(it.second);
 
@@ -439,9 +437,7 @@ namespace sereno
                     if(sciVis->getModel() == sd)
                     {
                         if(it.second.updateColor)
-                        {
-                            sciVis->setColorRange(sd->getMinClamping(), sd->getMaxClamping());
-                        }
+                            sciVis->onTFChanged();
                         if(it.second.updateRotation)
                             sciVis->setRotate(sd->getGlobalRotate());
                         if(it.second.updateScale)
@@ -728,8 +724,6 @@ namespace sereno
                         rawGO.update(m_cpcpFBORenderer);
                         m_cpcpFBORenderer->render();
 
-                        //delete text;
-
                         //Get the min and max values of this newly created texture
                         //And normalize this texture
                         //
@@ -819,9 +813,10 @@ namespace sereno
             runOnMainThread([this, dataset, histogram, i]()
             {
                 //Remember that the data of histogram is now "float" (even if declared as a uint32_t, VIVA casting type!).
+                //The histogram is already normalized
                 Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, 1, histogram, GL_RED, GL_RED, GL_FLOAT);
 
-                //Generate and add a 2DHistogram to the Dataset's meta data
+                //Generate and add a 1DHistogram to the Dataset's meta data
                 Dataset1DHistogram hist1D;
                 hist1D.texture   = std::shared_ptr<Texture2D>(text);
                 hist1D.ptFieldID = i;
@@ -829,6 +824,9 @@ namespace sereno
                 std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
                 if(metaData.get())
                     metaData->add1DHistogram(hist1D);
+
+                //Send the 1D histogram to the Java thread.
+                m_mainData->send1DHistogram(m_mainData->getDatasetSharedPtr(dataset), (float*)histogram, HISTOGRAM_WIDTH, i);
 
                 free(histogram);
             });
@@ -881,8 +879,7 @@ namespace sereno
                 //Add VTK Dataset
                 case VFV_ADD_VTK_DATA:
                 {
-                    m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY,
-                                                                                         0, 2));
+                    m_vtkStructuredGridPoints.push_back(new VTKStructuredGridPointSciVis(&m_surfaceData->renderer, m_colorGridMtl, event->vtkData.dataset, VTK_STRUCTURED_POINT_VIS_DENSITY));
                     m_colorGridMtl->setSpacing(m_vtkStructuredGridPoints.back()->vbo->getSpacing());
                     float dim[3];
                     for(uint8_t i = 0; i < 3; i++)
@@ -929,12 +926,6 @@ namespace sereno
                 case VFV_ADD_SUBDATASET:
                 {
                     addSubDataset(event->sdEvent.sd);
-                }
-
-                case VFV_COLOR_RANGE_CHANGED:
-                {
-                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, false, false, false));
-                    break;
                 }
 
                 case VFV_SET_ROTATION_DATA:
@@ -1003,18 +994,15 @@ namespace sereno
                     break;
 
                 VTKStructuredGridPointGameObject* go = new VTKStructuredGridPointGameObject(NULL, &m_surfaceData->renderer, m_colorGridMtl, it->vbo,
-                                                                                            it->gameObjects.size(), it->dataset->getPtFieldValues()[0], sd, 0, 2);
+                                                                                            it->gameObjects.size(), it->dataset->getPtFieldValues()[0], sd);
                 it->gameObjects.push_back(go);
                 m_sciVis.push_back(go);
 
                 //Set the transfer function
+                //TODO
                 TriangularGTF* tGTF = new TriangularGTF(2, RAINBOW);
-                uint32_t texSize[2] = {256, 256};
-                GLuint texture = generateTexture(texSize, *tGTF);
-                m_sciVis.back()->setTFTexture(texture);
                 m_sciVis.back()->getModel()->setTransferFunction(tGTF);
-                m_sciVis.back()->onTFChange();
-                m_sciVisTFTextures.push_back(texture);
+                m_sciVis.back()->onTFChanged();
                 m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tGTF));
 
                 //Update the snapshot

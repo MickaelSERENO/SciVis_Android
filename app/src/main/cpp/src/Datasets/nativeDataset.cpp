@@ -50,7 +50,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetPointFi
     jobjectArray jArr = jenv->NewObjectArray(descs.size(), jPointFieldDescClass, NULL);
     for(uint32_t i = 0; i < descs.size(); i++)
     {
-        jobject jobj = jenv->CallStaticObjectMethod(jPointFieldDescClass, jPointFieldDesc_constructor, descs[i].id, descs[i].minVal, descs[i].maxVal, descs[i].values.get() != NULL);
+        jobject jobj = jenv->NewObject(jPointFieldDescClass, jPointFieldDesc_constructor, descs[i].id, descs[i].minVal, descs[i].maxVal, descs[i].values.get() != NULL);
         jenv->SetObjectArrayElement(jArr, i, jobj);
     }
 

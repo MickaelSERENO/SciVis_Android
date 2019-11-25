@@ -211,6 +211,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
 
+    @Override
+    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
+
     private void onAddDataset(final Dataset d)
     {
         final Tree<View> t = m_previews.getModel();
@@ -503,9 +506,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 l.onEnableSwipping(AnnotationsFragment.this);
         }
     }
-
-    @Override
-    public void onClampingChange(SubDataset sd, float min, float max) {}
 
     @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion) {}

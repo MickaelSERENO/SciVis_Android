@@ -27,7 +27,6 @@ namespace sereno
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
         VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
         VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
-        VFV_COLOR_RANGE_CHANGED, /*!< The color range has changed for the current dataset*/
         VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
         VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
         VFV_ADD_SUBDATASET,      /*!< Add a new SubDataset*/
@@ -158,12 +157,6 @@ namespace sereno
              * \param dataset the ataset to remove*/
             void onRemoveDataset(std::shared_ptr<Dataset> dataset);
 
-            /* \brief Function called when the clipping range has changed
-             * \param min the minimum range color
-             * \param max the maximum range color 
-             * \param data the SubDataset changing*/
-            void onClampingChange(float min, float max, SubDataset* data);
-
             /* \brief Function called when a SubDataset rotation has changed
              * \param data the SubDataset changing */
             void onRotationChange(SubDataset* data);
@@ -244,6 +237,13 @@ namespace sereno
              * \param pIDRight the right axis of the parallel coordinate plot point field ID */
             void sendCPCPTexture(std::shared_ptr<Dataset> pDataset, uint32_t* pixels, uint32_t width, uint32_t height,
                                  uint32_t pIDLeft, uint32_t pIDRight);
+
+            /** \brief Send a 1D Histogram data bound to a Dataset and its point field ID
+             * \param pDataset the Dataset which possess the Data
+             * \param values The normalized floating values. Size: width
+             * \param width the histogram width
+             * \param pID the point field ID*/
+            void send1DHistogram(std::shared_ptr<Dataset> pDataset, float* values, uint32_t width, uint32_t pID);
 
             /** \brief  Lock this object*/
             void lock() {pthread_mutex_lock(&m_mutex);}

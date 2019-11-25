@@ -2,7 +2,7 @@
 
 namespace sereno
 {
-    DefaultSciVis::DefaultSciVis(GLRenderer* renderer, Material* mtl, GameObject* parent, SubDataset* model, GLuint tfTexture, uint8_t tfTextureDim) : SciVis(parent, renderer, mtl, model, tfTexture, tfTextureDim)
+    DefaultSciVis::DefaultSciVis(GLRenderer* renderer, Material* mtl, GameObject* parent, SubDataset* model) : SciVis(parent, renderer, mtl, model)
     {
         Cube c;
 
@@ -48,7 +48,6 @@ namespace sereno
         glm::mat4 invMVP = glm::inverse(mvp);
 
         m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
-        m_mtl->bindTexture(m_tfTexture, m_tfTextureDim, 0);
 
         glBindVertexArray(m_vaoID);
         {

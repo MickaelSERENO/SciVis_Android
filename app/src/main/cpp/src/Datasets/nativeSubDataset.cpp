@@ -21,36 +21,12 @@ JNIEXPORT bool JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsValid(JNIEnv*
     return sd->isValid();
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-    return sd->getMinClamping();
-}
-
-JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxClampingColor(JNIEnv* jenv, jobject jobj, jlong ptr)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-    return sd->getMaxClamping();
-}
-
 JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
     if(sd->getTransferFunction())
         return sd->getTransferFunction()->getColorMode();
     return RAINBOW;
-}
-
-JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinAmplitude(JNIEnv* jenv, jobject jobj, jlong ptr)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-    return sd->getMinAmplitude();
-}
-
-JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxAmplitude(JNIEnv* jenv, jobject jobj, jlong ptr)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-    return sd->getMaxAmplitude();
 }
 
 JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(JNIEnv* env, jobject jobj, jlong ptr)
@@ -128,13 +104,6 @@ JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* j
 {
     SubDataset* sd = (SubDataset*)ptr;
     return sd->getID();
-}
-
-
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetClamping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat min, jfloat max)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-    sd->setClamping(min, max);
 }
 
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* jenv, jobject jobj, jlong ptr)

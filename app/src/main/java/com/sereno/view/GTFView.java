@@ -1,17 +1,43 @@
 package com.sereno.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PointF;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
+import com.sereno.color.ColorMode;
+import com.sereno.vfv.Data.PointFieldDesc;
+import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.R;
+
+import java.util.HashMap;
+
 /** Class proposing a way to manipulate Gaussian Transfer Function*/
-public class GTFView extends View
+public class GTFView extends View implements GTFData.IGTFDataListener
 {
-    private Paint    m_paint = new Paint(); /*!< The object configuring the paint of the canvas*/
-    private GTFData m_model = new GTFData(null); /*!< The model of this View*/
+    public static final int HANDLE_HEIGHT    = 30;  /*!< The height of handles*/
+    public static final int MAX_PIXELS       = 150; /*!< Maximum height*/
+    public static final int TEXT_SIZE        = 24;  /*!< The default text height*/
+
+    public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
+    public static final int MANIPULATING_MIN_VALUE = 1; /*!< Manipulating the minimum value*/
+    public static final int MANIPULATING_MAX_VALUE = 2; /*!< Manipulating the maximum value*/
+
+    private Paint    m_paint        = new Paint();           /*!< The general paint used of the canvas*/
+    private Paint    m_textPaint    = new Paint();           /*!< The paint applied for text */
+    private Paint    m_handlesPaint = new Paint();           /*!< The paint object permitting to draw the handlers*/
+    private GTFData  m_model        = new GTFData(null); /*!< The model of this View*/
+    private int      m_sliderHeight = HANDLE_HEIGHT;         /*!< The handle Height*/
+
+    private int   m_valueInManipulation = MANIPULATING_NO_VALUE; /*!< What is the current handle being manipulated (i.e moved) ?*/
 
     public GTFView(Context context)
     {
@@ -41,7 +67,66 @@ public class GTFView extends View
      * @param attrs the attribute pass by XML parsing*/
     private void init(@Nullable AttributeSet attrs)
     {
+        setMinimumHeight(0);
+        setMinimumWidth(0);
 
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        setClickable(true);
+
+        m_model.addListener(this);
+
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.GTFView);
+        m_textPaint.setTextSize(ta.getDimensionPixelSize(R.styleable.GTFView_textSize, TEXT_SIZE));
+        m_textPaint.setTextAlign(Paint.Align.CENTER);
+        m_sliderHeight = ta.getDimensionPixelSize(R.styleable.GTFView_sliderDim, HANDLE_HEIGHT);
+    }
+
+    /** Is the attached model valid?
+     * @return true if yes, false otherwise*/
+    private boolean isModelInvalid()
+    {
+        return m_model == null || m_model.getDataset() == null || !m_model.getDataset().getParent().isLoaded() || m_model.getCPCPOrder().length == 0;
+    }
+
+    /** Compute the displayed text height (using descent and ascent)
+     * @return the floating point text height based on m_textPaint*/
+    private float computeTextHeight()
+    {
+        return m_textPaint.getFontMetrics().descent - m_textPaint.getFontMetrics().ascent;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+    {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int widthSize  = MeasureSpec.getSize(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+
+        int width  = widthSize;
+        int height = heightSize;
+
+        /* Try to apply MAX_PIXELS in y axis if relevant data should be shown*/
+        switch(heightMode)
+        {
+            case MeasureSpec.AT_MOST:
+                if(isModelInvalid())
+                    height = 0;
+                else
+                    height = Math.min(height, MAX_PIXELS);
+                break;
+
+            case MeasureSpec.UNSPECIFIED:
+                if(isModelInvalid())
+                    height = 0;
+                else
+                    height = MAX_PIXELS;
+                break;
+        }
+
+        setMeasuredDimension(width, height);
     }
 
     @Override
@@ -49,6 +134,218 @@ public class GTFView extends View
     {
         super.onDraw(canvas);
 
-        //TODO
+        //Nothing to display in such cases
+        if(isModelInvalid())
+            return;
+
+        int width  = getWidth();
+        int height = getHeight();
+
+        int[] order = m_model.getCPCPOrder();
+
+        float textHeight = computeTextHeight();
+
+        //If order == 1 --> display 1D histogram
+        if(order.length == 1)
+        {
+            m_paint.setStyle(Paint.Style.STROKE);
+
+            height = (int)(height - 1 - HANDLE_HEIGHT*Math.sqrt(3.0f)/2.0f - textHeight);
+            width = width - HANDLE_HEIGHT;
+
+            float[] histo = m_model.getDataset().getParent().get1DHistogram(order[0]);
+            if(histo == null)
+                return;
+
+            for (int i = 0; i < width; i++)
+            {
+                int histoID = (int)Math.floor(histo.length * (double)i/width);
+                if(histoID > histo.length - 1)
+                    histoID = histo.length - 1;
+
+                m_paint.setColor(ColorMode.computeRGBColor(histo[histoID], m_model.getColorMode()).toARGB8888());
+                canvas.drawLine(i+m_sliderHeight/2, 0, i+m_sliderHeight/2, height - 1, m_paint);
+            }
+
+            PointF range = m_model.getRanges().get(order[0]);
+
+            //Draw the handles
+            int[]   v = new int[]{(int)(width*range.x), (int)(width*range.y)};
+            float[] r = new float[]{range.x, range.y};
+            for(int j = 0; j < 2; j++)
+            {
+                Path path = new Path();
+                path.moveTo(v[j] + m_sliderHeight / 2.0f, height);
+                path.lineTo(v[j], getHeight()-textHeight-1);
+                path.lineTo(v[j] + m_sliderHeight, getHeight()-textHeight-1);
+                path.close();
+                canvas.drawPath(path, m_handlesPaint);
+            }
+
+            //Draw the text below the handles
+            PointFieldDesc ptDesc = m_model.getDataset().getParent().getPointFieldDescs()[order[0]];
+            for(int j = 0; j < 2; j++)
+                canvas.drawText(Float.toString(r[j] * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v[j]+m_sliderHeight/2.0f, getHeight()-m_textPaint.getFontMetrics().descent, m_textPaint);
+        }
+
+        //Draw the CPCP in the correct order.
+
+    }
+
+    /** Function handling touch even when in histogram mode. This will mostly move the displayed handles
+     * @param e the MotionEvent to handle.*/
+    private boolean onTouchHistogram(MotionEvent e)
+    {
+        //Security check
+        if(m_model.getCPCPOrder().length == 0)
+            return false;
+
+        int      width       = getWidth() - m_sliderHeight;
+        int      x           = (int)e.getX();
+        boolean  valueChanged = false;
+        float    indice       = Math.min(Math.max((x - m_sliderHeight/2.0f)/width, 0.0f), 1.0f);
+
+        float minValue = m_model.getRanges().get(m_model.getCPCPOrder()[0]).x;
+        float maxValue = m_model.getRanges().get(m_model.getCPCPOrder()[0]).y;
+
+        //Set the cursor and store which value we are manipulating
+        if(e.getAction() == MotionEvent.ACTION_DOWN)
+        {
+            if(Math.abs(indice - minValue) < Math.abs(indice - maxValue))
+            {
+                m_valueInManipulation = MANIPULATING_MIN_VALUE;
+                minValue = indice;
+            }
+            else
+            {
+                m_valueInManipulation = MANIPULATING_MAX_VALUE;
+                maxValue = indice;
+            }
+            valueChanged = true;
+        }
+        else if(e.getAction() == MotionEvent.ACTION_UP)
+            m_valueInManipulation = MANIPULATING_NO_VALUE;
+
+        //Move the cursor
+        else if(e.getAction() == MotionEvent.ACTION_MOVE)
+        {
+            if(m_valueInManipulation == MANIPULATING_MIN_VALUE)
+            {
+                //Switch manipulating indice if we went hover
+                if(indice > maxValue)
+                {
+                    minValue = maxValue;
+                    maxValue = indice;
+                    m_valueInManipulation = MANIPULATING_MAX_VALUE;
+                }
+                else
+                    minValue = indice;
+            }
+
+            else if(m_valueInManipulation == MANIPULATING_MAX_VALUE)
+            {
+                //Switch manipulating indice if we went hover
+                if(indice < minValue)
+                {
+                    maxValue = minValue;
+                    minValue = indice;
+                    m_valueInManipulation = MANIPULATING_MIN_VALUE;
+                }
+                else
+                    maxValue = indice;
+            }
+            valueChanged = true;
+        }
+        if(valueChanged)
+            m_model.setRange(m_model.getCPCPOrder()[0], new PointF(minValue, maxValue));
+
+        return true;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent e)
+    {
+        super.onTouchEvent(e);
+
+        //Do nothing in such cases (nothing displayed)
+        if(isModelInvalid())
+            return false;
+
+        if(m_model.getCPCPOrder().length == 1)
+            return onTouchHistogram(e);
+
+        return false; //TODO, handle CPCP mode
+    }
+
+    /** Set the new Model to use for this Widget. The view will be automatically updated
+     * @param model the new GTF Model to use*/
+    public void setModel(GTFData model)
+    {
+        if(m_model != null)
+            m_model.removeListener(this);
+        m_model = model;
+        if(m_model != null)
+            m_model.addListener(this);
+
+        safeRequestLayout();
+    }
+
+    /** Get the current model used by this Widget
+     * @return the current GTFData in use. The default GTFData displays nothing and needs to be updated as soon as possible*/
+    public GTFData getModel()
+    {
+        return m_model;
+    }
+
+    @Override
+    public void onSetDataset(GTFData model, SubDataset dataset)
+    {
+        safeRequestLayout();
+    }
+
+    @Override
+    public void onSetGTFRange(GTFData model, HashMap<Integer, PointF> ranges)
+    {
+        safeInvalidate();
+    }
+
+    @Override
+    public void onSetCPCPOrder(GTFData model, int[] order)
+    {
+        safeRequestLayout();
+    }
+
+    @Override
+    public void onSetColorMode(GTFData model, int colorMode)
+    {
+        safeInvalidate();
+    }
+
+    /** Invalidate the View in a safe manner thread-wise. The function will check if the UI thread is the current thread or not and will call invalidate() or postInvalidate() accordingly*/
+    private void safeInvalidate()
+    {
+        if(Looper.getMainLooper().getThread() == Thread.currentThread())
+            invalidate();
+        else
+            postInvalidate();
+    }
+
+    /** Request a new layout in a safe manner thread-wise. The function will check if the UI thread is the current thread or not and will call requestLayout() or run a new Thread calling it in the UI thread*/
+    private void safeRequestLayout()
+    {
+        if(Looper.getMainLooper().getThread() == Thread.currentThread())
+        {
+            requestLayout();
+            invalidate();
+        }
+        else
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    // do UI work
+                    requestLayout();
+                    invalidate();
+                }
+            });
     }
 }

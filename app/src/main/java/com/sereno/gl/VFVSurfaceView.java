@@ -120,6 +120,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
 
     @Override
+    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID)
+    {
+
+    }
+
+    @Override
     public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
 
     @Override
@@ -174,12 +180,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
         d.addListener(this);
-    }
-
-    @Override
-    public void onClampingChange(SubDataset sd, float min, float max)
-    {
-        nativeOnClampingChange(m_ptr, min, max, sd.getNativePtr());
     }
 
     @Override
@@ -263,13 +263,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param datasetPtr the dataset native pointer
      * @param datasetType  the type of the dataset (VTK, binary, etc.)*/
     private native void nativeRemoveDataset(long ptr, long datasetPtr, int datasetType);
-
-    /** Set the clamping range of the current dataset
-     * @param ptr the ptr associated with the main Argument
-     * @param min the minimum range (0.0, 1.0)
-     * @param max the maximum range (0.0, 1.0)
-     * @param sdPtr the SubDataset native pointer*/
-    private native void nativeOnClampingChange(long ptr, float min, float max, long sdPtr);
 
     /** Send an event regarding an update from a SubDataset rotation
      * @param ptr the ptr associated with the main Argument

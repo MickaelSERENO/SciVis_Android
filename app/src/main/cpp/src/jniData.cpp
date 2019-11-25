@@ -21,6 +21,7 @@ namespace sereno
     jmethodID jDataset_getSubDataset                  = 0;
     jmethodID jDataset_onLoadDataset                  = 0;
     jmethodID jDataset_onLoadCPCPTexture              = 0;
+    jmethodID jDataset_onLoad1DHistogram              = 0;
 
     jclass    jSubDatasetClass                        = 0;
     jmethodID jSubDataset_setRotation                 = 0;
@@ -77,6 +78,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset",        "(I)Lcom/sereno/vfv/Data/SubDataset;");
     jDataset_onLoadDataset      = env->GetMethodID(jDatasetClass, "onLoadDataset", "(Z)V");
     jDataset_onLoadCPCPTexture  = env->GetMethodID(jDatasetClass, "onLoadCPCPTexture", "(Landroid/graphics/Bitmap;II)V");
+    jDataset_onLoad1DHistogram  = env->GetMethodID(jDatasetClass, "onLoad1DHistogram", "([FI)V");
 
     jSubDataset_setRotation     = env->GetMethodID(jSubDatasetClass, "setRotation", "([F)V");
     jSubDataset_setPosition     = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
@@ -152,11 +154,6 @@ JNIEnv* getJNIEnv(bool* shouldDetach)
 
 jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNIEnv* env)
 {
-    //Get the java environment if needed
-    bool shouldDetach;
-    if(env == NULL)
-        env = getJNIEnv(&shouldDetach);
-
     //Create the java array
     uint32_t  size   = width * height;
     jintArray jPixels = env->NewIntArray(size);
@@ -184,8 +181,12 @@ jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNI
 
     env->DeleteLocalRef(jPixels); //Delete local reference
 
-    if(shouldDetach)
-        javaVM->DetachCurrentThread();
-
     return bmp;
+}
+
+jfloatArray createjFloatArray(float* values, size_t size, JNIEnv* env)
+{
+    jfloatArray arr = env->NewFloatArray(size);
+    env->SetFloatArrayRegion(arr, 0, size, values);
+    return arr;
 }

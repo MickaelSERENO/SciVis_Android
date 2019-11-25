@@ -18,12 +18,6 @@ public class SubDataset
     /** Callback interface called when the SubDataset is modified*/
     public interface ISubDatasetListener
     {
-        /** On range color change callback, called when the clamping changed
-         * @param sd the SubDataset being modified
-         * @param min the minimum clamping color (normalized : between 0.0f and 1.0f)
-         * @param max the maximum clamping color (normalized : between 0.0f and 1.0f)*/
-        void onClampingChange(SubDataset sd, float min, float max);
-
         /** Method called when a new rotation on the current SubDataset is performed
          * @param dataset the dataset being rotated
          * @param quaternion the quaternion rotation*/
@@ -123,24 +117,6 @@ public class SubDataset
         return nativeIsValid(m_ptr);
     }
 
-    /** Get the minimum amplitude of this SubDataset. For vectorial data, return the minimum length
-     * @return the minimum amplitude found in this SubDataset*/
-    public float getMinAmplitude()
-    {
-        if(m_ptr == 0)
-            return 0;
-        return nativeGetMinAmplitude(m_ptr);
-    }
-
-    /** Get the maximum amplitude of this SubDataset. For vectorial data, return the maximum length
-     * @return the maximum amplitude found in this SubDataset*/
-    public float getMaxAmplitude()
-    {
-        if(m_ptr == 0)
-            return 1.0f;
-        return nativeGetMaxAmplitude(m_ptr);
-    }
-
     /** Get a snapshot of this SubDataset in the main rendering object
      * @return the snapshot of the subdataset*/
     public Bitmap getSnapshot()
@@ -183,37 +159,6 @@ public class SubDataset
     {
         return m_ptr;
     }
-
-    /** Set the range clamping of this SubDataset being displayed
-     * @param min the minimum (between 0.0 and 1.0) value to display. Values lower than min will be discarded
-     * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded*/
-    public void setClamping(float min, float max)
-    {
-        if(m_ptr == 0)
-            return;
-        nativeSetClamping(m_ptr, min, max);
-        for(int i = 0; i < m_listeners.size(); i++)
-            m_listeners.get(i).onClampingChange(this, min, max);
-    }
-
-    /** Get the current minimum clamping color of this SubDataset
-     * @return the current minimum clamping color  being displayed*/
-    public float getMinClampingColor()
-    {
-        if(m_ptr == 0)
-            return 0;
-        return nativeGetMinClampingColor(m_ptr);
-    }
-
-    /** Get the current maximum clamping color of this SubDataset
-     * @return the current maximum clamping color  being displayed*/
-    public float getMaxClampingColor()
-    {
-        if(m_ptr == 0)
-            return 1.0f;
-        return nativeGetMaxClampingColor(m_ptr);
-    }
-
 
     /** Get the current color mode of this SubDataset
      * @return the current color mode being displayed*/
@@ -355,26 +300,6 @@ public class SubDataset
      * @param ptr the native pointer
      * @return true if in a valid state, false otherwise*/
     private native boolean nativeIsValid(long ptr);
-
-    /** Native code to get the minimum amplitude of this SubDataset. For vectorial data, return the minimum length
-     * @param ptr the native pointer
-     * @return the minimum amplitude found in this SubDataset*/
-    private native float nativeGetMinAmplitude(long ptr);
-
-    /** Native code to get the maximum amplitude of this SubDataset. For vectorial data, return the maximum length
-     * @param ptr the native pointer
-     * @return the maximum amplitude found in this SubDataset*/
-    private native float nativeGetMaxAmplitude(long ptr);
-
-    /** Get the current minimum clamping color of this SubDataset
-     * @param ptr  the native pointer
-     * @return the current minimum clamping color  being displayed*/
-    private native float nativeGetMinClampingColor(long ptr);
-
-    /** Get the current maximum clamping color of this SubDataset
-     * @param ptr  the native pointer
-     * @return the current maximum clamping color  being displayed*/
-    private native float nativeGetMaxClampingColor(long ptr);
 
     /** Get the current color mode of this SubDataset
      * @param ptr  the native pointer

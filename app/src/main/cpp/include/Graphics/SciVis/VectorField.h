@@ -25,12 +25,9 @@ namespace sereno
              * \param mtl The material to use
              * \param parent the parent GameObject
              * \param dataset the dataset to load in the graphic card
-             * \param arrowLoader the arrow mesh 
-             * \param tfTexture the transfert function texture to apply
-             * \param tfTextureDim the transfert function texture dimension*/
+             * \param arrowLoader the arrow mesh */
             VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent,
-                        const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader, 
-                        GLuint tfTexture, uint8_t tfTextureDim);
+                        const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader);
 
             /* \brief Destructor*/
             ~VectorField();
@@ -41,7 +38,7 @@ namespace sereno
 
             void draw(const Render& render);
 
-            void setColorRange(float min, float max);
+            void onTFChanged();
         private:
             const std::shared_ptr<BinaryDataset> m_binaryDataset = NULL; /*!< The fluid dataset model*/
 

@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
+import com.sereno.view.GTFData;
 import com.sereno.view.RangeColorData;
 
 import java.io.File;
@@ -131,7 +132,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + binary)*/
     private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;          /**!< The configuration object*/
-    private RangeColorData           m_rangeColorModel = null; /**!< The range color data model*/
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
@@ -150,6 +150,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     /** The subdataset waiting to be added*/
     private SubDataset m_pendingSubDataset = null;
+
+    /** Array containing the GTF Data of all the SubDataset*/
+    private ArrayList<GTFData> m_gtfData = new ArrayList<>();
 
     private int m_curPointingTechnique = POINTING_MANUAL;
 
@@ -186,9 +189,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         //Add the listener to the subdatasets
         sd.addListener(new SubDataset.ISubDatasetListener() {
             @Override
-            public void onClampingChange(SubDataset sd, float min, float max) {}
-
-            @Override
             public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
 
             @Override
@@ -212,6 +212,8 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
                 m_annotations.remove(annotation);
             }
         });
+
+        m_gtfData.add(new GTFData(sd));
     }
 
     /** Perform common actions when adding datasets
@@ -219,8 +221,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     private void onAddDataset(Dataset d)
     {
         m_datasets.add(d);
-
-        //We do not call "onAddSubDataset" because we need to call the callback "onAddDataset" before calling callbacks regarding the subdataset (initialization issue)
+        d.addListener(this);
     }
 
     /** @brief Add a BinaryDataset to our model
@@ -265,13 +266,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public ArrayList<BinaryDataset> getBinaryDatasets() {return m_binaryDatasets;}
 
     public ArrayList<Dataset> getDatasets() {return m_datasets;}
-
-    /**@brief Get the RangeColorData model being used to clamp subdatasets color displayed
-     * @return the RangeColorData model being used to clamp subdatasets color displayed*/
-    public RangeColorData getRangeColorModel()
-    {
-        return m_rangeColorModel;
-    }
 
     /** Remove a SubDataset from the model. Callback what is needed and reinitialize the status of the model
      * @param sd the SubDataset to remove*/
@@ -321,21 +315,10 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             m_binaryDatasets.remove(dataset);
     }
 
-    /**@brief Set the RangeColorData model being used to clamp subdatasets color displayed
-     * @param model the RangeColorData model being used to clamp subdatasets color displayed*/
-    public void setRangeColorModel(RangeColorData model)
-    {
-        if(m_rangeColorModel != null)
-            m_rangeColorModel.removeOnRangeChangeListener(this);
-        m_rangeColorModel = model;
-        m_rangeColorModel.addOnRangeChangeListener(this);
-    }
-
     @Override
     public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
     {
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.setClamping(minVal, maxVal);
+        //TODO change the range of the transfer function
     }
 
     /** Add a new annotation
@@ -385,7 +368,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         if(sd != null)
         {
             sd.addListener(this);
-            onClampingChange(sd, sd.getMinClampingColor(), sd.getMaxClampingColor());
         }
 
         for(IDataCallback clbk : m_listeners)
@@ -472,7 +454,18 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         return m_curPointingTechnique;
     }
 
-    @Override
+    /** Return the GTF bound to a given SubDataset
+     * @param sd the key dataset
+     * @return the corresponding GTFData, null if not found*/
+    public GTFData getGTFData(SubDataset sd)
+    {
+        for(GTFData gtf : m_gtfData)
+            if(gtf.getDataset() == sd)
+                return gtf;
+        return null;
+    }
+
+    /*@Override
     public void onClampingChange(SubDataset sd, float min, float max)
     {
         if(m_rangeColorModel == null)
@@ -489,7 +482,7 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
         if(m_currentSubDataset != null)
             m_currentSubDataset.addListener(this);
         m_rangeColorModel.addOnRangeChangeListener(this);
-    }
+    }*/
 
     @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
@@ -525,10 +518,19 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     }
 
     @Override
-    public void onLoadDataset(Dataset dataset, boolean success) {}
+    public void onLoadDataset(Dataset dataset, boolean success)
+    {
+        //Reinit every gtf data
+        for(GTFData gtf : m_gtfData)
+            if(gtf.getDataset().getParent() == dataset)
+                gtf.setDataset(gtf.getDataset());
+    }
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
+
+    @Override
+    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/

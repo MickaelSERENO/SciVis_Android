@@ -25,7 +25,7 @@ public class Color
      * @return the color into a int format*/
     public int toARGB8888()
     {
-        return ((int)(255*a)      << 24) +
+        return ((int)(255*a) << 24) +
                ((int)(255*r) << 16) +
                ((int)(255*g) << 8)  +
                ((int)(255*b));
