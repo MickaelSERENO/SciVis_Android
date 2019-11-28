@@ -60,11 +60,9 @@ namespace sereno
              * \param mtl The material to use
              * \param parent the GameObject parent
              * \param propID the property ID in the VBO (useful for writting at the correct place)
-             * \param ptFieldValue the point field value to use
              * \param subDataset the subDataset to use*/
             VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, 
-                                             VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, 
-                                             const VTKFieldValue* ptFieldValue, SubDataset* subDataset);
+                                             VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, SubDataset* subDataset);
 
             /** \brief  Destructor */
             ~VTKStructuredGridPointGameObject();
@@ -72,6 +70,8 @@ namespace sereno
             void draw(const Render& render);
 
             void onTFChanged();
+
+            void load();
         private:
             /* \brief Compute the gradient values
              * \param vals the volume data

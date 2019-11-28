@@ -2,19 +2,19 @@ package com.sereno.vfv.Data;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.GTFData;
-import com.sereno.view.RangeColorData;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /** @brief The Model component on the MVC architecture */
-public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, SubDataset.ISubDatasetListener, Dataset.IDatasetListener
+public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset.IDatasetListener, GTFData.IGTFDataListener
 {
     /** @brief Interface possessing functions called when deleting or adding new datasets */
     public interface IDataCallback
@@ -211,9 +211,15 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
             {
                 m_annotations.remove(annotation);
             }
+
+            @Override
+            public void onUpdateTF(SubDataset dataset) {}
         });
 
-        m_gtfData.add(new GTFData(sd));
+        GTFData newGTF = new GTFData(sd);
+        m_gtfData.add(newGTF);
+
+        newGTF.addListener(this);
     }
 
     /** Perform common actions when adding datasets
@@ -313,12 +319,6 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
         else if(m_binaryDatasets.contains(dataset))
             m_binaryDatasets.remove(dataset);
-    }
-
-    @Override
-    public void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
-    {
-        //TODO change the range of the transfer function
     }
 
     /** Add a new annotation
@@ -509,6 +509,9 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
+    public void onUpdateTF(SubDataset dataset) {}
+
+    @Override
     public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
 
     @Override
@@ -521,9 +524,20 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
     public void onLoadDataset(Dataset dataset, boolean success)
     {
         //Reinit every gtf data
-        for(GTFData gtf : m_gtfData)
-            if(gtf.getDataset().getParent() == dataset)
-                gtf.setDataset(gtf.getDataset());
+        for (GTFData gtf : m_gtfData)
+            if (gtf.getDataset().getParent() == dataset)
+            {
+                SubDataset sd = gtf.getDataset();
+                gtf.setDataset(sd);
+
+                //Update ranges as well
+                if(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF ||
+                   sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF)
+                {
+                    sd.setGTFRanges(gtf.getRanges());
+                    sd.setColorMode(gtf.getColorMode());
+                }
+            }
     }
 
     @Override
@@ -531,6 +545,37 @@ public class ApplicationModel implements RangeColorData.IOnRangeChangeListener, 
 
     @Override
     public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
+
+    @Override
+    public void onSetDataset(GTFData model, SubDataset dataset)
+    {
+
+    }
+
+    @Override
+    public void onSetGTFRanges(GTFData model, HashMap<Integer, PointF> ranges)
+    {
+        //Update transfer function
+        SubDataset sd = model.getDataset();
+
+        if(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
+           sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
+            sd.setGTFRanges(ranges);
+    }
+
+    @Override
+    public void onSetCPCPOrder(GTFData model, int[] order)
+    {
+
+    }
+
+    @Override
+    public void onSetColorMode(GTFData model, int colorMode)
+    {
+        SubDataset sd = model.getDataset();
+        sd.setColorMode(colorMode);
+    }
+
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/

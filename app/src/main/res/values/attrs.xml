@@ -24,5 +24,6 @@
     <declare-styleable name="GTFView">
         <attr name="sliderDim" format="dimension"/>
         <attr name="textSize"  format="dimension"/>
+        <attr name="pcStrokeWidth" format="dimension"/>
     </declare-styleable>
 </resources>

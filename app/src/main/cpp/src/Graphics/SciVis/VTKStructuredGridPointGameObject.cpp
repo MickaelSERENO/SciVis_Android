@@ -59,8 +59,7 @@ namespace sereno
     }
 
     VTKStructuredGridPointGameObject::VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, 
-                                                                       VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, 
-                                                                       const VTKFieldValue* ptFieldValue, SubDataset* subDataset):
+                                                                       VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, SubDataset* subDataset):
         SciVis(parent, renderer, mtl, subDataset), 
         m_gridPointVBO(gridPointVBO), m_maxVal(-std::numeric_limits<float>::max()), m_minVal(std::numeric_limits<float>::max()), 
         m_propID(propID)
@@ -167,6 +166,11 @@ namespace sereno
         }
         glBindVertexArray(0);
         glEnable(GL_CULL_FACE);
+    }
+
+    void VTKStructuredGridPointGameObject::load()
+    {
+        onTFChanged();
     }
 
     void VTKStructuredGridPointGameObject::onTFChanged()

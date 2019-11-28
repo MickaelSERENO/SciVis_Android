@@ -41,6 +41,7 @@ namespace sereno
         m_gpuTexVBO    = new TextureRectangleData();
         m_cpcpMtl      = new CPCPMaterial(&m_surfaceData->renderer, HISTOGRAM_WIDTH*sqrt(2));
         m_normalizeMtl = new NormalizeMaterial(&m_surfaceData->renderer);
+        m_redToGrayMtl = new RedToGrayMaterial(&m_surfaceData->renderer);
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
         m_3dImageManipTex = (Texture2D*)malloc(sizeof(Texture2D)*8);
@@ -99,6 +100,7 @@ namespace sereno
         delete m_notConnectedTextureMtl;
         delete m_colorPhongMtl;
         delete m_cpcpMtl;
+        delete m_redToGrayMtl;
 
         /*----------------------------------------------------------------------------*/
         /*-----------------Delete the 4 DOF manipulation texture data-----------------*/
@@ -713,7 +715,7 @@ namespace sereno
                     runOnMainThread([this, dataset, histogram, i, j]()
                     {
                         //Remember that the data of histogram is now "float" (even if declared as a uint32_t, VIVA CASTING OPERATION!).
-                        Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, histogram, GL_R32F, GL_RED, GL_FLOAT);
+                        Texture2D* text  = new Texture2D(HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, histogram, GL_RED, GL_RED, GL_FLOAT);
 
                         //Draw the corresponding CPCP (Continuous Parallel Coordinate Plot) in a Texture
                         //This texture will not be normalized (i.e., pixels values will not be clamped to [0,1])
@@ -741,15 +743,23 @@ namespace sereno
                         #pragma omp parallel for reduction(max:maxVal)
 #endif
                         for(uint32_t k = 0; k < CPCP_TEXTURE_WIDTH*CPCP_TEXTURE_HEIGHT; k++)
-                            maxVal = std::max(maxVal, ((float*)pixels)[k]);
+                            maxVal = (((float*)pixels)[k] > maxVal ? ((float*)pixels)[k] : maxVal);
 
                         //Normalize the texture
+                        FBO normalizeFBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, false);
+                        m_cpcpFBORenderer->setFBO(&normalizeFBO);
                         m_normalizeMtl->setRange(0, maxVal);
-                        FBO fbo(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, false);
-                        m_cpcpFBORenderer->setFBO(&fbo);
                         m_normalizeMtl->bindTexture(m_rawCPCPFBO->getColorBuffer(), 2, 0);
                         DefaultGameObject go(NULL, &m_surfaceData->renderer, m_normalizeMtl, m_gpuTexVBO);
                         go.setScale(glm::vec3(2.0f, 2.0f, 2.0f));
+                        go.update(m_cpcpFBORenderer);
+                        m_cpcpFBORenderer->render();
+
+                        //Set color to grayscale
+                        FBO redToGrayFBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, false);
+                        m_cpcpFBORenderer->setFBO(&redToGrayFBO);
+                        m_redToGrayMtl->bindTexture(normalizeFBO.getColorBuffer(), 2, 0);
+                        go.setMaterial(m_redToGrayMtl);
                         go.update(m_cpcpFBORenderer);
                         m_cpcpFBORenderer->render();
 
@@ -758,7 +768,7 @@ namespace sereno
                         //Generate and add a 2DHistogram to the Dataset's meta data
                         Dataset2DHistogram hist2D;
                         hist2D.texture    = std::shared_ptr<Texture2D>(text);
-                        hist2D.pcpTexture = std::shared_ptr<Texture2D>(new Texture2D(fbo.stealColorBuffer(), CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT));
+                        hist2D.pcpTexture = std::shared_ptr<Texture2D>(new Texture2D(redToGrayFBO.stealColorBuffer(), CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT));
                         hist2D.ptFieldID1 = i;
                         hist2D.ptFieldID2 = j;
 
@@ -767,8 +777,8 @@ namespace sereno
                             metaData->add2DHistogram(hist2D);
 
                         //Read back the 2DHistogram and send it to the Java thread
-                        glBindFramebuffer(GL_FRAMEBUFFER, fbo.getBuffer());
-                            glReadPixels(0, 0, CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, GL_BYTE, pixels); //This work because sizeof(float) = =sizeof(uint32_t)
+                        glBindFramebuffer(GL_FRAMEBUFFER, redToGrayFBO.getBuffer());
+                            glReadPixels(0, 0, CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, pixels); //This work because sizeof(float) = =sizeof(uint32_t)
                         glBindFramebuffer(GL_FRAMEBUFFER, curFBO);
                         m_mainData->sendCPCPTexture(m_mainData->getDatasetSharedPtr(dataset), (uint32_t*)pixels, CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, i, j);
 
@@ -836,6 +846,12 @@ namespace sereno
         //We can do this in this way because every thread are called one after the other
         runOnMainThread([this, dataset, loaded]()
         {
+            //Load first the dataset graphical object
+            for(auto it : m_sciVis)
+            {
+                if(it->getModel()->getParent() == dataset)
+                    it->load();
+            }
             m_mainData->sendOnDatasetLoaded(m_mainData->getDatasetSharedPtr(dataset), loaded);
         });
     }
@@ -946,6 +962,12 @@ namespace sereno
                     break;
                 }
 
+                case VFV_SET_TF_DATA:
+                {
+                    addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, false, false, false));
+                    break;
+                }
+
                 case VFV_SET_CURRENT_DATA:
                 {
                     //Find which SciVis this sub dataset belongs to and change the current sci vis
@@ -994,13 +1016,13 @@ namespace sereno
                     break;
 
                 VTKStructuredGridPointGameObject* go = new VTKStructuredGridPointGameObject(NULL, &m_surfaceData->renderer, m_colorGridMtl, it->vbo,
-                                                                                            it->gameObjects.size(), it->dataset->getPtFieldValues()[0], sd);
+                                                                                            it->gameObjects.size(), sd);
                 it->gameObjects.push_back(go);
                 m_sciVis.push_back(go);
 
                 //Set the transfer function
                 //TODO
-                TriangularGTF* tGTF = new TriangularGTF(2, RAINBOW);
+                TriangularGTF* tGTF = new TriangularGTF(it->dataset->getPtFieldValues().size()+1, RAINBOW);
                 m_sciVis.back()->getModel()->setTransferFunction(tGTF);
                 m_sciVis.back()->onTFChanged();
                 m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tGTF));

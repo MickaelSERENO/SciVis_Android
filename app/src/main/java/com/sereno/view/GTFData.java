@@ -25,7 +25,7 @@ public class GTFData implements Dataset.IDatasetListener
         /** Function called when the GTF ranges has changed
          * @param model the model calling this method
          * @param ranges the HashMap containing the new ranges. Key == ptFieldID, Values = ranges (PointF.x == min, PointF.y == max). Do not modify the HashMap.*/
-        void onSetGTFRange(GTFData model, HashMap<Integer, PointF> ranges);
+        void onSetGTFRanges(GTFData model, HashMap<Integer, PointF> ranges);
 
         /** Function called when the GTF CPCP order has changed
          * @param model the model calling this method
@@ -138,12 +138,25 @@ public class GTFData implements Dataset.IDatasetListener
     {
         if(m_ranges.containsKey(ptFieldID))
         {
+            boolean callListener = !(m_ranges.get(ptFieldID).equals(range));
             m_ranges.put(ptFieldID, range);
-            for(int i = 0; i < m_listeners.size(); i++)
-                m_listeners.get(i).onSetGTFRange(this, m_ranges);
+            if(callListener)
+                for(int i = 0; i < m_listeners.size(); i++)
+                    m_listeners.get(i).onSetGTFRanges(this, m_ranges);
             return true;
         }
         return false;
+    }
+
+    /** Update whole ranges
+     * @param ranges the new ranges to use*/
+    public void updateRanges(HashMap<Integer, PointF> ranges)
+    {
+        boolean callListener = !m_ranges.equals(ranges);
+        m_ranges = ranges;
+        if(callListener)
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetGTFRanges(this, m_ranges);
     }
 
     /** Get the CPCP order.
@@ -172,9 +185,12 @@ public class GTFData implements Dataset.IDatasetListener
      * @param mode the color mode to apply (see ColorMode static fields)*/
     public void setColorMode(int mode)
     {
+        boolean changed = (mode != m_colorMode);
         m_colorMode = mode;
-        for(int i = 0; i < m_listeners.size(); i++)
-            m_listeners.get(i).onSetColorMode(this, mode);
+
+        if(changed)
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetColorMode(this, mode);
     }
 
     @Override

@@ -87,7 +87,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     jHeadsetBindingInfoMessage_getHeadsetID = env->GetMethodID(jHeadsetBindingInfoMessageClass, "getHeadsetID", "()I");
 
-    jPointFieldDesc_constructor = env->GetMethodID(jPointFieldDescClass, "<init>", "(IFFZ)V");
+    jPointFieldDesc_constructor = env->GetMethodID(jPointFieldDescClass, "<init>", "(ILjava/lang/String;FFZ)V");
 
     //Load fields
     jBitmapConfig_ARGB   = env->GetStaticFieldID(jBitmapConfigClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");

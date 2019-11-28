@@ -285,6 +285,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             @Override
             public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+            @Override
+            public void onUpdateTF(SubDataset dataset) {}
         };
 
         //Snapshot event

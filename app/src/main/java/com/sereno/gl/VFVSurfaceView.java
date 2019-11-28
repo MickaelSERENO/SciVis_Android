@@ -219,6 +219,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
+    @Override
+    public void onUpdateTF(SubDataset dataset)
+    {
+        nativeOnTFUpdated(m_ptr, dataset.getNativePtr());
+    }
+
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously
      * @param a the new action to use*/
@@ -299,4 +305,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param sdPtr the C++ SubDataset Ptr
      * @param sdJava Its Java counter part*/
     private native void nativeBindSubDataset(long ptr, long sdPtr, SubDataset sdJava);
+
+    /** Tells the native C++ code that the transfer function of a SubDataset has been updated in the UI
+     * @param ptr the ptr associated with the main Argument
+     * @param sdPtr the C++ SubDataset Ptr*/
+    private native void nativeOnTFUpdated(long ptr, long sdPtr);
 }

@@ -25,9 +25,13 @@ namespace sereno
             virtual void draw(const Render& render);
 
             /* Function called for post processing drawing. 
-             * This is called after EVERY children has been drawned
-             * \param cameraMat the camera matrix  */
-            virtual void postDraw(const glm::mat4& cameraMat);
+             * This is called after EVERY object of the render has been drawned
+             * \param render the render used to draw this drawable*/
+            virtual void postDraw(const Render& render);
+
+            /** \brief Set the Drawable Material
+             * \param mtl the new Material to use*/
+            void setMaterial(Material* mtl);
         protected:
             GLRenderer* m_glRenderer = NULL; /*! The GLRenderer containing the opengl renderer information*/
             Material*   m_mtl        = NULL; /*!< The material to use*/

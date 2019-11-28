@@ -12,6 +12,11 @@ namespace sereno
     void Drawable::draw(const Render& render)
     {}
 
-    void Drawable::postDraw(const glm::mat4& cameraMat)
+    void Drawable::postDraw(const Render& render)
     {}
+
+    void Drawable::setMaterial(Material* mtl)
+    {
+        m_mtl = mtl;
+    }
 }

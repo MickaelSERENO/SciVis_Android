@@ -96,6 +96,12 @@ namespace sereno
         addSubDatasetEvent(data, VFV_SET_SCALE_DATA);
     }
 
+    void VFVData::onTFChange(SubDataset* data)
+    {
+        addSubDatasetEvent(data, VFV_SET_TF_DATA);
+    }
+
+
     void VFVData::addSubDatasetEvent(SubDataset* sd, VFVEventType type)
     {
         VFVEvent* ev = NULL;

@@ -54,8 +54,6 @@ import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.view.GTFView;
-import com.sereno.view.RangeColorData;
-import com.sereno.view.RangeColorView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -311,6 +309,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
+
+    @Override
+    public void onUpdateTF(SubDataset dataset) {}
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -679,6 +680,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
+                m_gtfWidget.getModel().setColorMode(i);
             }
 
             @Override

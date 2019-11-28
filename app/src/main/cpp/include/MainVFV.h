@@ -18,6 +18,7 @@
 #include "Graphics/Materials/PhongMaterial.h"
 #include "Graphics/Materials/NormalizeMaterial.h"
 #include "Graphics/Materials/CPCPMaterial.h"
+#include "Graphics/Materials/RedToGrayMaterial.h"
 #include "Graphics/SciVis/TransferFunction/TFTexture.h"
 #include "TransferFunction/GTF.h"
 #include "TransferFunction/TriangularGTF.h"
@@ -32,11 +33,11 @@
 #define WIDGET_WIDTH_PX     64
 #define MAX_CAMERA_ANIMATION_TIMER 20
 
-#define HISTOGRAM_HEIGHT 512
-#define HISTOGRAM_WIDTH  512
+#define HISTOGRAM_HEIGHT 258
+#define HISTOGRAM_WIDTH  258
 
-#define CPCP_TEXTURE_WIDTH  1024
-#define CPCP_TEXTURE_HEIGHT 1024
+#define CPCP_TEXTURE_WIDTH  512
+#define CPCP_TEXTURE_HEIGHT 512
 
 //IDs of the images selected on screen
 #define BOTTOM_IMAGE       0
@@ -173,6 +174,7 @@ namespace sereno
             PhongMaterial*            m_colorPhongMtl;   /*!< Material to draw default scivis gameobjects*/
             NormalizeMaterial*        m_normalizeMtl;    /*!< Material used to normalize a texture*/
             CPCPMaterial*             m_cpcpMtl;         /*!< The Continuous Parallel Coordinate Plot material*/
+            RedToGrayMaterial*        m_redToGrayMtl;    /*!< The Red to Gray material*/
 
             /*----------------------------------------------------------------------------*/
             /*---------------------------All the SciVis loaded----------------------------*/

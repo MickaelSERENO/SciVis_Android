@@ -96,7 +96,8 @@ namespace sereno
                                                                     {"planeVolumeRendering", false},
                                                                     {"colorPhong", false},
                                                                     {"cpcp", false},
-                                                                    {"normalize1D", false}};
+                                                                    {"normalize1D", false},
+                                                                    {"redToGray", false}};
         for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
         {
             Shader* shader = NULL;

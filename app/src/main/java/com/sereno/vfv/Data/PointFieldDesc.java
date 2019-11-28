@@ -15,14 +15,19 @@ public class PointFieldDesc
     /** Is the point field loaded?*/
     private boolean m_loaded;
 
+    /** The point field name*/
+    private String m_name;
+
     /** The point field descriptor constructor
      * @param id the ID of the point field
+     * @param name the field name
      * @param min the minimum value of the point field.
      * @param max the maximum value of the point field
      * @param loaded is the point field loaded in memory? If false, min and max are not necessary (can be whatever)*/
-    public PointFieldDesc(int id, float min, float max, boolean loaded)
+    public PointFieldDesc(int id, String name, float min, float max, boolean loaded)
     {
         m_id     = id;
+        m_name   = name;
         m_min    = min;
         m_max    = max;
         m_loaded = loaded;
@@ -33,6 +38,13 @@ public class PointFieldDesc
     public int getID()
     {
         return m_id;
+    }
+
+    /** Get the point field name as defined in the Dataset
+     * @return the point field name*/
+    public String getName()
+    {
+        return m_name;
     }
 
     /** Get the Min value possessed in this point field descriptor. This function is meaningful only if isLoaded() == true

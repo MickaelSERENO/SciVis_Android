@@ -129,6 +129,19 @@ public abstract class Dataset
      * @return an ArrayList of CPCPTexture*/
     public ArrayList<CPCPTexture> getCPCPTextures() {return m_cpcpTextures;}
 
+    /** Find the CPCPTexture corresponding to two ids. The order of the id is not taking into account (i.e., the CPCPTexture returned can be reversed)
+     * @param id1 the first id to look at
+     * @param id2 the second id to look at
+     * @return the corresponding CPCPTexture, null if not found*/
+    public CPCPTexture findCPCPTexture(int id1, int id2)
+    {
+        for(CPCPTexture tex : m_cpcpTextures)
+            if(tex.getPIDLeft() == id1 && tex.getPIDRight() == id2 ||
+               tex.getPIDLeft() == id2 && tex.getPIDRight() == id1)
+                return tex;
+        return null;
+    }
+
     /** Get the 1D histogram corresponding to the ID id
      * @param id the point field ID to look at
      * @return the 1D histogram floating values corresponding, null if not found. */

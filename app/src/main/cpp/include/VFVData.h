@@ -27,6 +27,7 @@ namespace sereno
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
         VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
         VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
+        VFV_SET_TF_DATA,         /*!< A SubDataset transfer function changing*/
         VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
         VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
         VFV_ADD_SUBDATASET,      /*!< Add a new SubDataset*/
@@ -168,6 +169,10 @@ namespace sereno
             /* \brief Function called when a SubDataset scaling has changed
              * \param data the SubDataset changing */
             void onScaleChange(SubDataset* data);
+
+            /* \brief Function called when a SubDataset transfer function has changed
+             * \param data the SubDataset changing */
+            void onTFChange(SubDataset* data);
 
             /* \brief Set the current data displayed in the application
              * \param sd the new SubDataset to display*/
