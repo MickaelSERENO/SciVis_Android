@@ -46,6 +46,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param frag the Fragment calling this method
          * @param sd the SubDataset to duplicate*/
         void onRemoveSubDataset(DatasetsFragment frag, SubDataset sd);
+
+        /** Called when the fragment ask to add a new SubDataset for a given dataset
+         * @param frag the Fragment calling this method
+         * @param d the Dataset to consider*/
+        void onRequestAddSubDataset(DatasetsFragment frag, Dataset d);
     }
 
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
@@ -428,7 +433,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    //TODO send a "Add" message to the server
+                    for(IDatasetsFragmentListener l : m_dfListeners)
+                        l.onRequestAddSubDataset(DatasetsFragment.this, d);
                     return true;
                 }
                 return false;

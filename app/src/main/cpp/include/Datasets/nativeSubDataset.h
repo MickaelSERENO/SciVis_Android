@@ -3,9 +3,6 @@
 
 #include <jni.h>
 
-#define TRANSFER_FUNCTION_GTF  0
-#define TRANSFER_FUNCTION_TGTF 1
-
 extern "C"
 {
 	JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeCreateNewSubDataset(JNIEnv* jenv, jclass jcls, jlong datasetPtr, jint id, jstring name);
@@ -32,7 +29,9 @@ extern "C"
 
     JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* jenv, jobject jobj, jlong ptr);
 
-    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType, jintArray jpIDs, jfloatArray jminVals, jfloatArray jmaxVals);
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTFType(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType);
+
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType, jintArray jpIDs, jfloatArray jcenters, jfloatArray jscales);
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr, int mode);
 

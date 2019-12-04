@@ -71,6 +71,10 @@ public class MessageBuffer
          * @param msg the message parsed*/
         void onScaleDatasetMessage(ScaleDatasetMessage msg);
 
+        /** Called when the message "TF DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onTFDatasetMessage(TFDatasetMessage msg);
+
         /** Called when the message "HEADSET_BINDING_INFO" has been successfully parsed
          * @param msg the message parsed*/
         void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg);
@@ -119,6 +123,9 @@ public class MessageBuffer
 
     /** Scale dataset received*/
     public static final int GET_SCALE_DATASET           = 9;
+
+    /** Transfer Function for a dataset received*/
+    public static final int GET_TF_DATASET              = 10;
 
     /** Anchor a new annotation*/
     public static final int GET_ANCHOR_ANNOTATION       = 12;
@@ -255,6 +262,10 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onScaleDatasetMessage((ScaleDatasetMessage) m_curMsg);
                         break;
+                    case GET_TF_DATASET:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onTFDatasetMessage((TFDatasetMessage)m_curMsg);
+                        break;
                     case GET_ANCHOR_ANNOTATION:
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onAnchorAnnotation((AnchorAnnotationMessage) m_curMsg);
@@ -314,6 +325,9 @@ public class MessageBuffer
                 break;
             case GET_SCALE_DATASET:
                 m_curMsg = new ScaleDatasetMessage();
+                break;
+            case GET_TF_DATASET:
+                m_curMsg = new TFDatasetMessage();
                 break;
             case GET_HEADSETS_STATUS:
                 m_curMsg = new HeadsetsStatusMessage();

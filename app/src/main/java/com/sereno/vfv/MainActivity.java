@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -50,9 +51,11 @@ import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
+import com.sereno.vfv.Network.TFDatasetMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
+import com.sereno.view.GTFData;
 import com.sereno.view.GTFView;
 
 import java.io.File;
@@ -62,7 +65,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity
                           implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener,
                                      MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener,
-                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener
+                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener, DatasetsFragment.IDatasetsFragmentListener
 {
     /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
     public static class DatasetIDBinding
@@ -305,13 +308,26 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onRemove(SubDataset dataset) {dataset.removeListener(this);}
+    public void onRemove(SubDataset dataset)
+    {
+        dataset.removeListener(this);
+        if(m_gtfWidget.getModel().getDataset() == dataset)
+            m_gtfWidget.setModel(null);
+    }
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onUpdateTF(SubDataset dataset) {}
+    public void onUpdateTF(SubDataset dataset)
+    {
+        if(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
+           dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
+        {
+            GTFData gtf = m_model.getGTFData(dataset);
+            m_socket.push(SocketManager.createGTFEvent(getDatasetIDBinding(dataset), gtf));
+        }
+    }
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -427,6 +443,45 @@ public class MainActivity extends AppCompatActivity
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
                         sd.setScale(msg.getScale());
+                    sd.addListener(MainActivity.this);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onTFDatasetMessage(final TFDatasetMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if(sd != null)
+                {
+                    //Remove and re add the listener for not ending in a while loop
+                    sd.removeListener(MainActivity.this);
+                        switch(msg.getTFType())
+                        {
+                            case SubDataset.TRANSFER_FUNCTION_GTF:
+                            case SubDataset.TRANSFER_FUNCTION_TGTF:
+                            {
+                                sd.setTransferFunctionType(msg.getTFType());
+
+                                //Update the GTF Data. We could have done that on the SubDataset also, but we do not yet manage
+                                //The update of the UI based on the SubDataset data (see onUpdateTF on ApplicationModel class)
+                                GTFData gtf = m_model.getGTFData(sd);
+                                gtf.setColorMode(msg.getColorMode());
+
+                                for(TFDatasetMessage.GTFData.PropData prop : msg.getGTFData().propData)
+                                {
+                                    if(!gtf.setRange(prop.propID, new GTFData.GTFPoint(prop.center, prop.scale)))
+                                        Log.e(MainActivity.TAG, "Could not set the property " + prop.propID);
+                                }
+                                break;
+                            }
+                        }
                     sd.addListener(MainActivity.this);
                 }
             }
@@ -595,6 +650,19 @@ public class MainActivity extends AppCompatActivity
     public void onSetMode(AnnotationData data, AnnotationData.AnnotationMode mode)
     {}
 
+    @Override
+    public void onDuplicateSubDataset(DatasetsFragment frag, SubDataset sd)
+    {}
+
+    @Override
+    public void onRemoveSubDataset(DatasetsFragment frag, SubDataset sd)
+    {}
+
+    @Override
+    public void onRequestAddSubDataset(DatasetsFragment frag, Dataset d)
+    {
+        m_socket.push(SocketManager.createAddSubDatasetEvent(d.getID()));
+    }
 
     @Override
     public void onDisconnection(SocketManager socket)
@@ -622,6 +690,7 @@ public class MainActivity extends AppCompatActivity
 
         //Add "Datasets" tab
         m_dataFragment = new DatasetsFragment();
+        m_dataFragment.addDFListener(this);
         adapter.addFragment(m_dataFragment, "Datasets");
 
         //Add "Annotations" tab

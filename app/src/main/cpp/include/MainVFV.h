@@ -191,8 +191,6 @@ namespace sereno
             uint32_t             m_snapshotCnt     = 0;    /*!< The snapshot counter*/
             std::map<SciVis*, std::shared_ptr<Snapshot>> m_snapshots; /*!< The snapshot pixels per Scientific Visualization*/
 
-            std::map<SubDataset*, TF*> m_sciVisTFs; /*!< The subdataset personal transfer function*/
-
             /*----------------------------------------------------------------------------*/
             /*--------------------------------Texture Data--------------------------------*/
             /*----------------------------------------------------------------------------*/

@@ -32,8 +32,8 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     public static final int COLLISION_WIDTH    = 30;  /*!< The number of pixels allowed for collisions with CPCP*/
 
     public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
-    public static final int MANIPULATING_MIN_VALUE = 1; /*!< Manipulating the minimum value*/
-    public static final int MANIPULATING_MAX_VALUE = 2; /*!< Manipulating the maximum value*/
+    public static final int MANIPULATING_CENTER    = 1; /*!< Manipulating the center*/
+    public static final int MANIPULATING_SCALE     = 2; /*!< Manipulating the scale factor*/
     public static final int MANIPULATING_PC_HEADER = 3; /*!< Manipulating the PC header (the PC order)*/
 
     private Paint    m_paint         = new Paint();           /*!< The general paint used of the canvas*/
@@ -264,37 +264,33 @@ public class GTFView extends View implements GTFData.IGTFDataListener
                     canvas.drawText(text, x, height-m_textPaint.getFontMetrics().descent, m_textPaint);
 
                     //The handles
-                    PointF range = m_model.getRanges().get(order[i]);
-                    float[] r = new float[]{range.x, range.y};
+                    GTFData.GTFPoint pointData = m_model.getRanges().get(order[i]);
 
-                    for(int j = 0; j < 2; j++)
+                    float handleY = bitmapHeight - pointData.center*bitmapHeight + startBitmapY;
+                    //Graphical handle
+                    Path path = new Path();
+                    path.moveTo(x-m_sliderHeight, handleY - m_sliderHeight/2.0f);
+                    path.lineTo(x, handleY);
+                    path.lineTo(x-m_sliderHeight, handleY + m_sliderHeight/2.0f);
+                    path.close();
+                    canvas.drawPath(path, m_handlesPaint);
+
+                    float textOffset = TEXT_OFFSET_HANDLE;
+
+                    //The associated text
+
+                    //Update Paint Alignment for the text
+                    if(i == order.length-1)
                     {
-                        float handleY = bitmapHeight - r[j]*bitmapHeight + startBitmapY;
-                        //Graphical handle
-                        Path path = new Path();
-                        path.moveTo(x-m_sliderHeight, handleY - m_sliderHeight/2.0f);
-                        path.lineTo(x, handleY);
-                        path.lineTo(x-m_sliderHeight, handleY + m_sliderHeight/2.0f);
-                        path.close();
-                        canvas.drawPath(path, m_handlesPaint);
-
-                        float textOffset = TEXT_OFFSET_HANDLE;
-
-                        //The associated text
-
-                        //Update Paint Alignment for the text
-                        if(i == order.length-1)
-                        {
-                            m_textPaint.setTextAlign(Paint.Align.RIGHT);
-                            textOffset = -textOffset - m_sliderHeight;
-                        }
-                        else
-                            m_textPaint.setTextAlign(Paint.Align.LEFT);
-                        canvas.drawText(Float.toString(r[j] * (desc.getMax()-desc.getMin()) + desc.getMin()), x+textOffset, handleY - m_textPaint.getFontMetrics().ascent/2.0f, m_textPaint);
-
-                        //Restore alignment alignment
-                        m_textPaint.setTextAlign(Paint.Align.CENTER);
+                        m_textPaint.setTextAlign(Paint.Align.RIGHT);
+                        textOffset = -textOffset - m_sliderHeight;
                     }
+                    else
+                        m_textPaint.setTextAlign(Paint.Align.LEFT);
+                    canvas.drawText(Float.toString(pointData.center * (desc.getMax()-desc.getMin()) + desc.getMin()), x+textOffset, handleY - m_textPaint.getFontMetrics().ascent/2.0f, m_textPaint);
+
+                    //Restore alignment alignment
+                    m_textPaint.setTextAlign(Paint.Align.CENTER);
 
                     break;
                 }
@@ -331,25 +327,22 @@ public class GTFView extends View implements GTFData.IGTFDataListener
             canvas.drawLine(i+m_sliderHeight/2, 0, i+m_sliderHeight/2, height - 1, m_paint);
         }
 
-        PointF range = m_model.getRanges().get(order[0]);
+        GTFData.GTFPoint pointData = m_model.getRanges().get(order[0]);
 
         //Draw the handles
-        int[]   v = new int[]{(int)(width*range.x), (int)(width*range.y)};
-        float[] r = new float[]{range.x, range.y};
-        for(int j = 0; j < 2; j++)
-        {
-            Path path = new Path();
-            path.moveTo(v[j] + m_sliderHeight / 2.0f, height);
-            path.lineTo(v[j], getHeight()-textHeight-1);
-            path.lineTo(v[j] + m_sliderHeight, getHeight()-textHeight-1);
-            path.close();
-            canvas.drawPath(path, m_handlesPaint);
-        }
+        int   v = (int)(width*pointData.center);
+
+        Path path = new Path();
+        path.moveTo(v+ m_sliderHeight / 2.0f, height);
+        path.lineTo(v, getHeight()-textHeight-1);
+        path.lineTo(v + m_sliderHeight, getHeight()-textHeight-1);
+        path.close();
+        canvas.drawPath(path, m_handlesPaint);
 
         //Draw the text below the handles
         PointFieldDesc ptDesc = m_model.getDataset().getParent().getPointFieldDescs()[order[0]];
         for(int j = 0; j < 2; j++)
-            canvas.drawText(Float.toString(r[j] * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v[j]+m_sliderHeight/2.0f, getHeight()-m_textPaint.getFontMetrics().descent, m_textPaint);
+            canvas.drawText(Float.toString(pointData.center * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v+m_sliderHeight/2.0f, getHeight()-m_textPaint.getFontMetrics().descent, m_textPaint);
     }
 
     @Override
@@ -383,22 +376,14 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         boolean  valueChanged = false;
         float    indice       = Math.min(Math.max((x - m_sliderHeight/2.0f)/width, 0.0f), 1.0f);
 
-        float minValue = m_model.getRanges().get(m_model.getCPCPOrder()[0]).x;
-        float maxValue = m_model.getRanges().get(m_model.getCPCPOrder()[0]).y;
+        float center = m_model.getRanges().get(m_model.getCPCPOrder()[0]).center;
+        float scale  = m_model.getRanges().get(m_model.getCPCPOrder()[0]).scale;
 
         //Set the cursor and store which value we are manipulating
         if(e.getAction() == MotionEvent.ACTION_DOWN)
         {
-            if(Math.abs(indice - minValue) < Math.abs(indice - maxValue))
-            {
-                m_valueInManipulation = MANIPULATING_MIN_VALUE;
-                minValue = indice;
-            }
-            else
-            {
-                m_valueInManipulation = MANIPULATING_MAX_VALUE;
-                maxValue = indice;
-            }
+            center = indice;
+            m_valueInManipulation = MANIPULATING_CENTER;
             valueChanged = true;
         }
         else if(e.getAction() == MotionEvent.ACTION_UP)
@@ -407,35 +392,15 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         //Move the cursor
         else if(e.getAction() == MotionEvent.ACTION_MOVE)
         {
-            if(m_valueInManipulation == MANIPULATING_MIN_VALUE)
-            {
-                //Switch manipulating indice if we went hover
-                if(indice > maxValue)
-                {
-                    minValue = maxValue;
-                    maxValue = indice;
-                    m_valueInManipulation = MANIPULATING_MAX_VALUE;
-                }
-                else
-                    minValue = indice;
-            }
-
-            else if(m_valueInManipulation == MANIPULATING_MAX_VALUE)
-            {
-                //Switch manipulating indice if we went hover
-                if(indice < minValue)
-                {
-                    maxValue = minValue;
-                    minValue = indice;
-                    m_valueInManipulation = MANIPULATING_MIN_VALUE;
-                }
-                else
-                    maxValue = indice;
-            }
+            if(m_valueInManipulation == MANIPULATING_CENTER)
+                center = indice;
             valueChanged = true;
         }
+
+        //TODO, handles scale
+
         if(valueChanged)
-            m_model.setRange(m_model.getCPCPOrder()[0], new PointF(minValue, maxValue));
+            m_model.setRange(m_model.getCPCPOrder()[0], new GTFData.GTFPoint(center, scale));
 
         return true;
     }
@@ -447,8 +412,8 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         int[] order = m_model.getCPCPOrder();
         boolean valueChanged = false;
 
-        float minValue = 0.0f;
-        float maxValue = 0.0f;
+        float center = 0.0f;
+        float scale = 0.0f;
 
         //Determining what is being manipulated
         if(e.getAction() == MotionEvent.ACTION_DOWN)
@@ -479,20 +444,14 @@ public class GTFView extends View implements GTFData.IGTFDataListener
             else //Ranges
             {
                 float indice   = 1.0f-Math.min(Math.max((e.getY() - getBitmapStartY())/getBitmapHeightCPCPMode(), 0.0f), 1.0f);
-                minValue = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).x;
-                maxValue = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).y;
+                center = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).center;
+                scale  = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).scale;
 
                 //Search whose value has been manipulated and update it accordingly
-                if(Math.abs(indice - minValue) < Math.abs(indice - maxValue))
-                {
-                    m_valueInManipulation = MANIPULATING_MIN_VALUE;
-                    minValue = indice;
-                }
-                else
-                {
-                    m_valueInManipulation = MANIPULATING_MAX_VALUE;
-                    maxValue = indice;
-                }
+                m_valueInManipulation = MANIPULATING_CENTER;
+                center = indice;
+
+                //TODO, handle scale
                 valueChanged = true;
             }
         }
@@ -505,38 +464,15 @@ public class GTFView extends View implements GTFData.IGTFDataListener
                 //TODO, move the header
             }
 
-            else if(m_valueInManipulation == MANIPULATING_MIN_VALUE ||
-                    m_valueInManipulation == MANIPULATING_MAX_VALUE)
+            else if(m_valueInManipulation == MANIPULATING_CENTER)
             {
                 float indice   = 1.0f-Math.min(Math.max((e.getY() - getBitmapStartY())/getBitmapHeightCPCPMode(), 0.0f), 1.0f);
-                minValue = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).x;
-                maxValue = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).y;
+                center = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).center;
+                scale  = m_model.getRanges().get(m_model.getCPCPOrder()[m_pcInManipulation]).scale;
 
-                if(m_valueInManipulation == MANIPULATING_MIN_VALUE)
-                {
-                    //Switch manipulating indice if we went hover
-                    if(indice > maxValue)
-                    {
-                        minValue = maxValue;
-                        maxValue = indice;
-                        m_valueInManipulation = MANIPULATING_MAX_VALUE;
-                    }
-                    else
-                        minValue = indice;
-                }
+                if(m_valueInManipulation == MANIPULATING_CENTER)
+                    center = indice;
 
-                else if(m_valueInManipulation == MANIPULATING_MAX_VALUE)
-                {
-                    //Switch manipulating indice if we went hover
-                    if(indice < minValue)
-                    {
-                        maxValue = minValue;
-                        minValue = indice;
-                        m_valueInManipulation = MANIPULATING_MIN_VALUE;
-                    }
-                    else
-                        maxValue = indice;
-                }
                 valueChanged = true;
             }
         }
@@ -549,7 +485,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         }
 
         if(valueChanged)
-            m_model.setRange(m_model.getCPCPOrder()[m_pcInManipulation], new PointF(minValue, maxValue));
+            m_model.setRange(m_model.getCPCPOrder()[m_pcInManipulation], new GTFData.GTFPoint(center, scale));
 
         return true;
     }
@@ -596,7 +532,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     }
 
     @Override
-    public void onSetGTFRanges(GTFData model, HashMap<Integer, PointF> ranges)
+    public void onSetGTFRanges(GTFData model, HashMap<Integer, GTFData.GTFPoint> ranges)
     {
         safeInvalidate();
     }

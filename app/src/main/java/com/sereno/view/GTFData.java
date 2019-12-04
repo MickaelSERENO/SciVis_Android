@@ -4,6 +4,7 @@ import android.graphics.PointF;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 import com.sereno.color.ColorMode;
 import com.sereno.vfv.Data.CPCPTexture;
@@ -25,7 +26,7 @@ public class GTFData implements Dataset.IDatasetListener
         /** Function called when the GTF ranges has changed
          * @param model the model calling this method
          * @param ranges the HashMap containing the new ranges. Key == ptFieldID, Values = ranges (PointF.x == min, PointF.y == max). Do not modify the HashMap.*/
-        void onSetGTFRanges(GTFData model, HashMap<Integer, PointF> ranges);
+        void onSetGTFRanges(GTFData model, HashMap<Integer, GTFPoint> ranges);
 
         /** Function called when the GTF CPCP order has changed
          * @param model the model calling this method
@@ -38,6 +39,59 @@ public class GTFData implements Dataset.IDatasetListener
         void onSetColorMode(GTFData model, int colorMode);
     }
 
+    /** Class containing data per point field*/
+    public static class GTFPoint
+    {
+        /** The center to apply*/
+        public float center;
+
+        /** The scale to apply*/
+        public float scale;
+
+        /** Is this point active?*/
+        public boolean active;
+
+        /** Default constructor, set center == scale == 0.5f*/
+        public GTFPoint()
+        {
+            this(0.5f, 0.5f);
+        }
+
+        /** Constructor
+         * @param c the center to apply
+         * @param s the scale to apply*/
+        public GTFPoint(float c, float s)
+        {
+            center = c;
+            scale  = s;
+            active = true;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if(o == null)
+                return false;
+
+            try
+            {
+                GTFPoint p = (GTFPoint)o;
+                return (center == p.center && scale == p.scale && active == p.active);
+            }
+
+            catch(ClassCastException e)
+            {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(center, scale, active);
+        }
+    }
+
     /** The Dataset from which we are manipulating the GTF ranges*/
     private SubDataset m_sd = null;
 
@@ -48,7 +102,7 @@ public class GTFData implements Dataset.IDatasetListener
     private PointFieldDesc[] m_ptFieldDescs = null;
 
     /** The HashMap bounding the ptFieldID to its ranges*/
-    private HashMap<Integer, PointF> m_ranges = new HashMap<>();
+    private HashMap<Integer, GTFPoint> m_ranges = new HashMap<>();
 
     /** The listeners to call when the current state of the GTF model changed*/
     private ArrayList<IGTFDataListener> m_listeners = new ArrayList<>();
@@ -98,17 +152,17 @@ public class GTFData implements Dataset.IDatasetListener
         {
             m_dataset = sd.getParent();
 
-            m_ranges.clear();
             m_ptFieldDescs = m_dataset.getPointFieldDescs();
             m_cpcpOrder = new int[m_ptFieldDescs.length];
 
             for(int i = 0; i < m_ptFieldDescs.length; i++)
             {
                 PointFieldDesc desc = m_ptFieldDescs[i];
-                m_ranges.put(desc.getID(), new PointF(0.0f, 1.0f));
+                m_ranges.put(desc.getID(), new GTFPoint());
                 m_cpcpOrder[i] = desc.getID();
             }
 
+            m_colorMode = sd.getColorMode();
             m_dataset.addListener(this);
         }
 
@@ -125,16 +179,16 @@ public class GTFData implements Dataset.IDatasetListener
 
     /** Get the ranges of the GTF parameters for each ptFieldID
      * @return the HashMap containing the new ranges. Key == ptFieldID, Values = ranges (PointF.x == min, PointF.y == max). Values are normalized. Do not modify the HashMap*/
-    public HashMap<Integer, PointF> getRanges()
+    public HashMap<Integer, GTFPoint> getRanges()
     {
         return m_ranges;
     }
 
     /** Set the ranges of the GTF parameters for a given ptFieldID
      * @param ptFieldID the ptFieldID to change the ranges to.
-     * @param range the new ranges (Point.getX()== min, Point.getY() == max)
+     * @param range the new range
      * @return true if ptFieldID is valid, false otherwise. If false, the status of this method does not change and no callback method are fired*/
-    public boolean setRange(int ptFieldID, PointF range)
+    public boolean setRange(int ptFieldID, GTFPoint range)
     {
         if(m_ranges.containsKey(ptFieldID))
         {
@@ -150,7 +204,7 @@ public class GTFData implements Dataset.IDatasetListener
 
     /** Update whole ranges
      * @param ranges the new ranges to use*/
-    public void updateRanges(HashMap<Integer, PointF> ranges)
+    public void updateRanges(HashMap<Integer, GTFPoint> ranges)
     {
         boolean callListener = !m_ranges.equals(ranges);
         m_ranges = ranges;
@@ -201,11 +255,7 @@ public class GTFData implements Dataset.IDatasetListener
 
     @Override
     public void onLoadDataset(Dataset dataset, boolean success)
-    {
-        //Reinit the ranges and order upon loading
-        if(dataset == m_dataset && success)
-            setDataset(m_sd);
-    }
+    {}
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture)

@@ -503,16 +503,28 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
     public void onRemove(SubDataset dataset)
     {
         dataset.removeListener(this);
+        for(int i = 0; i < m_gtfData.size(); i++)
+        {
+            if(m_gtfData.get(i).getDataset() == dataset)
+            {
+                m_gtfData.remove(i);
+                break;
+            }
+        }
     }
 
     @Override
     public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
     @Override
-    public void onUpdateTF(SubDataset dataset) {}
+    public void onUpdateTF(SubDataset dataset)
+    {
+        //TODO, update the GTFData associated
+    }
 
     @Override
-    public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
+    {}
 
     @Override
     public void onAddSubDataset(Dataset dataset, SubDataset sd)
@@ -522,23 +534,7 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
 
     @Override
     public void onLoadDataset(Dataset dataset, boolean success)
-    {
-        //Reinit every gtf data
-        for (GTFData gtf : m_gtfData)
-            if (gtf.getDataset().getParent() == dataset)
-            {
-                SubDataset sd = gtf.getDataset();
-                gtf.setDataset(sd);
-
-                //Update ranges as well
-                if(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF ||
-                   sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF)
-                {
-                    sd.setGTFRanges(gtf.getRanges());
-                    sd.setColorMode(gtf.getColorMode());
-                }
-            }
-    }
+    {}
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
@@ -548,12 +544,10 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
 
     @Override
     public void onSetDataset(GTFData model, SubDataset dataset)
-    {
-
-    }
+    {}
 
     @Override
-    public void onSetGTFRanges(GTFData model, HashMap<Integer, PointF> ranges)
+    public void onSetGTFRanges(GTFData model, HashMap<Integer, GTFData.GTFPoint> ranges)
     {
         //Update transfer function
         SubDataset sd = model.getDataset();

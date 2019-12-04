@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import com.sereno.color.ColorMode;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.view.AnnotationData;
+import com.sereno.view.GTFData;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -14,11 +15,12 @@ import java.util.List;
 
 public class SubDataset
 {
-    public static int VISIBILITY_PUBLIC  = 1;
-    public static int VISIBILITY_PRIVATE = 0;
+    public static final int VISIBILITY_PUBLIC  = 1;
+    public static final int VISIBILITY_PRIVATE = 0;
 
-    public static int TRANSFER_FUNCTION_GTF  = 0;
-    public static int TRANSFER_FUNCTION_TGTF = 1;
+    public static final int TRANSFER_FUNCTION_NONE = 0;
+    public static final int TRANSFER_FUNCTION_GTF  = 1;
+    public static final int TRANSFER_FUNCTION_TGTF = 2;
 
     /** Callback interface called when the SubDataset is modified*/
     public interface ISubDatasetListener
@@ -85,6 +87,8 @@ public class SubDataset
     public SubDataset(long ptr, Dataset parent)
     {
         m_ptr = ptr;
+        nativeSetTFType(m_ptr, SubDataset.TRANSFER_FUNCTION_GTF);
+        m_tfType = SubDataset.TRANSFER_FUNCTION_GTF;
         m_parent = parent;
     }
 
@@ -251,25 +255,40 @@ public class SubDataset
         return m_tfType;
     }
 
+    /** Set the transfer function type in use
+     * @return the transfer function type to use*/
+    public void setTransferFunctionType(int tfType)
+    {
+        if(m_tfType != tfType)
+        {
+            nativeSetTFType(m_ptr, tfType);
+
+            m_tfType = tfType;
+
+            for (int j = 0; j < m_listeners.size(); j++)
+                m_listeners.get(j).onUpdateTF(this);
+        }
+    }
+
     /** Update the Gaussian Transfer Function ranges
-     * @param ranges the ranges to use. Key == point field ID, Value = (x == min, y == max). Value should be normalized.*/
-    public void setGTFRanges(HashMap<Integer, PointF> ranges)
+     * @param ranges the ranges to use. Key == point field ID. Values should be normalized.*/
+    public void setGTFRanges(HashMap<Integer, GTFData.GTFPoint> ranges)
     {
         //Parse the HashMap in a easy-to-send data to C++
         int[]   pIDs    = new int[ranges.size()];
-        float[] minVals = new float[ranges.size()];
-        float[] maxVals = new float[ranges.size()];
+        float[] centers = new float[ranges.size()];
+        float[] scales = new float[ranges.size()];
         int i = 0;
         for (Integer pID : ranges.keySet())
         {
             pIDs[i] = pID;
-            minVals[i] = ranges.get(pID).x;
-            maxVals[i] = ranges.get(pID).y;
+            centers[i] = ranges.get(pID).center;
+            scales[i]  = ranges.get(pID).scale;
             i++;
         }
 
         //Update in C++
-        nativeSetGTFRanges(m_ptr, m_tfType, pIDs, minVals, maxVals);
+        nativeSetGTFRanges(m_ptr, m_tfType, pIDs, centers, scales);
 
         //Call listeners
         for(int j = 0; j < m_listeners.size(); j++)
@@ -402,14 +421,19 @@ public class SubDataset
      * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded*/
     private native void nativeSetClamping(long ptr, float min, float max);
 
+    /** Set the transfer function type of the native C++ SD object
+     * @param ptr the native pointer
+     * @param tfType the new transfer function type*/
+    private native void nativeSetTFType(long ptr, int tfType);
+
     /** Native code to set the Gaussian Transfer Function ranges
      * pIDs, minVals, and maxVals should be coherent (same size and correspond to each one)
      * @param ptr the native pointer
      * @param tfType the transfer function type
      * @param pIDs the list of pIDs
-     * @param minVals the list of minimum values normalized
-     * @param maxVals the list of maximum values normalized*/
-    private native void nativeSetGTFRanges(long ptr, int tfType, int[] pIDs, float[] minVals, float[] maxVals);
+     * @param centers the list of centers normalized
+     * @param scales the list of scales normalized*/
+    private native void nativeSetGTFRanges(long ptr, int tfType, int[] pIDs, float[] centers, float[] scales);
 
     /** Native code to set the color mode applied to this SubDataset
      * @param ptr the native pointer

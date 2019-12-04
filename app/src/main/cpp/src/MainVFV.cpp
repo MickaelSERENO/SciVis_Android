@@ -87,12 +87,6 @@ namespace sereno
             delete vis;
 
         /*----------------------------------------------------------------------------*/
-        /*-------------------------Delete transfer functions--------------------------*/
-        /*----------------------------------------------------------------------------*/
-        for(auto& it : m_sciVisTFs)
-            delete(it.second);
-
-        /*----------------------------------------------------------------------------*/
         /*------------------------------Delete materials------------------------------*/
         /*----------------------------------------------------------------------------*/
         delete m_vfMtl;
@@ -524,8 +518,8 @@ namespace sereno
 
     void MainVFV::handleTouchAction(TouchEvent* event)
     {
-        if(m_mainData->getHeadsetID() == -1)
-            return;
+        //if(m_mainData->getHeadsetID() == -1)
+        //    return;
         bool inMovement = false;
         glm::vec3 movement;
 
@@ -866,19 +860,11 @@ namespace sereno
                 case VFV_ADD_BINARY_DATA:
                     if(m_arrowMesh)
                     {
-                        //Compute the Transfer Function
-                        /*TF *tf = new TF(2, WARM_COLD_CIELAB);
-                        uint32_t texSize[2] = {256, 256};
-                        GLuint texture = generateTexture(texSize, *tf);
-                        m_sciVisTFTextures.push_back(texture);
-
-                        //Create the visualization
+                       /*//Create the visualization
                         m_vectorFields.push_back(new VectorField(&m_surfaceData->renderer, m_vfMtl, NULL,
                                                                  event->binaryData.dataset, m_arrowMesh, 
                                                                  texture, 2));
                         m_sciVis.push_back(m_vectorFields.back());
-                        m_sciVis.back()->getModel()->setTransferFunction(tf);
-                        m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tf));
 
                         //Set the snapshot
                         std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(NULL));
@@ -1021,11 +1007,7 @@ namespace sereno
                 m_sciVis.push_back(go);
 
                 //Set the transfer function
-                //TODO
-                TriangularGTF* tGTF = new TriangularGTF(it->dataset->getPtFieldValues().size()+1, RAINBOW);
-                m_sciVis.back()->getModel()->setTransferFunction(tGTF);
                 m_sciVis.back()->onTFChanged();
-                m_sciVisTFs.insert(std::pair<SubDataset*, TF*>(m_sciVis.back()->getModel(), tGTF));
 
                 //Update the snapshot
                 std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));

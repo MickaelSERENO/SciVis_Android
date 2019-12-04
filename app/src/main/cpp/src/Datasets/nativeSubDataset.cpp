@@ -3,6 +3,7 @@
 #include "Datasets/Dataset.h"
 #include "TransferFunction/GTF.h"
 #include "TransferFunction/TriangularGTF.h"
+#include "TransferFunction/TFType.h"
 #include "jniData.h"
 #include "utils.h"
 
@@ -109,14 +110,44 @@ JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* j
     return sd->getID();
 }
 
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType, jintArray jpIDs, jfloatArray jminVals, jfloatArray jmaxVals)
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTFType(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType)
 {
     SubDataset* sd = (SubDataset*)ptr;
 
+    //Save color mode and delete the old tf
+    ColorMode colorMode = RAINBOW;
+    if(sd->getTransferFunction())
+    {
+        colorMode = sd->getTransferFunction()->getColorMode();
+        delete sd->getTransferFunction();
+    }
+
+    //Create the new TF
+    TF* tf = NULL;
+    if(tfType == TF_GTF)
+        tf = new GTF(sd->getParent()->getPointFieldDescs().size(), colorMode);
+    else if(tfType == TF_TRIANGULAR_GTF)
+        tf = new TriangularGTF(sd->getParent()->getPointFieldDescs().size()+1, colorMode);
+    else
+        LOG_ERROR("Type %d unknown for transfer function...\n", tfType);
+
+    sd->setTransferFunction(tf);
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType, jintArray jpIDs, jfloatArray jcenters, jfloatArray jscales)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+
+    if(sd->getTransferFunction() == NULL)
+    {
+        LOG_ERROR("No transfer function to use...\n");
+        return;
+    }
+
     //Parse java values
     int*   pIDs = jenv->GetIntArrayElements(jpIDs, 0);
-    float* mins = jenv->GetFloatArrayElements(jminVals, 0);
-    float* maxs = jenv->GetFloatArrayElements(jmaxVals, 0);
+    float* centerPID = jenv->GetFloatArrayElements(jcenters, 0);
+    float* scalePID  = jenv->GetFloatArrayElements(jscales, 0);
 
     int size = jenv->GetArrayLength(jpIDs);
 
@@ -128,8 +159,8 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JN
         uint32_t tfID = sd->getParent()->getTFIndiceFromPointFieldID(pIDs[i]);
         if(tfID != (uint32_t)-1 && tfID < size)
         {
-            center[tfID] = (maxs[i] + mins[i])/2.0f;
-            scale[tfID]  = maxs[i] - mins[i];
+            center[tfID] = centerPID[i];
+            scale[tfID] = scalePID[i];
         }
         else
         {
@@ -139,7 +170,7 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JN
     }
 
     //Update transfer function
-    if(tfType == TRANSFER_FUNCTION_GTF)
+    if(tfType == TF_GTF)
     {
         GTF* gtf = reinterpret_cast<GTF*>(sd->getTransferFunction());
         if(size == gtf->getDimension())
@@ -149,7 +180,7 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JN
         }
     }
 
-    else if(tfType == TRANSFER_FUNCTION_TGTF)
+    else if(tfType == TF_TRIANGULAR_GTF)
     {
         TriangularGTF* gtf = reinterpret_cast<TriangularGTF*>(sd->getTransferFunction());
         if(size == gtf->getDimension() -1)
@@ -167,10 +198,15 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JN
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr, int mode)
 {
     SubDataset* sd = (SubDataset*)ptr;
+
+    if(sd->getTransferFunction() == NULL)
+    {
+        LOG_ERROR("No transfer function to use...\n");
+        return;
+    }
+
     sd->getTransferFunction()->setColorMode((ColorMode)mode);
 }
-
-
 
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
@@ -179,5 +215,8 @@ JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* 
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeFree(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
-    delete ((SubDataset*)(ptr));
+    SubDataset* sd = (SubDataset*)(ptr);
+    if(sd->getTransferFunction())
+        delete sd->getTransferFunction();
+    delete sd;
 }

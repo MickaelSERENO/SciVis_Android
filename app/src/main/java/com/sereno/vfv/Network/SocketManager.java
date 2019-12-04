@@ -1,6 +1,7 @@
 package com.sereno.vfv.Network;
 
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.util.Log;
 
 import com.sereno.vfv.Data.ApplicationModel;
@@ -10,6 +11,7 @@ import com.sereno.vfv.MainActivity;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
+import com.sereno.view.GTFData;
 
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -22,6 +24,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static com.sereno.vfv.Data.SubDataset.VISIBILITY_PRIVATE;
 
@@ -54,9 +57,9 @@ public class SocketManager
     public static final short SEND_CURRENT_SUBDATASET = 10;
     public static final short TRANSLATE_DATASET       = 11;
     public static final short SCALE_DATASET           = 12;
-    public static final short VISIBILITY_DATASET      = 13;
+    public static final short TF_SUBDATASET           = 13;
     public static final short SEND_START_ANNOTATION   = 14;
-    public static final short SEND_NEXT_TRIAL         = 17;
+    public static final short ADD_SUBDATASET          = 17;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -439,7 +442,6 @@ public class SocketManager
     /** Create a Scale event data to send to the server
      * @param ids the dataset and subdatasets IDs
      * @param sArr the array of the new scale to send (x, y, z)
-     * @param visibility the visibility of the subdataset?
      * @return array of byte to send to push*/
     public static byte[] createScaleEvent(MainActivity.DatasetIDBinding ids, float[] sArr)
     {
@@ -452,6 +454,37 @@ public class SocketManager
 
         for(int i = 0; i < 3; i++)
             buf.putFloat(sArr[i]);
+
+        return buf.array();
+    }
+
+    /** Fill common data stored in a GTFData
+     * @param ids the dataset and subdatasets IDs
+     * @param data the gtf data to look at*/
+    public static byte[] createGTFEvent(MainActivity.DatasetIDBinding ids, GTFData data)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 3*4 + 2*1 + (3*4*data.getRanges().size()));
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(TF_SUBDATASET);
+
+        //Header common to TF
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+        buf.put((byte)data.getDataset().getTransferFunctionType());
+        buf.put((byte)data.getColorMode());
+
+        //Common values for all GTF properties
+        buf.putInt(data.getRanges().size());
+
+        //Send properties
+        for(Map.Entry<Integer, GTFData.GTFPoint> entry : data.getRanges().entrySet())
+        {
+            GTFData.GTFPoint range = entry.getValue();
+            buf.putInt(entry.getKey());
+            buf.putFloat(range.center);
+            buf.putFloat(range.scale);
+        }
 
         return buf.array();
     }
@@ -542,12 +575,13 @@ public class SocketManager
         return buf.array();
     }
 
-    public static byte[] createNextTrialEvent()
+    public static byte[] createAddSubDatasetEvent(int datasetID)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = ByteBuffer.allocate(2+4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
-        buf.putShort(SEND_NEXT_TRIAL);
+        buf.putShort(ADD_SUBDATASET);
+        buf.putInt(datasetID);
 
         return buf.array();
     }
