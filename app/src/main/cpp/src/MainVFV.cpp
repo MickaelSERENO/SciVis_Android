@@ -518,8 +518,8 @@ namespace sereno
 
     void MainVFV::handleTouchAction(TouchEvent* event)
     {
-        //if(m_mainData->getHeadsetID() == -1)
-        //    return;
+        if(m_mainData->getHeadsetID() == -1)
+            return;
         bool inMovement = false;
         glm::vec3 movement;
 

@@ -263,13 +263,14 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onScaleEvent(SubDataset dataset, float[] scale) {}
 
             @Override
-            public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
+            public void onSnapshotEvent(final SubDataset dataset, Bitmap snapshot)
             {
                 final Bitmap s = snapshot;
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        snapImg.setImageBitmap(s);
+                        if(dataset.getParent().isLoaded())
+                            snapImg.setImageBitmap(s);
                     }
                 });
             }
