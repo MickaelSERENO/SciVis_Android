@@ -1,4 +1,4 @@
-package com.sereno.vfv;
+package com.sereno.vfv.Dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -6,9 +6,9 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Spinner;
 
-import com.sereno.vfv.Listener.INoticeDialogListener;
+import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
+import com.sereno.vfv.R;
 
 /* \brief Dialog fragment for setting the network connection */
 public class OpenConnectDialogFragment extends DialogFragment

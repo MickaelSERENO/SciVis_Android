@@ -15,6 +15,7 @@
     <string name="hololensIP">Hololens IP</string>
     <string name="handedness">Handedness</string>
     <string name="openVTKTitle">Select the wanted fields</string>
+    <string name="createSDTitle">Create a new Sub-Dataset</string>
     <string name="headsetColor">Headset color</string>
     <string name="pendingAnnotation">Anchor the annotation using the HMD</string>
     <string name="endTraining">End the training</string>
@@ -23,9 +24,10 @@
     <string name="wimPointing">WIM technique</string>
     <string name="wimRayPointing">WIM+Ray technique</string>
     <string name="gogoPointing">GoGo technique</string>
-    <string name="endBreak">End the break</string>
-    <string name="endBreakDialog">Are you sure you want to stop the break?</string>
-    <string name="endTrainingDialog">Are you sure you want to quit the training session?</string>
     <string name="duplicateSD">Duplicate</string>
     <string name="removeSD">Remove</string>
+    <string name="enableGradient">Enable Gradient</string>
+    <string name="publicSD">Public</string>
+    <string name="privateSD">Private</string>
+    <string name="sdPrivacy">Privacy</string>
 </resources>

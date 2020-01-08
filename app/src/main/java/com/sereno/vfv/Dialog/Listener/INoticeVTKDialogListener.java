@@ -1,8 +1,8 @@
-package com.sereno.vfv.Listener;
+package com.sereno.vfv.Dialog.Listener;
 
-import com.sereno.vfv.OpenVTKDatasetDialog;
+import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
 
-public interface INotiveVTKDialogListener
+public interface INoticeVTKDialogListener
 {
     /** \brief Function called when the position click button is pressed
      * @param dialogFragment the VTK Dialog*/

@@ -1,11 +1,7 @@
 package com.sereno.vfv;
 
-import android.app.AlertDialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -22,11 +18,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.sereno.VFVViewPager;
-import com.sereno.color.ColorMode;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.DataFile;
@@ -36,8 +33,11 @@ import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
-import com.sereno.vfv.Listener.INoticeDialogListener;
-import com.sereno.vfv.Listener.INotiveVTKDialogListener;
+import com.sereno.vfv.Dialog.OpenConnectDialogFragment;
+import com.sereno.vfv.Dialog.OpenDatasetDialogFragment;
+import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
+import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
+import com.sereno.vfv.Dialog.Listener.INoticeVTKDialogListener;
 import com.sereno.vfv.Network.AddSubDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.AnchorAnnotationMessage;
@@ -92,11 +92,11 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout     m_drawerLayout;      /*!< The root layout. DrawerLayout permit to have a left menu*/
     private Button           m_deleteDataBtn;     /*!< The delete data button*/
     private SocketManager    m_socket;            /*!< Connection with the server application*/
-    private VFVViewPager     m_viewPager;              /*!< The view pager handling all our fragments*/
-    private DatasetsFragment m_dataFragment = null;    /*!< The Dataset windows*/
-    private Menu             m_menu = null;            /*!< The menu item (toolbar menu)*/
-    private GTFView          m_gtfWidget = null;       /*!< The Gaussian transfer function to us*/
-    private boolean          m_chi2020Started = false; /*!< Has CHI2020 trials started?*/
+    private VFVViewPager     m_viewPager;                /*!< The view pager handling all our fragments*/
+    private DatasetsFragment m_dataFragment = null;      /*!< The Dataset windows*/
+    private Menu             m_menu = null;              /*!< The menu item (toolbar menu)*/
+    private GTFView          m_gtfWidget = null;         /*!< The Gaussian transfer function to us*/
+    private CheckBox         m_gtfEnableGradient = null; /*!< The CheckBox enabling or disabling the gradient component of the GTF*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.main_activity);
 
         //Set up all internal components
-        setUpMainLayout();
         setUpDrawerLayout();
+        setUpMainLayout();
         setUpToolbar();
         setUpHiddenMenu();
 
@@ -326,6 +326,12 @@ public class MainActivity extends AppCompatActivity
         {
             GTFData gtf = m_model.getGTFData(dataset);
             m_socket.push(SocketManager.createGTFEvent(getDatasetIDBinding(dataset), gtf));
+        }
+
+        //Update the transfer function view not link to any model
+        if(dataset == m_model.getCurrentSubDataset())
+        {
+            m_gtfEnableGradient.setChecked(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
         }
     }
 
@@ -565,7 +571,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     if(d.getID() == msg.getDatasetID())
                     {
-                        SubDataset sd = SubDataset.createNewSubDataset(d, msg.getSubDatasetID(), msg.getSubDatasetName());
+                        SubDataset sd = SubDataset.createNewSubDataset(d, msg.getSubDatasetID(), msg.getSubDatasetName(), msg.getOwnerID());
                         d.addSubDataset(sd, false);
                         break;
                     }
@@ -578,6 +584,9 @@ public class MainActivity extends AppCompatActivity
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {
         m_gtfWidget.setModel(model.getGTFData(sd));
+
+        //Put in the correct state the "gradient enable" checkbox
+        m_gtfEnableGradient.setChecked(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
     }
 
     @Override
@@ -659,9 +668,9 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
-    public void onRequestAddSubDataset(DatasetsFragment frag, Dataset d)
+    public void onRequestAddSubDataset(DatasetsFragment frag, Dataset d, boolean publicSD)
     {
-        m_socket.push(SocketManager.createAddSubDatasetEvent(d.getID()));
+        m_socket.push(SocketManager.createAddSubDatasetEvent(d.getID(), publicSD));
     }
 
     @Override
@@ -739,7 +748,7 @@ public class MainActivity extends AppCompatActivity
     private void setUpDrawerLayout()
     {
         m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
-        m_gtfWidget     = m_drawerLayout.findViewById(R.id.gtfView);
+        m_gtfWidget     = (GTFView)m_drawerLayout.findViewById(R.id.gtfView);
 
         //Configure the spinner color mode
         final Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
@@ -759,6 +768,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        //Configure the gaussian transfer function widget
         m_gtfWidget.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
@@ -772,6 +782,23 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         });
+
+        //Configure the checkbox about whether the GTF is a triangular one or not (enable gradient)
+        m_gtfEnableGradient = (CheckBox)m_drawerLayout.findViewById(R.id.enableGradientCheckBox);
+        m_gtfEnableGradient.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+            {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+                {
+                    //Update the GTF type (TGTF or GTF)
+                    SubDataset sd = m_model.getCurrentSubDataset();
+                    if(b)
+                        sd.setTransferFunctionType(SubDataset.TRANSFER_FUNCTION_TGTF);
+                    else
+                        sd.setTransferFunctionType(SubDataset.TRANSFER_FUNCTION_GTF);
+                }
+            }
+        );
     }
 
     /** \brief Setup the toolbar */
@@ -829,7 +856,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     VTKParser            parser    = new VTKParser(df.getFile());
                     OpenVTKDatasetDialog vtkDialog = new OpenVTKDatasetDialog(MainActivity.this, parser);
-                    vtkDialog.open(new INotiveVTKDialogListener()
+                    vtkDialog.open(new INoticeVTKDialogListener()
                     {
                         @Override
                         public void onDialogPositiveClick(OpenVTKDatasetDialog dialog)

@@ -1,4 +1,4 @@
-package com.sereno.vfv;
+package com.sereno.vfv.Dialog;
 
 import android.view.View;
 

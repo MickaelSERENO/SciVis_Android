@@ -24,6 +24,8 @@ import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
+import com.sereno.vfv.Dialog.Listener.INoticeCreateSDDialogListener;
+import com.sereno.vfv.Dialog.OpenCreateSDDialog;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
@@ -49,8 +51,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
         /** Called when the fragment ask to add a new SubDataset for a given dataset
          * @param frag the Fragment calling this method
-         * @param d the Dataset to consider*/
-        void onRequestAddSubDataset(DatasetsFragment frag, Dataset d);
+         * @param d the Dataset to consider
+         * @param publicSD should the SubDataset be public?*/
+        void onRequestAddSubDataset(DatasetsFragment frag, Dataset d, boolean publicSD);
     }
 
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
@@ -248,8 +251,20 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         });
         snapImg.setPadding(10, 10, 10, 10);
 
+        //Handle the privacy icons
         final ImageView publicIcon  = (ImageView)layout.findViewById(R.id.datasetPublicIcon);
         final ImageView privateIcon = (ImageView)layout.findViewById(R.id.datasetPrivateIcon);
+
+        if(sd.getOwnerID() != -1)
+        {
+            publicIcon.setVisibility(View.GONE);
+            privateIcon.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            publicIcon.setVisibility(View.VISIBLE);
+            privateIcon.setVisibility(View.GONE);
+        }
 
         SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
         {
@@ -434,8 +449,22 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    for(IDatasetsFragmentListener l : m_dfListeners)
-                        l.onRequestAddSubDataset(DatasetsFragment.this, d);
+                    //Create a dialog asking for the properties of the
+                    final OpenCreateSDDialog sdDialog = new OpenCreateSDDialog(m_ctx, d);
+                    sdDialog.open(new INoticeCreateSDDialogListener()
+                    {
+                        @Override
+                        public void onDialogPositiveClick(OpenCreateSDDialog dialog)
+                        {
+                            for(IDatasetsFragmentListener l : m_dfListeners)
+                                l.onRequestAddSubDataset(DatasetsFragment.this, d, sdDialog.isSDPublic());
+                        }
+
+                        @Override
+                        public void onDialogNegativeClick(OpenCreateSDDialog dialog)
+                        {}
+                    });
+
                     return true;
                 }
                 return false;

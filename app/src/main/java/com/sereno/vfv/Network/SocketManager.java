@@ -513,6 +513,10 @@ public class SocketManager
         return buf.array();
     }
 
+    /** Create an annotation event to send
+     * @param ids the Dataset and SubDataset ids attached to this annotation
+     * @param annotationData the annotation data
+     * @param metaData the meta data of this annotation*/
     public static byte[] createAnnotationEvent(MainActivity.DatasetIDBinding ids, AnnotationData annotationData, ApplicationModel.AnnotationMetaData metaData)
     {
         int size = 2+7*4;
@@ -560,6 +564,9 @@ public class SocketManager
         return buf.array();
     }
 
+    /** Create an event regarding to specify that the user wants to start an annotation
+     * @param ids the Dataset and SubDataset ids attached to this annotation
+     * @param pointingID the ID of the pointing interaction technique in use*/
     public static byte[] createStartAnnotationEvent(MainActivity.DatasetIDBinding ids, int pointingID)
     {
         int size = 2+3*4;
@@ -575,13 +582,17 @@ public class SocketManager
         return buf.array();
     }
 
-    public static byte[] createAddSubDatasetEvent(int datasetID)
+    /** Create an add subdataset event
+     * @param datasetID the dataset parent to the future SubDataset
+     * @param publicSD will the SubDataset be public?*/
+    public static byte[] createAddSubDatasetEvent(int datasetID, boolean publicSD)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+4);
+        ByteBuffer buf = ByteBuffer.allocate(2+4+1);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(ADD_SUBDATASET);
         buf.putInt(datasetID);
+        buf.put((byte)(publicSD ? 1 : 0));
 
         return buf.array();
     }

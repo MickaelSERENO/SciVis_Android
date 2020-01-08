@@ -73,7 +73,7 @@ public abstract class Dataset
         m_name = name;
 
         for(int i = 0; i < nativeGetNbSubDatasets(m_ptr); i++)
-            m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i), this));
+            m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i), this, -1));
     }
 
     @Override

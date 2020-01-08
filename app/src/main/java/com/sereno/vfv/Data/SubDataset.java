@@ -76,20 +76,22 @@ public class SubDataset
     /** List of annotations bound to this SubDataset*/
     private List<AnnotationData> m_annotations = new ArrayList<>();
 
-    /** The current headset owning this subdataset*/
+    /** The current headset owning this subdataset. -1 == public subDataset*/
     private int m_ownerHeadsetID = -1;
 
     /** The type of the subdataset current transfer function*/
-    private int m_tfType = TRANSFER_FUNCTION_TGTF;
+    private int m_tfType;
 
     /** Constructor. Link the Java object with the C++ native SubDataset object
-     * @param ptr the native C++ pointer*/
-    public SubDataset(long ptr, Dataset parent)
+     * @param ptr the native C++ pointer
+     * @param parent the java object Dataset parent
+     * @param ownerID the headset ID owning this SubDataset. -1 == public SubDataset*/
+    public SubDataset(long ptr, Dataset parent, int ownerID)
     {
         m_ptr = ptr;
-        nativeSetTFType(m_ptr, SubDataset.TRANSFER_FUNCTION_GTF);
-        m_tfType = SubDataset.TRANSFER_FUNCTION_GTF;
         m_parent = parent;
+        m_ownerHeadsetID = ownerID;
+        setTransferFunctionType(SubDataset.TRANSFER_FUNCTION_GTF);
     }
 
     @Override
@@ -97,17 +99,18 @@ public class SubDataset
     {
         if(m_ptr == 0)
             return null;
-        return new SubDataset(nativeClone(m_ptr), m_parent);
+        return new SubDataset(nativeClone(m_ptr), m_parent, m_ownerHeadsetID);
     }
 
     /** Create a new SubDataset from basic information. It still needs to be attached to the parent afterward
      * @param parent the parent of this SubDataset
      * @param id the ID of this SubDataset
      * @param name the name of this SubDataset
+     * @param ownerID the headset ID owning this SubDataset. -1 == public SubDataset
      * @return the newly created SubDataset. It is not automatically added to the parent though.*/
-    static public SubDataset createNewSubDataset(Dataset parent, int id, String name)
+    static public SubDataset createNewSubDataset(Dataset parent, int id, String name, int ownerID)
     {
-        return new SubDataset(nativeCreateNewSubDataset(parent.getPtr(), id, name), parent);
+        return new SubDataset(nativeCreateNewSubDataset(parent.getPtr(), id, name), parent, ownerID);
     }
 
     /** Add a new callback Listener
@@ -247,6 +250,10 @@ public class SubDataset
     /** Get the parent dataset
      * @return the parent dataset*/
     public Dataset getParent() {return m_parent;}
+
+    /** Get the ID of the Headset owning this SubDataset. -1 == public SubDataset
+     * @return the headset ID as defined by the application (server)*/
+    public int getOwnerID() {return m_ownerHeadsetID;}
 
     /** Get the transfer function type in use
      * @return the integer representing the transfer function type being used. See SubDataset.TRANSFER_FUNCTION_**/

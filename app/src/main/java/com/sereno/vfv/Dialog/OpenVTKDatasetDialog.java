@@ -1,4 +1,4 @@
-package com.sereno.vfv;
+package com.sereno.vfv.Dialog;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,7 +12,8 @@ import android.widget.TextView;
 
 import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
-import com.sereno.vfv.Listener.INotiveVTKDialogListener;
+import com.sereno.vfv.Dialog.Listener.INoticeVTKDialogListener;
+import com.sereno.vfv.R;
 
 import java.util.ArrayList;
 
@@ -108,9 +109,9 @@ public class OpenVTKDatasetDialog
             pushFieldValue(m_cellFieldValue[i], i+m_ptFieldValue.length);
     }
 
-    /** Open the Dialog
+    /** Open the Dialog. Do not call this function again while the dialog is opened
      * @param listener the callback object*/
-    public void open(final INotiveVTKDialogListener listener)
+    public void open(final INoticeVTKDialogListener listener)
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(m_ctx);
         builder.setTitle(R.string.openVTKTitle);

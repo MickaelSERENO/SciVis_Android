@@ -1,4 +1,4 @@
-package com.sereno.vfv.Listener;
+package com.sereno.vfv.Dialog.Listener;
 
 import android.app.DialogFragment;
 import android.view.View;
