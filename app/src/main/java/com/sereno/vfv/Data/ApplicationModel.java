@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /** @brief The Model component on the MVC architecture */
-public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset.IDatasetListener, GTFData.IGTFDataListener
+public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFDataListener
 {
     /** @brief Interface possessing functions called when deleting or adding new datasets */
     public interface IDataCallback
@@ -182,6 +182,28 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
             m_listeners.add(clbk);
     }
 
+    /** @brief Function that tells whether we can modify or not a given SubDataset
+     * @param sd the subdataset to check the modify property*/
+    public boolean canModifySubDataset(SubDataset sd)
+    {
+        if(sd == null) //no subdataset...
+            return false;
+
+        if(getBindingInfo().getHeadsetID() == -1) //Not bound to a headset: modify nothing
+            return false;
+
+        if(sd.getOwnerID() != -1 && sd.getOwnerID() == getBindingInfo().getHeadsetID()) //Our private subdataset
+            return true;
+
+        if(sd.getOwnerID() == -1) //Public -> check the lock status
+        {
+            if(sd.getCurrentHeadset() == -1 || sd.getCurrentHeadset() == getBindingInfo().getHeadsetID())
+                return true;
+        }
+
+        return false;
+    }
+
     /** Add a new SubDataset to the known list
      * @param sd the SubDataset to add*/
     private void onAddSubDataset(SubDataset sd)
@@ -213,8 +235,23 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
             }
 
             @Override
-            public void onUpdateTF(SubDataset dataset) {}
+            public void onUpdateTF(SubDataset dataset)
+            {
+                //TODO update associated GTFData. But normally MainActivity is already handling it...
+            }
+
+            @Override
+            public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+            {
+                dataset.setCanBeModified(canModifySubDataset(dataset));
+            }
+
+            @Override
+            public void onSetCanBeModified(SubDataset dataset, boolean status)
+            {}
         });
+
+        sd.setCanBeModified(canModifySubDataset(sd));
 
         GTFData newGTF = new GTFData(sd);
         m_gtfData.add(newGTF);
@@ -288,9 +325,10 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
 
         for(Dataset d : getDatasets())
         {
-            if (d.getSubDatasets().size() > 0)
+            for(SubDataset newSD : d.getSubDatasets())
             {
-                setCurrentSubDataset(d.getSubDatasets().get(0));
+                if(newSD != sd)
+                    setCurrentSubDataset(newSD);
                 break;
             }
         }
@@ -360,15 +398,7 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
      * @param sd The new current SubDataset*/
     public void setCurrentSubDataset(SubDataset sd)
     {
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.removeListener(this);
-
         m_currentSubDataset = sd;
-
-        if(sd != null)
-        {
-            sd.addListener(this);
-        }
 
         for(IDataCallback clbk : m_listeners)
             clbk.onChangeCurrentSubDataset(this, sd);
@@ -402,6 +432,12 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
     public void setBindingInfo(HeadsetBindingInfoMessage info)
     {
         m_bindingInfo = info;
+
+        //Update the status of subdatasets
+        for(Dataset d : m_datasets)
+            for(SubDataset sd : d.getSubDatasets())
+                sd.setCanBeModified(canModifySubDataset(sd));
+
         for(IDataCallback clbk : m_listeners)
             clbk.onUpdateBindingInformation(this, info);
     }
@@ -483,44 +519,6 @@ public class ApplicationModel implements SubDataset.ISubDatasetListener, Dataset
             m_currentSubDataset.addListener(this);
         m_rangeColorModel.addOnRangeChangeListener(this);
     }*/
-
-    @Override
-    public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
-
-    @Override
-    public void onPositionEvent(SubDataset dataset, float[] position) {}
-
-    @Override
-    public void onScaleEvent(SubDataset dataset, float[] scale) {}
-
-    @Override
-    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
-
-    @Override
-    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-    @Override
-    public void onRemove(SubDataset dataset)
-    {
-        dataset.removeListener(this);
-        for(int i = 0; i < m_gtfData.size(); i++)
-        {
-            if(m_gtfData.get(i).getDataset() == dataset)
-            {
-                m_gtfData.remove(i);
-                break;
-            }
-        }
-    }
-
-    @Override
-    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
-
-    @Override
-    public void onUpdateTF(SubDataset dataset)
-    {
-        //TODO, update the GTFData associated
-    }
 
     @Override
     public void onRemoveSubDataset(Dataset dataset, SubDataset sd)

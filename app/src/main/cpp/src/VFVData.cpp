@@ -205,14 +205,13 @@ namespace sereno
     /*----------------------------Send events to Java-----------------------------*/
     /*----------------------------------------------------------------------------*/
 
-    void VFVData::sendRotationEvent(SubDataset* sd)
+    void VFVData::sendRotationEvent(SubDataset* sd, const Quaternionf& q)
     {
         auto it = m_jSubDatasetMap.find(sd);
         if(it != m_jSubDatasetMap.end())
         {
             //Create the quaternion array
             jfloatArray arr = jniMainThread->NewFloatArray(4);
-            Quaternionf q   = sd->getGlobalRotate();
             float qArr[4] = {q.w, q.x, q.y, q.z};
             jniMainThread->SetFloatArrayRegion(arr, 0, 4, qArr);
 
@@ -221,28 +220,28 @@ namespace sereno
         }
     }
 
-    void VFVData::sendPositionEvent(SubDataset* sd)
+    void VFVData::sendPositionEvent(SubDataset* sd, const glm::vec3& position)
     {
         auto it = m_jSubDatasetMap.find(sd);
         if(it != m_jSubDatasetMap.end())
         {
             //Create the quaternion array
             jfloatArray arr = jniMainThread->NewFloatArray(3);
-            jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getPosition()));
+            jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(position));
 
             jniMainThread->CallVoidMethod(it->second, jSubDataset_setPosition, arr);
             jniMainThread->DeleteLocalRef(arr);
         }
     }
 
-    void VFVData::sendScaleEvent(SubDataset* sd)
+    void VFVData::sendScaleEvent(SubDataset* sd, const glm::vec3& scale)
     {
         auto it = m_jSubDatasetMap.find(sd);
         if(it != m_jSubDatasetMap.end())
         {
             //Create the quaternion array
             jfloatArray arr = jniMainThread->NewFloatArray(3);
-            jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(sd->getScale()));
+            jniMainThread->SetFloatArrayRegion(arr, 0, 3, glm::value_ptr(scale));
 
             jniMainThread->CallVoidMethod(it->second, jSubDataset_setScale, arr);
             jniMainThread->DeleteLocalRef(arr);
@@ -295,4 +294,14 @@ namespace sereno
         }
     }
 
+    bool VFVData::canSubDatasetBeModified(SubDataset* sd)
+    {
+        auto it = m_jSubDatasetMap.find(sd);
+        if(it != m_jSubDatasetMap.end())
+        {
+            jobject jobj = it->second;
+            return jniMainThread->CallBooleanMethod(jobj, jSubDataset_getCanBeModified);
+        }
+        return false;
+    }
 }

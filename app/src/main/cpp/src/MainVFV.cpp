@@ -208,7 +208,7 @@ namespace sereno
             if(tc->type != TOUCH_TYPE_UP)
                 numberFinger++;
 
-        if(m_currentWidgetAction == NO_IMAGE && numberFinger <= 1)
+        if(m_currentWidgetAction == NO_IMAGE && numberFinger <= 1 || !m_curSDCanBeModified)
         {
             //Cancel the animation
             if(m_inAnimation || forceReset)
@@ -271,12 +271,21 @@ namespace sereno
         m_surfaceData->renderer.setViewport(Rectangle2i(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight()));
 
         glEnable(GL_DEPTH_TEST);
-
         bool     visible = true;
 
         while(!m_surfaceData->isClosed())
         {
-            //Handles event received from the surface view 
+            m_mainData->lock();
+            //Handle events sent from JNI for our application (application wise)
+            handleVFVDataEvent();
+
+            //Check the status about the modificability of our current subdataset
+            if(!m_currentVis)
+                m_curSDCanBeModified = false;
+            else
+                m_curSDCanBeModified = m_mainData->canSubDatasetBeModified(m_currentVis->getModel());
+
+            //Handles event received from the surface view
             while(Event* event = m_surfaceData->pollEvent())
             {
                 switch(event->type)
@@ -401,84 +410,9 @@ namespace sereno
                 delete event;
             }
 
-            m_mainData->lock();
-            //Handle events sent from JNI for our application (application wise)
-            handleVFVDataEvent();
-
-            //Clear GL state
-            glDepthMask(true);
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            //Run jobs in main thread
+            //Update the snapshot. It will have "one frame" behind the current one... never mind!
+            if(visible && m_currentVis)
             {
-                while(!m_mainThreadFuncs.empty())
-                {
-                    //Cut the job like this for not blocking the other thread too much
-                    m_mainThreadFuncsMutex.lock();
-                        auto func = m_mainThreadFuncs.front();
-                        m_mainThreadFuncs.pop();
-                    m_mainThreadFuncsMutex.unlock();
-                    func();
-                }
-            }
-
-            //Apply the model changement (rotation + color)
-            for(auto& it : m_modelChanged)
-            {
-                const SubDataset* sd = it.first;
-
-                for(auto sciVis : m_sciVis)
-                {
-                    if(sciVis->getModel() == sd)
-                    {
-                        if(it.second.updateColor)
-                            sciVis->onTFChanged();
-                        if(it.second.updateRotation)
-                            sciVis->setRotate(sd->getGlobalRotate());
-                        if(it.second.updateScale)
-                            sciVis->setScale(sd->getScale());
-                    }
-                }
-            }
-
-            if(m_currentVis)
-            {
-                if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
-                {
-                    SubDataset* sd = m_currentVis->getModel();
-
-                    if(sd != NULL)
-                        m_currentVis->setPosition(sd->getPosition());
-                }
-                else
-                    m_currentVis->setPosition(glm::vec3(0, 0, 0));
-            }
-            m_modelChanged.clear();
-
-            if(visible)
-            {
-                placeCamera();
-
-                //Draw the scene
-                if(m_surfaceData->renderer.getCameraParams().w == 1.0) //Orthographic mode
-                {
-                    for(int i = 0; i < 8; i++)
-                        m_3dImageManipGO[i].update(&m_surfaceData->renderer);
-                    if(m_mainData->getHeadsetID() == -1)
-                        m_notConnectedGO->update(&m_surfaceData->renderer);
-                }
-
-                if(m_currentVis != NULL)
-                    m_currentVis->update(&m_surfaceData->renderer);
-
-                m_surfaceData->renderer.render();
-
-                //Update the snapshot. It will have "one frame" behind the current one... never mind!
-                if(m_currentVis)
-                {
-                    m_snapshotCnt++;
-                }
                 if(m_snapshotCnt == MAX_SNAPSHOT_COUNTER)
                 {
                     SubDataset* sd  = m_currentVis->getModel();
@@ -505,9 +439,83 @@ namespace sereno
                         m_snapshotCnt = 0;
                     }
                 }
-
             }
-            m_mainData->unlock();
+
+            //Clear GL state
+            glDepthMask(true);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            //Run jobs in main thread
+            {
+                while(!m_mainThreadFuncs.empty())
+                {
+                    //Cut the job like this for not blocking the other thread too much
+                    m_mainThreadFuncsMutex.lock();
+                        auto func = m_mainThreadFuncs.front();
+                        m_mainThreadFuncs.pop();
+                    m_mainThreadFuncsMutex.unlock();
+                    func();
+                }
+            }
+
+
+            if(m_currentVis)
+            {
+                //Apply the model changement for the current visualization (transform + color)
+                //Change only the current one because changing current visualization also will update its color/transformation (see set_current_subdataset)
+                for(auto& it : m_modelChanged)
+                {
+                    const SubDataset* sd = it.first;
+                    if(m_currentVis && m_currentVis->getModel() == sd)
+                    {
+                        if(it.second.updateColor)
+                            m_currentVis->onTFChanged();
+                        if(it.second.updateRotation)
+                            m_currentVis->setRotate(sd->getGlobalRotate());
+                        if(it.second.updateScale)
+                            m_currentVis->setScale(sd->getScale());
+                        break;
+                    }
+                }
+
+                if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
+                {
+                    SubDataset* sd = m_currentVis->getModel();
+
+                    if(sd != NULL)
+                        m_currentVis->setPosition(sd->getPosition());
+                }
+                else
+                    m_currentVis->setPosition(glm::vec3(0, 0, 0));
+            }
+            m_modelChanged.clear();
+
+            if(visible)
+            {
+                placeCamera();
+
+                //Draw the scene
+                if(m_surfaceData->renderer.getCameraParams().w == 1.0) //Orthographic mode
+                {
+                    for(int i = 0; i < 8; i++)
+                        m_3dImageManipGO[i].update(&m_surfaceData->renderer);
+                    if(!m_curSDCanBeModified)
+                        m_notConnectedGO->update(&m_surfaceData->renderer);
+                }
+
+                if(m_currentVis != NULL)
+                    m_currentVis->update(&m_surfaceData->renderer);
+
+                m_mainData->unlock(); //Rendering time, unlock
+                m_surfaceData->renderer.render();
+            }
+            else
+                m_mainData->unlock();
+
+            if(visible && m_currentVis)
+                m_snapshotCnt++;
+
             if(!visible)
             {
                 usleep(2.0e3);
@@ -527,11 +535,8 @@ namespace sereno
             return;
 
         SubDataset* sd = m_currentVis->getModel();
-        if(sd == NULL)
-        {
-            m_mainData->unlock();
+        if(!sd || !m_curSDCanBeModified) //We want to modify a SubDataset...
             return;
-        }
 
         switch(m_currentWidgetAction)
         {
@@ -555,8 +560,7 @@ namespace sereno
                 //Modify the scale
                 glm::vec3 currentScale = sd->getScale();
                 currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
-                sd->setScale(currentScale);
-                m_mainData->sendScaleEvent(sd);
+                m_mainData->sendScaleEvent(sd, currentScale);
                 break;
             }
 
@@ -636,8 +640,8 @@ namespace sereno
                     float pitch = (event->y - event->oldY)*M_PI;
                     pitch = 0; //Disable pitch rotation
 
-                    sd->setGlobalRotate(Quaternionf(roll, pitch, 0)*m_currentVis->getRotate());
-                    m_mainData->sendRotationEvent(sd);
+                    Quaternionf q = Quaternionf(roll, pitch, 0)*m_currentVis->getRotate();
+                    m_mainData->sendRotationEvent(sd, q);
                 }
                 break;
             }
@@ -652,10 +656,7 @@ namespace sereno
         {
             findHeadsetCameraTransformation(NULL, &cameraRot);
             glm::vec3 newPos = m_animationRotation.rotateVector(movement);
-            LOG_INFO("old Movement : %f %f %f, new Movement : %f %f %f", movement.x, movement.y, movement.z,
-                                                                         newPos.x,   newPos.y,   newPos.z);
-            sd->setPosition(sd->getPosition() + newPos);
-            m_mainData->sendPositionEvent(sd);
+            m_mainData->sendPositionEvent(sd, sd->getPosition() + newPos);
         }
     }
 
@@ -841,11 +842,15 @@ namespace sereno
         runOnMainThread([this, dataset, loaded]()
         {
             //Load first the dataset graphical object
-            for(auto it : m_sciVis)
+            for(SubDataset* sd : dataset->getSubDatasets())
             {
-                if(it->getModel()->getParent() == dataset)
-                    it->load();
+                SciVis* vis = createVisualization(sd);
+                if(vis)
+                    vis->load();
+                if(m_currentVis == NULL)
+                    m_currentVis = vis;
             }
+
             m_mainData->sendOnDatasetLoaded(m_mainData->getDatasetSharedPtr(dataset), loaded);
         });
     }
@@ -888,9 +893,6 @@ namespace sereno
                         dim[i] = m_vtkStructuredGridPoints.back()->vbo->getDimensions()[i];
                     m_colorGridMtl->setDimension(dim);
 
-                    for(uint32_t i = 0; i < event->vtkData.dataset->getNbSubDatasets(); i++)
-                        addSubDataset(event->vtkData.dataset->getSubDatasets()[i]);
-
                     //Load VTK data in a separate thread
                     event->vtkData.dataset->loadValues([](Dataset* dataset, uint32_t status, void* data)
                     {
@@ -927,7 +929,7 @@ namespace sereno
 
                 case VFV_ADD_SUBDATASET:
                 {
-                    addSubDataset(event->sdEvent.sd);
+                    break;
                 }
 
                 case VFV_SET_ROTATION_DATA:
@@ -957,13 +959,9 @@ namespace sereno
                 case VFV_SET_CURRENT_DATA:
                 {
                     //Find which SciVis this sub dataset belongs to and change the current sci vis
-                    m_currentVis = NULL;
-                    for(auto it : m_sciVis)
-                        if(it->getModel() == event->sdEvent.sd)
-                        {
-                            m_currentVis = it;
-                            break;
-                        }
+                    m_currentVis = createVisualization(event->sdEvent.sd);
+                    if(event->sdEvent.sd)
+                        addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, true, true, true));
                     break;
                 }
 
@@ -980,17 +978,19 @@ namespace sereno
         auto it = m_modelChanged.find(sd);
         if(it == m_modelChanged.end())
             m_modelChanged.insert(std::pair<const SubDataset*, SubDatasetChangement>(sd, sdChangement));
-        else if(m_currentVis != NULL)
+        else
             for(int i = 0; i < sizeof(sdChangement._data)/sizeof(sdChangement._data[0]); i++)
-                m_modelChanged[m_currentVis->getModel()]._data[i] |= sdChangement._data[i];
+                it->second._data[i] |= sdChangement._data[i];
     }
 
-    void MainVFV::addSubDataset(SubDataset* sd)
+    SciVis* MainVFV::createVisualization(SubDataset* sd)
     {
+        if(sd == NULL)
+            return NULL;
         //First check if this SubDataset was already registered
         for(auto it : m_sciVis)
             if(it->getModel() == sd)
-                return;
+                return it;
 
         //Check what type of Dataset this SubDataset is (the action will not be the same)
         for(auto it : m_vtkStructuredGridPoints)
@@ -1016,11 +1016,13 @@ namespace sereno
 
                 addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
 
-                if(m_currentVis == NULL)
-                    m_currentVis = m_sciVis.back();
-                return;
+                //Return it
+                return m_sciVis.back();
             }
         }
+
+        LOG_WARNING("Trying to create a SubDataset visualization but its Dataset is not found...");
+        return NULL; //Dataset not found...
     }
 
     void MainVFV::removeSubDataset(SubDataset* sd)
@@ -1028,7 +1030,10 @@ namespace sereno
         //Remove the bound scientific visualizations
         for(uint32_t i = 0; i < m_sciVis.size(); i++)
             if(m_sciVis[i]->getModel() == sd)
+            {
                 removeSciVis(m_sciVis[i]);
+                break;
+            }
     }
 
     void MainVFV::removeSciVis(SciVis* sciVis)
@@ -1067,12 +1072,12 @@ namespace sereno
 endForVTK:
 
         //Remove the link of this scivis object
-        for(std::vector<SciVis*>::iterator it = m_sciVis.begin(); it != m_sciVis.end(); it++)
+        for(auto it = m_sciVis.begin(); it != m_sciVis.end(); it++)
             if((*it) == sciVis)
-                {
-                    m_sciVis.erase(it);
-                    break;
-                }
+            {
+                m_sciVis.erase(it);
+                break;
+            }
 
         //Delete the scivis object
         delete sciVis;

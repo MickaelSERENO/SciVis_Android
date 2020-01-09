@@ -60,6 +60,7 @@ public class SocketManager
     public static final short TF_SUBDATASET           = 13;
     public static final short SEND_START_ANNOTATION   = 14;
     public static final short ADD_SUBDATASET          = 17;
+    public static final short REMOVE_SUBDATASET       = 18;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -593,6 +594,20 @@ public class SocketManager
         buf.putShort(ADD_SUBDATASET);
         buf.putInt(datasetID);
         buf.put((byte)(publicSD ? 1 : 0));
+
+        return buf.array();
+    }
+
+    /** Create an remove subdataset event
+     * @param ids the subdataset IDs*/
+    public static byte[] createRemoveSubDatasetEvent(MainActivity.DatasetIDBinding ids)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(REMOVE_SUBDATASET);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
 
         return buf.array();
     }

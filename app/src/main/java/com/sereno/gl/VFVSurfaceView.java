@@ -109,8 +109,8 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddSubDataset(Dataset dataset, SubDataset sd)
     {
         sd.addListener(this);
+        nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd); //Bind a not-yet known subdataset
         nativeOnAddSubDataset(m_ptr, sd.getNativePtr());
-        nativeBindSubDataset(m_ptr, sd.getNativePtr(), sd);
     }
 
     @Override
@@ -223,6 +223,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onUpdateTF(SubDataset dataset)
     {
         nativeOnTFUpdated(m_ptr, dataset.getNativePtr());
+    }
+
+    @Override
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    {
+
+    }
+
+    @Override
+    public void onSetCanBeModified(SubDataset dataset, boolean status)
+    {
+        //TODO notify application about this status
     }
 
     /** Function called from the native code when the native code needs to change the current action

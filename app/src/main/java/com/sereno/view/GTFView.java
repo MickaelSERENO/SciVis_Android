@@ -399,7 +399,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
 
         //TODO, handles scale
 
-        if(valueChanged)
+        if(valueChanged && m_model.getDataset().getCanBeModified())
             m_model.setRange(m_model.getCPCPOrder()[0], new GTFData.GTFPoint(center, scale));
 
         return true;
@@ -484,7 +484,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
             m_valueInManipulation = MANIPULATING_NO_VALUE;
         }
 
-        if(valueChanged)
+        if(valueChanged && m_model.getDataset().getCanBeModified())
             m_model.setRange(m_model.getCPCPOrder()[m_pcInManipulation], new GTFData.GTFPoint(center, scale));
 
         return true;

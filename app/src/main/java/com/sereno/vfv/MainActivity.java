@@ -47,6 +47,7 @@ import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
+import com.sereno.vfv.Network.RemoveSubDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
@@ -88,10 +89,10 @@ public class MainActivity extends AppCompatActivity
 
     public static final String TAG="VFV";
 
-    private ApplicationModel m_model;             /*!< The application data model */
-    private DrawerLayout     m_drawerLayout;      /*!< The root layout. DrawerLayout permit to have a left menu*/
-    private Button           m_deleteDataBtn;     /*!< The delete data button*/
-    private SocketManager    m_socket;            /*!< Connection with the server application*/
+    private ApplicationModel m_model;                    /*!< The application data model */
+    private DrawerLayout     m_drawerLayout;             /*!< The root layout. DrawerLayout permit to have a left menu*/
+    private Button           m_deleteDataBtn;            /*!< The delete data button*/
+    private SocketManager    m_socket;                   /*!< Connection with the server application*/
     private VFVViewPager     m_viewPager;                /*!< The view pager handling all our fragments*/
     private DatasetsFragment m_dataFragment = null;      /*!< The Dataset windows*/
     private Menu             m_menu = null;              /*!< The menu item (toolbar menu)*/
@@ -274,6 +275,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {
+        if(!m_model.canModifySubDataset(dataset)) //forget about it
+            return;
+
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
 
         //If everything is correct, send the rotation event
@@ -284,6 +288,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPositionEvent(SubDataset dataset, float[] position)
     {
+        if(!m_model.canModifySubDataset(dataset)) //forget about it
+            return;
+
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
 
         //If everything is correct, send the position event
@@ -294,6 +301,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onScaleEvent(SubDataset dataset, float[] scale)
     {
+        if(!m_model.canModifySubDataset(dataset)) //forget about it
+            return;
+
         DatasetIDBinding idBinding = getDatasetIDBinding(dataset);
 
         //If everything is correct, send the rotation event
@@ -321,6 +331,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateTF(SubDataset dataset)
     {
+        if(!m_model.canModifySubDataset(dataset)) //forget about it
+            return;
+
         if(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
            dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
         {
@@ -334,6 +347,14 @@ public class MainActivity extends AppCompatActivity
             m_gtfEnableGradient.setChecked(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
         }
     }
+
+    @Override
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    {}
+
+    @Override
+    public void onSetCanBeModified(SubDataset dataset, boolean status)
+    {}
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -508,9 +529,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg)
+    public void onSubDatasetOwnerMessage(final SubDatasetOwnerMessage msg)
     {
-        //TODO
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+
+                if(sd != null)
+                {
+                    sd.setCurrentHeadset(msg.getHeadsetID());
+                }
+            }
+        });
     }
 
     @Override
@@ -573,6 +604,9 @@ public class MainActivity extends AppCompatActivity
                     {
                         SubDataset sd = SubDataset.createNewSubDataset(d, msg.getSubDatasetID(), msg.getSubDatasetName(), msg.getOwnerID());
                         d.addSubDataset(sd, false);
+
+                        if(m_model.getCurrentSubDataset() == null)
+                            m_model.setCurrentSubDataset(sd);
                         break;
                     }
                 }
@@ -581,12 +615,30 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onRemoveSubDataset(final RemoveSubDatasetMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                sd.getParent().removeSubDataset(sd);
+            }
+        });
+    }
+
+    @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {
-        m_gtfWidget.setModel(model.getGTFData(sd));
+        if(sd == null)
+            return;
 
-        //Put in the correct state the "gradient enable" checkbox
-        m_gtfEnableGradient.setChecked(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+        if(sd.getOwnerID() == -1 || sd.getOwnerID() == m_model.getBindingInfo().getHeadsetID()) //Mine or public one
+        {
+            m_gtfWidget.setModel(model.getGTFData(sd));
+
+            //Put in the correct state the "gradient enable" checkbox
+            m_gtfEnableGradient.setChecked(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+        }
     }
 
     @Override
@@ -632,6 +684,10 @@ public class MainActivity extends AppCompatActivity
     private void sendAnnotationToServer(AnnotationData annotation)
     {
         ApplicationModel.AnnotationMetaData metaData = m_model.getAnnotations().get(annotation);
+
+        if(!m_model.canModifySubDataset(metaData.getSubDataset())) //forget about it
+            return;
+
         DatasetIDBinding idBinding = getDatasetIDBinding(metaData.getSubDataset());
         if(idBinding.subDatasetID != -1 && idBinding.dataset != null && idBinding.dataset.getID() >= 0)
             m_socket.push(SocketManager.createAnnotationEvent(idBinding, annotation, m_model.getAnnotations().get(annotation)));
@@ -664,8 +720,10 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
-    public void onRemoveSubDataset(DatasetsFragment frag, SubDataset sd)
-    {}
+    public void onRequestRemoveSubDataset(DatasetsFragment frag, SubDataset sd)
+    {
+        m_socket.push(SocketManager.createRemoveSubDatasetEvent(getDatasetIDBinding(sd)));
+    }
 
     @Override
     public void onRequestAddSubDataset(DatasetsFragment frag, Dataset d, boolean publicSD)

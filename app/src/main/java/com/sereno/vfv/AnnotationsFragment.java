@@ -186,7 +186,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 TextView sdTitleText = (TextView) sdTitle.findViewById(R.id.annotation_key_entry_name);
                 sdTitleText.setText(sd.getName());
 
-                ((ImageView) sdTitle.findViewById(R.id.annotation_key_entry_add)).setOnTouchListener(new View.OnTouchListener() {
+                ImageView addView = (ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add);
+                if(!sd.getCanBeModified())
+                    addView.setVisibility(View.GONE);
+
+                addView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent) {
                         if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
@@ -581,6 +585,30 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onUpdateTF(SubDataset dataset) {}
+
+    @Override
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    {
+        View sdTitle = m_subDatasetTrees.get(dataset).value;
+
+        //Show public / our datasets, hide the others.
+        if(headsetID == -1 || headsetID == m_model.getBindingInfo().getHeadsetID())
+            sdTitle.setVisibility(View.VISIBLE);
+        else
+            sdTitle.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onSetCanBeModified(SubDataset dataset, boolean status)
+    {
+        //Change the visibility of the add button
+        View sdTitle = m_subDatasetTrees.get(dataset).value;
+        ImageView addView = (ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add);
+        if(!dataset.getCanBeModified())
+            addView.setVisibility(View.GONE);
+        else
+            addView.setVisibility(View.VISIBLE);
+    }
 
     @Override
     public void onAddStroke(AnnotationData data, AnnotationStroke stroke)

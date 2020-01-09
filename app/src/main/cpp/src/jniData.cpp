@@ -28,6 +28,7 @@ namespace sereno
     jmethodID jSubDataset_setPosition                 = 0;
     jmethodID jSubDataset_setScale                    = 0;
     jmethodID jSubDataset_onSnapshotEvent             = 0;
+    jmethodID jSubDataset_getCanBeModified            = 0;
 
     jclass    jHeadsetStatusClass                     = 0;
     jfieldID  jHeadsetStatus_position                 = 0;
@@ -80,10 +81,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jDataset_onLoadCPCPTexture  = env->GetMethodID(jDatasetClass, "onLoadCPCPTexture", "(Landroid/graphics/Bitmap;II)V");
     jDataset_onLoad1DHistogram  = env->GetMethodID(jDatasetClass, "onLoad1DHistogram", "([FI)V");
 
-    jSubDataset_setRotation     = env->GetMethodID(jSubDatasetClass, "setRotation", "([F)V");
-    jSubDataset_setPosition     = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
-    jSubDataset_setScale        = env->GetMethodID(jSubDatasetClass, "setScale",    "([F)V");
-    jSubDataset_onSnapshotEvent = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
+    jSubDataset_setRotation      = env->GetMethodID(jSubDatasetClass, "setRotation", "([F)V");
+    jSubDataset_setPosition      = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
+    jSubDataset_setScale         = env->GetMethodID(jSubDatasetClass, "setScale",    "([F)V");
+    jSubDataset_onSnapshotEvent  = env->GetMethodID(jSubDatasetClass, "onSnapshotEvent", "(Landroid/graphics/Bitmap;)V");
+    jSubDataset_getCanBeModified = env->GetMethodID(jSubDatasetClass, "getCanBeModified", "()Z");
 
     jHeadsetBindingInfoMessage_getHeadsetID = env->GetMethodID(jHeadsetBindingInfoMessageClass, "getHeadsetID", "()I");
 

@@ -31,6 +31,7 @@ namespace sereno
     extern jmethodID jSubDataset_setPosition;
     extern jmethodID jSubDataset_setScale;
     extern jmethodID jSubDataset_onSnapshotEvent;
+    extern jmethodID jSubDataset_getCanBeModified;
 
     extern jclass    jHeadsetStatusClass;
     extern jfieldID  jHeadsetStatus_position;

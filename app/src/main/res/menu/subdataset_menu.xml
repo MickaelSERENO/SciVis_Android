@@ -13,4 +13,9 @@
         android:title="@string/removeSD"
         android:id="@+id/removeSD_item">
     </item>
+
+    <item
+        android:title="@string/makePublicSD"
+        android:id="@+id/makePublicSD_item">
+    </item>
 </menu>

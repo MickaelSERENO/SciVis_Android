@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeAddSubDataset(JNIE
     std::shared_ptr<Dataset>* dataset = (std::shared_ptr<Dataset>*)ptr;
     SubDataset* sd = (SubDataset*)sdPtr;
 
-    (updateID == false) ? ((*dataset)->addSubDataset(sd)) : ((*dataset)->addSubDatasetWithID(sd));
+    (updateID) ? ((*dataset)->addSubDataset(sd)) : ((*dataset)->addSubDatasetWithID(sd));
 }
 
 JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetPointFieldDescs(JNIEnv* jenv, jclass jcls, jlong ptr)

@@ -47,7 +47,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         /** Called when a SubDataset needs to be removed
          * @param frag the Fragment calling this method
          * @param sd the SubDataset to duplicate*/
-        void onRemoveSubDataset(DatasetsFragment frag, SubDataset sd);
+        void onRequestRemoveSubDataset(DatasetsFragment frag, SubDataset sd);
 
         /** Called when the fragment ask to add a new SubDataset for a given dataset
          * @param frag the Fragment calling this method
@@ -174,7 +174,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
+    {}
 
     @Override
     public void onAddSubDataset(Dataset dataset, final SubDataset sd)
@@ -207,6 +208,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 //Inflating the Popup using xml file
                 popup.getMenuInflater().inflate(R.menu.subdataset_menu, popup.getMenu());
 
+                //Remove useless items
+                MenuItem makePublicItem = popup.getMenu().findItem(R.id.makePublicSD_item);
+                if(!sd.getCanBeModified() || sd.getOwnerID() == -1 || //Cannot be modified or already public
+                   (sd.getOwnerID() != -1 && sd.getOwnerID() != m_model.getBindingInfo().getHeadsetID())) //If not public but not our subdataset
+                    makePublicItem.setVisible(false);
+
                 //registering popup with OnMenuItemClickListener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -218,6 +225,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                                 break;
 
                             case R.id.removeSD_item:
+                                for(IDatasetsFragmentListener listener : m_dfListeners)
+                                    listener.onRequestRemoveSubDataset(DatasetsFragment.this, sd);
+                                break;
+
+                            case R.id.makePublicSD_item:
                                 break;
                         }
                         return true;
@@ -266,6 +278,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             privateIcon.setVisibility(View.GONE);
         }
 
+        //Snapshot event
+        m_sdImages.put(sd, snapImg);
+
+        final Tree<View> layoutTree = new Tree<View>(layout);
+        dataView.addChild(layoutTree, -1);
+        m_sdTrees.put(sd, layoutTree);
+
         SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
         {
             @Override
@@ -298,7 +317,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {
                 if(!m_sdTrees.containsKey(dataset))
                     return;
-                m_sdTrees.get(dataset).setParent(null, 0);
+                layoutTree.setParent(null, 0);
                 m_sdTrees.remove(dataset);
                 if(m_sdImages.containsKey(dataset))
                     m_sdImages.remove(dataset);
@@ -309,18 +328,24 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             @Override
             public void onUpdateTF(SubDataset dataset) {}
+
+            @Override
+            public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+            {
+                //Show public / our datasets, hide the others.
+                if(headsetID == -1 || headsetID == m_model.getBindingInfo().getHeadsetID())
+                    layoutTree.value.setVisibility(View.VISIBLE);
+                else
+                    layoutTree.value.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onSetCanBeModified(SubDataset dataset, boolean status)
+            {
+
+            }
         };
-
-        //Snapshot event
         sd.addListener(snapEvent);
-        m_sdImages.put(sd, snapImg);
-
-        if(m_model.getCurrentSubDataset() == null)
-            m_model.setCurrentSubDataset(sd);
-
-        Tree<View> layoutTree = new Tree<View>(layout);
-        dataView.addChild(layoutTree, -1);
-        m_sdTrees.put(sd, layoutTree);
     }
 
     @Override
@@ -358,7 +383,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {
         for(ImageView v : m_sdImages.values())
             v.setBackgroundResource(0);
-        if(sd != null)
+        if(sd != null && m_sdImages.containsKey(sd))
             m_sdImages.get(sd).setBackgroundResource(R.drawable.round_rectangle_background);
     }
 

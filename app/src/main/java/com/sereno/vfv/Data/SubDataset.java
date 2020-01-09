@@ -62,6 +62,16 @@ public class SubDataset
         /** Method called when the SubDataset transfer function has been updated
          * @param dataset the dataset that has been updated*/
         void onUpdateTF(SubDataset dataset);
+
+        /** Method called when the headset ID locking this SubDataset has changed
+         * @param dataset the dataset calling this method
+         * @param headsetID the new headset ID. -1 == no headset ID*/
+        void onSetCurrentHeadset(SubDataset dataset, int headsetID);
+
+        /** Method called when the modificability status of this SubDataset has changed
+         * @param dataset the dataset calling this method
+         * @param status true if the subdataset can be modified, false otherwise*/
+        void onSetCanBeModified(SubDataset dataset, boolean status);
     }
 
     /** The native C++ handle*/
@@ -79,8 +89,14 @@ public class SubDataset
     /** The current headset owning this subdataset. -1 == public subDataset*/
     private int m_ownerHeadsetID = -1;
 
+    /** The current headset modifying this subdataset. -1 == no one is modifying this subdataset*/
+    private int m_currentHeadsetID = -1;
+
     /** The type of the subdataset current transfer function*/
     private int m_tfType;
+
+    /** Tells whether this application can modify or not this SubDataset*/
+    private boolean m_canBeModified = true;
 
     /** Constructor. Link the Java object with the C++ native SubDataset object
      * @param ptr the native C++ pointer
@@ -255,6 +271,41 @@ public class SubDataset
      * @return the headset ID as defined by the application (server)*/
     public int getOwnerID() {return m_ownerHeadsetID;}
 
+    /** Get the boolean status telling whether or not this SubDataset can be modified by this client
+     * @return true if yes, false otherwise. Pay attention that this variable is regarding this SubDataset states on the running server*/
+    public boolean getCanBeModified() {return m_canBeModified;}
+
+    /** Set the boolean status telling whether or not this SubDataset can be modified by this client
+     * @param value true if yes, false otherwise. Pay attention that this variable is regarding this SubDataset states on the running server*/
+    public void setCanBeModified(boolean value)
+    {
+        if (value != m_canBeModified)
+        {
+            m_canBeModified = value;
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetCanBeModified(this, value);
+        }
+    }
+
+    /** Set the headset ID currently modifying/locking this subdataset
+     * @param hmdID the headset ID to use. -1 == no owner*/
+    public void setCurrentHeadset(int hmdID)
+    {
+        if(hmdID != m_currentHeadsetID)
+        {
+            m_currentHeadsetID = hmdID;
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetCurrentHeadset(this, hmdID);
+        }
+    }
+
+    /** Get the headset ID currently modifying/locking this subdataset
+     * @return the current headset ID locking this subdataset. -1 == no owner*/
+    public int getCurrentHeadset()
+    {
+        return m_currentHeadsetID;
+    }
+
     /** Get the transfer function type in use
      * @return the integer representing the transfer function type being used. See SubDataset.TRANSFER_FUNCTION_**/
     public int getTransferFunctionType()
@@ -336,8 +387,10 @@ public class SubDataset
         while(m_annotations.size() > 0)
             removeAnnotation(m_annotations.get(m_annotations.size()-1));
 
-        for(int i = 0; i < m_listeners.size(); i++)
-            m_listeners.get(i).onRemove(this);
+        Object[] listeners = m_listeners.toArray(); //Do a copy because on "onRemove", objects may want to get removed from the list of listeners
+
+        for(int i = 0; i < listeners.length; i++)
+            ((ISubDatasetListener)listeners[i]).onRemove(this);
 
         m_ptr = 0;
     }

@@ -98,6 +98,10 @@ public class MessageBuffer
         /** Called when the message "GET_ADD_SUBDATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onAddSubDataset(AddSubDatasetMessage msg);
+
+        /** Called when the message "GET_REMOVE_SUBDATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onRemoveSubDataset(RemoveSubDatasetMessage msg);
     }
 
     /** No current type received*/
@@ -135,6 +139,9 @@ public class MessageBuffer
 
     /** Add a new SubDataset*/
     public static final int GET_ADD_SUBDATASET          = 14;
+
+    /** Remove a known SubDataset*/
+    public static final int GET_DEL_SUBDATASET          = 15;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -278,6 +285,10 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onAddSubDataset((AddSubDatasetMessage)m_curMsg);
                         break;
+                    case GET_DEL_SUBDATASET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onRemoveSubDataset((RemoveSubDatasetMessage)m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -340,6 +351,9 @@ public class MessageBuffer
                 break;
             case GET_ADD_SUBDATASET:
                 m_curMsg = new AddSubDatasetMessage();
+                break;
+            case GET_DEL_SUBDATASET:
+                m_curMsg = new RemoveSubDatasetMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

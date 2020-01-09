@@ -215,17 +215,20 @@ namespace sereno
              * \param subDataset the subDataset bound to this snapshot*/
             void sendSnapshotEvent(SubDataset* subDataset);
 
-            /* \brief  Send a rotation event. Must be called after subDataset has been rotated
-             * \param subDataset the subDataset being modified.*/ 
-            void sendRotationEvent(SubDataset* subDataset);
+            /* \brief  Send a rotation event.
+             * \param subDataset the subDataset being modified.
+             * \param q the rotation to apply*/
+            void sendRotationEvent(SubDataset* subDataset, const Quaternionf& q);
 
-            /* \brief  Send a translation event. Must be called after subDataset has been moved
-             * \param subDataset the subDataset being modified.*/ 
-            void sendPositionEvent(SubDataset* subDataset);
+            /* \brief  Send a translation event.
+             * \param subDataset the subDataset being modified.
+             * \param position the position to apply*/
+            void sendPositionEvent(SubDataset* subDataset, const glm::vec3& position);
 
-            /* \brief  Send a scaling event. Must be called after subDataset has been scaled
-             * \param subDataset the subDataset being modified.*/ 
-            void sendScaleEvent(SubDataset* subDataset);
+            /* \brief  Send a scaling event.
+             * \param subDataset the subDataset being modified.
+             * \param scale the scale to apply*/
+            void sendScaleEvent(SubDataset* subDataset, const glm::vec3& scale);
 
             /** \brief  Send the event "on Dataset loaded"
              * This function will call asynchronously the method Dataset::onLoadDataset (which is private)
@@ -280,6 +283,11 @@ namespace sereno
                 auto it = m_datasetMetaDatas.find(dataset);
                 return (it == m_datasetMetaDatas.end() ? std::shared_ptr<DatasetMetaData>() : it->second);
             }
+
+            /** \brief Tells whether a giving SubDataset can be modified or not
+             * \param sd the SubDataset to evaluate
+             * \return true if it can be modified, false otherwise*/
+            bool canSubDatasetBeModified(SubDataset* sd);
         private:
             /* \brief  Add a subdataset event without parameter (update only)
              * \param sd the subdataset 

@@ -147,9 +147,10 @@ namespace sereno
              * \param sdChangement the changement metadata*/
             void addSubDataChangement(const SubDataset* sd, const SubDatasetChangement& sdChangement);
 
-            /* \brief Add a new SubDataset to visualization
-             * \param sd the subdataset to add. This function will first check if it has a bound SciVis*/
-            void addSubDataset(SubDataset* sd);
+            /* \brief Create a new visualization from a SubDataset if it does not already exist
+             * \param sd the subdataset to add. This function will first check if it has a bound SciVis
+             * \return the known SciVis if it already existed, the new one if not*/
+            SciVis* createVisualization(SubDataset* sd);
 
             /* \brief Remove a SubDataset from the visualization
              * \param sd the subdataset to remove. This function will fetch all scivis related to this subdataset*/
@@ -183,7 +184,8 @@ namespace sereno
             std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualization*/
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
-            SciVis*              m_currentVis      = NULL; /*!< The current visualization*/
+            SciVis*              m_currentVis         = NULL; /*!< The current visualization*/
+            bool                 m_curSDCanBeModified = true; /*!< Can our current SubDataset be modified?*/
 
             /*----------------------------------------------------------------------------*/
             /*-------------------------------Snapshot data--------------------------------*/
