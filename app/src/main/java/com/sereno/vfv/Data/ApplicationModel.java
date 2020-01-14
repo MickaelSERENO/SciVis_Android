@@ -186,7 +186,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @param sd the subdataset to check the modify property*/
     public boolean canModifySubDataset(SubDataset sd)
     {
-        if(sd == null) //no subdataset...
+        if(sd == null || getBindingInfo() == null) //no subdataset or no connection...
             return false;
 
         if(getBindingInfo().getHeadsetID() == -1) //Not bound to a headset: modify nothing
