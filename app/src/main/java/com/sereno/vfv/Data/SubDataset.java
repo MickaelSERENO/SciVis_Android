@@ -68,6 +68,11 @@ public class SubDataset
          * @param headsetID the new headset ID. -1 == no headset ID*/
         void onSetCurrentHeadset(SubDataset dataset, int headsetID);
 
+        /** Method called when the headset ID owning this SubDataset has changed
+         * @param dataset the dataset calling this method
+         * @param headsetID the new headset ID. -1 == public SubDataset*/
+        void onSetOwner(SubDataset dataset, int headsetID);
+
         /** Method called when the modificability status of this SubDataset has changed
          * @param dataset the dataset calling this method
          * @param status true if the subdataset can be modified, false otherwise*/
@@ -296,6 +301,18 @@ public class SubDataset
             m_currentHeadsetID = hmdID;
             for(int i = 0; i < m_listeners.size(); i++)
                 m_listeners.get(i).onSetCurrentHeadset(this, hmdID);
+        }
+    }
+
+    /** Set the ID of the Headset owning this SubDataset. -1 == public SubDataset
+     * @param id the new headset ID as defined by the application (server)*/
+    public void setOwnerID(int id)
+    {
+        if(id != m_ownerHeadsetID)
+        {
+            m_ownerHeadsetID = id;
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetOwner(this, id);
         }
     }
 

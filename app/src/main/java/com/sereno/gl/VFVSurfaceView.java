@@ -226,10 +226,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
-    {
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID) {}
 
-    }
+    @Override
+    public void onSetOwner(SubDataset dataset, int headsetID) {}
 
     @Override
     public void onSetCanBeModified(SubDataset dataset, boolean status)

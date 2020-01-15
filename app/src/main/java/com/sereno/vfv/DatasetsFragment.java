@@ -54,6 +54,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param d the Dataset to consider
          * @param publicSD should the SubDataset be public?*/
         void onRequestAddSubDataset(DatasetsFragment frag, Dataset d, boolean publicSD);
+
+        /** Called when the fragment ask to make a SubDataset public
+         * @param frag the Fragment calling this method
+         * @param sd the SubDataset to consider*/
+        void onRequestMakeSubDatasetPublic(DatasetsFragment frag, SubDataset sd);
     }
 
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
@@ -230,6 +235,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                                 break;
 
                             case R.id.makePublicSD_item:
+                                for(IDatasetsFragmentListener listener : m_dfListeners)
+                                    listener.onRequestMakeSubDatasetPublic(DatasetsFragment.this, sd);
                                 break;
                         }
                         return true;
@@ -266,17 +273,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         //Handle the privacy icons
         final ImageView publicIcon  = (ImageView)layout.findViewById(R.id.datasetPublicIcon);
         final ImageView privateIcon = (ImageView)layout.findViewById(R.id.datasetPrivateIcon);
-
-        if(sd.getOwnerID() != -1)
-        {
-            publicIcon.setVisibility(View.GONE);
-            privateIcon.setVisibility(View.VISIBLE);
-        }
-        else
-        {
-            publicIcon.setVisibility(View.VISIBLE);
-            privateIcon.setVisibility(View.GONE);
-        }
 
         //Snapshot event
         m_sdImages.put(sd, snapImg);
@@ -330,22 +326,35 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onUpdateTF(SubDataset dataset) {}
 
             @Override
-            public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+            public void onSetCurrentHeadset(SubDataset dataset, int headsetID) {}
+
+            @Override
+            public void onSetOwner(SubDataset dataset, int headsetID)
             {
                 //Show public / our datasets, hide the others.
                 if(headsetID == -1 || headsetID == m_model.getBindingInfo().getHeadsetID())
                     layoutTree.value.setVisibility(View.VISIBLE);
                 else
                     layoutTree.value.setVisibility(View.GONE);
+
+                if(sd.getOwnerID() != -1)
+                {
+                    publicIcon.setVisibility(View.GONE);
+                    privateIcon.setVisibility(View.VISIBLE);
+                }
+                else
+                {
+                    publicIcon.setVisibility(View.VISIBLE);
+                    privateIcon.setVisibility(View.GONE);
+                }
             }
 
             @Override
             public void onSetCanBeModified(SubDataset dataset, boolean status)
-            {
-
-            }
+            {}
         };
         sd.addListener(snapEvent);
+        snapEvent.onSetOwner(sd, sd.getOwnerID());
     }
 
     @Override

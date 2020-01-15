@@ -86,6 +86,14 @@ public class GTFData implements Dataset.IDatasetListener
         }
 
         @Override
+        public Object clone()
+        {
+            GTFPoint p = new GTFPoint(center, scale);
+            p.active = active;
+            return p;
+        }
+
+        @Override
         public int hashCode()
         {
             return Objects.hash(center, scale, active);

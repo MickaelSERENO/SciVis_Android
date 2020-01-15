@@ -79,9 +79,9 @@ public class MessageBuffer
          * @param msg the message parsed*/
         void onHeadsetBindingInfoMessage(HeadsetBindingInfoMessage msg);
 
-        /** Called when the message "GET_SUBDATASET_OWNER" has been successfully parsed
+        /** Called when the message "GET_SUBDATASET_LOCK_OWNER" has been successfully parsed
          * @param msg the message parsed*/
-        void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg);
+        void onSubDatasetLockOwnerMessage(SubDatasetLockOwnerMessage msg);
 
         /** Called when the message "GET_HEADSETS_STATUS" has been successfully parsed
          * @param msg the message parsed*/
@@ -102,6 +102,10 @@ public class MessageBuffer
         /** Called when the message "GET_REMOVE_SUBDATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onRemoveSubDataset(RemoveSubDatasetMessage msg);
+
+        /** Called when the message "GET_SET_SUBDATASET_OWNER" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg);
     }
 
     /** No current type received*/
@@ -122,8 +126,8 @@ public class MessageBuffer
     /** Headsets Status received*/
     public static final int GET_HEADSETS_STATUS         = 5;
 
-    /** Received the subdataset owning information*/
-    public static final int GET_SUBDATASET_OWNER        = 8;
+    /** Received the subdataset locking this SubDataset*/
+    public static final int GET_SUBDATASET_LOCK_OWNER   = 8;
 
     /** Scale dataset received*/
     public static final int GET_SCALE_DATASET           = 9;
@@ -142,6 +146,8 @@ public class MessageBuffer
 
     /** Remove a known SubDataset*/
     public static final int GET_DEL_SUBDATASET          = 15;
+
+    public static final int GET_SET_SUBDATASET_OWNER    = 16;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -261,9 +267,9 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onHeadsetsStatusMessage((HeadsetsStatusMessage) m_curMsg);
                         break;
-                    case GET_SUBDATASET_OWNER:
+                    case GET_SUBDATASET_LOCK_OWNER:
                         for (IMessageBufferCallback clbk : m_listeners)
-                            clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage) m_curMsg);
+                            clbk.onSubDatasetLockOwnerMessage((SubDatasetLockOwnerMessage) m_curMsg);
                         break;
                     case GET_SCALE_DATASET:
                         for (IMessageBufferCallback clbk : m_listeners)
@@ -289,6 +295,12 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onRemoveSubDataset((RemoveSubDatasetMessage)m_curMsg);
                         break;
+                    case GET_SET_SUBDATASET_OWNER:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage)m_curMsg);
+                        break;
+
+
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -331,8 +343,8 @@ public class MessageBuffer
             case GET_HEADSET_BINDING_INFO:
                 m_curMsg = new HeadsetBindingInfoMessage();
                 break;
-            case GET_SUBDATASET_OWNER:
-                m_curMsg = new SubDatasetOwnerMessage();
+            case GET_SUBDATASET_LOCK_OWNER:
+                m_curMsg = new SubDatasetLockOwnerMessage();
                 break;
             case GET_SCALE_DATASET:
                 m_curMsg = new ScaleDatasetMessage();
@@ -354,6 +366,9 @@ public class MessageBuffer
                 break;
             case GET_DEL_SUBDATASET:
                 m_curMsg = new RemoveSubDatasetMessage();
+                break;
+            case GET_SET_SUBDATASET_OWNER:
+                m_curMsg = new SubDatasetOwnerMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

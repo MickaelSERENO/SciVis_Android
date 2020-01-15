@@ -587,7 +587,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onUpdateTF(SubDataset dataset) {}
 
     @Override
-    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID) {}
+
+    @Override
+    public void onSetOwner(SubDataset dataset, int headsetID)
     {
         View sdTitle = m_subDatasetTrees.get(dataset).value;
 

@@ -1,6 +1,6 @@
 package com.sereno.vfv.Network;
 
-public class SubDatasetOwnerMessage extends ServerMessage
+public class SubDatasetLockOwnerMessage extends ServerMessage
 {
     /** The dataset ID*/
     private int m_datasetID = 0;
@@ -51,8 +51,8 @@ public class SubDatasetOwnerMessage extends ServerMessage
         return m_sdID;
     }
 
-    /** Get the headset ID owning this subdataset. -1 == public SubDataset
-     * @return the headset ID owning this subdataset. -1 == public SubDataset*/
+    /** Get the headset ID modifying this subdataset
+     * @return the headset ID modifying this subdataset*/
     public int getHeadsetID()
     {
         return m_headsetID;

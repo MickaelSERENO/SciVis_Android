@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.icu.util.Measure;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -30,6 +31,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     public static final int TEXT_SIZE          = 24;  /*!< The default text height*/
     public static final int TEXT_OFFSET_HANDLE = 5;   /*!< The offset applied to the handle's text in CPCP mode*/
     public static final int COLLISION_WIDTH    = 30;  /*!< The number of pixels allowed for collisions with CPCP*/
+    public static final int MAX_1D_HEIGHT      = 45;  /*!< The maximum 1D height in pixel*/
 
     public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
     public static final int MANIPULATING_CENTER    = 1; /*!< Manipulating the center*/
@@ -84,7 +86,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         m_model.addListener(this);
 
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.GTFView);
-        m_textPaint.setTextSize(ta.getDimensionPixelSize(R.styleable.GTFView_textSize, TEXT_SIZE));
+        m_textPaint.setTextSize(ta.getDimensionPixelSize(R.styleable.TextView_textSize, TEXT_SIZE));
         m_textPaint.setTextAlign(Paint.Align.CENTER);
         m_sliderHeight = ta.getDimensionPixelSize(R.styleable.GTFView_sliderDim, HANDLE_HEIGHT);
         m_pcStrokePaint.setStrokeWidth(ta.getDimensionPixelSize(R.styleable.GTFView_pcStrokeWidth, 0)); //Default: hairline
@@ -122,15 +124,17 @@ public class GTFView extends View implements GTFData.IGTFDataListener
             case MeasureSpec.AT_MOST:
                 if(isModelInvalid())
                     height = 0;
-                else
-                    height = Math.min(height, heightSize);
+                else if(m_model.getCPCPOrder().length == 1)
+                    height = Math.min(heightSize, MAX_1D_HEIGHT);
                 break;
 
             case MeasureSpec.UNSPECIFIED:
                 if(isModelInvalid())
                     height = 0;
-                else
+                else if(m_model.getCPCPOrder().length > 1)
                     height = heightSize;
+                else
+                    height = MAX_1D_HEIGHT;
                 break;
         }
 

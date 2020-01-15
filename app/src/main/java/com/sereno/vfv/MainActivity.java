@@ -12,16 +12,20 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.ApplicationModel;
@@ -29,6 +33,7 @@ import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.BinaryDataset;
 import com.sereno.vfv.Data.Dataset;
+import com.sereno.vfv.Data.PointFieldDesc;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Data.VTKFieldValue;
@@ -51,6 +56,7 @@ import com.sereno.vfv.Network.RemoveSubDatasetMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
+import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.vfv.Network.TFDatasetMessage;
 import com.sereno.view.AnnotationData;
@@ -58,15 +64,20 @@ import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.view.GTFData;
 import com.sereno.view.GTFView;
+import com.sereno.view.SeekBarHintView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
                           implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener,
                                      MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener,
-                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener, DatasetsFragment.IDatasetsFragmentListener
+                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener, DatasetsFragment.IDatasetsFragmentListener,
+                                     GTFData.IGTFDataListener
 {
     /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
     public static class DatasetIDBinding
@@ -98,6 +109,9 @@ public class MainActivity extends AppCompatActivity
     private Menu             m_menu = null;              /*!< The menu item (toolbar menu)*/
     private GTFView          m_gtfWidget = null;         /*!< The Gaussian transfer function to us*/
     private CheckBox         m_gtfEnableGradient = null; /*!< The CheckBox enabling or disabling the gradient component of the GTF*/
+    private GTFData          m_currentGTFData = null;    /*!< The current GTFData to use*/
+    private HashMap<Integer, View>  m_gtfSizeViews = new HashMap<>(); /*!< The views handling the size of the GTF*/
+    private Spinner m_colorModeSpinner = null; /*!< The color spinner*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -331,25 +345,34 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateTF(SubDataset dataset)
     {
-        if(!m_model.canModifySubDataset(dataset)) //forget about it
+        if (!m_model.canModifySubDataset(dataset)) //forget about it
             return;
 
-        if(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
-           dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
+        if (dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
+                dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
         {
             GTFData gtf = m_model.getGTFData(dataset);
             m_socket.push(SocketManager.createGTFEvent(getDatasetIDBinding(dataset), gtf));
         }
 
-        //Update the transfer function view not link to any model
         if(dataset == m_model.getCurrentSubDataset())
-        {
-            m_gtfEnableGradient.setChecked(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
-        }
+            updateGTFWidgets();
+    }
+
+    private void updateGTFWidgets()
+    {
+        //Update the transfer function view not link to any model
+        m_gtfEnableGradient.setChecked(m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+        m_colorModeSpinner.setSelection(m_model.getCurrentSubDataset().getColorMode());
+        redoGTFSizeRanges();
     }
 
     @Override
     public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    {}
+
+    @Override
+    public void onSetOwner(SubDataset dataset, int headsetID)
     {}
 
     @Override
@@ -510,6 +533,7 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
                     sd.addListener(MainActivity.this);
+                    updateGTFWidgets();
                 }
             }
         });
@@ -529,7 +553,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSubDatasetOwnerMessage(final SubDatasetOwnerMessage msg)
+    public void onSubDatasetLockOwnerMessage(final SubDatasetLockOwnerMessage msg)
     {
         runOnUiThread(new Runnable() {
             @Override
@@ -539,6 +563,22 @@ public class MainActivity extends AppCompatActivity
                 if(sd != null)
                 {
                     sd.setCurrentHeadset(msg.getHeadsetID());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onSubDatasetOwnerMessage(final SubDatasetOwnerMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+
+                if(sd != null)
+                {
+                    sd.setOwnerID(msg.getHeadsetID());
                 }
             }
         });
@@ -634,10 +674,87 @@ public class MainActivity extends AppCompatActivity
 
         if(sd.getOwnerID() == -1 || sd.getOwnerID() == m_model.getBindingInfo().getHeadsetID()) //Mine or public one
         {
-            m_gtfWidget.setModel(model.getGTFData(sd));
+            if(m_currentGTFData != null)
+                m_currentGTFData.removeListener(this);
+            m_currentGTFData = model.getGTFData(sd);
+
+            m_gtfWidget.setModel(m_currentGTFData);
+            if(m_currentGTFData != null)
+                m_currentGTFData.addListener(this);
 
             //Put in the correct state the "gradient enable" checkbox
             m_gtfEnableGradient.setChecked(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+
+            //Clean and redo the sliders
+            redoGTFSizeLayout();
+        }
+    }
+
+    private void redoGTFSizeLayout()
+    {
+        SubDataset sd = m_currentGTFData.getDataset();
+        for(View v : m_gtfSizeViews.values())
+        {
+            ((ViewGroup)v.getParent()).removeView(v);
+            v.setVisibility(View.GONE);
+        }
+        m_gtfSizeViews.clear();
+
+        ViewGroup sizeLayout = m_drawerLayout.findViewById(R.id.gtfSizeLayout);
+
+        for(final int i : m_currentGTFData.getCPCPOrder())
+        {
+            for(PointFieldDesc desc : sd.getParent().getPointFieldDescs())
+            {
+                if (i == desc.getID())
+                {
+                    View layout = getLayoutInflater().inflate(R.layout.gtf_size_prop_view, sizeLayout);
+
+                    //Label
+                    TextView label = layout.findViewById(R.id.gtfLabel);
+                    label.setText(desc.getName());
+
+                    //Slider
+                    SeekBarHintView seekBar = layout.findViewById(R.id.gtfSeekBar);
+                    seekBar.setMax(1000); //For doing some math. 1000 == 1.0
+                    seekBar.setProgress(1000*(int)m_currentGTFData.getRanges().get(i).scale);
+
+                    seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+                    {
+                        @Override
+                        public void onProgressChanged(SeekBar seekBar, int prog, boolean b)
+                        {
+                            GTFData.GTFPoint gtfPoint = (GTFData.GTFPoint)m_currentGTFData.getRanges().get(i).clone();
+                            gtfPoint.scale = (float)seekBar.getProgress()/seekBar.getMax();
+                            if(m_currentGTFData != null)
+                                m_currentGTFData.setRange(i, gtfPoint);
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar){}
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar){}
+                    });
+
+                    seekBar.setOnTouchListener(new View.OnTouchListener()
+                    {
+                        @Override
+                        public boolean onTouch(View view, MotionEvent motionEvent)
+                        {
+                            if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                                m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                            else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
+                                    motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                                m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+                            return false;
+                        }
+                    });
+
+                    m_gtfSizeViews.put(i, layout);
+                    break;
+                }
+            }
         }
     }
 
@@ -732,6 +849,52 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onRequestMakeSubDatasetPublic(DatasetsFragment frag, SubDataset sd)
+    {
+        m_socket.push(SocketManager.createMakeSubDatasetPublicEvent(getDatasetIDBinding(sd)));
+    }
+
+    @Override
+    public void onSetDataset(GTFData model, SubDataset dataset)
+    {
+        if(dataset == m_model.getCurrentSubDataset())
+        {
+            m_gtfEnableGradient.setChecked(dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+        }
+    }
+
+    @Override
+    public void onSetGTFRanges(GTFData model, HashMap<Integer, GTFData.GTFPoint> ranges)
+    {}
+
+    public void redoGTFSizeRanges()
+    {
+        if(m_currentGTFData == null)
+            return;
+
+        //Update every points
+        for(Map.Entry<Integer, GTFData.GTFPoint> value : m_currentGTFData.getRanges().entrySet())
+        {
+            if(m_gtfSizeViews.containsKey(value.getKey()))
+            {
+                SeekBar seekBar = m_gtfSizeViews.get(value.getKey()).findViewById(R.id.gtfSeekBar);
+                seekBar.setProgress((int)(seekBar.getMax()*value.getValue().scale));
+            }
+        }
+    }
+
+    @Override
+    public void onSetCPCPOrder(GTFData model, int[] order)
+    {
+        redoGTFSizeLayout();
+    }
+
+    @Override
+    public void onSetColorMode(GTFData model, int colorMode)
+    {}
+
+
+    @Override
     public void onDisconnection(SocketManager socket)
     {
         runOnUiThread(
@@ -809,9 +972,9 @@ public class MainActivity extends AppCompatActivity
         m_gtfWidget     = (GTFView)m_drawerLayout.findViewById(R.id.gtfView);
 
         //Configure the spinner color mode
-        final Spinner colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
+        m_colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);
 
-        colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        m_colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)

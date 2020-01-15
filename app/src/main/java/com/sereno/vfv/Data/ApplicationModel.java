@@ -247,6 +247,12 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             }
 
             @Override
+            public void onSetOwner(SubDataset dataset, int headsetID)
+            {
+                dataset.setCanBeModified(canModifySubDataset(dataset));
+            }
+
+            @Override
             public void onSetCanBeModified(SubDataset dataset, boolean status)
             {}
         });
