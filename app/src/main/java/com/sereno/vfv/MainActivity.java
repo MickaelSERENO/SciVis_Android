@@ -2,6 +2,7 @@ package com.sereno.vfv;
 
 import android.app.DialogFragment;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -64,6 +65,7 @@ import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.view.GTFData;
 import com.sereno.view.GTFView;
+import com.sereno.view.RangeColorView;
 import com.sereno.view.SeekBarHintView;
 
 import java.io.File;
@@ -110,6 +112,7 @@ public class MainActivity extends AppCompatActivity
     private GTFView          m_gtfWidget = null;         /*!< The Gaussian transfer function to us*/
     private CheckBox         m_gtfEnableGradient = null; /*!< The CheckBox enabling or disabling the gradient component of the GTF*/
     private GTFData          m_currentGTFData = null;    /*!< The current GTFData to use*/
+    private RangeColorView   m_rangeColorView = null;    /*!< The range color view displayed*/
     private HashMap<Integer, View>  m_gtfSizeViews = new HashMap<>(); /*!< The views handling the size of the GTF*/
     private Spinner m_colorModeSpinner = null; /*!< The color spinner*/
 
@@ -242,8 +245,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
-    {}
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd){}
 
     @Override
     public void onAddSubDataset(Dataset dataset, SubDataset sd)
@@ -252,7 +254,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onLoadDataset(Dataset dataset, boolean success) {}
+    public void onLoadDataset(final Dataset dataset, boolean success)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //If the current subdataset is inside, reload data
+                for (SubDataset sd : dataset.getSubDatasets())
+                {
+                    if (sd == m_model.getCurrentSubDataset())
+                    {
+                        updateGTFWidgets();
+                        break;
+                    }
+                }
+            }
+        });
+    }
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
@@ -335,6 +353,9 @@ public class MainActivity extends AppCompatActivity
     public void onRemove(SubDataset dataset)
     {
         dataset.removeListener(this);
+        if(m_gtfWidget.getModel() == null)
+            return;
+
         if(m_gtfWidget.getModel().getDataset() == dataset)
             m_gtfWidget.setModel(null);
     }
@@ -345,11 +366,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateTF(SubDataset dataset)
     {
-        if (!m_model.canModifySubDataset(dataset)) //forget about it
-            return;
-
-        if (dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
-                dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
+        if (m_model.canModifySubDataset(dataset) &&
+            (dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
+             dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF))
         {
             GTFData gtf = m_model.getGTFData(dataset);
             m_socket.push(SocketManager.createGTFEvent(getDatasetIDBinding(dataset), gtf));
@@ -361,6 +380,23 @@ public class MainActivity extends AppCompatActivity
 
     private void updateGTFWidgets()
     {
+        //Range color
+        if(m_currentGTFData.getCPCPOrder().length == 1)
+        {
+            for(PointFieldDesc desc : m_currentGTFData.getDataset().getParent().getPointFieldDescs())
+            {
+                if(desc.getID() == m_currentGTFData.getCPCPOrder()[0])
+                {
+                    m_rangeColorView.getModel().setRawRange(desc.getMin(), desc.getMax(), false);
+                    break;
+                }
+            }
+        }
+        else
+            m_rangeColorView.getModel().setRawRange(0.0f, 1.0f, false);
+        m_rangeColorView.getModel().setColorMode(m_currentGTFData.getColorMode());
+
+
         //Update the transfer function view not link to any model
         m_gtfEnableGradient.setChecked(m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
         m_colorModeSpinner.setSelection(m_model.getCurrentSubDataset().getColorMode());
@@ -533,7 +569,8 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
                     sd.addListener(MainActivity.this);
-                    updateGTFWidgets();
+                    if(sd == m_model.getCurrentSubDataset())
+                        updateGTFWidgets();
                 }
             }
         });
@@ -684,6 +721,7 @@ public class MainActivity extends AppCompatActivity
 
             //Put in the correct state the "gradient enable" checkbox
             m_gtfEnableGradient.setChecked(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+            m_colorModeSpinner.setSelection(sd.getColorMode());
 
             //Clean and redo the sliders
             redoGTFSizeLayout();
@@ -692,13 +730,20 @@ public class MainActivity extends AppCompatActivity
 
     private void redoGTFSizeLayout()
     {
-        SubDataset sd = m_currentGTFData.getDataset();
+
         for(View v : m_gtfSizeViews.values())
         {
             ((ViewGroup)v.getParent()).removeView(v);
             v.setVisibility(View.GONE);
         }
         m_gtfSizeViews.clear();
+
+        if(m_currentGTFData == null)
+            return;
+
+        final SubDataset sd = m_currentGTFData.getDataset();
+        if(sd == null)
+            return;
 
         ViewGroup sizeLayout = m_drawerLayout.findViewById(R.id.gtfSizeLayout);
 
@@ -708,8 +753,8 @@ public class MainActivity extends AppCompatActivity
             {
                 if (i == desc.getID())
                 {
-                    View layout = getLayoutInflater().inflate(R.layout.gtf_size_prop_view, sizeLayout);
-
+                    View layout = getLayoutInflater().inflate(R.layout.gtf_size_prop_view, null);
+                    sizeLayout.addView(layout);
                     //Label
                     TextView label = layout.findViewById(R.id.gtfLabel);
                     label.setText(desc.getName());
@@ -747,7 +792,8 @@ public class MainActivity extends AppCompatActivity
                             else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
                                     motionEvent.getAction() == MotionEvent.ACTION_MOVE)
                                 m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
-                            return false;
+
+                            return !sd.getCanBeModified(); //Disable the scrolling if needed
                         }
                     });
 
@@ -890,9 +936,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSetColorMode(GTFData model, int colorMode)
-    {}
+    public void onSetColorMode(GTFData model, int colorMode){}
 
+    @Override
+    public void onLoadDataset(GTFData model, SubDataset dataset){}
 
     @Override
     public void onDisconnection(SocketManager socket)
@@ -970,6 +1017,7 @@ public class MainActivity extends AppCompatActivity
     {
         m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
         m_gtfWidget     = (GTFView)m_drawerLayout.findViewById(R.id.gtfView);
+        m_rangeColorView = (RangeColorView)m_drawerLayout.findViewById(R.id.colorRange);
 
         //Configure the spinner color mode
         m_colorModeSpinner = (Spinner)findViewById(R.id.colorModeSpinner);

@@ -195,11 +195,11 @@ namespace sereno
         if(tf && tf->getDimension() <= ptFieldDescs.size()+1) //Check if the TF can be applied. +1 == m_grads
         {
             //Use the transfer function to generate the 3D texture
-            //#pragma omp parallel
+            #pragma omp parallel
             {
                 float* tfInd = (float*)malloc((ptFieldDescs.size()+1)*sizeof(float)); //The indice of the transfer function
 
-                //#pragma omp for
+                #pragma omp for
                 {
                     //For all values in the grid
                     for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)

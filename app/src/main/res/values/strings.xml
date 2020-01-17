@@ -31,4 +31,6 @@
     <string name="publicSD">Public</string>
     <string name="privateSD">Private</string>
     <string name="sdPrivacy">Privacy</string>
+    <string name="colorRange">Color Range</string>
+    <string name="transferFunction">Transfer Function</string>
 </resources>

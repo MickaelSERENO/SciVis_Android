@@ -280,7 +280,7 @@ namespace sereno
             handleVFVDataEvent();
 
             //Check the status about the modificability of our current subdataset
-            if(!m_currentVis)
+            if(!m_currentVis || !visible)
                 m_curSDCanBeModified = false;
             else
                 m_curSDCanBeModified = m_mainData->canSubDatasetBeModified(m_currentVis->getModel());
@@ -459,6 +459,7 @@ namespace sereno
                 }
             }
 
+            m_mainData->unlock();
 
             if(m_currentVis)
             {
@@ -507,11 +508,8 @@ namespace sereno
                 if(m_currentVis != NULL)
                     m_currentVis->update(&m_surfaceData->renderer);
 
-                m_mainData->unlock(); //Rendering time, unlock
                 m_surfaceData->renderer.render();
             }
-            else
-                m_mainData->unlock();
 
             if(visible && m_currentVis)
                 m_snapshotCnt++;

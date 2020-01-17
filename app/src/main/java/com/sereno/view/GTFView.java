@@ -31,7 +31,8 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     public static final int TEXT_SIZE          = 24;  /*!< The default text height*/
     public static final int TEXT_OFFSET_HANDLE = 5;   /*!< The offset applied to the handle's text in CPCP mode*/
     public static final int COLLISION_WIDTH    = 30;  /*!< The number of pixels allowed for collisions with CPCP*/
-    public static final int MAX_1D_HEIGHT      = 45;  /*!< The maximum 1D height in pixel*/
+    public static final int MAX_1D_HEIGHT      = 150; /*!< The maximum 1D height in pixel*/
+    public static final int MAX_2D_HEIGHT      = 920; /*!< The maximum 1D height in pixel*/
 
     public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
     public static final int MANIPULATING_CENTER    = 1; /*!< Manipulating the center*/
@@ -85,11 +86,13 @@ public class GTFView extends View implements GTFData.IGTFDataListener
 
         m_model.addListener(this);
 
-        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.GTFView);
-        m_textPaint.setTextSize(ta.getDimensionPixelSize(R.styleable.TextView_textSize, TEXT_SIZE));
+        TypedArray taGTF  = getContext().obtainStyledAttributes(attrs, R.styleable.GTFView);
+        TypedArray taText = getContext().obtainStyledAttributes(attrs, R.styleable.TextView);
+
+        m_textPaint.setTextSize(taText.getDimensionPixelSize(R.styleable.TextView_textSize, TEXT_SIZE));
         m_textPaint.setTextAlign(Paint.Align.CENTER);
-        m_sliderHeight = ta.getDimensionPixelSize(R.styleable.GTFView_sliderDim, HANDLE_HEIGHT);
-        m_pcStrokePaint.setStrokeWidth(ta.getDimensionPixelSize(R.styleable.GTFView_pcStrokeWidth, 0)); //Default: hairline
+        m_sliderHeight = taGTF.getDimensionPixelSize(R.styleable.GTFView_sliderDim, HANDLE_HEIGHT);
+        m_pcStrokePaint.setStrokeWidth(taGTF.getDimensionPixelSize(R.styleable.GTFView_pcStrokeWidth, 0)); //Default: hairline
     }
 
     /** Is the attached model valid?
@@ -122,17 +125,19 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         switch(heightMode)
         {
             case MeasureSpec.AT_MOST:
-                if(isModelInvalid())
+                if(isModelInvalid() || m_model.getCPCPOrder().length==0)
                     height = 0;
                 else if(m_model.getCPCPOrder().length == 1)
                     height = Math.min(heightSize, MAX_1D_HEIGHT);
+                else
+                    height = Math.min(heightSize, MAX_2D_HEIGHT);
                 break;
 
             case MeasureSpec.UNSPECIFIED:
-                if(isModelInvalid())
+                if(isModelInvalid() || m_model.getCPCPOrder().length==0)
                     height = 0;
                 else if(m_model.getCPCPOrder().length > 1)
-                    height = heightSize;
+                    height = MAX_2D_HEIGHT;
                 else
                     height = MAX_1D_HEIGHT;
                 break;
@@ -271,12 +276,17 @@ public class GTFView extends View implements GTFData.IGTFDataListener
                     GTFData.GTFPoint pointData = m_model.getRanges().get(order[i]);
 
                     float handleY = bitmapHeight - pointData.center*bitmapHeight + startBitmapY;
+
                     //Graphical handle
                     Path path = new Path();
-                    path.moveTo(x-m_sliderHeight, handleY - m_sliderHeight/2.0f);
-                    path.lineTo(x, handleY);
-                    path.lineTo(x-m_sliderHeight, handleY + m_sliderHeight/2.0f);
-                    path.close();
+
+                    float xMultiplier = (i == 0 ? -1 : 1);
+                    {
+                        path.moveTo(x-m_sliderHeight*xMultiplier, handleY - m_sliderHeight/2.0f);
+                        path.lineTo(x, handleY);
+                        path.lineTo(x-m_sliderHeight*xMultiplier, handleY + m_sliderHeight/2.0f);
+                        path.close();
+                    }
                     canvas.drawPath(path, m_handlesPaint);
 
                     float textOffset = TEXT_OFFSET_HANDLE;
@@ -291,6 +301,10 @@ public class GTFView extends View implements GTFData.IGTFDataListener
                     }
                     else
                         m_textPaint.setTextAlign(Paint.Align.LEFT);
+
+                    if(i == 0)
+                        textOffset += m_sliderHeight;
+
                     canvas.drawText(Float.toString(pointData.center * (desc.getMax()-desc.getMin()) + desc.getMin()), x+textOffset, handleY - m_textPaint.getFontMetrics().ascent/2.0f, m_textPaint);
 
                     //Restore alignment alignment
@@ -312,7 +326,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
 
         float textHeight = computeTextHeight();
 
-        m_paint.setStyle(Paint.Style.STROKE);
+        m_paint.setStyle(Paint.Style.FILL_AND_STROKE);
 
         height = (int)(height - 1 - HANDLE_HEIGHT*Math.sqrt(3.0f)/2.0f - textHeight);
         width = width - HANDLE_HEIGHT;
@@ -321,14 +335,14 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         if(histo == null)
             return;
 
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < width/2; i++)
         {
-            int histoID = (int)Math.floor(histo.length * (double)i/width);
+            int histoID = (int)Math.floor(histo.length * (double)2*i/width);
             if(histoID > histo.length - 1)
                 histoID = histo.length - 1;
 
-            m_paint.setColor(ColorMode.computeRGBColor(histo[histoID], m_model.getColorMode()).toARGB8888());
-            canvas.drawLine(i+m_sliderHeight/2, 0, i+m_sliderHeight/2, height - 1, m_paint);
+            m_paint.setColor(ColorMode.computeRGBColor(histo[histoID], ColorMode.GRAYSCALE).toARGB8888());
+            canvas.drawRect(2*i+m_sliderHeight/2, 0, 2*i+m_sliderHeight/2+1, height - 1, m_paint);
         }
 
         GTFData.GTFPoint pointData = m_model.getRanges().get(order[0]);
@@ -551,6 +565,12 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     public void onSetColorMode(GTFData model, int colorMode)
     {
         safeInvalidate();
+    }
+
+    @Override
+    public void onLoadDataset(GTFData model, SubDataset dataset)
+    {
+        safeRequestLayout();
     }
 
     /** Invalidate the View in a safe manner thread-wise. The function will check if the UI thread is the current thread or not and will call invalidate() or postInvalidate() accordingly*/

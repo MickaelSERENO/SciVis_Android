@@ -374,11 +374,14 @@ public class SubDataset
      * @param mode the new color mode*/
     public void setColorMode(int mode)
     {
-        nativeSetColorMode(m_ptr, mode);
+        if(mode != nativeGetColorMode(m_ptr))
+        {
+            nativeSetColorMode(m_ptr, mode);
 
-        //Call listeners
-        for(int j = 0; j < m_listeners.size(); j++)
-            m_listeners.get(j).onUpdateTF(this);
+            //Call listeners
+            for (int j = 0; j < m_listeners.size(); j++)
+                m_listeners.get(j).onUpdateTF(this);
+        }
     }
 
     /** Add a new annotation

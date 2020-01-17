@@ -184,6 +184,9 @@ namespace sereno
 
     void VFVData::bindSubDatasetJava(SubDataset* sd, jobject publicJObjectSD)
     {
+        if(publicJObjectSD == NULL)
+            return;
+
         bool shouldDetach;
         JNIEnv* env = getJNIEnv(&shouldDetach);
         if(env != NULL)
@@ -300,7 +303,8 @@ namespace sereno
         if(it != m_jSubDatasetMap.end())
         {
             jobject jobj = it->second;
-            return jniMainThread->CallBooleanMethod(jobj, jSubDataset_getCanBeModified);
+            if(jobj != NULL)
+                return jniMainThread->CallBooleanMethod(jobj, jSubDataset_getCanBeModified);
         }
         return false;
     }

@@ -37,6 +37,11 @@ public class GTFData implements Dataset.IDatasetListener
          * @param model the model colling this method
          * @param colorMode the new color mode to apply (see ColorMode static fields)*/
         void onSetColorMode(GTFData model, int colorMode);
+
+        /** Function called when the SubDataset internal data has been loaded
+         * @param model the model calling this method
+         * @param dataset the dataset bound to this model*/
+        void onLoadDataset(GTFData model, SubDataset dataset);
     }
 
     /** Class containing data per point field*/
@@ -263,7 +268,10 @@ public class GTFData implements Dataset.IDatasetListener
 
     @Override
     public void onLoadDataset(Dataset dataset, boolean success)
-    {}
+    {
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onLoadDataset(this, m_sd);
+    }
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture)

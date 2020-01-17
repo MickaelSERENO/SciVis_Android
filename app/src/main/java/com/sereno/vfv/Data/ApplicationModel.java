@@ -253,8 +253,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             }
 
             @Override
-            public void onSetCanBeModified(SubDataset dataset, boolean status)
-            {}
+            public void onSetCanBeModified(SubDataset dataset, boolean status){}
         });
 
         sd.setCanBeModified(canModifySubDataset(sd));
@@ -322,6 +321,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     {
         if(sd == m_currentSubDataset)
             setCurrentSubDataset(null);
+
         else if(sd == m_pendingSubDataset)
             pendingAnnotation(null);
 
@@ -334,8 +334,10 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             for(SubDataset newSD : d.getSubDatasets())
             {
                 if(newSD != sd)
+                {
                     setCurrentSubDataset(newSD);
-                break;
+                    break;
+                }
             }
         }
     }
@@ -507,28 +509,8 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         return null;
     }
 
-    /*@Override
-    public void onClampingChange(SubDataset sd, float min, float max)
-    {
-        if(m_rangeColorModel == null)
-            return;
-
-        //Avoid any "loop" between the range color being changed and the subdataset being changed
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.removeListener(this);
-        m_rangeColorModel.removeOnRangeChangeListener(this);
-
-        if(min != m_rangeColorModel.getMinRange() || max != m_rangeColorModel.getMaxRange())
-            m_rangeColorModel.setRange(min, max);
-
-        if(m_currentSubDataset != null)
-            m_currentSubDataset.addListener(this);
-        m_rangeColorModel.addOnRangeChangeListener(this);
-    }*/
-
     @Override
-    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
-    {}
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd){}
 
     @Override
     public void onAddSubDataset(Dataset dataset, SubDataset sd)
@@ -537,8 +519,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     }
 
     @Override
-    public void onLoadDataset(Dataset dataset, boolean success)
-    {}
+    public void onLoadDataset(Dataset dataset, boolean success){}
 
     @Override
     public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
@@ -547,8 +528,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
 
     @Override
-    public void onSetDataset(GTFData model, SubDataset dataset)
-    {}
+    public void onSetDataset(GTFData model, SubDataset dataset){}
 
     @Override
     public void onSetGTFRanges(GTFData model, HashMap<Integer, GTFData.GTFPoint> ranges)
@@ -573,6 +553,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         SubDataset sd = model.getDataset();
         sd.setColorMode(colorMode);
     }
+
+    @Override
+    public void onLoadDataset(GTFData model, SubDataset dataset){}
 
 
     /** @brief Read the configuration file

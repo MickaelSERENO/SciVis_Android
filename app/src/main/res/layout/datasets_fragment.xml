@@ -10,24 +10,28 @@
     android:layout_height="match_parent">
 
     <!-- Previews -->
-    <com.sereno.view.TreeView
-        android:id="@+id/previewLayout"
+    <ScrollView
         app:layout_row="0"
         app:layout_rowWeight="3"
         app:layout_column="0"
         app:layout_columnWeight="1"
-        android:layout_width="100px"
-        android:layout_height="100px"
-        app:topOffsetPerChild="10px"
-        app:leftOffsetPerLevel="25px"
-        app:strokeWidth="3px"
-        app:extendHeight="64px"
-        app:extendWidth="64px"
-        app:inExtendSrc="@drawable/in_expend"
-        app:notExtendSrc="@drawable/not_expend"
-        android:textAlignment="center"
-        android:background="@color/treeColor"
-        />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/treeColor">
+        <com.sereno.view.TreeView
+            android:id="@+id/previewLayout"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:topOffsetPerChild="10px"
+            app:leftOffsetPerLevel="25px"
+            app:strokeWidth="3px"
+            app:extendHeight="64px"
+            app:extendWidth="64px"
+            app:inExtendSrc="@drawable/in_expend"
+            app:notExtendSrc="@drawable/not_expend"
+            android:textAlignment="center"
+            />
+    </ScrollView>
 
     <!-- Information -->
     <LinearLayout

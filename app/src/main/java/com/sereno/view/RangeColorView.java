@@ -1,9 +1,11 @@
 package com.sereno.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -15,6 +17,7 @@ import com.sereno.color.HSVColor;
 import com.sereno.color.LABColor;
 import com.sereno.color.LUVColor;
 import com.sereno.color.MSHColor;
+import com.sereno.vfv.R;
 
 import java.util.ArrayList;
 
@@ -23,13 +26,18 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
 
     public static final int MAX_PIXELS    = 150; /*!< Maximum height*/
     public static final int TRIANGLE_SIZE = 30;  /*!< The triangles size*/
+    public static final int TEXT_SIZE     = 24;  /*!< The default text height*/
+
 
     public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
     public static final int MANIPULATING_MIN_VALUE = 1; /*!< Manipulating the minimum value*/
     public static final int MANIPULATING_MAX_VALUE = 2; /*!< Manipulating the maximum value*/
 
-    private Paint m_paint        = new Paint(); /*!< The object configuring the paint of the canvas (color)*/
-    private Paint m_handlesPaint = new Paint(); /*!< The paint object permitting to draw the handlers*/
+    private Paint   m_paint        = new Paint(); /*!< The object configuring the paint of the canvas (color)*/
+    private Paint   m_handlesPaint = new Paint(); /*!< The paint object permitting to draw the handlers*/
+    private Paint   m_textPaint    = new Paint(); /*!< The paint applied for text */
+
+    private boolean m_enableHandle = true;        /*!< Should we enable the handle?*/
 
     private int   m_valueInManipulation = MANIPULATING_NO_VALUE; /*!< What is the current handle being manipulated (i.e moved) ?*/
 
@@ -42,7 +50,7 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
     public RangeColorView(Context c)
     {
         super(c);
-        init();
+        init(null);
     }
 
     /** @brief Constructor with the view's context as @parameter and the XML data
@@ -54,7 +62,7 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
     public RangeColorView(Context c, AttributeSet a, int style)
     {
         super(c, a, style);
-        init();
+        init(a);
     }
 
     /** @brief Constructor with the view's context as @parameter and the XML data
@@ -64,59 +72,99 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
     public RangeColorView(Context c, AttributeSet a)
     {
         super(c, a);
-        init();
+        init(a);
+    }
+
+    /** Compute the displayed text height (using descent and ascent)
+     * @return the floating point text height based on m_textPaint*/
+    private float computeTextHeight()
+    {
+        return m_textPaint.getFontMetrics().descent - m_textPaint.getFontMetrics().ascent;
     }
 
     public void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
 
-        //Draw the colors
-        int width  = getWidth()  - TRIANGLE_SIZE;
-        int height = (int)(getHeight() - 1 - TRIANGLE_SIZE*Math.sqrt(3.0f)/2.0f);
+        String minText = Float.toString(m_model.getMinRawRange());
+        String maxText = Float.toString(m_model.getMaxRawRange());
+
+        //Do measurements
+        float leftTextSize  = m_textPaint.measureText(minText);
+        float rightTextSize = m_textPaint.measureText(maxText);
+
+        //To center things
+        leftTextSize  = Math.max(leftTextSize, rightTextSize);
+        rightTextSize = leftTextSize;
+
+        float xOffset  = leftTextSize/2.0f;
+        float width    = getWidth() - (leftTextSize+rightTextSize)/2.0f;
+        float textHeight = computeTextHeight();
+        float triangleHeight = (float)(TRIANGLE_SIZE*Math.sqrt(3.0f)/2.0f);
+
+        if(m_enableHandle)
+        {
+            xOffset += TRIANGLE_SIZE/2.0f;
+            width -= TRIANGLE_SIZE;
+        }
+
+        //Draw the color bands
+        float height = getHeight() - 1 - textHeight;
+        if(m_enableHandle)
+            height -= triangleHeight;
 
         for(int i = 0; i < width; i+=3)
         {
-            float t = (float)(i) / (float)(width);
+            float t = (float)(i) / width;
             Color c = ColorMode.computeRGBColor(t, m_model.getColorMode());
             c.a = 1.0f;
             int intColor = c.toARGB8888();
 
             m_paint.setColor(intColor);
-            m_paint.setStyle(Paint.Style.STROKE);
-            for(int j = 0; j < 3; j++)
-                canvas.drawLine(i+j+TRIANGLE_SIZE/2.0f, 0, i+j+TRIANGLE_SIZE/2.0f, height, m_paint);
+            m_paint.setStyle(Paint.Style.FILL_AND_STROKE);
+            canvas.drawRect(i+xOffset, 0, i+xOffset+3, height, m_paint);
         }
 
         //Draw the handles
-        int[] v = new int[]{(int)(width*m_model.getMinRange()), (int)(width*m_model.getMaxRange())};
-        for(int j = 0; j < 2; j++)
+        if(m_enableHandle)
         {
-            Path path = new Path();
-            path.moveTo(v[j] + TRIANGLE_SIZE / 2.0f, height);
-            path.lineTo(v[j], getHeight());
-            path.lineTo(v[j] + TRIANGLE_SIZE, getHeight());
-            path.close();
-            canvas.drawPath(path, m_handlesPaint);
+            int[] v = new int[]{(int)(width*m_model.getMinClampingRange()), (int)(width*m_model.getMaxClampingRange())};
+            for(int j = 0; j < 2; j++)
+            {
+                Path path = new Path();
+                v[j] += xOffset;
+                path.moveTo(v[j], height);
+                path.lineTo(v[j]-TRIANGLE_SIZE/2.0f, height+triangleHeight);
+                path.lineTo(v[j]+TRIANGLE_SIZE/2.0f, height+triangleHeight);
+                path.close();
+                canvas.drawPath(path, m_handlesPaint);
+            }
         }
+
+        //Draw the texts
+        canvas.drawText(minText, leftTextSize/2.0f,             getHeight(), m_textPaint);
+        canvas.drawText(maxText, getWidth()-rightTextSize/2.0f, getHeight(), m_textPaint);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent e)
     {
         super.onTouchEvent(e);
+        if(!m_enableHandle)
+            return false;
+
         int      width       = getWidth() - TRIANGLE_SIZE;
         int      x           = (int)e.getX();
         boolean valueChanged = false;
         float   indice       = Math.min(Math.max((x - TRIANGLE_SIZE/2.0f)/width, 0.0f), 1.0f);
 
-        float minValue = m_model.getMinRange();
-        float maxValue = m_model.getMaxRange();
+        float minValue = m_model.getMinClampingRange();
+        float maxValue = m_model.getMaxClampingRange();
 
         //Set the cursor and store which value we are manipulating
         if(e.getAction() == MotionEvent.ACTION_DOWN)
         {
-            if(Math.abs(indice - m_model.getMinRange()) < Math.abs(indice - m_model.getMaxRange()))
+            if(Math.abs(indice - m_model.getMinClampingRange()) < Math.abs(indice - m_model.getMaxClampingRange()))
             {
                 m_valueInManipulation = MANIPULATING_MIN_VALUE;
                 minValue = indice;
@@ -162,9 +210,24 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
             valueChanged = true;
         }
         if(valueChanged)
-            m_model.setRange(minValue, maxValue);
+            m_model.setClampingRange(minValue, maxValue);
         return true;
     }
+
+    /** Get the draw and touch capabilities regarding the handles (which tell the ranges of the color)
+     * @return true if the handles are drawn and react to users touch, false otherwise*/
+    public boolean areHandlesEnabled()
+    {
+        return m_enableHandle;
+    }
+
+    /** Set the draw and touch capabilities regarding the handles (which tell the ranges of the color)
+     * @param v true if the handles are drawn and react to users touch, false otherwise*/
+    public void enableHandles(boolean v)
+    {
+        m_enableHandle = v;
+    }
+
 
     /** Get the model of this RangeColorView
      * @return the RangeColorData model*/
@@ -197,8 +260,10 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
             case MeasureSpec.AT_MOST:
                 height = Math.min(height, MAX_PIXELS);
                 break;
+
             case MeasureSpec.UNSPECIFIED:
                 height = MAX_PIXELS;
+                break;
         }
 
         setMeasuredDimension(width, height);
@@ -211,7 +276,7 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
     }
 
     /** \brief Initialize the RangeColor view*/
-    private void init()
+    private void init(@Nullable AttributeSet attrs)
     {
         setMinimumHeight(0);
         setMinimumWidth(0);
@@ -222,6 +287,13 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
 
         m_paint.setColor(android.graphics.Color.BLACK);
         m_paint.setStyle(Paint.Style.FILL);
+
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.RangeColorView);
+        m_enableHandle = ta.getBoolean(R.styleable.RangeColorView_enableHandle, true);
+        TypedArray taText = getContext().obtainStyledAttributes(attrs, R.styleable.TextView);
+
+        m_textPaint.setTextSize(taText.getDimensionPixelSize(R.styleable.TextView_textSize, TEXT_SIZE));
+        m_textPaint.setTextAlign(Paint.Align.CENTER);
 
         m_model.addOnRangeChangeListener(this);
     }

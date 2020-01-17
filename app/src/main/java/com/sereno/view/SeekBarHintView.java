@@ -40,7 +40,7 @@ public class SeekBarHintView extends SeekBar
 
     private void init(AttributeSet attrs)
     {
-        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.GTFView);
+        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.TextView);
 
         m_textPaint.setTextSize(ta.getDimensionPixelSize(R.styleable.TextView_textSize, TEXT_SIZE));
         m_textPaint.setTextAlign(Paint.Align.CENTER);
