@@ -97,22 +97,24 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
         leftTextSize  = Math.max(leftTextSize, rightTextSize);
         rightTextSize = leftTextSize;
 
-        float xOffset  = leftTextSize/2.0f;
-        float width    = getWidth() - (leftTextSize+rightTextSize)/2.0f;
         float textHeight = computeTextHeight();
         float triangleHeight = (float)(TRIANGLE_SIZE*Math.sqrt(3.0f)/2.0f);
 
         if(m_enableHandle)
         {
-            xOffset += TRIANGLE_SIZE/2.0f;
-            width -= TRIANGLE_SIZE;
+            leftTextSize  = Math.max(leftTextSize, TRIANGLE_SIZE);
+            rightTextSize = Math.max(rightTextSize, TRIANGLE_SIZE);
         }
+
+        float xOffset  = leftTextSize/2.0f;
+        float width    = getWidth() - (leftTextSize+rightTextSize)/2.0f;
 
         //Draw the color bands
         float height = getHeight() - 1 - textHeight;
         if(m_enableHandle)
             height -= triangleHeight;
 
+        m_paint.setStyle(Paint.Style.FILL_AND_STROKE);
         for(int i = 0; i < width; i+=3)
         {
             float t = (float)(i) / width;
@@ -121,7 +123,6 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
             int intColor = c.toARGB8888();
 
             m_paint.setColor(intColor);
-            m_paint.setStyle(Paint.Style.FILL_AND_STROKE);
             canvas.drawRect(i+xOffset, 0, i+xOffset+3, height, m_paint);
         }
 

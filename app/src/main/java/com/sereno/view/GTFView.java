@@ -319,48 +319,66 @@ public class GTFView extends View implements GTFData.IGTFDataListener
      * @param canvas the canvas where to draw*/
     private void draw1DHistogram(Canvas canvas)
     {
-        int width  = getWidth();
-        int height = getHeight();
-
         int[] order = m_model.getCPCPOrder();
 
+        //Get some measurements and text information
+        String minText = "";
+        String maxText = "";
+        for(PointFieldDesc desc : m_model.getDataset().getParent().getPointFieldDescs())
+        {
+            if(desc.getID() == order[0])
+            {
+                minText = Float.toString(desc.getMin());
+                maxText = Float.toString(desc.getMax());
+                break;
+            }
+        }
+        float leftTextSize  = m_textPaint.measureText(minText);
+        float rightTextSize = m_textPaint.measureText(maxText);
+        leftTextSize  = Math.max(leftTextSize, rightTextSize); //Center things
+        leftTextSize  = Math.max(leftTextSize, m_sliderHeight);
+        rightTextSize = leftTextSize;
+        int width  = (int)(getWidth() - (leftTextSize+rightTextSize)/2.0f);
         float textHeight = computeTextHeight();
+        float triangleHeight = (float)(m_sliderHeight*Math.sqrt(3.0f)/2.0f);
+        int height = (int)(getHeight() - 2*textHeight - 1 - triangleHeight);
 
         m_paint.setStyle(Paint.Style.FILL_AND_STROKE);
-
-        height = (int)(height - 1 - HANDLE_HEIGHT*Math.sqrt(3.0f)/2.0f - textHeight);
-        width = width - HANDLE_HEIGHT;
 
         float[] histo = m_model.getDataset().getParent().get1DHistogram(order[0]);
         if(histo == null)
             return;
 
+        //Draw the histogram
         for (int i = 0; i < width/2; i++)
         {
             int histoID = (int)Math.floor(histo.length * (double)2*i/width);
             if(histoID > histo.length - 1)
                 histoID = histo.length - 1;
 
-            m_paint.setColor(ColorMode.computeRGBColor(histo[histoID], ColorMode.GRAYSCALE).toARGB8888());
-            canvas.drawRect(2*i+m_sliderHeight/2, 0, 2*i+m_sliderHeight/2+1, height - 1, m_paint);
+            m_paint.setColor(ColorMode.computeRGBColor(histo[histoID], m_model.getColorMode()).toARGB8888());
+            canvas.drawRect(2*i+leftTextSize/2.0f, 0, 2*i+leftTextSize/2.0f+2, height - 1, m_paint);
         }
 
         GTFData.GTFPoint pointData = m_model.getRanges().get(order[0]);
 
         //Draw the handles
-        int   v = (int)(width*pointData.center);
-
+        int   v = (int)(width*pointData.center+leftTextSize/2.0f);
         Path path = new Path();
-        path.moveTo(v+ m_sliderHeight / 2.0f, height);
-        path.lineTo(v, getHeight()-textHeight-1);
-        path.lineTo(v + m_sliderHeight, getHeight()-textHeight-1);
+        path.moveTo(v, height);
+        path.lineTo(v-m_sliderHeight/2.0f, height+triangleHeight);
+        path.lineTo(v+m_sliderHeight/2.0f, height+triangleHeight);
         path.close();
         canvas.drawPath(path, m_handlesPaint);
 
         //Draw the text below the handles
         PointFieldDesc ptDesc = m_model.getDataset().getParent().getPointFieldDescs()[order[0]];
         for(int j = 0; j < 2; j++)
-            canvas.drawText(Float.toString(pointData.center * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v+m_sliderHeight/2.0f, getHeight()-m_textPaint.getFontMetrics().descent, m_textPaint);
+            canvas.drawText(Float.toString(pointData.center * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v+m_sliderHeight/2.0f, height+triangleHeight+textHeight, m_textPaint);
+
+        //Draw the texts
+        canvas.drawText(minText, leftTextSize/2.0f,             getHeight(), m_textPaint);
+        canvas.drawText(maxText, getWidth()-rightTextSize/2.0f, getHeight(), m_textPaint);
     }
 
     @Override

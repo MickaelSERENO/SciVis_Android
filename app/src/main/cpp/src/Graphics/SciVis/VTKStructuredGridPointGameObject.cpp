@@ -185,6 +185,8 @@ namespace sereno
         const VTKStructuredPoints& ptsDesc = m_gridPointVBO->m_vtkParser->getStructuredPointsDescriptor();
         const std::vector<PointFieldDesc>& ptFieldDescs = m_model->getParent()->getPointFieldDescs();
 
+        const VTKDataset* vtk = (VTKDataset*)(m_model->getParent());
+
         //The RGBA data variables (nb values and array of colors)
         size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
         uint8_t* cols = (uint8_t*)malloc(sizeof(uint8_t)*nbValues*4);
@@ -212,9 +214,17 @@ namespace sereno
                                                 k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
 
                                 //The source indice to read in the dataset raw data
-                                size_t srcID  = i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0] +
-                                                j*ptsDesc.size[1]*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[1] + 
-                                                k*ptsDesc.size[2]*ptsDesc.size[1]*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[2];
+                                size_t srcID  = (i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0]) +
+                                                ptsDesc.size[0]*(j*ptsDesc.size[1]/m_gridPointVBO->m_dimensions[1]) +
+                                                ptsDesc.size[1]*ptsDesc.size[0]*(k*ptsDesc.size[2]/m_gridPointVBO->m_dimensions[2]);
+
+                                if(!vtk->getMask(srcID))
+                                {
+                                    for(uint8_t h = 0; h < 3; h++)
+                                        cols[4*destID+h] = 0;
+                                    cols[4*destID+3] = 0;
+                                    continue;
+                                }
 
                                 //For each parameter (e.g., temperature, presure, etc.)
                                 for(uint32_t h = 0; h < ptFieldDescs.size(); h++)

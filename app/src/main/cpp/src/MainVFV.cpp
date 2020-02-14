@@ -208,7 +208,7 @@ namespace sereno
             if(tc->type != TOUCH_TYPE_UP)
                 numberFinger++;
 
-        if(m_currentWidgetAction == NO_IMAGE && numberFinger <= 1 || !m_curSDCanBeModified)
+        if((m_currentWidgetAction == NO_IMAGE && numberFinger <= 1) || !m_curSDCanBeModified)
         {
             //Cancel the animation
             if(m_inAnimation || forceReset)
@@ -475,7 +475,7 @@ namespace sereno
                         if(it.second.updateRotation)
                             m_currentVis->setRotate(sd->getGlobalRotate());
                         if(it.second.updateScale)
-                            m_currentVis->setScale(sd->getScale());
+                            m_currentVis->setScale(glm::vec3(sd->getScale().x*-1, sd->getScale().y, sd->getScale().z));
                         break;
                     }
                 }

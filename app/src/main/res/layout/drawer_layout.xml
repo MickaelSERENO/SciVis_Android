@@ -73,8 +73,8 @@
             android:layout_height="wrap_content"
             app:pcStrokeWidth="1dp"
             app:textSize="12sp"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
             android:paddingBottom="4dp"/>
 
         <!-- Layout filled by the application for handling the size of the GTF ranges-->

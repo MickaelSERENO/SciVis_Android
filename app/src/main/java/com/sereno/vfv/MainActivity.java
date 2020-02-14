@@ -706,26 +706,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {
-        if(sd == null)
-            return;
-
-        if(sd.getOwnerID() == -1 || sd.getOwnerID() == m_model.getBindingInfo().getHeadsetID()) //Mine or public one
+        if(sd != null && (sd.getOwnerID() == -1 || sd.getOwnerID() == m_model.getBindingInfo().getHeadsetID())) //Mine or public one
         {
             if(m_currentGTFData != null)
                 m_currentGTFData.removeListener(this);
             m_currentGTFData = model.getGTFData(sd);
 
             m_gtfWidget.setModel(m_currentGTFData);
-            if(m_currentGTFData != null)
-                m_currentGTFData.addListener(this);
-
-            //Put in the correct state the "gradient enable" checkbox
-            m_gtfEnableGradient.setChecked(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
-            m_colorModeSpinner.setSelection(sd.getColorMode());
-
-            //Clean and redo the sliders
-            redoGTFSizeLayout();
         }
+
+        //Clean and redo the sliders
+        redoGTFSizeLayout();
+        updateGTFWidgets();
     }
 
     private void redoGTFSizeLayout()
@@ -1068,6 +1060,17 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         );
+        m_gtfEnableGradient.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(m_currentGTFData != null && m_currentGTFData.getDataset() != null &&
+                        m_currentGTFData.getDataset().getCanBeModified())
+                    return false;
+                return true;
+            }
+        });
     }
 
     /** \brief Setup the toolbar */

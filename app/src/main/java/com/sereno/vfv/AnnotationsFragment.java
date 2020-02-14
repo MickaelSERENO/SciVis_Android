@@ -187,9 +187,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 sdTitleText.setText(sd.getName());
 
                 ImageView addView = (ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add);
-                if(!sd.getCanBeModified())
-                    addView.setVisibility(View.GONE);
-
                 addView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -205,6 +202,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 Tree<View> sdTitleTree = new Tree<View>(sdTitle);
                 m_subDatasetTrees.put(sd, sdTitleTree);
                 m_datasetTrees.get(sd.getParent()).addChild(sdTitleTree, -1);
+
+                //Update some visibilities
+                onSetOwner(sd, sd.getOwnerID());
+                onSetCanBeModified(sd, sd.getCanBeModified());
             }
         });
     }
@@ -594,6 +595,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         View sdTitle = m_subDatasetTrees.get(dataset).value;
 
+        if(m_model.getBindingInfo() == null)
+        {
+            sdTitle.setVisibility(View.GONE);
+            return;
+        }
         //Show public / our datasets, hide the others.
         if(headsetID == -1 || headsetID == m_model.getBindingInfo().getHeadsetID())
             sdTitle.setVisibility(View.VISIBLE);
