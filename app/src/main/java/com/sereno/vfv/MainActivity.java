@@ -380,9 +380,17 @@ public class MainActivity extends AppCompatActivity
 
     private void updateGTFWidgets()
     {
+        //If no subdataset
+        if(m_model.getCurrentSubDataset() == null)
+        {
+            m_rangeColorView.getModel().setRawRange(0.0f, 1.0f, false);
+            return;
+        }
+
         //Range color
         if(m_currentGTFData.getCPCPOrder().length == 1)
         {
+            m_rangeColorView.setVisibility(View.VISIBLE);
             for(PointFieldDesc desc : m_currentGTFData.getDataset().getParent().getPointFieldDescs())
             {
                 if(desc.getID() == m_currentGTFData.getCPCPOrder()[0])
@@ -400,6 +408,7 @@ public class MainActivity extends AppCompatActivity
         //Update the transfer function view not link to any model
         m_gtfEnableGradient.setChecked(m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
         m_colorModeSpinner.setSelection(m_model.getCurrentSubDataset().getColorMode());
+        redoGTFSizeLayout();
         redoGTFSizeRanges();
     }
 
@@ -714,15 +723,15 @@ public class MainActivity extends AppCompatActivity
 
             m_gtfWidget.setModel(m_currentGTFData);
         }
+        else
+            m_currentGTFData = null;
 
         //Clean and redo the sliders
-        redoGTFSizeLayout();
         updateGTFWidgets();
     }
 
     private void redoGTFSizeLayout()
     {
-
         for(View v : m_gtfSizeViews.values())
         {
             ((ViewGroup)v.getParent()).removeView(v);
@@ -872,7 +881,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDuplicateSubDataset(DatasetsFragment frag, SubDataset sd)
-    {}
+    {
+        m_socket.push(SocketManager.createDuplicateSubDatasetEvent(getDatasetIDBinding(sd)));
+    }
 
     @Override
     public void onRequestRemoveSubDataset(DatasetsFragment frag, SubDataset sd)

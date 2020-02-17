@@ -62,6 +62,7 @@ public class SocketManager
     public static final short ADD_SUBDATASET          = 17;
     public static final short REMOVE_SUBDATASET       = 18;
     public static final short MAKE_SUBDATASET_PUBLIC  = 19;
+    public static final short DUPLICATE_SUBDATASET    = 20;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -599,8 +600,22 @@ public class SocketManager
         return buf.array();
     }
 
+    /** Create a duplicate subdataset event
+     * @param ids the subdataset IDs to duplicate*/
+    public static byte[] createDuplicateSubDatasetEvent(MainActivity.DatasetIDBinding ids)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(DUPLICATE_SUBDATASET);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+
+        return buf.array();
+    }
+
     /** Create an remove subdataset event
-     * @param ids the subdataset IDs*/
+     * @param ids the subdataset IDs to remove*/
     public static byte[] createRemoveSubDatasetEvent(MainActivity.DatasetIDBinding ids)
     {
         ByteBuffer buf = ByteBuffer.allocate(2+2*4);

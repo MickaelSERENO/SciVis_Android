@@ -227,6 +227,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                         switch(item.getItemId())
                         {
                             case R.id.duplicateSD_item:
+                                for(IDatasetsFragmentListener listener : m_dfListeners)
+                                    listener.onDuplicateSubDataset(DatasetsFragment.this, sd);
                                 break;
 
                             case R.id.removeSD_item:
