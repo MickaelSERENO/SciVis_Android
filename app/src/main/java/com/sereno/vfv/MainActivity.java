@@ -732,6 +732,33 @@ public class MainActivity extends AppCompatActivity
 
     private void redoGTFSizeLayout()
     {
+        //Check if needed to redo the layout
+        boolean redo = false;
+        final SubDataset sd = m_currentGTFData.getDataset();
+        if(sd == null || m_gtfSizeViews.size() != m_currentGTFData.getCPCPOrder().length)
+            redo = true;
+        else
+        {
+            for(final int i : m_currentGTFData.getCPCPOrder())
+            {
+                if(redo)
+                    break;
+                for (PointFieldDesc desc : sd.getParent().getPointFieldDescs())
+                {
+                    if (i == desc.getID())
+                    {
+                        if (!m_gtfSizeViews.containsKey(i))
+                        {
+                            redo = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if(!redo)
+            return;
+
         for(View v : m_gtfSizeViews.values())
         {
             ((ViewGroup)v.getParent()).removeView(v);
@@ -741,8 +768,6 @@ public class MainActivity extends AppCompatActivity
 
         if(m_currentGTFData == null)
             return;
-
-        final SubDataset sd = m_currentGTFData.getDataset();
         if(sd == null)
             return;
 
@@ -756,6 +781,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     View layout = getLayoutInflater().inflate(R.layout.gtf_size_prop_view, null);
                     sizeLayout.addView(layout);
+
                     //Label
                     TextView label = layout.findViewById(R.id.gtfLabel);
                     label.setText(desc.getName());
@@ -928,6 +954,16 @@ public class MainActivity extends AppCompatActivity
             {
                 SeekBar seekBar = m_gtfSizeViews.get(value.getKey()).findViewById(R.id.gtfSeekBar);
                 seekBar.setProgress((int)(seekBar.getMax()*value.getValue().scale));
+
+                for(PointFieldDesc desc : m_currentGTFData.getDataset().getParent().getPointFieldDescs())
+                {
+                    if (value.getKey() == desc.getID())
+                    {
+                        TextView textView = m_gtfSizeViews.get(value.getKey()).findViewById(R.id.gtfLabel);
+                        textView.setText(desc.getName());
+                        break;
+                    }
+                }
             }
         }
     }

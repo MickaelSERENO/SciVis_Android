@@ -7,6 +7,8 @@
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
+#include <mutex>
+#include <thread>
 #include "Graphics/SciVis/SciVis.h"
 #include "Graphics/GLRenderer.h"
 #include "Graphics/Materials/Material.h"
@@ -86,6 +88,9 @@ namespace sereno
             float    m_minVal;                         /*!< The property min value*/
             uint32_t m_propID;                         /*!< The property ID*/
             GLuint   m_vaoID;                          /*!< VAO*/
+            uint8_t* m_newCols = nullptr;              /*!< The new colors computed in a separate thread to update the 3D image*/
+            bool     m_isWaiting3DImage = false;       /*!< Is the object waiting to compute a 3D image?*/
+            std::mutex m_updateTFLock;                 /*!< The mutex locking the updateTF call*/
     };
 
     /** \brief  Structure regrouping every information needed for VTKStructuredGridPoint visualization */

@@ -95,6 +95,9 @@ namespace sereno
     {
         glDeleteVertexArrays(1, &m_vaoID);
         glDeleteTextures(1, &m_texture);
+
+        if(m_newCols)
+            free(m_newCols);
     }
 
     void VTKStructuredGridPointGameObject::draw(const Render& render)
@@ -152,6 +155,25 @@ namespace sereno
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         /*----------------------------------------------------------------------------*/
+        /*-------------------------------Update Texture-------------------------------*/
+        /*----------------------------------------------------------------------------*/
+
+        uint8_t* cols = m_newCols;
+        m_newCols = nullptr;
+        if(cols)
+        {
+            //Update the 3D texture
+            glBindTexture(GL_TEXTURE_3D, m_texture);
+                glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA,
+                             m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2],
+                             0, GL_RGBA, GL_UNSIGNED_BYTE, cols);
+            glBindBuffer(GL_TEXTURE_3D, 0);
+
+            //Free everything
+            free(cols);
+        }
+
+        /*----------------------------------------------------------------------------*/
         /*------------------------------------Draw------------------------------------*/
         /*----------------------------------------------------------------------------*/
 
@@ -182,94 +204,103 @@ namespace sereno
             return;
         }
 
-        const VTKStructuredPoints& ptsDesc = m_gridPointVBO->m_vtkParser->getStructuredPointsDescriptor();
-        const std::vector<PointFieldDesc>& ptFieldDescs = m_model->getParent()->getPointFieldDescs();
-
-        const VTKDataset* vtk = (VTKDataset*)(m_model->getParent());
-
-        //The RGBA data variables (nb values and array of colors)
-        size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
-        uint8_t* cols = (uint8_t*)malloc(sizeof(uint8_t)*nbValues*4);
-
-        //Apply the transfer function
-        TF* tf = getModel()->getTransferFunction();
-
-        if(tf && tf->getDimension() <= ptFieldDescs.size()+1) //Check if the TF can be applied. +1 == m_grads
+        std::thread([this]()
         {
-            //Use the transfer function to generate the 3D texture
-            #pragma omp parallel
+            //Maximum two parallel call: one pending and one executing (in case the transfer function got updated)
+            if(m_isWaiting3DImage)
             {
-                float* tfInd = (float*)malloc((ptFieldDescs.size()+1)*sizeof(float)); //The indice of the transfer function
-
-                #pragma omp for
-                {
-                    //For all values in the grid
-                    for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
-                        for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
-                            for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
-                            {
-                                //The destination indice in the 3D texture
-                                size_t destID = i+
-                                                j*m_gridPointVBO->m_dimensions[0] +
-                                                k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
-
-                                //The source indice to read in the dataset raw data
-                                size_t srcID  = (i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0]) +
-                                                ptsDesc.size[0]*(j*ptsDesc.size[1]/m_gridPointVBO->m_dimensions[1]) +
-                                                ptsDesc.size[1]*ptsDesc.size[0]*(k*ptsDesc.size[2]/m_gridPointVBO->m_dimensions[2]);
-
-                                if(!vtk->getMask(srcID))
-                                {
-                                    for(uint8_t h = 0; h < 3; h++)
-                                        cols[4*destID+h] = 0;
-                                    cols[4*destID+3] = 0;
-                                    continue;
-                                }
-
-                                //For each parameter (e.g., temperature, presure, etc.)
-                                for(uint32_t h = 0; h < ptFieldDescs.size(); h++)
-                                {
-                                    const PointFieldDesc& val = ptFieldDescs[h];
-                                    uint8_t valueFormatInt = VTKValueFormatInt(val.format);
-
-                                    //Compute the vector magnitude
-                                    float mag = 0;
-                                    for(uint32_t l = 0; l < val.nbValuePerTuple; l++)
-                                    {
-                                        float readVal = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + srcID*valueFormatInt*val.nbValuePerTuple + l*valueFormatInt, val.format);
-                                        mag = readVal*readVal;
-                                    }
-                                    mag = sqrt(mag);
-
-                                    //Save it at the correct indice in the TF indice (clamped into [0,1])
-                                    tfInd[h] = (mag-val.minVal)/(val.maxVal-val.minVal);
-                                }
-
-                                //Do not forget the gradient (clamped)!
-                                tfInd[ptFieldDescs.size()] = m_model->getParent()->getGradient()[srcID];
-
-                                //Apply the transfer function
-                                uint8_t outCol[4];
-                                tf->computeColor(tfInd, outCol);
-                                for(uint8_t h = 0; h < 3; h++)
-                                    cols[4*destID+h] = outCol[h];
-                                cols[4*destID+3] = tf->computeAlpha(tfInd);
-                            }
-                }
-
-                free(tfInd);
+                LOG_INFO("Already waiting\n");
+                return;
             }
-        }
+            m_isWaiting3DImage = true;
+            m_updateTFLock.lock();
+            m_isWaiting3DImage = false;
+            LOG_INFO("Computing Colors\n");
 
-        //Update the 3D texture
-        glBindTexture(GL_TEXTURE_3D, m_texture);
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA,
-                         m_gridPointVBO->m_dimensions[0], m_gridPointVBO->m_dimensions[1], m_gridPointVBO->m_dimensions[2],
-                         0, GL_RGBA, GL_UNSIGNED_BYTE, cols);
-        glBindBuffer(GL_TEXTURE_3D, 0);
+            const VTKStructuredPoints& ptsDesc = m_gridPointVBO->m_vtkParser->getStructuredPointsDescriptor();
+            const std::vector<PointFieldDesc>& ptFieldDescs = m_model->getParent()->getPointFieldDescs();
 
-        //Free everything
-        free(cols);
+            const VTKDataset* vtk = (VTKDataset*)(m_model->getParent());
+
+            //The RGBA data variables (nb values and array of colors)
+            size_t nbValues  = m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1]*m_gridPointVBO->m_dimensions[2];
+            uint8_t* cols = (uint8_t*)malloc(sizeof(uint8_t)*nbValues*4);
+
+            //Apply the transfer function
+            std::shared_ptr<TF> tf = getModel()->getTransferFunction();
+
+            if(tf != NULL && tf->getDimension() <= ptFieldDescs.size()+1) //Check if the TF can be applied. +1 == m_grads
+            {
+                //Use the transfer function to generate the 3D texture
+                #pragma omp parallel
+                {
+                    float* tfInd = (float*)malloc((ptFieldDescs.size()+1)*sizeof(float)); //The indice of the transfer function
+
+                    #pragma omp for
+                    {
+                        //For all values in the grid
+                        for(uint32_t k = 0; k < m_gridPointVBO->m_dimensions[2]; k++)
+                            for(uint32_t j = 0; j < m_gridPointVBO->m_dimensions[1]; j++)
+                                for(uint32_t i = 0; i < m_gridPointVBO->m_dimensions[0]; i++)
+                                {
+                                    //The destination indice in the 3D texture
+                                    size_t destID = i+
+                                                    j*m_gridPointVBO->m_dimensions[0] +
+                                                    k*m_gridPointVBO->m_dimensions[0]*m_gridPointVBO->m_dimensions[1];
+
+                                    //The source indice to read in the dataset raw data
+                                    size_t srcID  = (i*ptsDesc.size[0]/m_gridPointVBO->m_dimensions[0]) +
+                                                    ptsDesc.size[0]*(j*ptsDesc.size[1]/m_gridPointVBO->m_dimensions[1]) +
+                                                    ptsDesc.size[1]*ptsDesc.size[0]*(k*ptsDesc.size[2]/m_gridPointVBO->m_dimensions[2]);
+
+                                    if(!vtk->getMask(srcID))
+                                    {
+                                        for(uint8_t h = 0; h < 3; h++)
+                                            cols[4*destID+h] = 0;
+                                        cols[4*destID+3] = 0;
+                                        continue;
+                                    }
+
+                                    //For each parameter (e.g., temperature, presure, etc.)
+                                    for(uint32_t h = 0; h < ptFieldDescs.size(); h++)
+                                    {
+                                        const PointFieldDesc& val = ptFieldDescs[h];
+                                        uint8_t valueFormatInt = VTKValueFormatInt(val.format);
+
+                                        //Compute the vector magnitude
+                                        float mag = 0;
+                                        for(uint32_t l = 0; l < val.nbValuePerTuple; l++)
+                                        {
+                                            float readVal = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + srcID*valueFormatInt*val.nbValuePerTuple + l*valueFormatInt, val.format);
+                                            mag = readVal*readVal;
+                                        }
+                                        mag = sqrt(mag);
+
+                                        //Save it at the correct indice in the TF indice (clamped into [0,1])
+                                        tfInd[h] = (mag-val.minVal)/(val.maxVal-val.minVal);
+                                    }
+
+                                    //Do not forget the gradient (clamped)!
+                                    tfInd[ptFieldDescs.size()] = m_model->getParent()->getGradient()[srcID];
+
+                                    //Apply the transfer function
+                                    uint8_t outCol[4];
+                                    tf->computeColor(tfInd, outCol);
+                                    for(uint8_t h = 0; h < 3; h++)
+                                        cols[4*destID+h] = outCol[h];
+                                    cols[4*destID+3] = tf->computeAlpha(tfInd);
+                                }
+                    }
+
+                    free(tfInd);
+                }
+            }
+
+            m_newCols = cols;
+            m_updateTFLock.unlock();
+            LOG_INFO("End Computing Colors\n");
+
+        }).detach();
     }
 
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity) : dataset(d)

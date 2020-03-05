@@ -422,14 +422,14 @@ namespace sereno
                         //Enlarge the pixel array
                         uint32_t snapWidth  = m_surfaceData->renderer.getWidth();
                         uint32_t snapHeight = m_surfaceData->renderer.getHeight();
-                        Snapshot* curSnapshot = sd->getSnapshot();
+                        std::shared_ptr<const Snapshot> curSnapshot = sd->getSnapshot();
 
                         if((curSnapshot == NULL || curSnapshot->width != snapWidth || curSnapshot->height != snapHeight)
                             && (snapWidth * snapHeight != 0))
                         {
                             Snapshot* newSnapshot = new Snapshot(snapWidth, snapHeight, (uint32_t*)malloc(sizeof(uint32_t)*snapWidth*snapHeight));
                             m_snapshots[m_currentVis] = std::shared_ptr<Snapshot>(newSnapshot);
-                            curSnapshot = newSnapshot;
+                            curSnapshot = m_snapshots[m_currentVis];
                             sd->setSnapshot(m_snapshots[m_currentVis]);
                         }
 
