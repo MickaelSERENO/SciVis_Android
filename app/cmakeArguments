@@ -1,1 +1,1 @@
--DCMAKE_PREFIX_PATH_ARM=/home/mickael/.local/android/armeabi-v7a/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig, -DCMAKE_PREFIX_PATH_X86=/home/mickael/.local/android/x86/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig, -DANDROID_ARM_NEON=TRUE
+-DCMAKE_PREFIX_PATH_ARM=/home/stephane/.local/android/armeabi-v7a/lib/pkgconfig:/home/stephane/.local/android/common_abi/lib/pkgconfig, -DCMAKE_PREFIX_PATH_X86=/home/stephane/.local/android/x86/lib/pkgconfig:/home/stephane/.local/android/common_abi/lib/pkgconfig, -DANDROID_ARM_NEON=TRUE

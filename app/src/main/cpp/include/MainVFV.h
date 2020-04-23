@@ -19,6 +19,8 @@
 #include "Graphics/Materials/NormalizeMaterial.h"
 #include "Graphics/Materials/CPCPMaterial.h"
 #include "Graphics/Materials/RedToGrayMaterial.h"
+#include "Graphics/Materials/UniColorMaterial.h"
+#include "Graphics/VolumeSelect/Lasso.h"
 #include "Graphics/SciVis/TransferFunction/TFTexture.h"
 #include "TransferFunction/GTF.h"
 #include "TransferFunction/TriangularGTF.h"
@@ -176,6 +178,7 @@ namespace sereno
             NormalizeMaterial*        m_normalizeMtl;    /*!< Material used to normalize a texture*/
             CPCPMaterial*             m_cpcpMtl;         /*!< The Continuous Parallel Coordinate Plot material*/
             RedToGrayMaterial*        m_redToGrayMtl;    /*!< The Red to Gray material*/
+            UniColorMaterial*         m_lassoMaterial;   /*!< Material to draw the volume selection lasso*/
 
             /*----------------------------------------------------------------------------*/
             /*---------------------------All the SciVis loaded----------------------------*/
@@ -186,6 +189,9 @@ namespace sereno
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
             SciVis*              m_currentVis         = NULL; /*!< The current visualization*/
             bool                 m_curSDCanBeModified = true; /*!< Can our current SubDataset be modified?*/
+
+            Lasso*               m_lasso;
+            bool                 m_selecting = false;
 
             /*----------------------------------------------------------------------------*/
             /*-------------------------------Snapshot data--------------------------------*/

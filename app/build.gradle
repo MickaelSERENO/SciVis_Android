@@ -5,18 +5,22 @@ android {
     defaultConfig {
         applicationId "com.sereno.vfv"
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
         externalNativeBuild {
             cmake {
                 println("Use cmakeArguments for adding arguments to this script. Use ',' for separating the arguments !")
                 getCMakeArgument().each {arguments.add(it.trim())}
-                arguments.addAll("-DANDROID_STL=c++_shared", "-DENABLE_SANITIZER=TRUE")
+                arguments.addAll("-DANDROID_STL=c++_shared")
                 cppFlags "-std=c++14 -frtti -fexceptions"
                 abiFilters 'armeabi-v7a','x86'
             }
         }
+        ndk
+                {
+                    abiFilters 'armeabi-v7a','x86'
+                }
     }
     packagingOptions{
         doNotStrip '**/.*so'

@@ -11,10 +11,12 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
@@ -75,6 +77,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private HashMap<SubDataset, ImageView> m_sdImages  = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
 
     private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
+
+    private ToggleButton     m_selectionToggle;          /*!< The selection toggle button*/
 
     public DatasetsFragment()
     {
@@ -468,6 +472,23 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 });
             }
         });
+
+
+        // Setup the selection menu
+        m_selectionToggle = (ToggleButton) v.findViewById(R.id.selectionToggle);
+        m_selectionToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    m_surfaceView.setSelection(true);
+                } else {
+                    // The toggle is disabled
+                    m_surfaceView.setSelection(false);
+                }
+            }
+        });
+
+
     }
 
     /** Generic function called when a new Dataset is being added

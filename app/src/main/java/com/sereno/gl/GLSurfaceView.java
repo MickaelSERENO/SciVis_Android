@@ -173,6 +173,12 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
             nativeOnVisible(m_internalData);
     }
 
+    public void setSelection(boolean starting)
+    {
+        if(starting)
+            nativeOnStartSelection(m_internalData);
+    }
+
     protected String getMainLibrary()
     {
         return "native-lib";
@@ -270,6 +276,10 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     /** Native function called when this view is visible
      * @param data the C++ internal data pointer*/
     private native void nativeOnVisible(long data);
+
+    /** Native function called when starting a selction
+     * @param data the C++ internal data pointer*/
+    private native void nativeOnStartSelection(long data);
 
     static
     {

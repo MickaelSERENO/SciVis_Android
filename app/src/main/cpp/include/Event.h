@@ -34,7 +34,8 @@ namespace sereno
         TOUCH_DOWN, /*!< Touch down event */
         TOUCH_UP,   /*!< Touch up event */
         TOUCH_MOVE, /*!< Touch move event*/
-        VISIBILITY  /*!< Visibility event*/
+        VISIBILITY, /*!< Visibility event*/
+        SELECTION   /*!< Selection event*/
     };
 
     /* \brief Describes a touch event */
@@ -69,6 +70,12 @@ namespace sereno
         bool visibility; /*!< Is the surface visible?*/
     };
 
+    /* \brief Describes the start or end of a selection*/
+    struct SelectionEvent
+    {
+        bool starting; /*!< True if start of a selecton*/
+    };
+
     /* \brief Describes an event */
     struct Event
     {
@@ -78,6 +85,7 @@ namespace sereno
             TouchEvent      touchEvent; /*!< A touch event*/
             SizeEvent       sizeEvent;  /*!< A resize event*/
             VisibilityEvent visibility; /*!< A visibility event*/
+            SelectionEvent  selection;  /*!< A selection event*/
         };
 
         EventType type; /*!< The type of the event*/

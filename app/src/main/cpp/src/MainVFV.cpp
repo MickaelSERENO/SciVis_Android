@@ -37,11 +37,12 @@ namespace sereno
         m_colorGridMtl->setBlend(transparency);
         m_colorGridMtl->setDepthWrite(false);
         m_colorPhongMtl = new PhongMaterial(&surfaceData->renderer, Color::BLUE_COLOR, 0.3f, 0.7f, 0.1f, 100);
-        m_3dTextureMtl = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
-        m_gpuTexVBO    = new TextureRectangleData();
-        m_cpcpMtl      = new CPCPMaterial(&m_surfaceData->renderer, HISTOGRAM_WIDTH*sqrt(2));
-        m_normalizeMtl = new NormalizeMaterial(&m_surfaceData->renderer);
-        m_redToGrayMtl = new RedToGrayMaterial(&m_surfaceData->renderer);
+        m_3dTextureMtl  = (SimpleTextureMaterial*)malloc(sizeof(SimpleTextureMaterial)*8);
+        m_gpuTexVBO     = new TextureRectangleData();
+        m_cpcpMtl       = new CPCPMaterial(&m_surfaceData->renderer, HISTOGRAM_WIDTH*sqrt(2));
+        m_normalizeMtl  = new NormalizeMaterial(&m_surfaceData->renderer);
+        m_redToGrayMtl  = new RedToGrayMaterial(&m_surfaceData->renderer);
+        m_lassoMaterial = new UniColorMaterial(&m_surfaceData->renderer, Color::YELLOW_COLOR);
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
         m_3dImageManipTex = (Texture2D*)malloc(sizeof(Texture2D)*8);
@@ -70,6 +71,9 @@ namespace sereno
         m_notConnectedTextureMtl->setDepthWrite(false);
         free(texData);
 
+        //Volume selection lasso
+        m_lasso = new Lasso(NULL, &surfaceData->renderer, m_lassoMaterial);
+
         //Load CPCP data
         m_rawCPCPFBO      = new FBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_R32F, false);
         m_cpcpFBORenderer = new FBORenderer(m_rawCPCPFBO);
@@ -95,6 +99,7 @@ namespace sereno
         delete m_colorPhongMtl;
         delete m_cpcpMtl;
         delete m_redToGrayMtl;
+        delete m_lassoMaterial;
 
         /*----------------------------------------------------------------------------*/
         /*-----------------Delete the 4 DOF manipulation texture data-----------------*/
@@ -111,6 +116,8 @@ namespace sereno
         free(m_3dImageManipGO);
         delete m_notConnectedGO;
         delete m_notConnectedTex;
+
+        delete m_lasso;
 
         /*----------------------------------------------------------------------------*/
         /*------------------------------Delete FBO data-------------------------------*/
@@ -302,6 +309,8 @@ namespace sereno
                         {
                             m_currentWidgetAction = NO_IMAGE;
                             m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                            if(m_selecting)
+                                m_lasso->endLasso();
                         }
                         break;
                     }
@@ -327,51 +336,58 @@ namespace sereno
                             float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
                             float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
 
-                            //Determine current widget touched
-
-                            //Left
-                            if(x <= -1.0+widgetWidth)
+                            if(m_selecting)
                             {
-                                if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
-                                    m_currentWidgetAction = LEFT_IMAGE;
-                                else if(y > ratio-widgetWidth)
-                                    m_currentWidgetAction = TOP_LEFT_IMAGE;
-                                else
-                                    m_currentWidgetAction = BOTTOM_LEFT_IMAGE;
+                                m_lasso->startLasso(x, y, 0);
                             }
-
-                            //Right
-                            else if(x >= 1.0f-widgetWidth)
-                            {
-                                if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
-                                    m_currentWidgetAction = RIGHT_IMAGE;
-                                else if(y > ratio-widgetWidth)
-                                    m_currentWidgetAction = TOP_RIGHT_IMAGE;
-                                else
-                                    m_currentWidgetAction = BOTTOM_RIGHT_IMAGE;
-                            }
-
-                            //Center (top/bottom)
                             else
                             {
-                                if(y > ratio-widgetWidth)
-                                    m_currentWidgetAction = TOP_IMAGE;
-                                else if(y < -ratio+widgetWidth)
-                                    m_currentWidgetAction = BOTTOM_IMAGE;
-                            }
+                                //Determine current widget touched
 
-                            if(m_currentWidgetAction == TOP_IMAGE ||
-                               m_currentWidgetAction == BOTTOM_IMAGE ||
-                               m_currentWidgetAction == LEFT_IMAGE ||
-                               m_currentWidgetAction == RIGHT_IMAGE)
-                            {
-                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
-                            }
+                                //Left
+                                if(x <= -1.0+widgetWidth)
+                                {
+                                    if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
+                                        m_currentWidgetAction = LEFT_IMAGE;
+                                    else if(y > ratio-widgetWidth)
+                                        m_currentWidgetAction = TOP_LEFT_IMAGE;
+                                    else
+                                        m_currentWidgetAction = BOTTOM_LEFT_IMAGE;
+                                }
 
-                            else if(m_currentWidgetAction == NO_IMAGE)
-                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_ROTATING);
-                            else
-                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SCALING);
+                                //Right
+                                else if(x >= 1.0f-widgetWidth)
+                                {
+                                    if(y <= ratio-widgetWidth && y >= -ratio+widgetWidth)
+                                        m_currentWidgetAction = RIGHT_IMAGE;
+                                    else if(y > ratio-widgetWidth)
+                                        m_currentWidgetAction = TOP_RIGHT_IMAGE;
+                                    else
+                                        m_currentWidgetAction = BOTTOM_RIGHT_IMAGE;
+                                }
+
+                                //Center (top/bottom)
+                                else
+                                {
+                                    if(y > ratio-widgetWidth)
+                                        m_currentWidgetAction = TOP_IMAGE;
+                                    else if(y < -ratio+widgetWidth)
+                                        m_currentWidgetAction = BOTTOM_IMAGE;
+                                }
+
+                                if(m_currentWidgetAction == TOP_IMAGE ||
+                                m_currentWidgetAction == BOTTOM_IMAGE ||
+                                m_currentWidgetAction == LEFT_IMAGE ||
+                                m_currentWidgetAction == RIGHT_IMAGE)
+                                {
+                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
+                                }
+
+                                else if(m_currentWidgetAction == NO_IMAGE)
+                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_ROTATING);
+                                else
+                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SCALING);
+                            }
                         }
                         else
                         {
@@ -402,6 +418,10 @@ namespace sereno
                         visible = event->visibility.visibility;
                         m_snapshotCnt = 0;
                         break;
+                    }
+                    case SELECTION:
+                    {
+                        m_selecting = event->selection.starting;
                     }
                     default:
                         LOG_WARNING("type %d still has to be done\n", event->type);
@@ -508,7 +528,11 @@ namespace sereno
                 if(m_currentVis != NULL)
                     m_currentVis->update(&m_surfaceData->renderer);
 
+                m_lasso->update(&m_surfaceData->renderer);
+
                 m_surfaceData->renderer.render();
+
+                
             }
 
             if(visible && m_currentVis)
@@ -596,9 +620,17 @@ namespace sereno
                         numberFinger++;
                     }
                 }
+                
+                //selection
+                if(m_selecting){
+                    float width  = m_surfaceData->renderer.getWidth();
+                    float height = m_surfaceData->renderer.getHeight();
+                    float ratio  = height/width;
+                    m_lasso->continueLasso(event->x, event->y*ratio, 0);
+                }
 
                 //Z Translation
-                if(numberFinger >= 2)
+                else if(numberFinger >= 2)
                 {
                     //Determine if we are having a pitch
                     glm::vec2 vec1(tc1->x - tc1->oldX,
