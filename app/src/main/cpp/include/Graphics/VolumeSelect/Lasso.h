@@ -14,10 +14,12 @@ namespace sereno
              * \param renderer the OpenGL context object
              * \param mtl the material to use. */
             Lasso(GameObject* parent, GLRenderer* renderer, Material* mtl);
+            void clearLasso();
             void draw(const Render& render);
             void startLasso(float x, float y, float z);
             void continueLasso(float x, float y, float z);
-            void endLasso();
+            bool endLasso();
+            std::vector<float> getData();
         protected:
             GLuint   m_vboID = 0;
             GLuint   m_vaoID = 0;

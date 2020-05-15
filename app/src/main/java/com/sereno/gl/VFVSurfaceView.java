@@ -28,6 +28,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
          * This method can be called asynchronously
          * @param action the current action asked*/
         void onChangeCurrentAction(int action);
+
+        /** Function called from VFVSurfaceView when the lasso is traced
+         * Pay attention that this is done asynchronously
+         * @param data the lasso data*/
+        void onSetLasso(float[] data);
     }
 
     public static final int DATASET_TYPE_VTK    = 0;
@@ -177,6 +182,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
+    @Override
+    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
+
+    @Override
+    public void onSetLasso(ApplicationModel model, float[] lasso) {}
+
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
         d.addListener(this);
@@ -244,6 +255,15 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         for(IVFVSurfaceViewListener l : m_listeners)
             l.onChangeCurrentAction(a);
+    }
+
+    /** Function called from the native code when the lasso is traced
+     * Pay attention that this is done asynchronously
+     * @param data the lasso data*/
+    private void setLasso(float[] data)
+    {
+        for(IVFVSurfaceViewListener l : m_listeners)
+            l.onSetLasso(data);
     }
 
     /** Create the argument to send to the main function

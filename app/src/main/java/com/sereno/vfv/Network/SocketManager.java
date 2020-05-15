@@ -63,6 +63,8 @@ public class SocketManager
     public static final short REMOVE_SUBDATASET       = 18;
     public static final short MAKE_SUBDATASET_PUBLIC  = 19;
     public static final short DUPLICATE_SUBDATASET    = 20;
+    public static final short LOCATION                = 21;
+    public static final short LASSO                   = 22;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -638,6 +640,44 @@ public class SocketManager
         buf.putShort(MAKE_SUBDATASET_PUBLIC);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
+
+        return buf.array();
+    }
+
+    /** Create a location event
+     * @param pos the new position
+     * @param rot the new rotation
+     * @return array of byte to send to push*/
+    public static byte[] createLocationEvent(float[] pos, float[] rot)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+3*4+4*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(LOCATION);
+
+        for(int i = 0; i < 3; i++)
+            buf.putFloat(pos[i]);
+
+        for(int i = 0; i < 4; i++)
+            buf.putFloat(rot[i]);
+
+        return buf.array();
+    }
+
+    /** Create a lasso event
+     * @param lasso the lasso data
+     * @return array of byte to send to push*/
+    public static byte[] createLassoEvent(float[] lasso)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4 + lasso.length*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(LASSO);
+
+        buf.putInt(lasso.length);
+
+        for(int i = 0; i < lasso.length; i++)
+            buf.putFloat(lasso[i]);
 
         return buf.array();
     }

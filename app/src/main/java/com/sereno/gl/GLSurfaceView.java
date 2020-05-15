@@ -177,6 +177,8 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     {
         if(starting)
             nativeOnStartSelection(m_internalData);
+        else
+            nativeOnEndSelection(m_internalData);
     }
 
     protected String getMainLibrary()
@@ -280,6 +282,10 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     /** Native function called when starting a selction
      * @param data the C++ internal data pointer*/
     private native void nativeOnStartSelection(long data);
+
+    /** Native function called when ending a selction
+     * @param data the C++ internal data pointer*/
+    private native void nativeOnEndSelection(long data);
 
     static
     {

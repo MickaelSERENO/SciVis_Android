@@ -308,9 +308,17 @@ namespace sereno
                         if(numberFinger == 0)
                         {
                             m_currentWidgetAction = NO_IMAGE;
-                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
                             if(m_selecting)
-                                m_lasso->endLasso();
+                            {
+                                if(m_lasso->endLasso()){
+                                    m_mainData->setLasso(m_lasso->getData());
+                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SELECTING);
+                                }
+                            }
+                            else
+                            {
+                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                            }
                         }
                         break;
                     }
@@ -422,6 +430,15 @@ namespace sereno
                     case SELECTION:
                     {
                         m_selecting = event->selection.starting;
+                        if(event->selection.starting)
+                        {
+                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_LASSO);
+                        }
+                        else
+                        {
+                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                            m_lasso->clearLasso();
+                        }
                     }
                     default:
                         LOG_WARNING("type %d still has to be done\n", event->type);

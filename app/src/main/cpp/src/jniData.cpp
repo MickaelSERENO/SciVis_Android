@@ -8,6 +8,7 @@ namespace sereno
 
     jclass    jVFVSurfaceViewClass                    = 0;
     jmethodID jVFVSurfaceView_setCurrentAction        = 0;
+    jmethodID jVFVSurfaceView_setLasso                = 0;
 
     jclass    jBitmapClass                            = 0;
     jmethodID jBitmap_createBitmap                    = 0;
@@ -74,6 +75,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     //Load methods
     jVFVSurfaceView_setCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "setCurrentAction", "(I)V");
+    jVFVSurfaceView_setLasso         = env->GetMethodID(jVFVSurfaceViewClass, "setLasso", "([F)V");
 
     jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset",      "()I");
     jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset",        "(I)Lcom/sereno/vfv/Data/SubDataset;");

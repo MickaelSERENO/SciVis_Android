@@ -75,6 +75,17 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
          * @param model the app data
          * @param pt the new pointing technique in use*/
         void onUpdatePointingTechnique(ApplicationModel model, int pt);
+
+        /** Method called when the tablet's location is being updated
+         * @param model the app data
+         * @param pos the new position
+         * @param rot the new rotation*/
+        void onSetLocation(ApplicationModel model, float[] pos, float[] rot);
+
+        /** called when the lasso is traced
+         * @param model the app data
+         * @param data the lasso data*/
+        void onSetLasso(ApplicationModel model, float[] data);
     }
 
     /** Annotation meta data*/
@@ -116,6 +127,8 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public final int CURRENT_ACTION_SCALING   = 2;
     public final int CURRENT_ACTION_ROTATING  = 3;
     public final int CURRENT_ACTION_SKETCHING = 4;
+    public final int CURRENT_ACTION_LASSO     = 6;
+    public final int CURRENT_ACTION_SELECTING = 7;
 
     /** The pointing technique IDs*/
     public static final int POINTING_GOGO        = 0;
@@ -153,6 +166,15 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     /** Array containing the GTF Data of all the SubDataset*/
     private ArrayList<GTFData> m_gtfData = new ArrayList<>();
+
+    /** Current position*/
+    private float[] m_position;
+
+    /** Current rotation*/
+    private float[] m_rotation;
+
+    /** Current lasso*/
+    private float[] m_lasso;
 
     private int m_curPointingTechnique = POINTING_MANUAL;
 
@@ -507,6 +529,25 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             if(gtf.getDataset() == sd)
                 return gtf;
         return null;
+    }
+
+    public void setLocation(float[] pos, float[] rot)
+    {
+        if(m_currentAction == CURRENT_ACTION_NOTHING || m_currentAction == CURRENT_ACTION_SELECTING){
+            m_position = pos;
+            m_rotation = rot;
+            for(IDataCallback clbk : m_listeners)
+                clbk.onSetLocation(this, pos, rot);
+        }
+    }
+
+    /** @brief called when the lasso is traced
+     * @param data the lasso data*/
+    public void setLasso(final float[] data)
+    {
+        m_lasso = data;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetLasso(this, data);
     }
 
     @Override

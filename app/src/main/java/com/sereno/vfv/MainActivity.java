@@ -51,6 +51,7 @@ import com.sereno.vfv.Network.ClearAnnotationsMessage;
 import com.sereno.vfv.Network.EmptyMessage;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
+import com.sereno.vfv.Network.LocationTabletMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetMessage;
@@ -631,6 +632,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onLocationTabletMessage(final LocationTabletMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //Log.i("LOCATION_TABLET", "Position: " + msg.getPosition()[0] + " " + msg.getPosition()[1] + " " + msg.getPosition()[2] + "; "
+                //         + "Rotation: " + msg.getRotation()[0] + " " + msg.getRotation()[1] + " " + msg.getRotation()[2] + " " + msg.getRotation()[3]);
+                m_model.setLocation(msg.getPosition(), msg.getRotation());
+            }
+        });
+    }
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -857,6 +871,29 @@ public class MainActivity extends AppCompatActivity
         //pt can be "-1"
         if(pt >= 0 && pt <= 3)
             itms[pt].setChecked(true);
+    }
+
+    @Override
+    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
+    {
+        m_socket.push(SocketManager.createLocationEvent(pos, rot));
+    }
+
+    @Override
+    public void onSetLasso(ApplicationModel model, float[] lasso) {
+        /*
+        String lassoString = "Length: " + lasso.length;
+        for(int i = 0; i < lasso.length; i++){
+            if(i%3 == 0)
+                lassoString += '\n';
+            else
+                lassoString += ' ';
+            lassoString += lasso[i];
+        }
+        Log.i("SetLassoData", lassoString);
+         */
+
+        m_socket.push(SocketManager.createLassoEvent(lasso));
     }
 
     @Override

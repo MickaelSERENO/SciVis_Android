@@ -106,6 +106,10 @@ public class MessageBuffer
         /** Called when the message "GET_SET_SUBDATASET_OWNER" has been successfully parsed
          * @param msg the message parsed*/
         void onSubDatasetOwnerMessage(SubDatasetOwnerMessage msg);
+
+        /** Called when the message "GET_SET_SUBDATASET_OWNER" has been successfully parsed
+         * @param msg the message parsed*/
+        void onLocationTabletMessage(LocationTabletMessage msg);
     }
 
     /** No current type received*/
@@ -148,6 +152,10 @@ public class MessageBuffer
     public static final int GET_DEL_SUBDATASET          = 15;
 
     public static final int GET_SET_SUBDATASET_OWNER    = 16;
+
+    /** Get location data from tracker*/
+    public static final int GET_LOCATION_TABLET         = 18;
+
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -299,7 +307,10 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onSubDatasetOwnerMessage((SubDatasetOwnerMessage)m_curMsg);
                         break;
-
+                    case GET_LOCATION_TABLET:
+                        for (IMessageBufferCallback clbk : m_listeners)
+                            clbk.onLocationTabletMessage((LocationTabletMessage)m_curMsg);
+                        break;
 
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
@@ -370,6 +381,10 @@ public class MessageBuffer
             case GET_SET_SUBDATASET_OWNER:
                 m_curMsg = new SubDatasetOwnerMessage();
                 break;
+            case GET_LOCATION_TABLET:
+                m_curMsg = new LocationTabletMessage();
+                break;
+
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
                 return;

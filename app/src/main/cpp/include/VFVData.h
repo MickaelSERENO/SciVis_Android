@@ -40,7 +40,9 @@ namespace sereno
         VFV_CURRENT_ACTION_MOVING    = 1,
         VFV_CURRENT_ACTION_SCALING   = 2,
         VFV_CURRENT_ACTION_ROTATING  = 3,
-        VFV_CURRENT_ACTION_SKETCHING = 4
+        VFV_CURRENT_ACTION_SKETCHING = 4,
+        VFV_CURRENT_ACTION_LASSO     = 6,
+        VFV_CURRENT_ACTION_SELECTING = 7
     };
 
     struct SubDatasetEvent
@@ -185,6 +187,10 @@ namespace sereno
             /* \brief  Set the current action the device is performing
              * \param action */
             void setCurrentAction(VFVCurrentAction action);
+
+            /* \brief  Set the lasso
+             * \param data lasso data */
+            void setLasso(const std::vector<float> data);
 
             /* \brief  Set the headset ID this device is bound to. -1 == no headset bound
              * \param headsetID the new headset ID */

@@ -11,6 +11,7 @@ namespace sereno
 
     extern jclass    jVFVSurfaceViewClass;
     extern jmethodID jVFVSurfaceView_setCurrentAction;
+    extern jmethodID jVFVSurfaceView_setLasso;
 
     extern jclass    jBitmapClass;
     extern jmethodID jBitmap_createBitmap;

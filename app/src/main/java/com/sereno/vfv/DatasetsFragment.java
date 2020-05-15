@@ -434,6 +434,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
+    @Override
+    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
+
+    @Override
+    public void onSetLasso(ApplicationModel model, float[] lasso) {}
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
@@ -471,10 +477,22 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     }
                 });
             }
+
+            @Override
+            public void onSetLasso(final float[] data)
+            {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(m_model != null)
+                            m_model.setLasso(data);
+                    }
+                });
+            }
         });
 
 
-        // Setup the selection menu
+        /** Setup the selection menu*/
         m_selectionToggle = (ToggleButton) v.findViewById(R.id.selectionToggle);
         m_selectionToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

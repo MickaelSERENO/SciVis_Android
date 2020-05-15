@@ -300,6 +300,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
+    @Override
+    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
+
+    @Override
+    public void onSetLasso(ApplicationModel model, float[] lasso) {}
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)

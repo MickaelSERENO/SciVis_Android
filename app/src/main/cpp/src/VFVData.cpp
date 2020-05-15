@@ -81,6 +81,14 @@ namespace sereno
         jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_setCurrentAction, (int)a);
     }
 
+    void VFVData::setLasso(const std::vector<float> data){
+        jfloatArray arr = jniMainThread->NewFloatArray(data.size());
+        jniMainThread->SetFloatArrayRegion(arr, 0, data.size(), data.data());
+
+        jniMainThread->CallVoidMethod(m_javaObj, jVFVSurfaceView_setLasso, arr);
+        jniMainThread->DeleteLocalRef(arr);
+    }
+
     void VFVData::onRotationChange(SubDataset* data)
     {
         addSubDatasetEvent(data, VFV_SET_ROTATION_DATA);
