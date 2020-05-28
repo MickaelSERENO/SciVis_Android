@@ -29,6 +29,7 @@
 #include <map>
 #include <queue>
 #include <algorithm>
+#include <glm/glm.hpp>
 
 #define MAX_SNAPSHOT_COUNTER             30
 #define VTK_STRUCTURED_POINT_VIS_DENSITY 128
@@ -190,8 +191,15 @@ namespace sereno
             SciVis*              m_currentVis         = NULL; /*!< The current visualization*/
             bool                 m_curSDCanBeModified = true; /*!< Can our current SubDataset be modified?*/
 
+            /*----------------------------------------------------------------------------*/
+            /*---------------------------Volume selection data----------------------------*/
+            /*----------------------------------------------------------------------------*/
+
+            bool                 m_selecting;
             Lasso*               m_lasso;
-            bool                 m_selecting = false;
+            glm::vec3            m_tabletPos;
+            Quaternionf          m_tabletRot;
+            float                m_tabletScale;
 
             /*----------------------------------------------------------------------------*/
             /*-------------------------------Snapshot data--------------------------------*/

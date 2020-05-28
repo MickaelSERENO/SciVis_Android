@@ -897,6 +897,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {
+        String scaleString = "scale: " + scale;
+        scaleString += " width: " + width;
+        scaleString += " height: " + height;
+        scaleString += " posx: " + posx;
+        scaleString += " posy: " + posy;
+        Log.i("SetTabletScale", scaleString);
+        //m_socket.push(SocketManager.createTabletScaleEvent(scale, width, height, posx, posy));
+    }
+
+    @Override
     public void onEnableSwipping(Fragment fragment)
     {
         m_viewPager.setPagingEnabled(true);

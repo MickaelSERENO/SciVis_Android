@@ -183,10 +183,19 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     @Override
-    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
+    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
+    {
+        nativeOnSetLocation(m_ptr, pos, rot);
+    }
 
     @Override
     public void onSetLasso(ApplicationModel model, float[] lasso) {}
+
+    @Override
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy)
+    {
+        nativeOnSetTabletScale(m_ptr, scale, width, height, posx, posy);
+    }
 
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
@@ -301,6 +310,16 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param datasetPtr the dataset native pointer
      * @param datasetType  the type of the dataset (VTK, binary, etc.)*/
     private native void nativeRemoveDataset(long ptr, long datasetPtr, int datasetType);
+
+    /** Update the tablet's location
+     * @param ptr the ptr associated with the main Argument
+     * @param pos the tablet's position
+     * @param rot the tablet's rotation*/
+    private native void nativeOnSetLocation(long ptr, float[] pos, float[] rot);
+
+    /** Update the tablet's virtual scale
+     * @param ptr the ptr associated with the main Argument*/
+    private native void nativeOnSetTabletScale(long ptr, float scale, float width, float height, float posx, float posy);
 
     /** Send an event regarding an update from a SubDataset rotation
      * @param ptr the ptr associated with the main Argument

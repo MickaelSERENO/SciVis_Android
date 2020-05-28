@@ -61,6 +61,18 @@ extern "C"
      * \param datasetType the type of the dataset (VTK, Binary, etc.)*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveDataset(JNIEnv* env, jobject instance, jlong ptr, jlong datasetPtr, jint datasetType);
 
+    /* \brief Function called from Java in order to update the tablet's location
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param pos the tablet's position
+     * \param rot the tablet's rotation*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetLocation(JNIEnv* env, jobject instance, jlong ptr, jfloatArray jPos, jfloatArray jRot);
+    
+    /* \brief Function called from Java in order to update the tablet scale
+     * \param env the JNI environment
+     * \param instance the Java object calling this function*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetTabletScale(JNIEnv* env, jobject instance, jlong ptr, jfloat scale, jfloat width, jfloat height, jfloat posx, jfloat posy);
+
     /* \brief Function called from Java in order to update the view from a SubDataset rotation
      * \param env the JNI environment
      * \param instance the Java object calling this function

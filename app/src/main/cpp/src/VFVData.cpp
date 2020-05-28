@@ -89,6 +89,27 @@ namespace sereno
         jniMainThread->DeleteLocalRef(arr);
     }
 
+    void VFVData::onSetLocation(glm::vec3 pos, Quaternionf rot)
+    {
+        VFVEvent* ev = NULL;
+        ev = new VFVEvent(VFV_SET_LOCATION);
+        ev->setLocation.pos = pos;
+        ev->setLocation.rot = rot;
+        addEvent(ev);
+    }
+
+    void VFVData::onSetTabletScale(float scale, float width, float height, float posx, float posy)
+    {
+        VFVEvent* ev = NULL;
+        ev = new VFVEvent(VFV_SET_TABLET_SCALE);
+        ev->setTabletScale.scale = scale;
+        ev->setTabletScale.width = width;
+        ev->setTabletScale.height = height;
+        ev->setTabletScale.posx = posx;
+        ev->setTabletScale.posy = posy;
+        addEvent(ev);
+    }
+
     void VFVData::onRotationChange(SubDataset* data)
     {
         addSubDatasetEvent(data, VFV_SET_ROTATION_DATA);

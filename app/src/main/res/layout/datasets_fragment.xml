@@ -87,22 +87,34 @@
 
     <LinearLayout
         android:id="@+id/selectionMenu"
-        android:orientation="horizontal"
-        app:layout_row="1"
-        app:layout_rowWeight="1"
+        android:orientation="vertical"
+        app:layout_column="1"
         app:layout_columnWeight="1"
-        app:layout_column="1">
+        app:layout_row="1"
+        app:layout_rowWeight="1">
+
+        <TextView
+            android:id="@+id/tabletScaleLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tablet scale" />
+
+        <SeekBar
+            android:id="@+id/tabletScaleBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:progress="1" />
 
         <ToggleButton
             android:id="@+id/selectionToggle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="false"
             android:text="Selection"
             android:textOff="Start selection"
-            android:textOn="End selection"
-            app:layout_column="1"
-            app:layout_row="1" />
+            android:textOn="End selection" />
+
 
 
     </LinearLayout>

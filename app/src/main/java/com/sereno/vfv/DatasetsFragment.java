@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -63,6 +65,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         void onRequestMakeSubDatasetPublic(DatasetsFragment frag, SubDataset sd);
     }
 
+    public static final float INCH_TO_METER = 0.0254f;
+
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
     private TreeView         m_previewLayout     = null;  /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp     = null;  /*!< The bitmap used when no preview is available*/
@@ -79,6 +83,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
 
     private ToggleButton     m_selectionToggle;          /*!< The selection toggle button*/
+    private SeekBar          m_tabletScaleBar;           /*!< The tablet scale seek bar*/
 
     public DatasetsFragment()
     {
@@ -440,6 +445,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onSetLasso(ApplicationModel model, float[] lasso) {}
 
+    @Override
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {}
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
@@ -496,6 +504,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_selectionToggle = (ToggleButton) v.findViewById(R.id.selectionToggle);
         m_selectionToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                updateScale(m_tabletScaleBar.getProgress());
                 if (isChecked) {
                     // The toggle is enabled
                     m_surfaceView.setSelection(true);
@@ -506,7 +515,39 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
+        m_tabletScaleBar = (SeekBar) v.findViewById(R.id.tabletScaleBar);
+        m_tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    updateScale(progress);
+                }
+            }
 
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        updateScale(m_tabletScaleBar.getProgress());
+    }
+
+    public void updateScale(int progress){
+        float xdpi = getResources().getDisplayMetrics().xdpi;
+        float ydpi = getResources().getDisplayMetrics().ydpi;
+        int[] position = new int[2];
+        m_surfaceView.getLocationOnScreen(position);
+        m_model.setTabletScale(progress/xdpi*INCH_TO_METER,
+                m_surfaceView.getWidth(),
+                m_surfaceView.getHeight(),
+                position[0],
+                position[1]);
     }
 
     /** Generic function called when a new Dataset is being added

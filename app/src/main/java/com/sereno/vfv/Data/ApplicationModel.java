@@ -86,6 +86,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
          * @param model the app data
          * @param data the lasso data*/
         void onSetLasso(ApplicationModel model, float[] data);
+
+        /** called when setting the virtual tablet scale
+         * @param model the app data
+         * @param scale the lasso data*/
+        void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy);
     }
 
     /** Annotation meta data*/
@@ -548,6 +553,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         m_lasso = data;
         for(IDataCallback clbk : m_listeners)
             clbk.onSetLasso(this, data);
+    }
+
+    public void setTabletScale(float scale, float width, float height, float posx, float posy){
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetTabletScale(this, scale, width, height, posx, posy);
     }
 
     @Override

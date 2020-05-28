@@ -65,6 +65,7 @@ public class SocketManager
     public static final short DUPLICATE_SUBDATASET    = 20;
     public static final short LOCATION                = 21;
     public static final short LASSO                   = 22;
+    public static final short TABLETSCALE             = 23;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -678,6 +679,25 @@ public class SocketManager
 
         for(int i = 0; i < lasso.length; i++)
             buf.putFloat(lasso[i]);
+
+        return buf.array();
+    }
+
+    /** Create a tablet scale event
+     * @param scale the tablet scale
+     * @return array of byte to send to push*/
+    public static byte[] createTabletScaleEvent(float scale, float width, float height, float posx, float posy)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 5*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(TABLETSCALE);
+
+        buf.putFloat(scale);
+        buf.putFloat(width);
+        buf.putFloat(height);
+        buf.putFloat(posx);
+        buf.putFloat(posy);
 
         return buf.array();
     }

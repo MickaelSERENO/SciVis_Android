@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <jni.h>
 #include <vector>
+#include <glm/glm.hpp>
 #include "HeadsetStatus.h"
 #include "Datasets/BinaryDataset.h"
 #include "Datasets/VTKDataset.h"
@@ -31,6 +32,8 @@ namespace sereno
         VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
         VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
         VFV_ADD_SUBDATASET,      /*!< Add a new SubDataset*/
+        VFV_SET_LOCATION,        /*!< Update the tablet's location*/
+        VFV_SET_TABLET_SCALE,        /*!< Update the tablet's location*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -68,15 +71,30 @@ namespace sereno
         std::shared_ptr<Dataset> dataset; /*!< The dataset associated */
     };
 
+    /** \brief location event information */
+    struct SetLocationEvent
+    {
+        glm::vec3 pos;          /*!< Tablet's position */
+        Quaternionf rot;    /*!< Tablet's rotation */
+    };
+
+    /** \brief tablet scale event information */
+    struct SetTabletScaleEvent
+    {
+        float scale, width, height, posx, posy;
+    };
+
     /* \brief The Event that can be sent from JNI */
     struct VFVEvent
     {
         union
         {
-            DatasetEvent    dataset;    /*!< General dataset event*/
-            BinaryDataEvent binaryData; /*!< Binary  dataset event*/
-            VTKDataEvent    vtkData;    /*!< VTK    dataset event*/
-            SubDatasetEvent sdEvent;    /*!< SubDataset general event information*/
+            DatasetEvent     dataset;           /*!< General dataset event*/
+            BinaryDataEvent  binaryData;        /*!< Binary  dataset event*/
+            VTKDataEvent     vtkData;           /*!< VTK    dataset event*/
+            SubDatasetEvent  sdEvent;           /*!< SubDataset general event information*/
+            SetLocationEvent setLocation;       /*!< location event information */
+            SetTabletScaleEvent setTabletScale; /*!< location event information */
         };
 
         VFVEvent(VFVEventType t) : type(t)
@@ -159,6 +177,14 @@ namespace sereno
             /* \brief Remove the dataset "dataset"
              * \param dataset the ataset to remove*/
             void onRemoveDataset(std::shared_ptr<Dataset> dataset);
+
+            /* \brief Update the tablet's location
+             * \param pos the tablet's position
+             * \param pos the tablet's rotation */
+            void onSetLocation(glm::vec3 pos, Quaternionf rot);
+            
+            /* \brief Update the tablet scale */
+            void onSetTabletScale(float scale, float width, float height, float posx, float posy);
 
             /* \brief Function called when a SubDataset rotation has changed
              * \param data the SubDataset changing */

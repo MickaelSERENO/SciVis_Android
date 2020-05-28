@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <glm/glm.hpp>
 #include "VFVData.h"
 #include "jniData.h"
 #include "HeadsetStatus.h"
@@ -54,6 +55,29 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JN
 {
     VFVData* data = (VFVData*)ptr;
     data->addVTKData(*((std::shared_ptr<VTKDataset>*)jData), vtk);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetLocation(JNIEnv* env, jobject instance, jlong ptr, jfloatArray jPos, jfloatArray jRot)
+{
+    VFVData* data = (VFVData*)ptr;
+    jfloat* jPosArr = env->GetFloatArrayElements(jPos, 0);
+    jfloat* jRotArr = env->GetFloatArrayElements(jRot, 0);
+    glm::vec3 pos;
+    Quaternionf rot;
+    pos.x = jPosArr[0];
+    pos.y = jPosArr[1];
+    pos.z = jPosArr[2];
+    rot.x = jRotArr[0];
+    rot.y = jRotArr[1];
+    rot.z = jRotArr[2];
+    rot.w = jRotArr[3];
+    data->onSetLocation(pos, rot);
+}
+
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetTabletScale(JNIEnv* env, jobject instance, jlong ptr, jfloat scale, jfloat width, jfloat height, jfloat posx, jfloat posy)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->onSetTabletScale(scale, width, height, posx, posy);
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnRotationChange(JNIEnv* env, jobject instance, jlong ptr, jlong sd)

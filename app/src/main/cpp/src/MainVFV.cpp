@@ -73,6 +73,10 @@ namespace sereno
 
         //Volume selection lasso
         m_lasso = new Lasso(NULL, &surfaceData->renderer, m_lassoMaterial);
+        m_selecting = false;
+        m_tabletPos = glm::vec3(0.0f, 0.0f, 0.0f);
+        m_tabletRot = Quaternionf(0.0f, 0.0f, 0.0f, 1.0f);
+        m_tabletScale = 1;
 
         //Load CPCP data
         m_rawCPCPFBO      = new FBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_R32F, false);
@@ -215,7 +219,15 @@ namespace sereno
             if(tc->type != TOUCH_TYPE_UP)
                 numberFinger++;
 
-        if((m_currentWidgetAction == NO_IMAGE && numberFinger <= 1) || !m_curSDCanBeModified)
+        if(m_selecting){
+                m_surfaceData->renderer.setOrthographicMatrix(-m_tabletScale/2.0f*m_surfaceData->renderer.getWidth(), m_tabletScale/2.0f*m_surfaceData->renderer.getWidth(),
+                                                              -m_tabletScale/2.0f * ((float)m_surfaceData->renderer.getHeight()),
+                                                               m_tabletScale/2.0f * ((float)m_surfaceData->renderer.getHeight()),
+                                                              0.0f, 100.0f, true);
+                m_surfaceData->renderer.getCameraTransformable().setPosition(m_tabletPos);
+                m_surfaceData->renderer.getCameraTransformable().setRotate(m_tabletRot);
+        }
+        else if((m_currentWidgetAction == NO_IMAGE && numberFinger <= 1) || !m_curSDCanBeModified)
         {
             //Cancel the animation
             if(m_inAnimation || forceReset)
@@ -517,7 +529,7 @@ namespace sereno
                     }
                 }
 
-                if(m_surfaceData->renderer.getCameraParams().w == 0.0f)
+                if(m_surfaceData->renderer.getCameraParams().w == 0.0f && m_selecting)
                 {
                     SubDataset* sd = m_currentVis->getModel();
 
@@ -534,7 +546,7 @@ namespace sereno
                 placeCamera();
 
                 //Draw the scene
-                if(m_surfaceData->renderer.getCameraParams().w == 1.0) //Orthographic mode
+                if(m_surfaceData->renderer.getCameraParams().w == 1.0 && !m_selecting) //Orthographic mode
                 {
                     for(int i = 0; i < 8; i++)
                         m_3dImageManipGO[i].update(&m_surfaceData->renderer);
@@ -1009,6 +1021,21 @@ namespace sereno
                     m_currentVis = createVisualization(event->sdEvent.sd);
                     if(event->sdEvent.sd)
                         addSubDataChangement(event->sdEvent.sd, SubDatasetChangement(true, true, true, true));
+                    break;
+                }
+
+                case VFV_SET_LOCATION:
+                {
+                    m_tabletPos = event->setLocation.pos;
+                    m_tabletRot = event->setLocation.rot;
+                    m_lasso->setPosition(event->setLocation.pos);
+                    m_lasso->setRotate(event->setLocation.rot);
+                    break;
+                }
+
+                case VFV_SET_TABLET_SCALE:
+                {
+                    m_tabletScale = event->setTabletScale.scale;
                     break;
                 }
 
