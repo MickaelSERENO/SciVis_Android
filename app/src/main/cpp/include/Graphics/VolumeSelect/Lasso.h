@@ -19,14 +19,17 @@ namespace sereno
             void startLasso(float x, float y, float z);
             void continueLasso(float x, float y, float z);
             bool endLasso();
-            std::vector<float> getData();
+            const std::vector<float>& getData() const;
         protected:
             GLuint   m_vboID = 0;
             GLuint   m_vaoID = 0;
             uint32_t m_nbVertices = 0;
             GLenum   m_mode  = GL_LINES;
+            bool m_vboInitialized = false;
 
-            std::vector<float> data;
+            std::vector<float> m_data;
+
+            void buildVBO();
     };
 }
 
