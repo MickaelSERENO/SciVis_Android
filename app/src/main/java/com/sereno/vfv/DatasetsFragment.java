@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -68,6 +69,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public static final float INCH_TO_METER = 0.0254f;
 
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
+    private ViewGroup m_surfaceViewVolumeSelectLayout = null; /*!< The layout containing all the widgets to display during a volume selection process*/
     private TreeView         m_previewLayout     = null;  /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp     = null;  /*!< The bitmap used when no preview is available*/
     private ImageView        m_headsetColor      = null;  /*!< Image view representing the headset color*/
@@ -82,8 +84,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
 
-    private ToggleButton     m_selectionToggle;          /*!< The selection toggle button*/
-    private SeekBar          m_tabletScaleBar;           /*!< The tablet scale seek bar*/
 
     public DatasetsFragment()
     {
@@ -452,7 +452,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
     {
-        m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.mainView);
+        m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.surfaceView);
         m_previewLayout = (TreeView)v.findViewById(R.id.previewLayout);
         m_headsetColor  = (ImageView)v.findViewById(R.id.headsetColor);
 
@@ -501,22 +501,32 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
 
         /** Setup the selection menu*/
-        m_selectionToggle = (ToggleButton) v.findViewById(R.id.selectionToggle);
-        m_selectionToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                updateScale(m_tabletScaleBar.getProgress());
-                if (isChecked) {
-                    // The toggle is enabled
-                    m_surfaceView.setSelection(true);
-                } else {
-                    // The toggle is disabled
-                    m_surfaceView.setSelection(false);
-                }
+        Button startSelectionBtn = (Button) v.findViewById(R.id.startSelection);
+        startSelectionBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_surfaceView.setSelection(true);
+                setSVFullScreen(true);
+                m_surfaceViewVolumeSelectLayout.setVisibility(View.VISIBLE);
             }
         });
 
-        m_tabletScaleBar = (SeekBar) v.findViewById(R.id.tabletScaleBar);
-        m_tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        Button endSelectionBtn = (Button) v.findViewById(R.id.endSelection);
+        endSelectionBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_surfaceView.setSelection(false);
+                setSVFullScreen(false);
+                m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
+            }
+        });
+
+        SeekBar tabletScaleBar = (SeekBar)v.findViewById(R.id.tabletScaleBar);
+        tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if(fromUser) {
@@ -535,7 +545,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-        updateScale(m_tabletScaleBar.getProgress());
+        m_surfaceViewVolumeSelectLayout = v.findViewById(R.id.volumeLayoutInMV);
+        m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
+
+        updateScale(tabletScaleBar.getProgress());
     }
 
     public void updateScale(int progress)
@@ -560,15 +573,18 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         if(view instanceof ViewGroup)
         {
             ViewGroup viewGroup = (ViewGroup) view;
-            for(int i = 0; i< viewGroup.getChildCount(); ++i)
+            for(int i = 0; i < viewGroup.getChildCount(); ++i)
             {
                 View child = viewGroup.getChildAt(i);
-                child.setVisibility(fullScreen? View.GONE: View.VISIBLE);
+                child.setVisibility(fullScreen ? View.GONE : View.VISIBLE);
             }
         }
 
-        if(fullScreen)
+        if(fullScreen && view != null)
+        {
+            view.findViewById(R.id.mainView).setVisibility(View.VISIBLE);
             m_surfaceView.setVisibility(View.VISIBLE);
+        }
     }
 
     /** Generic function called when a new Dataset is being added

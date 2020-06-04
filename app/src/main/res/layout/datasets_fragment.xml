@@ -73,9 +73,7 @@
 
     <!-- Records -->
 
-    <!-- Current data preview -->
-    <com.sereno.gl.VFVSurfaceView
-        android:id="@+id/mainView"
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         app:layout_row="0"
         app:layout_rowSpan="1"
         app:layout_rowWeight="4"
@@ -83,7 +81,36 @@
         app:layout_columnWeight="3"
         android:layout_width="300px"
         android:layout_height="300px"
-        />
+        android:id="@+id/mainView">
+
+        <!-- Current data preview -->
+        <com.sereno.gl.VFVSurfaceView
+            android:id="@+id/surfaceView"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:id="@+id/volumeLayoutInMV">
+
+            <SeekBar
+                android:id="@+id/tabletScaleBar"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:max="10"
+                android:progress="1"/>
+
+            <Button
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:id="@+id/endSelection"
+                android:text="@string/endSelection"/>
+        </LinearLayout>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/selectionMenu"
@@ -93,27 +120,12 @@
         app:layout_row="1"
         app:layout_rowWeight="1">
 
-        <TextView
-            android:id="@+id/tabletScaleLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tablet scale" />
-
-        <SeekBar
-            android:id="@+id/tabletScaleBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="10"
-            android:progress="1" />
-
-        <ToggleButton
-            android:id="@+id/selectionToggle"
+        <Button
+            android:id="@+id/startSelection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="false"
-            android:text="Selection"
-            android:textOff="Start selection"
-            android:textOn="End selection" />
+            android:text="@string/startSelection"/>
 
 
 
