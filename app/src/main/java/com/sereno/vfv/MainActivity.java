@@ -907,7 +907,7 @@ public class MainActivity extends AppCompatActivity
         scaleString += " posx: " + posx;
         scaleString += " posy: " + posy;
         Log.i("SetTabletScale", scaleString);
-        //m_socket.push(SocketManager.createTabletScaleEvent(scale, width, height, posx, posy));
+        m_socket.push(SocketManager.createTabletScaleEvent(scale, width, height, posx, posy));
     }
 
     @Override

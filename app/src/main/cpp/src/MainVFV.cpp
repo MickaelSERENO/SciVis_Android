@@ -358,7 +358,7 @@ namespace sereno
 
                             if(m_selecting)
                             {
-                                m_lasso->startLasso(x, y, 0);
+                                m_lasso->startLasso(x, y/ratio, 0);
                             }
                             else
                             {
@@ -652,10 +652,7 @@ namespace sereno
                 
                 //selection
                 if(m_selecting){
-                    float width  = m_surfaceData->renderer.getWidth();
-                    float height = m_surfaceData->renderer.getHeight();
-                    float ratio  = height/width;
-                    m_lasso->continueLasso(event->x, event->y*ratio, 0);
+                    m_lasso->continueLasso(event->x, event->y, 0);
                 }
 
                 //Z Translation
@@ -1036,6 +1033,7 @@ namespace sereno
                 case VFV_SET_TABLET_SCALE:
                 {
                     m_tabletScale = event->setTabletScale.scale;
+                    m_lasso->setScale(glm::vec3(m_tabletScale*m_surfaceData->renderer.getWidth()/2,m_tabletScale*m_surfaceData->renderer.getHeight()/2,m_tabletScale));
                     break;
                 }
 
