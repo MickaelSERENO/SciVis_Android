@@ -744,6 +744,7 @@ public class MainActivity extends AppCompatActivity
         updateGTFWidgets();
     }
 
+    /** Redo the GTF layout. More specifically, redo all the widgets handling the "size" components of GTF*/
     private void redoGTFSizeLayout()
     {
         //Check if needed to redo the layout
@@ -773,6 +774,7 @@ public class MainActivity extends AppCompatActivity
         if(!redo)
             return;
 
+        //Remove all the views
         for(View v : m_gtfSizeViews.values())
         {
             ((ViewGroup)v.getParent()).removeView(v);
@@ -780,13 +782,14 @@ public class MainActivity extends AppCompatActivity
         }
         m_gtfSizeViews.clear();
 
+        //If no current GTF: exit
         if(m_currentGTFData == null)
             return;
         if(sd == null)
             return;
 
+        //Recreate the layout. One layout per GTF component
         ViewGroup sizeLayout = m_drawerLayout.findViewById(R.id.gtfSizeLayout);
-
         for(final int i : m_currentGTFData.getCPCPOrder())
         {
             for(PointFieldDesc desc : sd.getParent().getPointFieldDescs())

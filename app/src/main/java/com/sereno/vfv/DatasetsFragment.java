@@ -538,7 +538,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         updateScale(m_tabletScaleBar.getProgress());
     }
 
-    public void updateScale(int progress){
+    public void updateScale(int progress)
+    {
         float xdpi = getResources().getDisplayMetrics().xdpi;
         float ydpi = getResources().getDisplayMetrics().ydpi;
         int[] position = new int[2];
@@ -548,6 +549,26 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_surfaceView.getHeight(),
                 position[0],
                 position[1]);
+    }
+
+    /** Set or unset the "fullscreen" parameter of the main SurfaceView Widget.
+     * This function will in fact make everything else "disappear" (View.GONE) or "appear" (View.VISIBLE)
+     * @param fullScreen true to set the SurfaceView in fullscreen, false to reput everything back to "normal"*/
+    public void setSVFullScreen(boolean fullScreen)
+    {
+        View view = getView();
+        if(view instanceof ViewGroup)
+        {
+            ViewGroup viewGroup = (ViewGroup) view;
+            for(int i = 0; i< viewGroup.getChildCount(); ++i)
+            {
+                View child = viewGroup.getChildAt(i);
+                child.setVisibility(fullScreen? View.GONE: View.VISIBLE);
+            }
+        }
+
+        if(fullScreen)
+            m_surfaceView.setVisibility(View.VISIBLE);
     }
 
     /** Generic function called when a new Dataset is being added
