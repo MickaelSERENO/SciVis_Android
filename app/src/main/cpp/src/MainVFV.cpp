@@ -571,6 +571,7 @@ namespace sereno
 
                 if(m_currentVis != NULL)
                 {
+                    m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
                     m_currentVis->update(m_currentVisFBORenderer);
                     m_currentVisFBORenderer->render();
                     m_currentVisFBOGO->update(&m_surfaceData->renderer);

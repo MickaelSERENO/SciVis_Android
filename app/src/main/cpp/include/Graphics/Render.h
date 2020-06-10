@@ -79,6 +79,12 @@ namespace sereno
             /** \brief  Get the render viewport
              * \return  the render viewport */
             const Rectangle2i& getViewport() const {return m_viewport;}
+
+            /** \brief Set the camera parameters once for all
+             * \param trans the transformable representing the camera's position, rotation, and scaling (see getCameraTransformable)
+             * \param proj the camera projection matrix (see getProjectionMatrix)
+             * \param cameraParams the camera parameters (see getCameraParams)*/
+            void setCameraData(const Transformable& trans, const glm::mat4& proj, const glm::vec4& cameraParams);
         protected:
             std::vector<Drawable*> m_currentDrawable; /*!< What are the current drawable being drawn ?*/
             glm::mat4              m_projMatrix;      /*!< The perspective matrix to apply*/
