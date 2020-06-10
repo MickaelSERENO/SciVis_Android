@@ -567,14 +567,14 @@ namespace sereno
                         m_notConnectedGO->update(&m_surfaceData->renderer);
                 }
 
+                m_lasso->update(&m_surfaceData->renderer);
+
                 if(m_currentVis != NULL)
                 {
                     m_currentVis->update(m_currentVisFBORenderer);
                     m_currentVisFBORenderer->render();
                     m_currentVisFBOGO->update(&m_surfaceData->renderer);
                 }
-
-                m_lasso->update(&m_surfaceData->renderer);
 
                 m_surfaceData->renderer.render();
             }
