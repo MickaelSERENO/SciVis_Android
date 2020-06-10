@@ -89,6 +89,7 @@ namespace sereno
         m_currentVisFBOMtl->bindTexture(m_currentVisFBO->getColorBuffer(), 2, 0);
         m_currentVisFBOGO       = new DefaultGameObject(NULL, &surfaceData->renderer, m_currentVisFBOMtl, m_gpuTexVBO);
         m_currentVisFBOGO->scale(glm::vec3(2.0f, 2.0f, 2.0f));
+        m_currentVisFBOGO->setEnableCamera(false);
     }
 
     MainVFV::~MainVFV()

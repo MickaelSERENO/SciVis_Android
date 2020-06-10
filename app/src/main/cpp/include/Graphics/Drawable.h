@@ -32,9 +32,14 @@ namespace sereno
             /** \brief Set the Drawable Material
              * \param mtl the new Material to use*/
             void setMaterial(Material* mtl);
+
+            /** \brief Enable the camera component
+             * \param enable true if the camera should exist, false otherwise*/
+            void setEnableCamera(bool enable) {m_enableCamera = enable;};
         protected:
             GLRenderer* m_glRenderer = NULL; /*! The GLRenderer containing the opengl renderer information*/
             Material*   m_mtl        = NULL; /*!< The material to use*/
+            bool        m_enableCamera = true; /*!< Enable the camera matrix component*/
     };
 }
 

@@ -13,8 +13,12 @@ namespace sereno
     void Render::render()
     {
         glViewport(m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         for(Drawable* d : m_currentDrawable)
             d->draw(*this);
+
 
         for(Drawable* d : m_currentDrawable)
             d->postDraw(*this);
