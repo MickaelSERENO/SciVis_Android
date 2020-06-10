@@ -53,4 +53,12 @@ namespace sereno
         }
         m_cameraParams.w = 0.0f;
     }
+
+    void Render::setCameraData(const Transformable& trans, const glm::mat4& proj, const glm::vec4& cameraParams)
+    {
+        m_cameraParams = cameraParams;
+        m_projMatrix   = proj;
+        m_cameraMatrix = trans;
+
+    }
 }
