@@ -42,6 +42,9 @@
 #define CPCP_TEXTURE_WIDTH  512
 #define CPCP_TEXTURE_HEIGHT 512
 
+#define VIS_FBO_WIDTH  1024
+#define VIS_FBO_HEIGHT 1024
+
 //IDs of the images selected on screen
 #define BOTTOM_IMAGE       0
 #define LEFT_IMAGE         1
@@ -171,15 +174,16 @@ namespace sereno
             /*----------------------------------------------------------------------------*/
             /*------------------------All the Materials being used------------------------*/
             /*----------------------------------------------------------------------------*/
-            Material*                 m_vfMtl;           /*!< The vector field material*/
-            ColorGridMaterial*        m_colorGridMtl;    /*!< The color grid material for the VTK StructuredGridPoints*/
-            SimpleTextureMaterial*    m_3dTextureMtl;    /*!< Material to draw the 3d manip texture objects*/
+            Material*                 m_vfMtl;            /*!< The vector field material*/
+            ColorGridMaterial*        m_colorGridMtl;     /*!< The color grid material for the VTK StructuredGridPoints*/
+            SimpleTextureMaterial*    m_3dTextureMtl;     /*!< Material to draw the 3d manip texture objects*/
             SimpleTextureMaterial*    m_notConnectedTextureMtl; /*!< Material to draw the not connected texture object*/
-            PhongMaterial*            m_colorPhongMtl;   /*!< Material to draw default scivis gameobjects*/
-            NormalizeMaterial*        m_normalizeMtl;    /*!< Material used to normalize a texture*/
-            CPCPMaterial*             m_cpcpMtl;         /*!< The Continuous Parallel Coordinate Plot material*/
-            RedToGrayMaterial*        m_redToGrayMtl;    /*!< The Red to Gray material*/
-            UniColorMaterial*         m_lassoMaterial;   /*!< Material to draw the volume selection lasso*/
+            PhongMaterial*            m_colorPhongMtl;    /*!< Material to draw default scivis gameobjects*/
+            NormalizeMaterial*        m_normalizeMtl;     /*!< Material used to normalize a texture*/
+            CPCPMaterial*             m_cpcpMtl;          /*!< The Continuous Parallel Coordinate Plot material*/
+            RedToGrayMaterial*        m_redToGrayMtl;     /*!< The Red to Gray material*/
+            UniColorMaterial*         m_lassoMaterial;    /*!< Material to draw the volume selection lasso*/
+            SimpleTextureMaterial*    m_currentVisFBOMtl; /*!< The Material to use for the current vis FBO*/
 
             /*----------------------------------------------------------------------------*/
             /*---------------------------All the SciVis loaded----------------------------*/
@@ -188,8 +192,11 @@ namespace sereno
             std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualization*/
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
-            SciVis*              m_currentVis         = NULL; /*!< The current visualization*/
-            bool                 m_curSDCanBeModified = true; /*!< Can our current SubDataset be modified?*/
+            SciVis*              m_currentVis         = NULL;  /*!< The current visualization*/
+            bool                 m_curSDCanBeModified = true;  /*!< Can our current SubDataset be modified?*/
+            FBO*                 m_currentVisFBO      = NULL;  /*!< The FBO to render the current visualization in*/
+            FBORenderer*         m_currentVisFBORenderer = NULL;  /*!< The FBORenderer to use for the current visualization*/
+            DefaultGameObject*   m_currentVisFBOGO    = NULL;  /*!< The Default Game Object for the FBO rendering for the current visualization game object*/
 
             /*----------------------------------------------------------------------------*/
             /*---------------------------Volume selection data----------------------------*/

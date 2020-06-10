@@ -43,6 +43,7 @@ namespace sereno
         m_normalizeMtl  = new NormalizeMaterial(&m_surfaceData->renderer);
         m_redToGrayMtl  = new RedToGrayMaterial(&m_surfaceData->renderer);
         m_lassoMaterial = new UniColorMaterial(&m_surfaceData->renderer, Color::YELLOW_COLOR);
+        m_currentVisFBOMtl = new SimpleTextureMaterial(&surfaceData->renderer);
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
         m_3dImageManipTex = (Texture2D*)malloc(sizeof(Texture2D)*8);
@@ -81,6 +82,13 @@ namespace sereno
         //Load CPCP data
         m_rawCPCPFBO      = new FBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_R32F, false);
         m_cpcpFBORenderer = new FBORenderer(m_rawCPCPFBO);
+
+        //Current visualization data
+        m_currentVisFBO         = new FBO(VIS_FBO_WIDTH, VIS_FBO_HEIGHT, GL_RGBA8, false);
+        m_currentVisFBORenderer = new FBORenderer(m_currentVisFBO);
+        m_currentVisFBOMtl->bindTexture(m_currentVisFBO->getColorBuffer(), 2, 0);
+        m_currentVisFBOGO       = new DefaultGameObject(NULL, &surfaceData->renderer, m_currentVisFBOMtl, m_gpuTexVBO);
+        m_currentVisFBOGO->scale(glm::vec3(2.0f, 2.0f, 2.0f));
     }
 
     MainVFV::~MainVFV()
@@ -94,6 +102,10 @@ namespace sereno
         for(VTKStructuredGridPointSciVis* vis : m_vtkStructuredGridPoints) //This ensure that the parallel threads have finished (because of a join call)
             delete vis;
 
+        delete m_currentVisFBO;
+        delete m_currentVisFBORenderer;
+        delete m_currentVisFBOGO;
+
         /*----------------------------------------------------------------------------*/
         /*------------------------------Delete materials------------------------------*/
         /*----------------------------------------------------------------------------*/
@@ -104,6 +116,7 @@ namespace sereno
         delete m_cpcpMtl;
         delete m_redToGrayMtl;
         delete m_lassoMaterial;
+        delete m_currentVisFBOMtl;
 
         /*----------------------------------------------------------------------------*/
         /*-----------------Delete the 4 DOF manipulation texture data-----------------*/
@@ -555,13 +568,15 @@ namespace sereno
                 }
 
                 if(m_currentVis != NULL)
-                    m_currentVis->update(&m_surfaceData->renderer);
+                {
+                    m_currentVis->update(m_currentVisFBORenderer);
+                    m_currentVisFBORenderer->render();
+                    m_currentVisFBOGO->update(&m_surfaceData->renderer);
+                }
 
                 m_lasso->update(&m_surfaceData->renderer);
 
                 m_surfaceData->renderer.render();
-
-                
             }
 
             if(visible && m_currentVis)
