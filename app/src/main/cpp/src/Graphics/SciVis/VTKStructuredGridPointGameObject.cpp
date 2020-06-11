@@ -102,14 +102,33 @@ namespace sereno
 
     void VTKStructuredGridPointGameObject::draw(const Render& render)
     {
-        const glm::mat4& cameraMat = render.getCameraMatrix();
-        const glm::mat4& projMat   = render.getProjectionMatrix();
-        glm::mat4 mat = getMatrix();
-        glm::mat4 mvp = projMat*cameraMat*mat;
-
         /*----------------------------------------------------------------------------*/
         /*--------Determine the 4 rectangle points where the cube is on screen--------*/
         /*----------------------------------------------------------------------------*/
+
+        glm::mat4 mvp;
+
+        m_mtl->bindTexture(m_texture, 3, 0);
+        if(m_enableCamera)
+        {
+            const glm::mat4& cameraMat    = render.getCameraMatrix();
+            const glm::mat4& projMat      = render.getProjectionMatrix();
+            const glm::vec4& cameraParams = render.getCameraParams();
+
+            glm::mat4 mat = getMatrix();
+            mvp = projMat*cameraMat*mat;
+
+            glm::mat4 invMVP = glm::inverse(mvp);
+            m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, cameraParams);
+        }
+
+        else
+        {
+            glm::mat4 mat = getMatrix();
+            mvp = mat;
+            glm::mat4 invMVP = glm::inverse(mvp);
+            m_mtl->bindMaterial(mat, glm::mat4(1.0f), glm::mat4(1.0f), mvp, invMVP, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        }
 
         glm::vec4 points[8];
         points[0] = glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f);
@@ -176,10 +195,6 @@ namespace sereno
         /*----------------------------------------------------------------------------*/
         /*------------------------------------Draw------------------------------------*/
         /*----------------------------------------------------------------------------*/
-
-        glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindTexture(m_texture, 3, 0);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
 
         glDisable(GL_CULL_FACE);
         glBindVertexArray(m_vaoID);

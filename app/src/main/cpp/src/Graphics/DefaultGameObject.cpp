@@ -44,21 +44,25 @@ namespace sereno
     
     void DefaultGameObject::draw(const Render& render)
     {
-        glm::mat4 cameraMat = glm::mat4(1.0f);
-        glm::mat4 projMat = glm::mat4(1.0f);
-        glm::vec4 cameraParams = glm::vec4(0,0,0,0);
-
         if(m_enableCamera)
         {
-            cameraMat = render.getCameraMatrix();
-            projMat = render.getProjectionMatrix();
-            cameraParams = render.getCameraParams();
-        }
-        glm::mat4 mat = getMatrix();
-        glm::mat4 mvp = projMat*cameraMat*mat;
+            const glm::mat4& cameraMat    = render.getCameraMatrix();
+            const glm::mat4& projMat      = render.getProjectionMatrix();
+            const glm::vec4& cameraParams = render.getCameraParams();
 
-        glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, cameraParams);
+            glm::mat4 mat = getMatrix();
+            glm::mat4 mvp = projMat*cameraMat*mat;
+
+            glm::mat4 invMVP = glm::inverse(mvp);
+            m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, cameraParams);
+        }
+
+        else
+        {
+            glm::mat4 mat = getMatrix();
+            glm::mat4 invMVP = glm::inverse(mat);
+            m_mtl->bindMaterial(mat, glm::mat4(1.0f), glm::mat4(1.0f), mat, invMVP, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        }
 
         glBindVertexArray(m_gpuData->getVAO());
         {

@@ -36,9 +36,13 @@ namespace sereno
             /** \brief Enable the camera component
              * \param enable true if the camera should exist, false otherwise*/
             void setEnableCamera(bool enable) {m_enableCamera = enable;};
+
+            /* \brief   Get wether the camera is enabled or not
+             * \return  true if the camera component is taken into account, false otherwise*/
+            bool isCameraEnabled() const {return m_enableCamera;}
         protected:
-            GLRenderer* m_glRenderer = NULL; /*! The GLRenderer containing the opengl renderer information*/
-            Material*   m_mtl        = NULL; /*!< The material to use*/
+            GLRenderer* m_glRenderer = NULL;   /*! The GLRenderer containing the opengl renderer information*/
+            Material*   m_mtl        = NULL;   /*!< The material to use*/
             bool        m_enableCamera = true; /*!< Enable the camera matrix component*/
     };
 }

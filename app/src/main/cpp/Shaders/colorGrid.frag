@@ -135,10 +135,11 @@ void main()
     vec3 minPos = rayOrigin.xyz + (minT)*rayNormal + vec3(0.5, 0.5, 0.5);
     vec3 maxPos = rayOrigin.xyz + (maxT)*rayNormal + vec3(0.5, 0.5, 0.5);
 
-    const float rayStep  = 0.50;
-    float nbValues = 1.0 + length((maxPos-minPos)*uDimension)/rayStep;
+    float rayStep  = 1.0/length(rayNormal*uDimension);
+    vec3 rayStepNormal = rayStep*rayNormal;
 
-    vec3 rayStepNormal = rayStep*rayNormal/uDimension;
+    float nbValues = (maxT-minT)/rayStep;
+
     vec3 rayPos = minPos;
 
     //Ray marching algorithm
@@ -146,13 +147,12 @@ void main()
     {
         nbValues -= 1.0;
         rayPos += rayStepNormal;
-        vec4 tfColor = textureLod(uTexture0, rayPos,  0.0);
-        tfColor.a *= rayStep;
 
+        vec4 tfColor = textureLod(uTexture0, rayPos,  0.0);
         vec4 col  = vec4(tfColor.xyz, 1.0);
         fragColor = fragColor + (1.0 - fragColor.a)*tfColor.a*col;
 
-        if(fragColor.a >= 0.95)
+        if(fragColor.a >= 0.90)
         {
             fragColor.a = 1.0;
             return;

@@ -41,13 +41,25 @@ namespace sereno
 
     void DefaultSciVis::draw(const Render& render)
     {
-        const glm::mat4& cameraMat = render.getCameraMatrix();
-        const glm::mat4& projMat   = render.getProjectionMatrix();
-        glm::mat4 mat = getMatrix();
-        glm::mat4 mvp = projMat*cameraMat*mat;
-        glm::mat4 invMVP = glm::inverse(mvp);
+        if(m_enableCamera)
+        {
+            const glm::mat4& cameraMat    = render.getCameraMatrix();
+            const glm::mat4& projMat      = render.getProjectionMatrix();
+            const glm::vec4& cameraParams = render.getCameraParams();
 
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
+            glm::mat4 mat = getMatrix();
+            glm::mat4 mvp = projMat*cameraMat*mat;
+
+            glm::mat4 invMVP = glm::inverse(mvp);
+            m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, cameraParams);
+        }
+
+        else
+        {
+            glm::mat4 mat = getMatrix();
+            glm::mat4 invMVP = glm::inverse(mat);
+            m_mtl->bindMaterial(mat, glm::mat4(1.0f), glm::mat4(1.0f), mat, invMVP, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        }
 
         glBindVertexArray(m_vaoID);
         {
