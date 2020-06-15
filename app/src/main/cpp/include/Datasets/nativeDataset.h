@@ -5,7 +5,7 @@
 
 extern "C"
 {
-    /* \brief Delete a BinaryDataset object owned by Java
+    /* \brief Delete a VectorFieldDataset object owned by Java
      * \param jenv the JNIEnvironment
      * \param jobj the Java Object calling this function
      * \param ptr the Dataset ptr */

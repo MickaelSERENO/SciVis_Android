@@ -22,7 +22,7 @@ namespace sereno
     /* \brief Enumeration representing the possible events from the Model modification */
     enum VFVEventType
     {
-        VFV_ADD_VECTOR_FIELD_DATA,     /*!< Binary Data added*/
+        VFV_ADD_VECTOR_FIELD_DATA,     /*!< VectorField Data added*/
         VFV_ADD_VTK_DATA,        /*!< VTK Data added*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
@@ -54,7 +54,7 @@ namespace sereno
     };
 
     /* \brief binary data event information (add) */
-    struct BinaryDataEvent
+    struct VectorFieldDataEvent
     {
         std::shared_ptr<VectorFieldDataset> dataset; /*!< The dataset associated*/
     };
@@ -90,7 +90,7 @@ namespace sereno
         union
         {
             DatasetEvent     dataset;           /*!< General dataset event*/
-            BinaryDataEvent  binaryData;        /*!< Binary  dataset event*/
+            VectorFieldDataEvent  binaryData;        /*!< VectorField  dataset event*/
             VTKDataEvent     vtkData;           /*!< VTK    dataset event*/
             SubDatasetEvent  sdEvent;           /*!< SubDataset general event information*/
             SetLocationEvent setLocation;       /*!< location event information */
@@ -102,7 +102,7 @@ namespace sereno
             switch(type)
             {
                 case VFV_ADD_VECTOR_FIELD_DATA:
-                    new(&binaryData) BinaryDataEvent;
+                    new(&binaryData) VectorFieldDataEvent;
                     break;
                 case VFV_ADD_VTK_DATA:
                     new(&vtkData) VTKDataEvent;
@@ -121,7 +121,7 @@ namespace sereno
             switch(type)
             {
                 case VFV_ADD_VECTOR_FIELD_DATA:
-                    binaryData.~BinaryDataEvent();
+                    binaryData.~VectorFieldDataEvent();
                     break;
                 case VFV_ADD_VTK_DATA:
                     vtkData.~VTKDataEvent();

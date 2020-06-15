@@ -1209,7 +1209,7 @@ public class MainActivity extends AppCompatActivity
 
                 String fileName = df.getFile().getName();
 
-                //Binary dataset
+                //VectorField dataset
                 if(fileName.endsWith(".data"))
                 {
                     final VectorFieldDataset fd = new VectorFieldDataset(df.getFile());

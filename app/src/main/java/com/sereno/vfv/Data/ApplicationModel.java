@@ -336,8 +336,8 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @return the list of VTK Datasets opened*/
     public ArrayList<VTKDataset> getVTKDatasets() {return m_vtkDatasets;}
 
-    /** @brief Get a list of Binary Datasets
-     * @return the list of Binary Datasets opened*/
+    /** @brief Get a list of VectorField Datasets
+     * @return the list of VectorField Datasets opened*/
     public ArrayList<VectorFieldDataset> getVectorFieldDatasets() {return m_binaryDatasets;}
 
     public ArrayList<Dataset> getDatasets() {return m_datasets;}
