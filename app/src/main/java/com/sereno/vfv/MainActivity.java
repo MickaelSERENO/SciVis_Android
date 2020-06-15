@@ -32,7 +32,7 @@ import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.DataFile;
-import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.PointFieldDesc;
 import com.sereno.vfv.Data.SubDataset;
@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
+    public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d)
     {
         m_deleteDataBtn.setVisibility(View.VISIBLE);
         onAddDataset(d);
@@ -1196,14 +1196,14 @@ public class MainActivity extends AppCompatActivity
 
                 String fileName = df.getFile().getName();
 
-                //Binary dataset
+                //VectorField dataset
                 if(fileName.endsWith(".data"))
                 {
-                    final BinaryDataset fd = new BinaryDataset(df.getFile());
+                    final VectorFieldDataset fd = new VectorFieldDataset(df.getFile());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            m_model.addBinaryDataset(fd);
+                            m_model.addVectorFieldDataset(fd);
                         }
                     });
                 }

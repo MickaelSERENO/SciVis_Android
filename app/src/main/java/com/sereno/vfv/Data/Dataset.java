@@ -98,7 +98,7 @@ public abstract class Dataset
         m_listeners.remove(listener);
     }
 
-    /** @brief Get the C++ pointer handler of the BinaryDataset
+    /** @brief Get the C++ pointer handler of the VectorFieldDataset
      * @return the native pointer handler*/
     public long getPtr() {return m_ptr;}
 

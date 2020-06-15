@@ -7,7 +7,7 @@
 #include <GLES3/gl3ext.h>
 #include <memory>
 #include "SciVis.h"
-#include "Datasets/BinaryDataset.h"
+#include "Datasets/VectorFieldDataset.h"
 #include "MeshLoader.h"
 #include "ColorMode.h"
 #include "Color.h"
@@ -27,20 +27,20 @@ namespace sereno
              * \param dataset the dataset to load in the graphic card
              * \param arrowLoader the arrow mesh */
             VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent,
-                        const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader);
+                        const std::shared_ptr<VectorFieldDataset> dataset, const MeshLoader* arrowLoader);
 
             /* \brief Destructor*/
             ~VectorField();
 
             /* \brief Get the binary dataset model bound to this vector field
              * \return the binary dataset model of this VectorField*/
-            std::shared_ptr<BinaryDataset> getBinaryDatasetModel() const {return m_binaryDataset;}
+            std::shared_ptr<VectorFieldDataset> getModel() const {return m_data;}
 
             void draw(const Render& render);
 
             void onTFChanged();
         private:
-            const std::shared_ptr<BinaryDataset> m_binaryDataset = NULL; /*!< The fluid dataset model*/
+            const std::shared_ptr<VectorFieldDataset> m_data = NULL; /*!< The fluid dataset model*/
 
             GLuint        m_vaoID;                         /*!< Vertex Array Object*/
             GLuint        m_vboID;                         /*!< Vertex Buffer Object*/

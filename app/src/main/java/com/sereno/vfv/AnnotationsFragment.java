@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import com.sereno.Tree;
 import com.sereno.vfv.Data.ApplicationModel;
-import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
@@ -128,8 +128,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         if(m_ctx != null)
         {
             //Call the callback functions
-            for (BinaryDataset d : model.getBinaryDatasets())
-                onAddBinaryDataset(m_model, d);
+            for (VectorFieldDataset d : model.getVectorFieldDatasets())
+                onAddVectorFieldDataset(m_model, d);
             for (VTKDataset d : model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
 
@@ -158,7 +158,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
+    public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d)
     {
         onAddDataset(d);
     }
