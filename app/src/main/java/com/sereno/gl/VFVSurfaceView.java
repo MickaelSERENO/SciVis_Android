@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.ApplicationModel;
-import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
@@ -92,10 +92,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddBinaryDataset(ApplicationModel model, BinaryDataset fd)
+    public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset fd)
     {
         onAddDataset(model, fd);
-        nativeAddBinaryDataset(fd, m_ptr, fd.getPtr());
+        nativeAddVectorFieldDataset(fd, m_ptr, fd.getPtr());
     }
 
     @Override
@@ -173,7 +173,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onRemoveDataset(ApplicationModel model, Dataset dataset)
     {
-        if(model.getBinaryDatasets().contains(dataset))
+        if(model.getVectorFieldDatasets().contains(dataset))
             nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_BINARY);
         else if(model.getVTKDatasets().contains(dataset))
             nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_VTK);
@@ -291,8 +291,8 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     /** Add the dataset into the cpp application
      * @param bd the binary dataset bound to the fd pointer
      * @param ptr the ptr associated with the main Argument
-     * @param fd the BinaryDataset to add*/
-    private native void nativeAddBinaryDataset(BinaryDataset bd, long ptr, long fd);
+     * @param fd the VectorFieldDataset to add*/
+    private native void nativeAddVectorFieldDataset(VectorFieldDataset bd, long ptr, long fd);
 
     /** Add a VTKParser into the cpp application
      * @param vtk the VTKDataset bound to the vtkDataPtr

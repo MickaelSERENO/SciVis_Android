@@ -33,8 +33,8 @@ extern "C"
      * \param env the JNI environment
      * \param instance the Java object calling this function
      * \param ptr the VFVData ptr
-     * \param jData BinaryDataset*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddBinaryDataset(JNIEnv* env, jobject instance, jobject jbd, jlong ptr, jlong jData);
+     * \param jData VectorFieldDataset*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVectorFieldDataset(JNIEnv* env, jobject instance, jobject jbd, jlong ptr, jlong jData);
 
     /* \brief Function called from Java in order to add a new VTK dataset in the cpp memory application
      * Note that this function is asynchronous between the main cpp thread and the java UI thread

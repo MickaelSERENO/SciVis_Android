@@ -935,7 +935,7 @@ namespace sereno
             switch(event->getType())
             {
                 //Add binary dataset
-                case VFV_ADD_BINARY_DATA:
+                case VFV_ADD_VECTOR_FIELD_DATA:
                     if(m_arrowMesh)
                     {
                        /*//Create the visualization

@@ -3,8 +3,8 @@
 namespace sereno
 {
     VectorField::VectorField(GLRenderer* renderer, Material* mtl, GameObject* parent, 
-                             const std::shared_ptr<BinaryDataset> dataset, const MeshLoader* arrowLoader) : 
-        SciVis(parent, renderer, mtl, dataset->getSubDataset(0)), m_binaryDataset(dataset)
+                             const std::shared_ptr<VectorFieldDataset> dataset, const MeshLoader* arrowLoader) :
+        SciVis(parent, renderer, mtl, dataset->getSubDataset(0)), m_data(dataset)
     {
         //Field variables
         const float*    vel      = dataset->getVelocity();
@@ -163,10 +163,10 @@ namespace sereno
         float*       propVal = (float*)malloc(sizeof(float)*size);
 
         //Store fluid dataset constants
-        const float*    vel      = m_binaryDataset->getVelocity();
-        const uint32_t* gridSize = m_binaryDataset->getGridSize();
-        float           minAmp   = m_binaryDataset->getPointFieldDescs()[0].minVal;
-        float           maxAmp   = m_binaryDataset->getPointFieldDescs()[0].maxVal;
+        const float*    vel      = m_data->getVelocity();
+        const uint32_t* gridSize = m_data->getGridSize();
+        float           minAmp   = m_data->getPointFieldDescs()[0].minVal;
+        float           maxAmp   = m_data->getPointFieldDescs()[0].maxVal;
 
         //Set the property value for every vector
         for(uint32_t k = 0; k < m_displayableSize[2]; k++)

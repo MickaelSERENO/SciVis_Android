@@ -22,7 +22,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         /** @brief Function called when a dataset has been added (the call if after the addition)
          * @param model the app data
          * @param d the dataset to add*/
-        void onAddBinaryDataset(ApplicationModel model, BinaryDataset d);
+        void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d);
 
         /** @brief Function called when a VTK dataset has been added (the call if after the addition)
          * @param model the app data
@@ -146,7 +146,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public static final int HANDEDNESS_RIGHT  = 1;
 
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
-    private ArrayList<BinaryDataset> m_binaryDatasets;  /**!< The open binary Datasets */
+    private ArrayList<VectorFieldDataset> m_binaryDatasets;  /**!< The open binary Datasets */
     private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + binary)*/
     private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;          /**!< The configuration object*/
@@ -299,14 +299,14 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         d.addListener(this);
     }
 
-    /** @brief Add a BinaryDataset to our model
+    /** @brief Add a VectorFieldDataset to our model
      *  @param dataset the dataset to add*/
-    public void addBinaryDataset(BinaryDataset dataset)
+    public void addVectorFieldDataset(VectorFieldDataset dataset)
     {
         m_binaryDatasets.add(dataset);
         onAddDataset(dataset);
         for(IDataCallback clbk : m_listeners)
-            clbk.onAddBinaryDataset(this, dataset);
+            clbk.onAddVectorFieldDataset(this, dataset);
 
         for(SubDataset sd : dataset.getSubDatasets())
             onAddSubDataset(sd);
@@ -338,7 +338,7 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     /** @brief Get a list of Binary Datasets
      * @return the list of Binary Datasets opened*/
-    public ArrayList<BinaryDataset> getBinaryDatasets() {return m_binaryDatasets;}
+    public ArrayList<VectorFieldDataset> getVectorFieldDatasets() {return m_binaryDatasets;}
 
     public ArrayList<Dataset> getDatasets() {return m_datasets;}
 

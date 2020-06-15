@@ -40,9 +40,9 @@ namespace sereno
         unlock();
     }
 
-    void VFVData::addBinaryData(std::shared_ptr<BinaryDataset> dataset)
+    void VFVData::addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset)
     {
-        VFVEvent* ev = new VFVEvent(VFV_ADD_BINARY_DATA);
+        VFVEvent* ev = new VFVEvent(VFV_ADD_VECTOR_FIELD_DATA);
         ev->binaryData.dataset = dataset;
 
         lock();

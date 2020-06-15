@@ -24,7 +24,7 @@ import android.widget.ToggleButton;
 import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
-import com.sereno.vfv.Data.BinaryDataset;
+import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
@@ -122,8 +122,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         if(m_ctx != null)
         {
             onUpdateBindingInformation(m_model, m_model.getBindingInfo());
-            for (BinaryDataset d : m_model.getBinaryDatasets())
-                onAddBinaryDataset(m_model, d);
+            for (VectorFieldDataset d : m_model.getVectorFieldDatasets())
+                onAddVectorFieldDataset(m_model, d);
             for (VTKDataset d : m_model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
             onChangeCurrentSubDataset(m_model, m_model.getCurrentSubDataset());
@@ -132,8 +132,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {
                 m_surfaceView.onUpdateBindingInformation(m_model, m_model.getBindingInfo());
                 m_surfaceView.onUpdateHeadsetsStatus(m_model, m_model.getHeadsetsStatus());
-                for (BinaryDataset d : m_model.getBinaryDatasets())
-                    m_surfaceView.onAddBinaryDataset(m_model, d);
+                for (VectorFieldDataset d : m_model.getVectorFieldDatasets())
+                    m_surfaceView.onAddVectorFieldDataset(m_model, d);
                 for (VTKDataset d : m_model.getVTKDatasets())
                     m_surfaceView.onAddVTKDataset(m_model, d);
                 m_surfaceView.onChangeCurrentSubDataset(m_model, m_model.getCurrentSubDataset());
@@ -175,7 +175,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddBinaryDataset(ApplicationModel model, BinaryDataset d)
+    public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d)
     {
         if(d.getID() < 0)
             addDataset(d);

@@ -3,12 +3,12 @@ package com.sereno.vfv.Data;
 import java.io.File;
 
 /* \brief Fluid dataset representation. Contains only the data, not the representation*/
-public class BinaryDataset extends Dataset
+public class VectorFieldDataset extends Dataset
 {
     /**\brief Constructor
      * Read the data contained in file.
      * @param file the file to read at*/
-    public BinaryDataset(File file)
+    public VectorFieldDataset(File file)
     {
         this(file.getAbsolutePath(), file.getName());
     }
@@ -17,7 +17,7 @@ public class BinaryDataset extends Dataset
      * Read the data contained in file.
      * @param path the path to read at
      * @param name  the java name of this Dataset*/
-    public BinaryDataset(String path, String name)
+    public VectorFieldDataset(String path, String name)
     {
         super(nativeInitPtr(path), name);
     }

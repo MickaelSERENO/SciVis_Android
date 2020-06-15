@@ -12,7 +12,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "HeadsetStatus.h"
-#include "Datasets/BinaryDataset.h"
+#include "Datasets/VectorFieldDataset.h"
 #include "Datasets/VTKDataset.h"
 #include "ColorMode.h"
 #include "Datasets/DatasetMetaData.h"
@@ -22,7 +22,7 @@ namespace sereno
     /* \brief Enumeration representing the possible events from the Model modification */
     enum VFVEventType
     {
-        VFV_ADD_BINARY_DATA,     /*!< Binary Data added*/
+        VFV_ADD_VECTOR_FIELD_DATA,     /*!< Binary Data added*/
         VFV_ADD_VTK_DATA,        /*!< VTK Data added*/
         VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
         VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
@@ -56,7 +56,7 @@ namespace sereno
     /* \brief binary data event information (add) */
     struct BinaryDataEvent
     {
-        std::shared_ptr<BinaryDataset> dataset; /*!< The dataset associated*/
+        std::shared_ptr<VectorFieldDataset> dataset; /*!< The dataset associated*/
     };
 
     /* \brief VTK data event information (add) */
@@ -101,7 +101,7 @@ namespace sereno
         {
             switch(type)
             {
-                case VFV_ADD_BINARY_DATA:
+                case VFV_ADD_VECTOR_FIELD_DATA:
                     new(&binaryData) BinaryDataEvent;
                     break;
                 case VFV_ADD_VTK_DATA:
@@ -120,7 +120,7 @@ namespace sereno
         {
             switch(type)
             {
-                case VFV_ADD_BINARY_DATA:
+                case VFV_ADD_VECTOR_FIELD_DATA:
                     binaryData.~BinaryDataEvent();
                     break;
                 case VFV_ADD_VTK_DATA:
@@ -161,9 +161,9 @@ namespace sereno
              * \param status pointer to the list of status*/
             void updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status);
 
-            /* \brief Add a new Binary Dataset in this application
-             * \param dataset the Binary dataset to add*/
-            void addBinaryData(std::shared_ptr<BinaryDataset> dataset);
+            /* \brief Add a new VectorField Dataset in this application
+             * \param dataset the VectorField dataset to add*/
+            void addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset);
 
             /* \brief  Add a new VTK Dataset in this application
              * \param dataset the VTK dataset to add
