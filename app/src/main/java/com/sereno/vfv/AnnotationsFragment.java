@@ -304,10 +304,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
 
     @Override
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {}
+
+    @Override
     public void onSetLasso(ApplicationModel model, float[] lasso) {}
 
     @Override
-    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {}
+    public void onConfirmSelection(ApplicationModel model) {}
+
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/

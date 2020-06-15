@@ -39,13 +39,14 @@ namespace sereno
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
     enum VFVCurrentAction
     {
-        VFV_CURRENT_ACTION_NOTHING   = 0,
-        VFV_CURRENT_ACTION_MOVING    = 1,
-        VFV_CURRENT_ACTION_SCALING   = 2,
-        VFV_CURRENT_ACTION_ROTATING  = 3,
-        VFV_CURRENT_ACTION_SKETCHING = 4,
-        VFV_CURRENT_ACTION_LASSO     = 6,
-        VFV_CURRENT_ACTION_SELECTING = 7
+        VFV_CURRENT_ACTION_NOTHING             = 0,
+        VFV_CURRENT_ACTION_MOVING              = 1,
+        VFV_CURRENT_ACTION_SCALING             = 2,
+        VFV_CURRENT_ACTION_ROTATING            = 3,
+        VFV_CURRENT_ACTION_SKETCHING           = 4,
+        VFV_CURRENT_ACTION_LASSO               = 6,
+        VFV_CURRENT_ACTION_SELECTING           = 7,
+        VFV_CURRENT_ACTION_REVIEWING_SELECTION = 8
     };
 
     struct SubDatasetEvent

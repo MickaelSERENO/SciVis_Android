@@ -64,8 +64,9 @@ public class SocketManager
     public static final short MAKE_SUBDATASET_PUBLIC  = 19;
     public static final short DUPLICATE_SUBDATASET    = 20;
     public static final short LOCATION                = 21;
-    public static final short LASSO                   = 22;
-    public static final short TABLETSCALE             = 23;
+    public static final short TABLETSCALE             = 22;
+    public static final short LASSO                   = 23;
+    public static final short CONFIRM_SELECTION       = 24;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -665,6 +666,25 @@ public class SocketManager
         return buf.array();
     }
 
+    /** Create a tablet scale event
+     * @param scale the tablet scale
+     * @return array of byte to send to push*/
+    public static byte[] createTabletScaleEvent(float scale, float width, float height, float posx, float posy)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 5*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(TABLETSCALE);
+
+        buf.putFloat(scale);
+        buf.putFloat(width);
+        buf.putFloat(height);
+        buf.putFloat(posx);
+        buf.putFloat(posy);
+
+        return buf.array();
+    }
+
     /** Create a lasso event
      * @param lasso the lasso data
      * @return array of byte to send to push*/
@@ -683,21 +703,14 @@ public class SocketManager
         return buf.array();
     }
 
-    /** Create a tablet scale event
-     * @param scale the tablet scale
+    /** Create a lasso event
      * @return array of byte to send to push*/
-    public static byte[] createTabletScaleEvent(float scale, float width, float height, float posx, float posy)
+    public static byte[] createConfirmSelectionEvent()
     {
-        ByteBuffer buf = ByteBuffer.allocate(2 + 5*4);
+        ByteBuffer buf = ByteBuffer.allocate(2);
         buf.order(ByteOrder.BIG_ENDIAN);
 
-        buf.putShort(TABLETSCALE);
-
-        buf.putFloat(scale);
-        buf.putFloat(width);
-        buf.putFloat(height);
-        buf.putFloat(posx);
-        buf.putFloat(posy);
+        buf.putShort(CONFIRM_SELECTION);
 
         return buf.array();
     }
