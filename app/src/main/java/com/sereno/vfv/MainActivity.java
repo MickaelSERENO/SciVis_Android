@@ -889,31 +889,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSetLasso(ApplicationModel model, float[] lasso) {
-        /*
-        String lassoString = "Length: " + lasso.length;
-        for(int i = 0; i < lasso.length; i++){
-            if(i%3 == 0)
-                lassoString += '\n';
-            else
-                lassoString += ' ';
-            lassoString += lasso[i];
-        }
-        Log.i("SetLassoData", lassoString);
-         */
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {
+        m_socket.push(SocketManager.createTabletScaleEvent(scale, width, height, posx, posy));
+    }
 
+    @Override
+    public void onSetLasso(ApplicationModel model, float[] lasso) {
         m_socket.push(SocketManager.createLassoEvent(lasso));
     }
 
     @Override
-    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {
-        String scaleString = "scale: " + scale;
-        scaleString += " width: " + width;
-        scaleString += " height: " + height;
-        scaleString += " posx: " + posx;
-        scaleString += " posy: " + posy;
-        Log.i("SetTabletScale", scaleString);
-        m_socket.push(SocketManager.createTabletScaleEvent(scale, width, height, posx, posy));
+    public void onConfirmSelection(ApplicationModel model) {
+        m_socket.push(SocketManager.createConfirmSelectionEvent());
     }
 
     @Override

@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -13,13 +12,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
@@ -85,6 +82,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
 
+
+    /** Selection menu buttons*/
+    private Button m_startSelectionBtn;
+    private Button m_endSelectionBtn;
+    private Button m_confirmSelectionBtn;
 
     public DatasetsFragment()
     {
@@ -451,10 +453,14 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
 
     @Override
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {}
+
+    @Override
     public void onSetLasso(ApplicationModel model, float[] lasso) {}
 
     @Override
-    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {}
+    public void onConfirmSelection(ApplicationModel model) {}
+
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -509,8 +515,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
 
         /** Setup the selection menu*/
-        Button startSelectionBtn = (Button) v.findViewById(R.id.startSelection);
-        startSelectionBtn.setOnClickListener(new View.OnClickListener()
+        m_startSelectionBtn = (Button) v.findViewById(R.id.startSelection);
+        m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
@@ -518,15 +524,37 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_surfaceView.setSelection(true);
                 setSVFullScreen(true);
                 m_surfaceViewVolumeSelectLayout.setVisibility(View.VISIBLE);
+                m_confirmSelectionBtn.setVisibility(view.GONE);
+                m_endSelectionBtn.setText(R.string.endSelection);
             }
         });
 
-        Button endSelectionBtn = (Button) v.findViewById(R.id.endSelection);
-        endSelectionBtn.setOnClickListener(new View.OnClickListener()
+        m_endSelectionBtn = (Button) v.findViewById(R.id.endSelection);
+        m_endSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
+                if(m_model.getCurrentAction() == m_model.CURRENT_ACTION_SELECTING)
+                {
+                    m_model.setCurrentAction(m_model.CURRENT_ACTION_REVIEWING_SELECTION);
+                    m_confirmSelectionBtn.setVisibility(View.VISIBLE);
+                    m_endSelectionBtn.setText(R.string.cancelSelection);
+                }else{
+                    m_surfaceView.setSelection(false);
+                    setSVFullScreen(false);
+                    m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        m_confirmSelectionBtn = (Button) v.findViewById(R.id.confirmSelection);
+        m_confirmSelectionBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_model.confirmSelection();
                 m_surfaceView.setSelection(false);
                 setSVFullScreen(false);
                 m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);

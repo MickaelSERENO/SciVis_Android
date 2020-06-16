@@ -73,7 +73,7 @@
 
     <!-- Records -->
 
-    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <FrameLayout
         app:layout_row="0"
         app:layout_rowSpan="1"
         app:layout_rowWeight="4"
@@ -98,17 +98,32 @@
 
             <SeekBar
                 android:id="@+id/tabletScaleBar"
-                android:layout_weight="1"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
+                android:layout_gravity="bottom"
+                android:layout_weight="1"
                 android:max="10"
-                android:progress="1"/>
+                android:progress="1" />
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="50dp"
-                android:id="@+id/endSelection"
-                android:text="@string/endSelection"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="bottom"
+                android:id="@+id/volumeLayoutButtons">
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/confirmSelection"
+                    android:text="@string/confirmSelection"/>
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/endSelection"
+                    android:text="@string/endSelection"/>
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 

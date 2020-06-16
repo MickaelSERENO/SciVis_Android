@@ -87,15 +87,23 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
          * @param rot the new rotation*/
         void onSetLocation(ApplicationModel model, float[] pos, float[] rot);
 
+        /** called when setting the virtual tablet scale
+         * @param model the app data
+         * @param scale the tablet's scale
+         * @param width the tablet view's width
+         * @param height the tablet view's height
+         * @param posx the tablet view's horizontal position
+         * @param posy the tablet view's vertical position*/
+        void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy);
+
         /** called when the lasso is traced
          * @param model the app data
          * @param data the lasso data*/
         void onSetLasso(ApplicationModel model, float[] data);
 
-        /** called when setting the virtual tablet scale
-         * @param model the app data
-         * @param scale the lasso data*/
-        void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy);
+        /** called when confirming the selection
+         * @param model the app data*/
+        void onConfirmSelection(ApplicationModel model);
     }
 
     /** Annotation meta data*/
@@ -132,13 +140,14 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     }
 
     /** All the available current action*/
-    public final int CURRENT_ACTION_NOTHING   = 0;
-    public final int CURRENT_ACTION_MOVING    = 1;
-    public final int CURRENT_ACTION_SCALING   = 2;
-    public final int CURRENT_ACTION_ROTATING  = 3;
-    public final int CURRENT_ACTION_SKETCHING = 4;
-    public final int CURRENT_ACTION_LASSO     = 6;
-    public final int CURRENT_ACTION_SELECTING = 7;
+    public final int CURRENT_ACTION_NOTHING             = 0;
+    public final int CURRENT_ACTION_MOVING              = 1;
+    public final int CURRENT_ACTION_SCALING             = 2;
+    public final int CURRENT_ACTION_ROTATING            = 3;
+    public final int CURRENT_ACTION_SKETCHING           = 4;
+    public final int CURRENT_ACTION_LASSO               = 6;
+    public final int CURRENT_ACTION_SELECTING           = 7;
+    public final int CURRENT_ACTION_REVIEWING_SELECTION = 8;
 
     /** The pointing technique IDs*/
     public static final int POINTING_GOGO        = 0;
@@ -562,6 +571,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         return null;
     }
 
+    /** @brief update the tablet's location
+     * @param pos the tablet's position
+     * @param rot the tablet's rotation*/
     public void setLocation(float[] pos, float[] rot)
     {
         if(m_currentAction == CURRENT_ACTION_NOTHING || m_currentAction == CURRENT_ACTION_SELECTING){
@@ -570,6 +582,18 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             for(IDataCallback clbk : m_listeners)
                 clbk.onSetLocation(this, pos, rot);
         }
+    }
+
+    /** @brief set the tablet's scale
+     * @param scale the tablet's scale
+     * @param width the tablet view's width
+     * @param height the tablet view's height
+     * @param posx the tablet view's horizontal position
+     * @param posy the tablet view's vertical position*/
+    public void setTabletScale(float scale, float width, float height, float posx, float posy)
+    {
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetTabletScale(this, scale, width, height, posx, posy);
     }
 
     /** @brief called when the lasso is traced
@@ -581,9 +605,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             clbk.onSetLasso(this, data);
     }
 
-    public void setTabletScale(float scale, float width, float height, float posx, float posy){
+    /** @brief confirm the current selection*/
+    public void confirmSelection()
+    {
         for(IDataCallback clbk : m_listeners)
-            clbk.onSetTabletScale(this, scale, width, height, posx, posy);
+            clbk.onConfirmSelection(this);
     }
 
     @Override

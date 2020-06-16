@@ -199,14 +199,18 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         nativeOnSetLocation(m_ptr, pos, rot);
     }
 
-    @Override
-    public void onSetLasso(ApplicationModel model, float[] lasso) {}
 
     @Override
     public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy)
     {
         nativeOnSetTabletScale(m_ptr, scale, width, height, posx, posy);
     }
+
+    @Override
+    public void onSetLasso(ApplicationModel model, float[] lasso) {}
+
+    @Override
+    public void onConfirmSelection(ApplicationModel model) {}
 
     private void onAddDataset(ApplicationModel model, Dataset d)
     {

@@ -35,5 +35,7 @@
     <string name="transferFunction">Transfer Function</string>
     <string name="selection">Selection</string>
     <string name="startSelection">Start Selection</string>
-    <string name="endSelection">End</string>
+    <string name="endSelection">End Selection</string>
+    <string name="cancelSelection">Cancel Selection</string>
+    <string name="confirmSelection">Confirm Selection</string>
 </resources>
