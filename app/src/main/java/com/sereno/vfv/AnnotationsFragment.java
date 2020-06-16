@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.sereno.Tree;
 import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
@@ -132,6 +133,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 onAddVectorFieldDataset(m_model, d);
             for (VTKDataset d : model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
+            for (CloudPointDataset d : model.getCloudPointDataset())
+                onAddCloudPointDataset(m_model, d);
 
             for (Dataset d : m_model.getDatasets())
             {
@@ -159,6 +162,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d)
+    {
+        onAddDataset(d);
+    }
+
+    @Override
+    public void onAddCloudPointDataset(ApplicationModel model, CloudPointDataset d)
     {
         onAddDataset(d);
     }

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
@@ -35,8 +36,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         void onSetLasso(float[] data);
     }
 
-    public static final int DATASET_TYPE_VTK    = 0;
-    public static final int DATASET_TYPE_BINARY = 1;
+    public static final int DATASET_TYPE_VTK          = 0;
+    public static final int DATASET_TYPE_VECTOR_FIELD = 1;
+    public static final int DATASET_TYPE_CLOUD_POINT  = 2;
 
     /** The native C++ pointer*/
     private long m_ptr;
@@ -96,6 +98,13 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     {
         onAddDataset(model, fd);
         nativeAddVectorFieldDataset(fd, m_ptr, fd.getPtr());
+    }
+
+    @Override
+    public void onAddCloudPointDataset(ApplicationModel model, CloudPointDataset d)
+    {
+        onAddDataset(model, d);
+        natveAddCloudPointDataset(d, m_ptr, d.getPtr());
     }
 
     @Override
@@ -174,9 +183,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onRemoveDataset(ApplicationModel model, Dataset dataset)
     {
         if(model.getVectorFieldDatasets().contains(dataset))
-            nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_BINARY);
+            nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_VECTOR_FIELD);
         else if(model.getVTKDatasets().contains(dataset))
             nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_VTK);
+        else if(model.getCloudPointDataset().contains(dataset))
+            nativeRemoveDataset(m_ptr, dataset.getPtr(), DATASET_TYPE_CLOUD_POINT);
     }
 
     @Override
@@ -293,6 +304,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param ptr the ptr associated with the main Argument
      * @param fd the VectorFieldDataset to add*/
     private native void nativeAddVectorFieldDataset(VectorFieldDataset bd, long ptr, long fd);
+
+    /** Add the dataset into the cpp application
+     * @param cp the cloud point dataset bound to the fd pointer
+     * @param ptr the ptr associated with the main Argument
+     * @param fd the CloudPointDataset to add*/
+    private native void  natveAddCloudPointDataset(CloudPointDataset cp, long ptr, long fd);
 
     /** Add a VTKParser into the cpp application
      * @param vtk the VTKDataset bound to the vtkDataPtr

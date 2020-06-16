@@ -24,6 +24,7 @@ import android.widget.ToggleButton;
 import com.sereno.Tree;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
@@ -126,6 +127,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 onAddVectorFieldDataset(m_model, d);
             for (VTKDataset d : m_model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
+            for (CloudPointDataset d : model.getCloudPointDataset())
+                onAddCloudPointDataset(m_model, d);
             onChangeCurrentSubDataset(m_model, m_model.getCurrentSubDataset());
 
             if (m_surfaceView != null)
@@ -177,8 +180,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d)
     {
-        if(d.getID() < 0)
-            addDataset(d);
+        addDataset(d);
+    }
+
+    @Override
+    public void onAddCloudPointDataset(ApplicationModel model, CloudPointDataset d)
+    {
+        addDataset(d);
     }
 
     @Override

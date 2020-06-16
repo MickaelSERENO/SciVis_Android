@@ -1,5 +1,4 @@
 #include "Datasets/nativeVectorFieldDataset.h"
-
 #include <memory>
 #include "Datasets/VectorFieldDataset.h"
 

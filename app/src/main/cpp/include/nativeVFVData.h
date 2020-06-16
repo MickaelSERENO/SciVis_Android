@@ -5,7 +5,7 @@
 
 extern "C"
 {
-    enum {DATASET_TYPE_VTK = 0, DATASET_TYPE_BINARY = 1};
+    enum {DATASET_TYPE_VTK = 0, DATASET_TYPE_VECTOR_FIELD = 1, DATASET_TYPE_CLOUD_POINT};
 
     /* \brief Function called from Java in order to create the main arguments list that the main function will receive
      * Note that this function is asynchronous between the main cpp thread and the java UI thread
@@ -28,13 +28,23 @@ extern "C"
      * \param sdPtr the SubDataset native pointer to display*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeChangeCurrentSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr);
 
-    /* \brief Function called from Java in order to add a new binary data in the cpp memory application
+    /* \brief Function called from Java in order to add a new vector field data in the cpp memory application
      * Note that this function is asynchronous between the main cpp thread and the java UI thread
      * \param env the JNI environment
      * \param instance the Java object calling this function
+     * \param jbd the java VectorField Dataset object
      * \param ptr the VFVData ptr
      * \param jData VectorFieldDataset*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVectorFieldDataset(JNIEnv* env, jobject instance, jobject jbd, jlong ptr, jlong jData);
+
+    /* \brief Function called from Java in order to add a new cloud point data in the cpp memory application
+     * Note that this function is asynchronous between the main cpp thread and the java UI thread
+     * \param env the JNI environment
+     * \param instance the Java object calling this function
+     * \param jcp the java CloudPoint Dataset object
+     * \param ptr the VFVData ptr
+     * \param jData CloudPointDataset ptr*/
+    JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddCloudPointDataset(JNIEnv* env, jobject instance, jobject jcp, jlong ptr, jlong jData);
 
     /* \brief Function called from Java in order to add a new VTK dataset in the cpp memory application
      * Note that this function is asynchronous between the main cpp thread and the java UI thread

@@ -14,6 +14,7 @@
 #include "HeadsetStatus.h"
 #include "Datasets/VectorFieldDataset.h"
 #include "Datasets/VTKDataset.h"
+#include "Datasets/CloudPointDataset.h"
 #include "ColorMode.h"
 #include "Datasets/DatasetMetaData.h"
 
@@ -22,18 +23,19 @@ namespace sereno
     /* \brief Enumeration representing the possible events from the Model modification */
     enum VFVEventType
     {
-        VFV_ADD_VECTOR_FIELD_DATA,     /*!< VectorField Data added*/
-        VFV_ADD_VTK_DATA,        /*!< VTK Data added*/
-        VFV_SET_CURRENT_DATA,    /*!< Current Data setted*/
-        VFV_SET_ROTATION_DATA,   /*!< A SubDataset rotation changing*/
-        VFV_SET_POSITION_DATA,   /*!< A SubDataset position changing*/
-        VFV_SET_SCALE_DATA,      /*!< A SubDataset scale changing*/
-        VFV_SET_TF_DATA,         /*!< A SubDataset transfer function changing*/
-        VFV_REMOVE_DATASET,      /*!< Remove a Dataset from memory*/
-        VFV_REMOVE_SUBDATASET,   /*!< Remove a SubDataset from memory*/
-        VFV_ADD_SUBDATASET,      /*!< Add a new SubDataset*/
-        VFV_SET_LOCATION,        /*!< Update the tablet's location*/
-        VFV_SET_TABLET_SCALE,        /*!< Update the tablet's location*/
+        VFV_ADD_VECTOR_FIELD_DATA, /*!< VectorField Data added*/
+        VFV_ADD_VTK_DATA,          /*!< VTK Data added*/
+        VFV_ADD_CLOUD_POINT_DATA,  /*!< CloudPoint Data added*/
+        VFV_SET_CURRENT_DATA,      /*!< Current Data setted*/
+        VFV_SET_ROTATION_DATA,     /*!< A SubDataset rotation changing*/
+        VFV_SET_POSITION_DATA,     /*!< A SubDataset position changing*/
+        VFV_SET_SCALE_DATA,        /*!< A SubDataset scale changing*/
+        VFV_SET_TF_DATA,           /*!< A SubDataset transfer function changing*/
+        VFV_REMOVE_DATASET,        /*!< Remove a Dataset from memory*/
+        VFV_REMOVE_SUBDATASET,     /*!< Remove a SubDataset from memory*/
+        VFV_ADD_SUBDATASET,        /*!< Add a new SubDataset*/
+        VFV_SET_LOCATION,          /*!< Update the tablet's location*/
+        VFV_SET_TABLET_SCALE,      /*!< Update the tablet's location*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -53,7 +55,7 @@ namespace sereno
         SubDataset* sd; /*!< The subdataset being updated*/
     };
 
-    /* \brief binary data event information (add) */
+    /* \brief vectorField data event information (add) */
     struct VectorFieldDataEvent
     {
         std::shared_ptr<VectorFieldDataset> dataset; /*!< The dataset associated*/
@@ -63,6 +65,12 @@ namespace sereno
     struct VTKDataEvent
     {
         std::shared_ptr<VTKDataset> dataset; /*!< The dataset associated*/
+    };
+
+    /* \brief CloudPoint data event information (add) */
+    struct CloudPointDataEvent
+    {
+        std::shared_ptr<CloudPointDataset> dataset; /*!< The dataset associated*/
     };
 
     /** \brief general dataset event information (delete, set current data) */
@@ -89,12 +97,13 @@ namespace sereno
     {
         union
         {
-            DatasetEvent     dataset;           /*!< General dataset event*/
-            VectorFieldDataEvent  binaryData;        /*!< VectorField  dataset event*/
-            VTKDataEvent     vtkData;           /*!< VTK    dataset event*/
-            SubDatasetEvent  sdEvent;           /*!< SubDataset general event information*/
-            SetLocationEvent setLocation;       /*!< location event information */
-            SetTabletScaleEvent setTabletScale; /*!< location event information */
+            DatasetEvent          dataset;        /*!< General dataset event*/
+            VectorFieldDataEvent  vectorFieldData;/*!< VectorField dataset event*/
+            VTKDataEvent          vtkData;        /*!< VTK dataset event*/
+            CloudPointDataEvent   cloudPointData; /*!< CloudPoint dataset event */
+            SubDatasetEvent       sdEvent;        /*!< SubDataset general event information*/
+            SetLocationEvent      setLocation;    /*!< location event information */
+            SetTabletScaleEvent   setTabletScale; /*!< location event information */
         };
 
         VFVEvent(VFVEventType t) : type(t)
@@ -102,7 +111,7 @@ namespace sereno
             switch(type)
             {
                 case VFV_ADD_VECTOR_FIELD_DATA:
-                    new(&binaryData) VectorFieldDataEvent;
+                    new(&vectorFieldData) VectorFieldDataEvent;
                     break;
                 case VFV_ADD_VTK_DATA:
                     new(&vtkData) VTKDataEvent;
@@ -121,10 +130,13 @@ namespace sereno
             switch(type)
             {
                 case VFV_ADD_VECTOR_FIELD_DATA:
-                    binaryData.~VectorFieldDataEvent();
+                    vectorFieldData.~VectorFieldDataEvent();
                     break;
                 case VFV_ADD_VTK_DATA:
                     vtkData.~VTKDataEvent();
+                    break;
+                case VFV_ADD_CLOUD_POINT_DATA:
+                    cloudPointData.~CloudPointDataEvent();
                     break;
                 case VFV_REMOVE_DATASET:
                     dataset.~DatasetEvent();
@@ -162,8 +174,14 @@ namespace sereno
             void updateHeadsetsStatus(std::shared_ptr<std::vector<HeadsetStatus>> status);
 
             /* \brief Add a new VectorField Dataset in this application
-             * \param dataset the VectorField dataset to add*/
-            void addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset);
+             * \param dataset the VectorField dataset to add
+             * \param jVectorField the Java VectorFieldDataset object*/
+            void addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset, jobject jVectorField);
+
+            /* \brief Add a new CloudPoint Dataset in this application
+             * \param dataset the CloudPoint dataset to add
+             * \param jCloudPoint the Java CloudPointDataset object*/
+            void addCloudPointData(std::shared_ptr<CloudPointDataset> dataset, jobject jCloudPoint);
 
             /* \brief  Add a new VTK Dataset in this application
              * \param dataset the VTK dataset to add
