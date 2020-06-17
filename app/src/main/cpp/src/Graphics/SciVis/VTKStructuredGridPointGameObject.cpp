@@ -33,7 +33,7 @@ namespace sereno
         }
     }
 
-    VTKStructuredGridPointVBO::VTKStructuredGridPointVBO(GLRenderer* renderer, std::shared_ptr<VTKParser> vtkParser, uint32_t nbPtFields, uint32_t desiredDensity) : m_vtkParser(vtkParser)
+    VTKStructuredGridPointVBO::VTKStructuredGridPointVBO(GLRenderer* renderer, std::shared_ptr<VTKParser> vtkParser, uint32_t desiredDensity) : m_vtkParser(vtkParser)
     {
         //Determine dimensions
         const VTKStructuredPoints& ptsDesc = m_vtkParser->getStructuredPointsDescriptor();
@@ -59,10 +59,9 @@ namespace sereno
     }
 
     VTKStructuredGridPointGameObject::VTKStructuredGridPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, 
-                                                                       VTKStructuredGridPointVBO* gridPointVBO, uint32_t propID, SubDataset* subDataset):
+                                                                       VTKStructuredGridPointVBO* gridPointVBO, SubDataset* subDataset):
         SciVis(parent, renderer, mtl, subDataset), 
-        m_gridPointVBO(gridPointVBO), m_maxVal(-std::numeric_limits<float>::max()), m_minVal(std::numeric_limits<float>::max()), 
-        m_propID(propID)
+        m_gridPointVBO(gridPointVBO), m_maxVal(-std::numeric_limits<float>::max()), m_minVal(std::numeric_limits<float>::max())
     {
         //Set VAO
         glGenVertexArrays(1, &m_vaoID);
@@ -320,7 +319,7 @@ namespace sereno
 
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity) : dataset(d)
     {
-        vbo = new VTKStructuredGridPointVBO(renderer, d->getParser(), d->getPtFieldValues().size(), desiredDensity);
+        vbo = new VTKStructuredGridPointVBO(renderer, d->getParser(), desiredDensity);
     }
 
     VTKStructuredGridPointSciVis::~VTKStructuredGridPointSciVis()
