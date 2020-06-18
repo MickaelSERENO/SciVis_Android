@@ -1096,8 +1096,7 @@ namespace sereno
                 if(it->dataset->getPtFieldValues().size() == 0)
                     break;
 
-                VTKStructuredGridPointGameObject* go = new VTKStructuredGridPointGameObject(NULL, &m_surfaceData->renderer, m_colorGridMtl, it->vbo,
-                                                                                            it->gameObjects.size(), sd);
+                VTKStructuredGridPointGameObject* go = new VTKStructuredGridPointGameObject(NULL, &m_surfaceData->renderer, m_colorGridMtl, it->vbo, sd);
                 it->gameObjects.push_back(go);
                 m_sciVis.push_back(go);
 

@@ -13,6 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 function(findSO _prefix _pkgPrefix)
     unset(_search_paths)
+    MESSAGE(STATUS "${${_pkgPrefix}_LDFLAGS}")
     foreach (flag IN LISTS ${_pkgPrefix}_LDFLAGS)
         if(flag MATCHES "^-L(.*)")
             list(APPEND _search_paths ${CMAKE_MATCH_1})
@@ -20,21 +21,22 @@ function(findSO _prefix _pkgPrefix)
         endif()
         if (flag MATCHES "^-l(.*)")
             set(_pkg_search "${CMAKE_MATCH_1}")
+
+            if(_search_paths)
+                # Firstly search in -L paths
+                find_file(${_pkg_search}_file
+                        NAMES lib${_pkg_search}.so
+                        PATHS ${_search_paths}
+                        NO_DEFAULT_PATH)
+                MESSAGE(STATUS ${_pkg_search}.so --> ${${_pkg_search}_file})
+            endif()
+            find_file(${_pkg_search}_file
+                    NAMES lib${_pkg_search}.so
+                    ${_find_opts})
+            list(APPEND _libs "${${_pkg_search}_file}")
         else()
             continue()
         endif()
-
-        if(_search_paths)
-            MESSAGE(STATUS ${_search_paths})
-            # Firstly search in -L paths
-            find_file(${_prefix}_file
-                    NAMES lib${${_pkgPrefix}_LIBRARIES}.so
-                    HINTS ${_search_paths} NO_DEFAULT_PATH)
-        endif()
-        find_file(${_prefix}_file
-                NAMES lib${${_pkgPrefix}_LIBRARIES}.so
-                ${_find_opts})
-        list(APPEND _libs "${${_prefix}_file}")
     endforeach()
 
     set(${_prefix} "${_libs}" PARENT_SCOPE)
@@ -85,6 +87,7 @@ set_target_properties(3ds-lib PROPERTIES
 
 #libpng
 findSO(LIBPNG_SO LIBPNG)
+MESSAGE(STATUS "${LIBPNG_SO}")
 add_library(png-lib SHARED IMPORTED)
 set_target_properties(png-lib PROPERTIES
         IMPORTED_LOCATION "${LIBPNG_SO}")
