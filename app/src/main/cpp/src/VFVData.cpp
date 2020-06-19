@@ -40,14 +40,29 @@ namespace sereno
         unlock();
     }
 
-    void VFVData::addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset)
+    void VFVData::addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset, jobject jVectorField)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_VECTOR_FIELD_DATA);
-        ev->binaryData.dataset = dataset;
+        ev->vectorFieldData.dataset = dataset;
 
         lock();
         {
             m_datas.push_back(dataset);
+            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset, jVectorField))));
+        }
+        unlock();
+        addEvent(ev);
+    }
+
+    void VFVData::addCloudPointData(std::shared_ptr<CloudPointDataset> dataset, jobject jCloudPoint)
+    {
+        VFVEvent* ev = new VFVEvent(VFV_ADD_CLOUD_POINT_DATA);
+        ev->cloudPointData.dataset = dataset;
+
+        lock();
+        {
+            m_datas.push_back(dataset);
+            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset, jCloudPoint))));
         }
         unlock();
         addEvent(ev);

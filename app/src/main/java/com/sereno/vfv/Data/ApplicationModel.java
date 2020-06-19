@@ -19,12 +19,17 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     /** @brief Interface possessing functions called when deleting or adding new datasets */
     public interface IDataCallback
     {
-        /** @brief Function called when a dataset has been added (the call if after the addition)
+        /** @brief Function called when a dataset has been added (the call is after the addition)
          * @param model the app data
          * @param d the dataset to add*/
         void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d);
 
-        /** @brief Function called when a VTK dataset has been added (the call if after the addition)
+        /** @brief Function called when a dataset has been added (the call is after the addition)
+         * @param model the app data
+         * @param d the dataset to add*/
+        void onAddCloudPointDataset(ApplicationModel model, CloudPointDataset d);
+
+        /** @brief Function called when a VTK dataset has been added (the call is after the addition)
          * @param model the app data
          * @param d the dataset to add*/
         void onAddVTKDataset(ApplicationModel model, VTKDataset d);
@@ -155,8 +160,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public static final int HANDEDNESS_RIGHT  = 1;
 
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
-    private ArrayList<VectorFieldDataset> m_binaryDatasets;  /**!< The open binary Datasets */
-    private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + binary)*/
+    private ArrayList<VectorFieldDataset> m_vectorFieldDatasets;  /**!< The open vectorField Datasets */
+    private ArrayList<CloudPointDataset>  m_cloudPointDatasets;   /**!< The open cloud point Datasets*/
+    private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + vectorField)*/
     private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;          /**!< The configuration object*/
 
@@ -195,10 +201,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
     {
-        m_vtkDatasets    = new ArrayList<>();
-        m_binaryDatasets = new ArrayList<>();
-        m_datasets       = new ArrayList<>();
-        m_listeners      = new ArrayList<>();
+        m_vtkDatasets         = new ArrayList<>();
+        m_vectorFieldDatasets = new ArrayList<>();
+        m_cloudPointDatasets  = new ArrayList<>();
+        m_datasets            = new ArrayList<>();
+        m_listeners           = new ArrayList<>();
 
         readConfig(ctx);
     }
@@ -312,10 +319,22 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      *  @param dataset the dataset to add*/
     public void addVectorFieldDataset(VectorFieldDataset dataset)
     {
-        m_binaryDatasets.add(dataset);
+        m_vectorFieldDatasets.add(dataset);
         onAddDataset(dataset);
         for(IDataCallback clbk : m_listeners)
             clbk.onAddVectorFieldDataset(this, dataset);
+
+        for(SubDataset sd : dataset.getSubDatasets())
+            onAddSubDataset(sd);
+    }
+
+    public void addCloudPointDataset(CloudPointDataset dataset)
+    {
+        m_cloudPointDatasets.add(dataset);
+        onAddDataset(dataset);
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onAddCloudPointDataset(this, dataset);
 
         for(SubDataset sd : dataset.getSubDatasets())
             onAddSubDataset(sd);
@@ -347,7 +366,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     /** @brief Get a list of VectorField Datasets
      * @return the list of VectorField Datasets opened*/
-    public ArrayList<VectorFieldDataset> getVectorFieldDatasets() {return m_binaryDatasets;}
+    public ArrayList<VectorFieldDataset> getVectorFieldDatasets() {return m_vectorFieldDatasets;}
+
+    /** @brief Get a list of CloudPoint Datasets opened
+     * @return the list of CloudPoints Datasets opened*/
+    public ArrayList<CloudPointDataset> getCloudPointDataset() {return m_cloudPointDatasets;}
 
     public ArrayList<Dataset> getDatasets() {return m_datasets;}
 
@@ -399,8 +422,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         if(m_vtkDatasets.contains(dataset))
             m_vtkDatasets.remove(dataset);
 
-        else if(m_binaryDatasets.contains(dataset))
-            m_binaryDatasets.remove(dataset);
+        else if(m_vectorFieldDatasets.contains(dataset))
+            m_vectorFieldDatasets.remove(dataset);
+
+        else if(m_cloudPointDatasets.contains(dataset))
+            m_cloudPointDatasets.remove(dataset);
     }
 
     /** Add a new annotation

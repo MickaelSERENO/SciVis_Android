@@ -32,9 +32,14 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeChangeCurrentSub
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVectorFieldDataset(JNIEnv* env, jobject instance, jobject bd, jlong ptr, jlong jData)
 {
     VFVData* data = (VFVData*)ptr;
-    data->addVectorFieldData(*((std::shared_ptr<VectorFieldDataset>*)jData));
+    data->addVectorFieldData(*((std::shared_ptr<VectorFieldDataset>*)jData), bd);
 }
 
+JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddCloudPointDataset(JNIEnv* env, jobject instance, jobject cp, jlong ptr, jlong jData)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->addCloudPointData(*((std::shared_ptr<CloudPointDataset>*)jData), cp);
+}
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr)
 {
@@ -47,8 +52,10 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeRemoveDataset(JN
     VFVData* data = (VFVData*)ptr;
     if(datasetType == DATASET_TYPE_VTK)
         data->onRemoveDataset(*((std::shared_ptr<VTKDataset>*)datasetPtr));
-    else if(datasetType == DATASET_TYPE_BINARY)
+    else if(datasetType == DATASET_TYPE_VECTOR_FIELD)
         data->onRemoveDataset(*((std::shared_ptr<VectorFieldDataset>*)datasetPtr));
+    else if(datasetType == DATASET_TYPE_CLOUD_POINT)
+        data->onRemoveDataset(*((std::shared_ptr<CloudPointDataset>*)datasetPtr));
 }
 
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JNIEnv* env, jobject instance, jobject vtk, jlong ptr, jlong jData)

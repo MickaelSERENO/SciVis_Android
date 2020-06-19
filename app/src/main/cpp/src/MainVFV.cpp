@@ -753,7 +753,7 @@ namespace sereno
                     uint32_t* histogram = (uint32_t*)malloc(sizeof(uint32_t)*HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT);
                     if(!dataset->create2DHistogram(histogram, HISTOGRAM_WIDTH, HISTOGRAM_HEIGHT, dataset->getPointFieldDescs()[i].id, dataset->getPointFieldDescs()[j].id))
                     {
-                        LOG_ERROR("Could not create histogram between property %s and %s\n", dataset->getPointFieldDescs()[i].name.c_str(), dataset->getPointFieldDescs()[j].name.c_str());
+                        LOG_WARNING("Could not create histogram between property %s and %s\n", dataset->getPointFieldDescs()[i].name.c_str(), dataset->getPointFieldDescs()[j].name.c_str());
                         loaded = false;
                         free(histogram);
                         continue;
@@ -864,7 +864,7 @@ namespace sereno
             uint32_t* histogram = (uint32_t*)malloc(sizeof(uint32_t)*HISTOGRAM_WIDTH);
             if(!dataset->create1DHistogram(histogram, HISTOGRAM_WIDTH, dataset->getPointFieldDescs()[i].id))
             {
-                LOG_ERROR("Could not create histogram of property %s\n", dataset->getPointFieldDescs()[i].name.c_str());
+                LOG_WARNING("Could not create histogram of property %s\n", dataset->getPointFieldDescs()[i].name.c_str());
                 loaded = false;
                 free(histogram);
                 continue;
@@ -955,6 +955,12 @@ namespace sereno
                             m_currentVis = m_sciVis[0];*/
                         break;
                     }
+
+                case VFV_ADD_CLOUD_POINT_DATA:
+                {
+                    LOG_WARNING("CLOUD POINT DATASET NOT YET HANDLED\n");
+                    break;
+                }
 
                 //Add VTK Dataset
                 case VFV_ADD_VTK_DATA:

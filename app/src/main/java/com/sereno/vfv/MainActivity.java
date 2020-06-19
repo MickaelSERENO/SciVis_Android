@@ -31,6 +31,7 @@ import android.widget.TextView;
 import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
+import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.Dataset;
@@ -235,7 +236,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onAddVectorFieldDataset(ApplicationModel model, VectorFieldDataset d)
     {
-        m_deleteDataBtn.setVisibility(View.VISIBLE);
+        onAddDataset(d);
+    }
+
+    @Override
+    public void onAddCloudPointDataset(ApplicationModel model, CloudPointDataset d)
+    {
         onAddDataset(d);
     }
 
@@ -1197,13 +1203,27 @@ public class MainActivity extends AppCompatActivity
                 String fileName = df.getFile().getName();
 
                 //VectorField dataset
-                if(fileName.endsWith(".data"))
+                if(fileName.endsWith(".vf"))
                 {
                     final VectorFieldDataset fd = new VectorFieldDataset(df.getFile());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             m_model.addVectorFieldDataset(fd);
+                        }
+                    });
+                }
+
+                //Data cloud
+                else if(fileName.endsWith(".dc"))
+                {
+                    final CloudPointDataset cp = new CloudPointDataset(df.getFile());
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            m_model.addCloudPointDataset(cp);
                         }
                     });
                 }
