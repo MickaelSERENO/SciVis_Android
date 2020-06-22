@@ -104,7 +104,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddCloudPointDataset(ApplicationModel model, CloudPointDataset d)
     {
         onAddDataset(model, d);
-        natveAddCloudPointDataset(d, m_ptr, d.getPtr());
+        nativeAddCloudPointDataset(d, m_ptr, d.getPtr());
     }
 
     @Override
@@ -304,7 +304,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     private native void nativeChangeCurrentSubDataset(long ptr, long sdPtr);
 
     /** Add the dataset into the cpp application
-     * @param bd the binary dataset bound to the fd pointer
+     * @param bd the vector field dataset bound to the fd pointer
      * @param ptr the ptr associated with the main Argument
      * @param fd the VectorFieldDataset to add*/
     private native void nativeAddVectorFieldDataset(VectorFieldDataset bd, long ptr, long fd);
@@ -313,7 +313,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param cp the cloud point dataset bound to the fd pointer
      * @param ptr the ptr associated with the main Argument
      * @param fd the CloudPointDataset to add*/
-    private native void  natveAddCloudPointDataset(CloudPointDataset cp, long ptr, long fd);
+    private native void  nativeAddCloudPointDataset(CloudPointDataset cp, long ptr, long fd);
 
     /** Add a VTKParser into the cpp application
      * @param vtk the VTKDataset bound to the vtkDataPtr
@@ -329,7 +329,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     /** Remove the dataset into the cpp application
      * @param ptr the ptr associated with the main argument
      * @param datasetPtr the dataset native pointer
-     * @param datasetType  the type of the dataset (VTK, binary, etc.)*/
+     * @param datasetType  the type of the dataset (VTK, VectorField, etc.)*/
     private native void nativeRemoveDataset(long ptr, long datasetPtr, int datasetType);
 
     /** Update the tablet's location

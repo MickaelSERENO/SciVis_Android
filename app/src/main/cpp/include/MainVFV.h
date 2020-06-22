@@ -20,8 +20,10 @@
 #include "Graphics/Materials/CPCPMaterial.h"
 #include "Graphics/Materials/RedToGrayMaterial.h"
 #include "Graphics/Materials/UniColorMaterial.h"
+#include "Graphics/Materials/CloudPointMaterial.h"
 #include "Graphics/VolumeSelect/Lasso.h"
 #include "Graphics/SciVis/TransferFunction/TFTexture.h"
+#include "Graphics/SciVis/CloudPointGameObject.h"
 #include "TransferFunction/GTF.h"
 #include "TransferFunction/TriangularGTF.h"
 
@@ -123,6 +125,11 @@ namespace sereno
              * \param status the status of the loading */
             void onLoadVTKDataset(VTKDataset* dataset, uint32_t status);
 
+            /* \brief Function called when values of the CloudPointDataset are loaded
+             * \param dataset the dataset of interest
+             * \param status the status of the loading*/
+            void onLoadCloudPointDataset(CloudPointDataset* dataset, uint32_t status);
+
             /** \brief  Function called when values of a Dataset are loaded
              * \param dataset the dataset of interest
              * \param status the status of the loading */
@@ -184,6 +191,7 @@ namespace sereno
             RedToGrayMaterial*        m_redToGrayMtl;     /*!< The Red to Gray material*/
             UniColorMaterial*         m_lassoMaterial;    /*!< Material to draw the volume selection lasso*/
             SimpleTextureMaterial*    m_currentVisFBOMtl; /*!< The Material to use for the current vis FBO*/
+            CloudPointMaterial*       m_cloudPointMtl;    /*!< The Material to use for cloud point datasets*/
 
             /*----------------------------------------------------------------------------*/
             /*---------------------------All the SciVis loaded----------------------------*/
@@ -191,7 +199,9 @@ namespace sereno
             std::vector<VectorField*> m_vectorFields;    /*!< The loaded vector fields*/
             std::vector<DefaultSciVis*> m_defaultSciVis;   /*!< List of default visualization*/
             std::vector<VTKStructuredGridPointSciVis*> m_vtkStructuredGridPoints; /*!< The VTKStructuredGridPoints visualizations*/
+            std::vector<std::shared_ptr<CloudPointDataset>> m_cloudPointDatasets; /*!< The cloud point datasets opened*/
             std::vector<SciVis*> m_sciVis;                 /*!< List of visualization*/
+            std::vector<CloudPointGameObject*> m_cloudPointSciVis; /*!< The CloudPoint Scientific Visualization Graphical Object*/
             SciVis*              m_currentVis         = NULL;  /*!< The current visualization*/
             bool                 m_curSDCanBeModified = true;  /*!< Can our current SubDataset be modified?*/
             FBO*                 m_currentVisFBO      = NULL;  /*!< The FBO to render the current visualization in*/

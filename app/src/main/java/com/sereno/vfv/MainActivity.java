@@ -45,6 +45,7 @@ import com.sereno.vfv.Dialog.OpenDatasetDialogFragment;
 import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
 import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
 import com.sereno.vfv.Dialog.Listener.INoticeVTKDialogListener;
+import com.sereno.vfv.Network.AddCloudPointDatasetMessage;
 import com.sereno.vfv.Network.AddSubDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.AnchorAnnotationMessage;
@@ -651,6 +652,24 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onAddCloudPointDatasetMessage(AddCloudPointDatasetMessage msg)
+    {
+        //Parse the message information
+        Log.i(TAG, "opening " + msg.getPath());
+        File file = new File(new File(getExternalFilesDir(null), "Datas"), msg.getPath());
+
+        //Add into the model
+        final CloudPointDataset dataset = new CloudPointDataset(file);
+        dataset.setID(msg.getDataID());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_model.addCloudPointDataset(dataset);
+            }
+        });
+    }
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -1205,25 +1224,24 @@ public class MainActivity extends AppCompatActivity
                 //VectorField dataset
                 if(fileName.endsWith(".vf"))
                 {
-                    final VectorFieldDataset fd = new VectorFieldDataset(df.getFile());
+                    /*final VectorFieldDataset fd = new VectorFieldDataset(df.getFile());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             m_model.addVectorFieldDataset(fd);
                         }
-                    });
+                    });*/
                 }
 
-                //Data cloud
-                else if(fileName.endsWith(".dc"))
+                //Cloud Point
+                else if(fileName.endsWith(".cp"))
                 {
-                    final CloudPointDataset cp = new CloudPointDataset(df.getFile());
                     runOnUiThread(new Runnable()
                     {
                         @Override
                         public void run()
                         {
-                            m_model.addCloudPointDataset(cp);
+                            m_socket.push(SocketManager.createAddCloudPointDatasetEvent(df.getFile().getName()));
                         }
                     });
                 }

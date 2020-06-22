@@ -88,7 +88,6 @@ namespace sereno
     void GLRenderer::loadShaders()
     {
         //Initialize Shaders
-        
         const struct {const char* name; bool hasGeom;} shaders[] = {{"color", false}, {"uniColor", false},
                                                                     {"colorGrid", false},
                                                                     {"vectorField", false},
@@ -97,7 +96,8 @@ namespace sereno
                                                                     {"colorPhong", false},
                                                                     {"cpcp", false},
                                                                     {"normalize1D", false},
-                                                                    {"redToGray", false}};
+                                                                    {"redToGray", false},
+                                                                    {"cloudPoint", true}};
         for(uint32_t i = 0; i < sizeof(shaders)/sizeof(shaders[0]); i++)
         {
             Shader* shader = NULL;

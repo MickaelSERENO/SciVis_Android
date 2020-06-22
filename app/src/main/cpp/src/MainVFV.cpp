@@ -44,6 +44,7 @@ namespace sereno
         m_redToGrayMtl  = new RedToGrayMaterial(&m_surfaceData->renderer);
         m_lassoMaterial = new UniColorMaterial(&m_surfaceData->renderer, Color::YELLOW_COLOR);
         m_currentVisFBOMtl = new SimpleTextureMaterial(&surfaceData->renderer);
+        m_cloudPointMtl = new CloudPointMaterial(&surfaceData->renderer);
 
         //Load 3D images used to translate/rotate/scale the 3D datasets
         m_3dImageManipTex = (Texture2D*)malloc(sizeof(Texture2D)*8);
@@ -738,6 +739,11 @@ namespace sereno
         onLoadDataset(dataset, status);
     }
 
+    void MainVFV::onLoadCloudPointDataset(CloudPointDataset* dataset, uint32_t status)
+    {
+        onLoadDataset(dataset, status);
+    }
+
     void MainVFV::onLoadDataset(Dataset* dataset, uint32_t status)
     {
         LOG_INFO("Creating dataset's histograms");
@@ -958,7 +964,11 @@ namespace sereno
 
                 case VFV_ADD_CLOUD_POINT_DATA:
                 {
-                    LOG_WARNING("CLOUD POINT DATASET NOT YET HANDLED\n");
+                    //Load cloud point datasets
+                    event->cloudPointData.dataset->loadValues([](Dataset* dataset, uint32_t status, void* data)
+                    {
+                        ((MainVFV*)data)->onLoadCloudPointDataset(reinterpret_cast<CloudPointDataset*>(dataset), status);
+                    }, this);
                     break;
                 }
 
@@ -993,10 +1003,19 @@ namespace sereno
                         {
                             delete *it;
                             m_vtkStructuredGridPoints.erase(it);
-                            break;
+                            goto endRemoveDataset;
                         }
                     }
 
+                    for(auto it = m_cloudPointDatasets.begin(); it != m_cloudPointDatasets.end(); it++)
+                    {
+                        if(*it == event->dataset.dataset)
+                        {
+                            m_cloudPointDatasets.erase(it);
+                            goto endRemoveDataset;
+                        }
+                    }
+endRemoveDataset:
                     break;
                 }
 
@@ -1087,7 +1106,11 @@ namespace sereno
             if(it->getModel() == sd)
                 return it;
 
+        bool added = false;
+
         //Check what type of Dataset this SubDataset is (the action will not be the same)
+
+        //VTK Object
         for(auto it : m_vtkStructuredGridPoints)
         {
             if(it->dataset.get() == sd->getParent())
@@ -1100,19 +1123,37 @@ namespace sereno
                 it->gameObjects.push_back(go);
                 m_sciVis.push_back(go);
 
-                //Set the transfer function
-                m_sciVis.back()->onTFChanged();
-
-                //Update the snapshot
-                std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
-                m_snapshots.insert(snap);
-                m_sciVis.back()->getModel()->setSnapshot(snap.second);
-
-                addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
-
-                //Return it
-                return m_sciVis.back();
+                added = true;
             }
+        }
+
+        //Cloud point Object
+        for(auto it : m_cloudPointDatasets)
+        {
+            if(it.get() == sd->getParent())
+            {
+                CloudPointGameObject* cp = new CloudPointGameObject(NULL, &m_surfaceData->renderer, m_cloudPointMtl, it, sd);
+                m_cloudPointSciVis.push_back(cp);
+                m_sciVis.push_back(cp);
+
+                added = true;
+            }
+        }
+
+        //Do the common operations between every scivis objects
+        if(added)
+        {
+            //Set the transfer function
+            m_sciVis.back()->onTFChanged();
+
+            //Update the snapshot
+            std::pair<SciVis*, std::shared_ptr<Snapshot>> snap(m_sciVis.back(), std::shared_ptr<Snapshot>(nullptr));
+            m_snapshots.insert(snap);
+            m_sciVis.back()->getModel()->setSnapshot(snap.second);
+
+            addSubDataChangement(m_sciVis.back()->getModel(), SubDatasetChangement(true, true, true, true));
+
+            return m_sciVis.back();
         }
 
         LOG_WARNING("Trying to create a SubDataset visualization but its Dataset is not found...");

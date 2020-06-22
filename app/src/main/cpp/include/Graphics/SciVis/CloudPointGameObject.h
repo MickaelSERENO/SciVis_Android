@@ -35,6 +35,10 @@ namespace sereno
             GLuint m_vaoID;
             std::shared_ptr<CloudPointDataset> m_dataset;
             SubDataset* m_model;
+            uint8_t* m_newCols = nullptr;
+
+            bool     m_isWaitingTF = false; /*!< Is the object waiting to compute the colors?*/
+            std::mutex m_updateTFLock;      /*!< The mutex locking the updateTF call*/
     };
 }
 

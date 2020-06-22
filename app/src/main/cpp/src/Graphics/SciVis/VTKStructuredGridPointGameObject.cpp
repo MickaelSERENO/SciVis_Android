@@ -92,6 +92,7 @@ namespace sereno
 
     VTKStructuredGridPointGameObject::~VTKStructuredGridPointGameObject()
     {
+        m_updateTFLock.lock();
         glDeleteVertexArrays(1, &m_vaoID);
         glDeleteTextures(1, &m_texture);
 

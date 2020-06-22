@@ -67,6 +67,7 @@ public class SocketManager
     public static final short TABLETSCALE             = 22;
     public static final short LASSO                   = 23;
     public static final short CONFIRM_SELECTION       = 24;
+    public static final short ADD_CLOUD_POINT_DATASET = 25;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -516,6 +517,21 @@ public class SocketManager
 
         for(int i = 0; i < d.getSelectedCellFieldValues().length; i++)
             buf.putInt(d.getCellFieldValueIndice(d.getSelectedPtFieldValues()[i]));
+
+        return buf.array();
+    }
+
+    /** Create a Add CloudPoint Dataset Event to send to the server
+     * @param name The dataset's name
+     * @return array of byte to send to push*/
+    public static byte[] createAddCloudPointDatasetEvent(String name)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+4+name.length());
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(ADD_CLOUD_POINT_DATASET);
+        buf.putInt(name.length());
+        buf.put(name.getBytes(StandardCharsets.US_ASCII));
 
         return buf.array();
     }

@@ -2,6 +2,7 @@ package com.sereno.vfv.Network;
 
 import android.util.Log;
 
+import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.MainActivity;
 
 import java.util.ArrayList;
@@ -110,6 +111,10 @@ public class MessageBuffer
         /** Called when the message "GET_SET_SUBDATASET_OWNER" has been successfully parsed
          * @param msg the message parsed*/
         void onLocationTabletMessage(LocationTabletMessage msg);
+
+        /** Called when the message "GET_ADD_CLOUDPOINT_DATASET" has been successfully parsed
+         * @param msg the message parsed*/
+        void onAddCloudPointDatasetMessage(AddCloudPointDatasetMessage msg);
     }
 
     /** No current type received*/
@@ -156,6 +161,8 @@ public class MessageBuffer
     /** Get location data from tracker*/
     public static final int GET_LOCATION_TABLET         = 18;
 
+    /** Add a cloud point dataset*/
+    public static final int GET_ADD_CLOUD_POINT_DATASET = 23;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -311,6 +318,10 @@ public class MessageBuffer
                         for (IMessageBufferCallback clbk : m_listeners)
                             clbk.onLocationTabletMessage((LocationTabletMessage)m_curMsg);
                         break;
+                    case GET_ADD_CLOUD_POINT_DATASET:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAddCloudPointDatasetMessage((AddCloudPointDatasetMessage)m_curMsg);
+                        break;
 
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
@@ -383,6 +394,9 @@ public class MessageBuffer
                 break;
             case GET_LOCATION_TABLET:
                 m_curMsg = new LocationTabletMessage();
+                break;
+            case GET_ADD_CLOUD_POINT_DATASET:
+                m_curMsg = new AddCloudPointDatasetMessage();
                 break;
 
             default:
