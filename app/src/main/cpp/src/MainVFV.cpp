@@ -170,25 +170,25 @@ namespace sereno
 
         //3D texture manipulation widgets
         m_3dImageManipGO[LEFT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
-        m_3dImageManipGO[LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, 0.0f, 0.0f));
+        m_3dImageManipGO[LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, 0.0f, -1.0f));
 
         m_3dImageManipGO[RIGHT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
-        m_3dImageManipGO[RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, 0.0f, 0.0f));
+        m_3dImageManipGO[RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, 0.0f, -1.0f));
 
         m_3dImageManipGO[TOP_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth, 1.0f));
-        m_3dImageManipGO[TOP_IMAGE].setPosition(glm::vec3(0.0f, ratio-widgetWidth*0.5f, 0.0f));
+        m_3dImageManipGO[TOP_IMAGE].setPosition(glm::vec3(0.0f, ratio-widgetWidth*0.5f, -1.0f));
         m_3dImageManipGO[BOTTOM_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth, 1.0f));
-        m_3dImageManipGO[BOTTOM_IMAGE].setPosition(glm::vec3(0.0f, -ratio+widgetWidth*0.5f, 0.0f));
+        m_3dImageManipGO[BOTTOM_IMAGE].setPosition(glm::vec3(0.0f, -ratio+widgetWidth*0.5f, -1.0f));
 
         int corners[4] {TOP_LEFT_IMAGE, TOP_RIGHT_IMAGE, BOTTOM_RIGHT_IMAGE, BOTTOM_LEFT_IMAGE};
         for(int i = 0; i < 4; i++)
             m_3dImageManipGO[corners[i]].setScale(glm::vec3(widgetWidth, widgetWidth, 1.0));
 
-        m_3dImageManipGO[TOP_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, ratio-widgetWidth*0.5f, 0.0));
-        m_3dImageManipGO[TOP_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, ratio-widgetWidth*0.5f, 0.0));
+        m_3dImageManipGO[TOP_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, ratio-widgetWidth*0.5f, -1.0));
+        m_3dImageManipGO[TOP_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, ratio-widgetWidth*0.5f, -1.0));
 
-        m_3dImageManipGO[BOTTOM_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
-        m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -ratio+widgetWidth*0.5f, 0.0));
+        m_3dImageManipGO[BOTTOM_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, -ratio+widgetWidth*0.5f, -1.0));
+        m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -ratio+widgetWidth*0.5f, -1.0));
 
         //Not connected logo
         m_notConnectedGO->setPosition(glm::vec3(0.0f, 0.0f, -1.0f));
@@ -563,14 +563,7 @@ namespace sereno
             {
                 placeCamera();
 
-                if(m_currentVis != NULL)
-                {
-                    m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
-                    m_currentVis->update(m_currentVisFBORenderer);
-                    m_currentVisFBORenderer->render();
-                    m_currentVisFBOGO->update(&m_surfaceData->renderer);
-                }
-
+                //Draw the scene
                 if(m_surfaceData->renderer.getCameraParams().w == 1.0 && !m_selecting) //Orthographic mode
                 {
                     for(int i = 0; i < 8; i++)
@@ -579,8 +572,15 @@ namespace sereno
                         m_notConnectedGO->update(&m_surfaceData->renderer);
                 }
 
-                //Draw the scene
                 m_lasso->update(&m_surfaceData->renderer);
+
+                if(m_currentVis != NULL)
+                {
+                    m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
+                    m_currentVis->update(m_currentVisFBORenderer);
+                    m_currentVisFBORenderer->render();
+                    m_currentVisFBOGO->update(&m_surfaceData->renderer);
+                }
 
                 m_surfaceData->renderer.render();
             }

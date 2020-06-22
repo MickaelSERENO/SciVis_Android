@@ -29,13 +29,12 @@ void main()
                                        2,3,6,7,  // top
                                        0,4,1,5); // bottom
 
-    varyColor = v2gColor[0];
-
     // Build the CUBE tile by submitting triangle strip vertices
     for(int j = 0; j < 6; j++)
     {
         for(int k = 0; k < 4; k++) 
         {
+            varyColor = v2gColor[0];
             gl_Position = uMVP*(gl_in[0].gl_Position + vc[VERT_ORDER[4*j+k]]);
             EmitVertex();
         }

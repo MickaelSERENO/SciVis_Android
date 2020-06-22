@@ -8,6 +8,6 @@ out vec4 v2gColor;
 
 void main()
 {
-	v2gColor    = vColor;
+	v2gColor    = vec4(vColor.rgb, 1.0);
 	gl_Position = vec4(vPosition, 1.0);
 }
