@@ -88,6 +88,7 @@ namespace sereno
             uint8_t* m_newCols = nullptr;              /*!< The new colors computed in a separate thread to update the 3D image*/
             bool     m_isWaiting3DImage = false;       /*!< Is the object waiting to compute a 3D image?*/
             std::mutex m_updateTFLock;                 /*!< The mutex locking the updateTF call*/
+            std::mutex m_updateColorLock;              /*!< The mutex used to update the color*/
     };
 
     /** \brief  Structure regrouping every information needed for VTKStructuredGridPoint visualization */

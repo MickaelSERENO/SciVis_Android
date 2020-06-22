@@ -12,7 +12,7 @@ namespace sereno
             /** \brief  Constructor associated to a cloud point objects (i.e., objects relying on points)
              * \param renderer the opengl context object
              * \param pointSize the size of the cubes created, in local space, for each point */
-            CloudPointMaterial(GLRenderer* renderer, float pointSize=0.05f);
+            CloudPointMaterial(GLRenderer* renderer, float pointSize=0.005f);
 
             /** \brief  Destructor */
             ~CloudPointMaterial();

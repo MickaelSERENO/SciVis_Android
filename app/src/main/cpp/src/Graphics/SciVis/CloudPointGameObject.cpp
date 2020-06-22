@@ -58,6 +58,24 @@ namespace sereno
             m_mtl->bindMaterial(mat, glm::mat4(1.0f), glm::mat4(1.0f), mat, invMVP, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         }
 
+        m_updateColorLock.lock();
+            uint8_t* cols = m_newCols;
+            m_newCols = nullptr;
+        m_updateColorLock.unlock();
+
+        //New data computed, update VBO
+        if(cols)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
+                if(!m_isPositionInit)
+                {
+                    m_isPositionInit = true;
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*3*m_dataset->getNbPoints(), m_dataset->getPointPositions());
+                }
+                glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*3*m_dataset->getNbPoints(), sizeof(uint8_t)*4*m_dataset->getNbPoints(), cols);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+
         glBindVertexArray(m_vaoID);
         {
             glDrawArrays(GL_POINTS, 0, m_dataset->getNbPoints());
@@ -153,6 +171,8 @@ namespace sereno
                 }
             }
 
+            if(m_newCols)
+                free(m_newCols);
             m_newCols = cols;
             m_updateTFLock.unlock();
             LOG_INFO("End Computing Colors\n");

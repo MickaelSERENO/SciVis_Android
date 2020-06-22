@@ -120,6 +120,9 @@ namespace sereno
                 case VFV_REMOVE_DATASET:
                     new(&dataset) DatasetEvent;
                     break;
+                case VFV_ADD_CLOUD_POINT_DATA:
+                    new(&cloudPointData) CloudPointDataEvent;
+                    break;
                 default:
                     new(&sdEvent) SubDatasetEvent;
                     break;

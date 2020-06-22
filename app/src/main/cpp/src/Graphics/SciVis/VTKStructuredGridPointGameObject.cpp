@@ -177,8 +177,10 @@ namespace sereno
         /*-------------------------------Update Texture-------------------------------*/
         /*----------------------------------------------------------------------------*/
 
-        uint8_t* cols = m_newCols;
-        m_newCols = nullptr;
+        m_updateColorLock.lock();
+            uint8_t* cols = m_newCols;
+            m_newCols = nullptr;
+        m_updateColorLock.unlock();
         if(cols)
         {
             //Update the 3D texture
@@ -311,7 +313,12 @@ namespace sereno
                 }
             }
 
-            m_newCols = cols;
+            m_updateColorLock.lock();
+                if(m_newCols)
+                    free(m_newCols);
+                m_newCols = cols;
+            m_updateColorLock.unlock();
+
             m_updateTFLock.unlock();
             LOG_INFO("End Computing Colors\n");
 

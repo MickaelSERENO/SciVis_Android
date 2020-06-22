@@ -29,22 +29,14 @@ void main()
                                        2,3,6,7,  // top
                                        0,4,1,5); // bottom
 
-    vec4 v[24];
     varyColor = v2gColor[0];
-                            
-
-    // Assign new vertices positions (24 new tile vertices, forming CUBE)
-    for(int i = 0; i < 24; i++) 
-    {
-        v[i] = (uMVP*(gl_in[0].gl_Position + vc[VERT_ORDER[i]])).xyzw;
-    }
 
     // Build the CUBE tile by submitting triangle strip vertices
     for(int j = 0; j < 6; j++)
     {
         for(int k = 0; k < 4; k++) 
         {
-            gl_Position = v[j*4+k];
+            gl_Position = uMVP*(gl_in[0].gl_Position + vc[VERT_ORDER[4*j+k]]);
             EmitVertex();
         }
         EndPrimitive();

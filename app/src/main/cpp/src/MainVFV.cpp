@@ -103,6 +103,8 @@ namespace sereno
                 delete vf;
         for(VTKStructuredGridPointSciVis* vis : m_vtkStructuredGridPoints) //This ensure that the parallel threads have finished (because of a join call)
             delete vis;
+        for(CloudPointGameObject* vis : m_cloudPointSciVis)
+            delete vis;
 
         delete m_currentVisFBO;
         delete m_currentVisFBORenderer;
@@ -119,6 +121,7 @@ namespace sereno
         delete m_redToGrayMtl;
         delete m_lassoMaterial;
         delete m_currentVisFBOMtl;
+        delete m_cloudPointMtl;
 
         /*----------------------------------------------------------------------------*/
         /*-----------------Delete the 4 DOF manipulation texture data-----------------*/
@@ -560,7 +563,14 @@ namespace sereno
             {
                 placeCamera();
 
-                //Draw the scene
+                if(m_currentVis != NULL)
+                {
+                    m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
+                    m_currentVis->update(m_currentVisFBORenderer);
+                    m_currentVisFBORenderer->render();
+                    m_currentVisFBOGO->update(&m_surfaceData->renderer);
+                }
+
                 if(m_surfaceData->renderer.getCameraParams().w == 1.0 && !m_selecting) //Orthographic mode
                 {
                     for(int i = 0; i < 8; i++)
@@ -569,15 +579,8 @@ namespace sereno
                         m_notConnectedGO->update(&m_surfaceData->renderer);
                 }
 
+                //Draw the scene
                 m_lasso->update(&m_surfaceData->renderer);
-
-                if(m_currentVis != NULL)
-                {
-                    m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
-                    m_currentVis->update(m_currentVisFBORenderer);
-                    m_currentVisFBORenderer->render();
-                    m_currentVisFBOGO->update(&m_surfaceData->renderer);
-                }
 
                 m_surfaceData->renderer.render();
             }
@@ -964,7 +967,9 @@ namespace sereno
 
                 case VFV_ADD_CLOUD_POINT_DATA:
                 {
+                    LOG_WARNING("Opening CloudPoint Dataset\n");
                     //Load cloud point datasets
+                    m_cloudPointDatasets.push_back(event->cloudPointData.dataset);
                     event->cloudPointData.dataset->loadValues([](Dataset* dataset, uint32_t status, void* data)
                     {
                         ((MainVFV*)data)->onLoadCloudPointDataset(reinterpret_cast<CloudPointDataset*>(dataset), status);
