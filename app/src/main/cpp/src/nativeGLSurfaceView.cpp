@@ -96,18 +96,6 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnVisible(JNIEnv*
     pData->visibilityEvent(true);
 }
 
-JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnStartSelection(JNIEnv* jenv, jobject jobj, jlong data)
-{
-    GLSurfaceViewData* pData = (GLSurfaceViewData*)data;
-    pData->selectionEvent(true);
-}
-
-JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnEndSelection(JNIEnv* jenv, jobject jobj, jlong data)
-{
-    GLSurfaceViewData* pData = (GLSurfaceViewData*)data;
-    pData->selectionEvent(false);
-}
-
 JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeCloseEvent(JNIEnv* jenv, jobject jobj, jlong data)
 {
     GLSurfaceViewData* pData = (GLSurfaceViewData*)data;

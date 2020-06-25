@@ -34,7 +34,6 @@ namespace sereno
             GLuint m_vboID;
             GLuint m_vaoID;
             std::shared_ptr<CloudPointDataset> m_dataset;
-            SubDataset* m_model;
             uint8_t* m_newCols = nullptr;
             bool m_isPositionInit = false;
 

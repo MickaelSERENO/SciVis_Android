@@ -40,6 +40,13 @@ namespace sereno
         unlock();
     }
 
+    void VFVData::setSelection(bool s)
+    {
+        VFVEvent* ev = new VFVEvent(VFV_SET_SELECTION);
+        ev->selection.starting = s;
+        addEvent(ev);
+    }
+
     void VFVData::addVectorFieldData(std::shared_ptr<VectorFieldDataset> dataset, jobject jVectorField)
     {
         VFVEvent* ev = new VFVEvent(VFV_ADD_VECTOR_FIELD_DATA);
@@ -104,10 +111,9 @@ namespace sereno
         jniMainThread->DeleteLocalRef(arr);
     }
 
-    void VFVData::onSetLocation(glm::vec3 pos, Quaternionf rot)
+    void VFVData::onSetLocation(const glm::vec3& pos, const Quaternionf& rot)
     {
-        VFVEvent* ev = NULL;
-        ev = new VFVEvent(VFV_SET_LOCATION);
+        VFVEvent* ev = new VFVEvent(VFV_SET_LOCATION);
         ev->setLocation.pos = pos;
         ev->setLocation.rot = rot;
         addEvent(ev);
@@ -115,8 +121,7 @@ namespace sereno
 
     void VFVData::onSetTabletScale(float scale, float width, float height, float posx, float posy)
     {
-        VFVEvent* ev = NULL;
-        ev = new VFVEvent(VFV_SET_TABLET_SCALE);
+        VFVEvent* ev = new VFVEvent(VFV_SET_TABLET_SCALE);
         ev->setTabletScale.scale = scale;
         ev->setTabletScale.width = width;
         ev->setTabletScale.height = height;

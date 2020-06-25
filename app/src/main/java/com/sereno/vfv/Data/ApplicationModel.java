@@ -576,7 +576,8 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @param rot the tablet's rotation*/
     public void setLocation(float[] pos, float[] rot)
     {
-        if(m_currentAction == CURRENT_ACTION_NOTHING || m_currentAction == CURRENT_ACTION_SELECTING){
+        if(m_currentAction == CURRENT_ACTION_NOTHING || m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
+        {
             m_position = pos;
             m_rotation = rot;
             for(IDataCallback clbk : m_listeners)

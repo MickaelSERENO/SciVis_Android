@@ -77,7 +77,6 @@ namespace sereno
         m_lasso = new Lasso(NULL, &surfaceData->renderer, m_lassoMaterial);
         m_selecting = false;
         m_tabletPos = glm::vec3(0.0f, 0.0f, 0.0f);
-        m_tabletRot = Quaternionf(0.0f, 0.0f, 0.0f, 1.0f);
         m_tabletScale = 1;
 
         //Load CPCP data
@@ -237,11 +236,11 @@ namespace sereno
             if(tc->type != TOUCH_TYPE_UP)
                 numberFinger++;
 
-        if(m_selecting){
-                m_surfaceData->renderer.setOrthographicMatrix(-m_tabletScale/2.0f*m_surfaceData->renderer.getWidth(), m_tabletScale/2.0f*m_surfaceData->renderer.getWidth(),
-                                                              -m_tabletScale/2.0f * ((float)m_surfaceData->renderer.getHeight()),
-                                                               m_tabletScale/2.0f * ((float)m_surfaceData->renderer.getHeight()),
-                                                              0.0f, 100.0f, true);
+        if(m_selecting)
+        {
+                m_surfaceData->renderer.setOrthographicMatrix(-m_tabletScale * m_surfaceData->renderer.getWidth()/2.0f,           m_tabletScale*m_surfaceData->renderer.getWidth()/2.0f,
+                                                              -m_tabletScale * ((float)m_surfaceData->renderer.getHeight())/2.0f, m_tabletScale * ((float)m_surfaceData->renderer.getHeight())/2.0f,
+                                                              -0.0f, 100.0f, false);
                 m_surfaceData->renderer.getCameraTransformable().setPosition(m_tabletPos);
                 m_surfaceData->renderer.getCameraTransformable().setRotate(m_tabletRot);
         }
@@ -457,19 +456,6 @@ namespace sereno
                         m_snapshotCnt = 0;
                         break;
                     }
-                    case SELECTION:
-                    {
-                        m_selecting = event->selection.starting;
-                        if(event->selection.starting)
-                        {
-                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_LASSO);
-                        }
-                        else
-                        {
-                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
-                            m_lasso->clearLasso();
-                        }
-                    }
                     default:
                         LOG_WARNING("type %d still has to be done\n", event->type);
                         break;
@@ -542,17 +528,20 @@ namespace sereno
                         if(it.second.updateRotation)
                             m_currentVis->setRotate(sd->getGlobalRotate());
                         if(it.second.updateScale)
-                            m_currentVis->setScale(glm::vec3(sd->getScale().x*-1, sd->getScale().y, sd->getScale().z));
+                            m_currentVis->setScale(glm::vec3(sd->getScale().x, sd->getScale().y, sd->getScale().z));
                         break;
                     }
                 }
 
-                if(m_surfaceData->renderer.getCameraParams().w == 0.0f && m_selecting)
+                if(m_surfaceData->renderer.getCameraParams().w == 0.0f || m_selecting)
                 {
                     SubDataset* sd = m_currentVis->getModel();
-
                     if(sd != NULL)
+                    {
                         m_currentVis->setPosition(sd->getPosition());
+                        m_currentVis->setRotate(sd->getGlobalRotate());
+                        m_currentVis->setScale(sd->getScale());
+                    }
                 }
                 else
                     m_currentVis->setPosition(glm::vec3(0, 0, 0));
@@ -576,10 +565,11 @@ namespace sereno
 
                 if(m_currentVis != NULL)
                 {
-                    m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
-                    m_currentVis->update(m_currentVisFBORenderer);
-                    m_currentVisFBORenderer->render();
-                    m_currentVisFBOGO->update(&m_surfaceData->renderer);
+                    //m_currentVisFBORenderer->setCameraData(m_surfaceData->renderer.getCameraTransformable(), m_surfaceData->renderer.getProjectionMatrix(), m_surfaceData->renderer.getCameraParams());
+                    //m_currentVis->update(m_currentVisFBORenderer);
+                    //m_currentVisFBORenderer->render();
+                    //m_currentVisFBOGO->update(&m_surfaceData->renderer);
+                    m_currentVis->update(&m_surfaceData->renderer);
                 }
 
                 m_surfaceData->renderer.render();
@@ -1081,6 +1071,22 @@ endRemoveDataset:
                 {
                     m_tabletScale = event->setTabletScale.scale;
                     m_lasso->setScale(glm::vec3(m_tabletScale*m_surfaceData->renderer.getWidth()/2,m_tabletScale*m_surfaceData->renderer.getHeight()/2,m_tabletScale));
+                    break;
+                }
+
+
+                case VFV_SET_SELECTION:
+                {
+                    m_selecting = event->selection.starting;
+                    if(event->selection.starting)
+                    {
+                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_LASSO);
+                    }
+                    else
+                    {
+                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
+                        m_lasso->clearLasso();
+                    }
                     break;
                 }
 

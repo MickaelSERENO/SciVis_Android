@@ -24,6 +24,7 @@ namespace sereno
 
     void CloudPointMaterial::getAttributs()
     {
+        Material::getAttributs();
         if(getShader())
             m_uPointSize = glGetUniformLocation(m_shader->getProgramID(), "uPointSize");
     }

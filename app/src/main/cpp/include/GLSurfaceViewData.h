@@ -42,10 +42,6 @@ namespace sereno
              * \param visibility is the surface visible?*/
             void visibilityEvent(bool visibility);
 
-            /* \brief start and end selection
-             * \param starting true if start of selection*/
-            void selectionEvent(bool starting);
-
             /* \brief Get a touch finger coordinate state
              * \param id the id of the finger to look at
              * \return the touch coordinate or NULL if id is not correct */

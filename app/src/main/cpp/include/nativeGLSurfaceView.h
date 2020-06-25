@@ -82,18 +82,6 @@ extern "C"
      * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnVisible(JNIEnv* jenv, jobject jobj, jlong data);
 
-    /* \brief Function called from Java when starting a selection
-     * \param jenv the JNI environment variable
-     * \param jobj the java object
-     * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnStartSelection(JNIEnv* jenv, jobject jobj, jlong data);
-
-    /* \brief Function called from Java when ending a selection
-     * \param jenv the JNI environment variable
-     * \param jobj the java object
-     * \param data the data shared by GLSurfaceView and the application. See GLSurfaceViewData*/
-    JNIEXPORT void  JNICALL Java_com_sereno_gl_GLSurfaceView_nativeOnEndSelection(JNIEnv* jenv, jobject jobj, jlong data);
-
     /* \brief  Close the object
      * \param jenv the java environment
      * \param jobj the object calling this function

@@ -23,6 +23,12 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeDeleteMainArgs(J
     delete data;
 }
 
+JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetSelection(JNIEnv* env, jobject instance, jlong ptr, jboolean s)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->setSelection(s);
+}
+
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeChangeCurrentSubDataset(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr)
 {
     VFVData* data = (VFVData*)ptr;

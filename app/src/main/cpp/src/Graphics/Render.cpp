@@ -32,7 +32,7 @@ namespace sereno
 
     void Render::setOrthographicMatrix(float left, float right, float bottom, float top, float near, float far, bool rh)
     {
-        m_projMatrix     = glm::ortho(left, right, bottom, top, near, far);
+        m_projMatrix     = glm::ortho<float>(left, right, bottom, top, near, far);
         if(!rh)
             glm::value_ptr(m_projMatrix)[10] *= -1.0f;
         m_cameraParams.w = 1.0f;
@@ -41,7 +41,7 @@ namespace sereno
     void Render::setPerspectiveMatrix(float fovY, float aspect, float near, float far, bool rh)
     {
         if(rh)
-            m_projMatrix = glm::perspective(fovY, aspect, near, far);
+            m_projMatrix = glm::perspective<float>(fovY, aspect, near, far);
         else
         {
             float f = cos(fovY/2.0f)/sin(fovY/2.0f);

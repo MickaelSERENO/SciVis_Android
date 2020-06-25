@@ -98,14 +98,6 @@ namespace sereno
         addEvent(ev);
     }
 
-    void GLSurfaceViewData::selectionEvent(bool starting)
-    {
-        Event* ev = new Event;
-        ev->type = SELECTION;
-        ev->selection.starting = starting;
-        addEvent(ev);
-    }
-
 
     Event* GLSurfaceViewData::pollEvent()
     {

@@ -515,7 +515,30 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
 
         /** Setup the selection menu*/
+        final SeekBar tabletScaleBar = (SeekBar)v.findViewById(R.id.tabletScaleBar);
+        tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    updateScale(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         m_startSelectionBtn = (Button) v.findViewById(R.id.startSelection);
+        m_endSelectionBtn = (Button) v.findViewById(R.id.endSelection);
+        m_confirmSelectionBtn = (Button) v.findViewById(R.id.confirmSelection);
+
         m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -526,10 +549,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_surfaceViewVolumeSelectLayout.setVisibility(View.VISIBLE);
                 m_confirmSelectionBtn.setVisibility(view.GONE);
                 m_endSelectionBtn.setText(R.string.endSelection);
+                updateScale(tabletScaleBar.getProgress());
             }
         });
 
-        m_endSelectionBtn = (Button) v.findViewById(R.id.endSelection);
         m_endSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -548,7 +571,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-        m_confirmSelectionBtn = (Button) v.findViewById(R.id.confirmSelection);
         m_confirmSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -558,26 +580,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_surfaceView.setSelection(false);
                 setSVFullScreen(false);
                 m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
-            }
-        });
-
-        SeekBar tabletScaleBar = (SeekBar)v.findViewById(R.id.tabletScaleBar);
-        tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser) {
-                    updateScale(progress);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
             }
         });
 

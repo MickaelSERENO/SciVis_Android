@@ -290,6 +290,11 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
             l.onSetLasso(data);
     }
 
+    public void setSelection(boolean starting)
+    {
+        nativeOnSetSelection(m_ptr, starting);
+    }
+
     /** Create the argument to send to the main function
      * \return the main argument as a ptr (long value)*/
     private native long nativeCreateMainArgs();
@@ -382,4 +387,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param ptr the ptr associated with the main Argument
      * @param sdPtr the C++ SubDataset Ptr*/
     private native void nativeOnTFUpdated(long ptr, long sdPtr);
+
+    /** Native function called when starting a selction
+     * @param data the C++ internal data pointer
+     * @param selection true if the selection is in progress, false otherwise*/
+    private native void nativeOnSetSelection(long data, boolean selection);
 }

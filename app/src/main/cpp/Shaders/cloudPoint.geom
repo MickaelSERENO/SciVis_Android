@@ -1,13 +1,14 @@
 #version 320 es
 
 layout(points) in;
-in  vec4 v2gColor[1];
+layout(triangle_strip, max_vertices=24) out;
+
+in  vec4 v2gColor[];
 
 uniform float uPointSize;
 uniform mat4  uMVP;
 
 out vec4 varyColor;
-layout(triangle_strip, max_vertices=24) out;
 
 void main() 
 {    

@@ -4,8 +4,7 @@ namespace sereno
 {
 
     CloudPointGameObject::CloudPointGameObject(GameObject* parent, GLRenderer* renderer, Material* mtl, std::shared_ptr<CloudPointDataset> cloudPoint, SubDataset* sd) :
-        SciVis(parent, renderer, mtl, sd),
-        m_dataset(cloudPoint), m_model(sd)
+        SciVis(parent, renderer, mtl, sd), m_dataset(cloudPoint)
     {
         glGenVertexArrays(1, &m_vaoID);
         glBindVertexArray(m_vaoID);

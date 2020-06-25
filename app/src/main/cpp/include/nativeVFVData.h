@@ -20,6 +20,8 @@ extern "C"
      * \param ptr the pointer to free*/
     JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeDeleteMainArgs(JNIEnv *env, jobject instance, jlong ptr);
 
+    JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetSelection(JNIEnv* env, jobject instance, jlong ptr, jboolean s);
+
     /* \brief Function called from Java in order to set the current data being displayed
      * Note that this function is asynchronous between the main cpp thread and the java UI thread
      * \param env the JNI environment

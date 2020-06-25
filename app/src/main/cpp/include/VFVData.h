@@ -36,6 +36,7 @@ namespace sereno
         VFV_ADD_SUBDATASET,        /*!< Add a new SubDataset*/
         VFV_SET_LOCATION,          /*!< Update the tablet's location*/
         VFV_SET_TABLET_SCALE,      /*!< Update the tablet's location*/
+        VFV_SET_SELECTION,         /*!< Set selection event*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -48,7 +49,7 @@ namespace sereno
         VFV_CURRENT_ACTION_SKETCHING           = 4,
         VFV_CURRENT_ACTION_LASSO               = 6,
         VFV_CURRENT_ACTION_SELECTING           = 7,
-        VFV_CURRENT_ACTION_REVIEWING_SELECTION = 8
+        VFV_CURRENT_ACTION_REVIEWING_SELECTION = 8,
     };
 
     struct SubDatasetEvent
@@ -93,6 +94,13 @@ namespace sereno
         float scale, width, height, posx, posy;
     };
 
+
+    /* \brief Describes the start or end of a selection*/
+    struct SelectionEvent
+    {
+        bool starting; /*!< True if start of a selecton*/
+    };
+
     /* \brief The Event that can be sent from JNI */
     struct VFVEvent
     {
@@ -105,6 +113,7 @@ namespace sereno
             SubDatasetEvent       sdEvent;        /*!< SubDataset general event information*/
             SetLocationEvent      setLocation;    /*!< location event information */
             SetTabletScaleEvent   setTabletScale; /*!< location event information */
+            SelectionEvent        selection;      /*!< Selection event*/
         };
 
         VFVEvent(VFVEventType t) : type(t)
@@ -122,6 +131,15 @@ namespace sereno
                     break;
                 case VFV_ADD_CLOUD_POINT_DATA:
                     new(&cloudPointData) CloudPointDataEvent;
+                    break;
+                case VFV_SET_LOCATION:
+                    new(&setLocation) SetLocationEvent;
+                    break;
+                case VFV_SET_TABLET_SCALE:
+                    new(&setTabletScale) SetTabletScaleEvent;
+                    break;
+                case VFV_SET_SELECTION:
+                    new(&selection) SelectionEvent;
                     break;
                 default:
                     new(&sdEvent) SubDatasetEvent;
@@ -144,6 +162,15 @@ namespace sereno
                     break;
                 case VFV_REMOVE_DATASET:
                     dataset.~DatasetEvent();
+                    break;
+                case VFV_SET_LOCATION:
+                    setLocation.~SetLocationEvent();
+                    break;
+                case VFV_SET_TABLET_SCALE:
+                    setTabletScale.~SetTabletScaleEvent();
+                    break;
+                case VFV_SET_SELECTION:
+                    selection.~SelectionEvent();
                     break;
                 default:
                     sdEvent.~SubDatasetEvent();
@@ -200,10 +227,14 @@ namespace sereno
              * \param dataset the ataset to remove*/
             void onRemoveDataset(std::shared_ptr<Dataset> dataset);
 
+            /* \brief Set whether or not the tablet is in selection mode
+             * \param selection the new selection mode*/
+            void setSelection(bool selection);
+
             /* \brief Update the tablet's location
              * \param pos the tablet's position
              * \param pos the tablet's rotation */
-            void onSetLocation(glm::vec3 pos, Quaternionf rot);
+            void onSetLocation(const glm::vec3& pos, const Quaternionf& rot);
             
             /* \brief Update the tablet scale */
             void onSetTabletScale(float scale, float width, float height, float posx, float posy);
