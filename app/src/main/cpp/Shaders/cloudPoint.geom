@@ -1,13 +1,13 @@
 #version 320 es
-layout (points) in;
-layout (triangle_strip, max_vertices = 24) out;
 
-in  vec4 v2gColor[];
+layout(points) in;
+in  vec4 v2gColor[1];
 
 uniform float uPointSize;
 uniform mat4  uMVP;
 
 out vec4 varyColor;
+layout(triangle_strip, max_vertices=24) out;
 
 void main() 
 {    
@@ -22,22 +22,71 @@ void main()
                    vec4(+f, +f, -f, 0.0f),  //6
                    vec4(+f, +f, +f, 0.0f)); //7
 
-    const int VERT_ORDER[24] = int[24](0,1,2,3,  // left
-                                       0,2,4,6,  // front  
-                                       4,6,5,7,  // right
-                                       7,3,5,1,  // back
-                                       2,3,6,7,  // top
-                                       0,4,1,5); // bottom
+    varyColor = v2gColor[0];
 
-    // Build the CUBE tile by submitting triangle strip vertices
-    for(int j = 0; j < 6; j++)
-    {
-        for(int k = 0; k < 4; k++) 
-        {
-            varyColor = v2gColor[0];
-            gl_Position = uMVP*(gl_in[0].gl_Position + vc[VERT_ORDER[4*j+k]]);
-            EmitVertex();
-        }
-        EndPrimitive();
-    }
+    //Face 1: left
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[0]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[1]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[2]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[3]);
+    EmitVertex();
+    EndPrimitive();
+
+    //Face 2: front
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[0]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[2]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[4]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[6]);
+    EmitVertex();
+    EndPrimitive();
+
+    //Face 3: right
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[4]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[6]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[5]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[7]);
+    EmitVertex();
+    EndPrimitive();
+
+    //Face 4: back
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[7]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[3]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[5]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[1]);
+    EmitVertex();
+    EndPrimitive();
+
+    //Face 5: top
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[2]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[3]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[6]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[7]);
+    EmitVertex();
+    EndPrimitive();
+
+    //Face 6: bottom
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[0]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[4]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[1]);
+    EmitVertex();
+    gl_Position = uMVP*(gl_in[0].gl_Position + vc[5]);
+    EmitVertex();
+    EndPrimitive();
 }    

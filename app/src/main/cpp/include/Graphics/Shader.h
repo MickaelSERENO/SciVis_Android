@@ -5,7 +5,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 #include <GLES3/gl3ext.h>
 #include <GLES2/gl2ext.h> //Extension for ES 2.0/3.0
 #include <iostream>

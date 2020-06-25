@@ -77,7 +77,7 @@ namespace sereno
         //Load geometry shader
         if(geomString.size() != 0)
         {
-            shader->m_geomID = loadShader(geomString, GL_GEOMETRY_SHADER_OES);
+            shader->m_geomID = loadShader(geomString, GL_GEOMETRY_SHADER);
             glAttachShader(shader->m_programID, shader->m_geomID);
             shader->m_hasGeom = true;
         }
@@ -115,6 +115,7 @@ namespace sereno
 
     int Shader::loadShader(const std::string& code, int type)
     {
+        LOG_INFO("Shader: \n%s\n", code.c_str());
         int shader = glCreateShader(type);
         const GLchar* s = code.c_str();
         GLint l = code.length();

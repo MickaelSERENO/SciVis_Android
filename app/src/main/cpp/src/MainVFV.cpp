@@ -732,7 +732,7 @@ namespace sereno
         if(inMovement)
         {
             findHeadsetCameraTransformation(NULL, &cameraRot);
-            glm::vec3 newPos = m_animationRotation.rotateVector(movement);
+            glm::vec3 newPos = m_animationRotation.getInverse() * movement;
             m_mainData->sendPositionEvent(sd, sd->getPosition() + newPos);
         }
     }
