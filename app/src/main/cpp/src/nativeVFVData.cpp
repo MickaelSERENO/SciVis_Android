@@ -73,10 +73,12 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeAddVTKDataset(JN
 JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetLocation(JNIEnv* env, jobject instance, jlong ptr, jfloatArray jPos, jfloatArray jRot)
 {
     VFVData* data = (VFVData*)ptr;
-    jfloat* jPosArr = env->GetFloatArrayElements(jPos, 0);
-    jfloat* jRotArr = env->GetFloatArrayElements(jRot, 0);
     glm::vec3 pos;
     Quaternionf rot;
+
+    jfloat* jPosArr = env->GetFloatArrayElements(jPos, 0);
+    jfloat* jRotArr = env->GetFloatArrayElements(jRot, 0);
+
     pos.x = jPosArr[0];
     pos.y = jPosArr[1];
     pos.z = jPosArr[2];
@@ -84,6 +86,10 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetLocation(JN
     rot.y = jRotArr[1];
     rot.z = jRotArr[2];
     rot.w = jRotArr[3];
+
+    env->ReleaseFloatArrayElements(jPos, jPosArr, 0);
+    env->ReleaseFloatArrayElements(jRot, jRotArr, 0);
+
     data->onSetLocation(pos, rot);
 }
 

@@ -92,13 +92,22 @@ namespace sereno
 
     void Lasso::draw(const Render& render)
     {
-        const glm::mat4& cameraMat = render.getCameraMatrix();
-        const glm::mat4& projMat   = render.getProjectionMatrix();
-        glm::mat4 mat = getMatrix();
-        glm::mat4 mvp = projMat*cameraMat*mat;
+        if(m_enableCamera)
+        {
+            const glm::mat4& cameraMat = render.getCameraMatrix();
+            const glm::mat4& projMat   = render.getProjectionMatrix();
+            glm::mat4 mat = getMatrix();
+            glm::mat4 mvp = projMat*cameraMat*mat;
 
-        glm::mat4 invMVP = glm::inverse(mvp);
-        m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
+            glm::mat4 invMVP = glm::inverse(mvp);
+            m_mtl->bindMaterial(mat, cameraMat, projMat, mvp, invMVP, render.getCameraParams());
+        }
+        else
+        {
+            glm::mat4 mat = getMatrix();
+            glm::mat4 invMVP = glm::inverse(mat);
+            m_mtl->bindMaterial(mat, glm::mat4(1.0f), glm::mat4(1.0f), mat, invMVP, glm::vec4(0.0, 0.0, 0.0, 1.0));
+        }
 
         glBindVertexArray(m_vaoID);
         {

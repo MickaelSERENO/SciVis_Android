@@ -75,6 +75,7 @@ namespace sereno
 
         //Volume selection lasso
         m_lasso = new Lasso(NULL, &surfaceData->renderer, m_lassoMaterial);
+        m_lasso->setEnableCamera(false);
         m_selecting = false;
         m_tabletPos = glm::vec3(0.0f, 0.0f, 0.0f);
         m_tabletScale = 1;
@@ -242,7 +243,7 @@ namespace sereno
                                                               -m_tabletScale * ((float)m_surfaceData->renderer.getHeight())/2.0f, m_tabletScale * ((float)m_surfaceData->renderer.getHeight())/2.0f,
                                                               -0.0f, 100.0f, false);
                 m_surfaceData->renderer.getCameraTransformable().setPosition(m_tabletPos);
-                m_surfaceData->renderer.getCameraTransformable().setRotate(m_tabletRot);
+                m_surfaceData->renderer.getCameraTransformable().setRotate(m_tabletRot*Quaternionf(glm::vec3(1.0, 0.0, 0.0), M_PI/2.0f));
         }
         else if((m_currentWidgetAction == NO_IMAGE && numberFinger <= 1) || !m_curSDCanBeModified)
         {
@@ -1062,15 +1063,12 @@ endRemoveDataset:
                 {
                     m_tabletPos = event->setLocation.pos;
                     m_tabletRot = event->setLocation.rot;
-                    m_lasso->setPosition(event->setLocation.pos);
-                    m_lasso->setRotate(event->setLocation.rot);
                     break;
                 }
 
                 case VFV_SET_TABLET_SCALE:
                 {
                     m_tabletScale = event->setTabletScale.scale;
-                    m_lasso->setScale(glm::vec3(m_tabletScale*m_surfaceData->renderer.getWidth()/2,m_tabletScale*m_surfaceData->renderer.getHeight()/2,m_tabletScale));
                     break;
                 }
 
