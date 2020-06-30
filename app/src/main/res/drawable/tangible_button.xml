@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true"
-        android:drawable="@drawable/tangibleImgEnabled" /> <!-- pressed -->
+        android:drawable="@drawable/tangible_img_enabled" /> <!-- pressed -->
     <item android:state_focused="true"
-        android:drawable="@drawable/tangibleImgEnabled" /> <!-- focused -->
-    <item android:drawable="@drawable/tangibleImg" /> <!-- default -->
+        android:drawable="@drawable/tangible_img_enabled" /> <!-- focused -->
+    <item android:drawable="@drawable/tangible_img" /> <!-- default -->
 </selector>
