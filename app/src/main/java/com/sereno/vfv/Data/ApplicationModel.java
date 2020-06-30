@@ -198,6 +198,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     private int m_curPointingTechnique = POINTING_MANUAL;
 
+    /** Is the application currently in the tangible mode?*/
+    private boolean m_inTangibleMode = false;
+
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
     {
@@ -611,6 +614,20 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     {
         for(IDataCallback clbk : m_listeners)
             clbk.onConfirmSelection(this);
+    }
+
+    /** Set whether or not the tablet is currently in a tangible mode
+     * @param mode true if true, false otherwise*/
+    public void setTangibleMode(boolean mode)
+    {
+        m_inTangibleMode = mode;
+    }
+
+    /** Get whether or not the tablet is currently in a tangible mode
+     * @return true if in tangible, false otherwise*/
+    public boolean isInTangibleMode()
+    {
+        return m_inTangibleMode;
     }
 
     @Override

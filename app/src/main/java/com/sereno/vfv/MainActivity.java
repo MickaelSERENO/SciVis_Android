@@ -646,7 +646,8 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 //Log.i("LOCATION_TABLET", "Position: " + msg.getPosition()[0] + " " + msg.getPosition()[1] + " " + msg.getPosition()[2] + "; "
                 //         + "Rotation: " + msg.getRotation()[0] + " " + msg.getRotation()[1] + " " + msg.getRotation()[2] + " " + msg.getRotation()[3]);
-                m_model.setLocation(msg.getPosition(), msg.getRotation());
+                if(m_model.isInTangibleMode())
+                    m_model.setLocation(msg.getPosition(), msg.getRotation());
             }
         });
     }

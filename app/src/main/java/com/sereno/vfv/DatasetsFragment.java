@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
@@ -68,6 +69,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
     private ViewGroup m_surfaceViewVolumeSelectLayout = null; /*!< The layout containing all the widgets to display during a volume selection process*/
+    private ViewGroup m_tangibleLayout = null; /*!< The layout containing all the tangible button*/
     private TreeView         m_previewLayout     = null;  /*!< The preview layout*/
     private Bitmap           m_noSnapshotBmp     = null;  /*!< The bitmap used when no preview is available*/
     private ImageView        m_headsetColor      = null;  /*!< Image view representing the headset color*/
@@ -535,9 +537,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-        m_startSelectionBtn = (Button) v.findViewById(R.id.startSelection);
-        m_endSelectionBtn = (Button) v.findViewById(R.id.endSelection);
-        m_confirmSelectionBtn = (Button) v.findViewById(R.id.confirmSelection);
+        m_tangibleLayout = (ViewGroup) v.findViewById(R.id.tangibleLayout);
+
+        m_startSelectionBtn     = (Button) v.findViewById(R.id.startSelection);
+        m_endSelectionBtn       = (Button) v.findViewById(R.id.endSelection);
+        m_confirmSelectionBtn   = (Button) v.findViewById(R.id.confirmSelection);
+        ImageButton tangibleBtn = (ImageButton) v.findViewById(R.id.tangibleButton);
 
         m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -583,6 +588,19 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
+        tangibleBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                    m_model.setTangibleMode(true);
+                else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                    m_model.setTangibleMode(false);
+                return false;
+            }
+        });
+
         m_surfaceViewVolumeSelectLayout = v.findViewById(R.id.volumeLayoutInMV);
         m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
 
@@ -622,6 +640,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         {
             view.findViewById(R.id.mainView).setVisibility(View.VISIBLE);
             m_surfaceView.setVisibility(View.VISIBLE);
+            m_tangibleLayout.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            m_tangibleLayout.setVisibility(View.GONE);
         }
     }
 
