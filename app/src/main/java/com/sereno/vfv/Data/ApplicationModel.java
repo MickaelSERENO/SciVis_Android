@@ -104,6 +104,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         /** called when confirming the selection
          * @param model the app data*/
         void onConfirmSelection(ApplicationModel model);
+
+        /** Called when the current boolean operation has changed
+         * @param model the app data model
+         * @param op the new operation in action*/
+        void onSetCurrentBooleanOperation(ApplicationModel model, int op);
     }
 
     /** Annotation meta data*/
@@ -155,6 +160,12 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public static final int POINTING_WIM_POINTER = 2;
     public static final int POINTING_MANUAL      = 3;
 
+    /** Boolean operation IDs*/
+    public static final int BOOLEAN_NONE         = -1;
+    public static final int BOOLEAN_UNION        = 0;
+    public static final int BOOLEAN_MINUS        = 1;
+    public static final int BOOLEAN_INTERSECTION = 2;
+
     /** The handedness values*/
     public static final int HANDEDNESS_LEFT = 0;
     public static final int HANDEDNESS_RIGHT  = 1;
@@ -171,6 +182,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     /** The current action*/
     private int m_currentAction = CURRENT_ACTION_NOTHING;
+
+    /** THe current boolean operation in use*/
+    private int m_currentBooleanOperation = BOOLEAN_UNION;
 
     /** The current subdataset*/
     private SubDataset m_currentSubDataset = null;
@@ -455,9 +469,12 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @param action the type of action (see CURRENT_ACTION_*)*/
     public void setCurrentAction(int action)
     {
-        m_currentAction = action;
-        for(IDataCallback clbk : m_listeners)
-            clbk.onChangeCurrentAction(this, action);
+        if(action != m_currentAction)
+        {
+            m_currentAction = action;
+            for(IDataCallback clbk : m_listeners)
+                clbk.onChangeCurrentAction(this, action);
+        }
     }
 
     /** Get the current device action
@@ -628,6 +645,22 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public boolean isInTangibleMode()
     {
         return m_inTangibleMode;
+    }
+
+    /** Set the current boolean operation the tablet is performing in selection mode
+     * @param op the current boolean operation in use. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/
+    public void setCurrentBooleanOperation(int op)
+    {
+        m_currentBooleanOperation = op;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetCurrentBooleanOperation(this, op);
+    }
+
+    /** Get the current boolean operation the tablet is performing in selection mode
+     * @return the current boolean operation. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/
+     public int getCurrentBooleanOperation()
+    {
+        return m_currentBooleanOperation;
     }
 
     @Override

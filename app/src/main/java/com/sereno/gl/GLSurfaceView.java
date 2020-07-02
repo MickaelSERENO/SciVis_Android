@@ -9,6 +9,8 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.ArrayList;
+
 /** \brief The GLSurface object, represent an OpenGL Surface associated with an OpenGL Context*/
 public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable
 {
@@ -21,10 +23,31 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
         SURFACE_DESTROYED
     }
 
+    public interface GLSurfaceViewListener
+    {
+        /** Function called when the surface of the GL View changed
+         * @param view the surface view calling this method
+         * @param format the new surface view format
+         * @param width the surface view width to use
+         * @param height the surface view height to use*/
+        void onSurfaceChanged(GLSurfaceView view, int format, int width, int height);
+
+        /** Function called when the surface of the GL View is destroyed
+         * @param view the surface view calling this method*/
+        void onSurfaceDestroyed(GLSurfaceView view);
+
+        /** Function called when the surface of the GL View is created
+         * @param view the surface view calling this method*/
+        void onSurfaceCreated(GLSurfaceView view);
+    }
+
     protected Thread        m_thread        = null;                                  /**!< Represents the Drawing thread*/
     protected Boolean       m_isCreated     = false;                                 /**!< Is the surface created ?*/
     protected InternalState m_internalState = InternalState.SURFACE_NOT_INITIALIZED; /**!< The InternalState of the application*/
-    protected long          m_internalData  = 0;                                     /**!< Pointer to a C++ object permitting to send data to the main thread*/
+    protected long          m_internalData  = 0;
+    private   ArrayList<GLSurfaceViewListener> m_listeners = new ArrayList<>();      /**!< The listener to use*/
+
+    /**!< Pointer to a C++ object permitting to send data to the main thread*/
 
     /** \brief Initialize the view*/
     public void init(Context context)
@@ -49,6 +72,22 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     public GLSurfaceView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context);
+    }
+
+    /** Add a GLSurfaceViewListener to call during events
+     * @param listener the listener to add*/
+    public void addListener(GLSurfaceViewListener listener)
+    {
+        if(!m_listeners.contains(listener))
+            m_listeners.add(listener);
+    }
+
+
+    /** Remove an already registered GLSurfaceViewListener to call during events
+     * @param listener the listener to remove*/
+    public void removeListener(GLSurfaceViewListener listener)
+    {
+        m_listeners.remove(listener);
     }
 
     /** \brief Finalize method. Close the thread*/
@@ -76,6 +115,9 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     public void surfaceCreated(SurfaceHolder surfaceHolder)
     {
         setInternalState(InternalState.SURFACE_CREATED);
+
+        for(GLSurfaceViewListener l : m_listeners)
+            l.onSurfaceCreated(this);
     }
 
     @Override
@@ -83,12 +125,18 @@ public class GLSurfaceView extends SurfaceView implements SurfaceHolder.Callback
     {
         nativeOnSurfaceChanged(m_internalData, format, width, height);
         setInternalState(InternalState.SURFACE_CHANGED);
+
+        for(GLSurfaceViewListener l : m_listeners)
+            l.onSurfaceChanged(this, format, width, height);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder)
     {
         setInternalState(InternalState.SURFACE_DESTROYED);
+
+        for(GLSurfaceViewListener l : m_listeners)
+            l.onSurfaceDestroyed(this);
     }
 
     @Override

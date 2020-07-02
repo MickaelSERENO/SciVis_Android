@@ -321,6 +321,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onConfirmSelection(ApplicationModel model) {}
 
+    @Override
+    public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
+
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/

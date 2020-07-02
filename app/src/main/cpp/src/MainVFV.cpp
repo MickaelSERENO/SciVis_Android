@@ -340,10 +340,13 @@ namespace sereno
                             m_currentWidgetAction = NO_IMAGE;
                             if(m_selecting)
                             {
-                                if(m_lasso->endLasso()){
+                                if(m_lasso->endLasso())
+                                {
                                     m_mainData->setLasso(m_lasso->getData());
                                     m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SELECTING);
                                 }
+                                else
+                                    m_lasso->clearLasso();
                             }
                             else
                             {
@@ -1071,7 +1074,6 @@ endRemoveDataset:
                     m_tabletScale = event->setTabletScale.scale;
                     break;
                 }
-
 
                 case VFV_SET_SELECTION:
                 {

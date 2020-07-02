@@ -924,6 +924,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
+
+    @Override
     public void onEnableSwipping(Fragment fragment)
     {
         m_viewPager.setPagingEnabled(true);

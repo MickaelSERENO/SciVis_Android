@@ -212,6 +212,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onConfirmSelection(ApplicationModel model) {}
 
+    @Override
+    public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
+
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
         d.addListener(this);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sereno.Tree;
+import com.sereno.gl.GLSurfaceView;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
@@ -84,11 +86,15 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
 
-
     /** Selection menu buttons*/
-    private Button m_startSelectionBtn;
-    private Button m_endSelectionBtn;
-    private Button m_confirmSelectionBtn;
+    private Button m_startSelectionBtn   = null;
+    private Button m_endSelectionBtn     = null;
+    private Button m_confirmSelectionBtn = null;
+
+    /** Boolean button*/
+    private ImageButton m_unionBtn = null;
+    private ImageButton m_interBtn = null;
+    private ImageButton m_minusBtn = null;
 
     public DatasetsFragment()
     {
@@ -463,6 +469,29 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onConfirmSelection(ApplicationModel model) {}
 
+    @Override
+    public void onSetCurrentBooleanOperation(ApplicationModel model, int op)
+    {
+        //Change the boolean button appearance
+        m_unionBtn.setBackgroundResource(R.drawable.add_button_unchecked);
+        m_minusBtn.setBackgroundResource(R.drawable.minus_button_unchecked);
+        m_interBtn.setBackgroundResource(R.drawable.inter_button_unchecked);
+
+        switch(op)
+        {
+            case ApplicationModel.BOOLEAN_UNION:
+                m_unionBtn.setBackgroundResource(R.drawable.add_button_checked);
+                break;
+
+            case ApplicationModel.BOOLEAN_INTERSECTION:
+                m_interBtn.setBackgroundResource(R.drawable.inter_button_checked);
+                break;
+
+            case ApplicationModel.BOOLEAN_MINUS:
+                m_minusBtn.setBackgroundResource(R.drawable.minus_button_checked);
+                break;
+        }
+    }
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -471,6 +500,28 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.surfaceView);
         m_previewLayout = (TreeView)v.findViewById(R.id.previewLayout);
         m_headsetColor  = (ImageView)v.findViewById(R.id.headsetColor);
+
+
+        /** Setup the selection menu*/
+        final SeekBar tabletScaleBar = (SeekBar)v.findViewById(R.id.tabletScaleBar);
+        tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    updateScale(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         //Surface view listeners
         m_surfaceView.setOnTouchListener(new View.OnTouchListener() {
@@ -515,29 +566,26 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-
-        /** Setup the selection menu*/
-        final SeekBar tabletScaleBar = (SeekBar)v.findViewById(R.id.tabletScaleBar);
-        tabletScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        m_surfaceView.addListener(new GLSurfaceView.GLSurfaceViewListener()
+        {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser) {
-                    updateScale(progress);
-                }
+            public void onSurfaceChanged(GLSurfaceView view, int format, int width, int height)
+            {
+                updateScale(tabletScaleBar.getProgress());
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onSurfaceDestroyed(GLSurfaceView view)
+            {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onSurfaceCreated(GLSurfaceView view)
+            {}
         });
 
+
         m_tangibleLayout = (ViewGroup) v.findViewById(R.id.tangibleLayout);
+        m_tangibleLayout.setVisibility(View.GONE);
 
         m_startSelectionBtn     = (Button) v.findViewById(R.id.startSelection);
         m_endSelectionBtn       = (Button) v.findViewById(R.id.endSelection);
@@ -555,6 +603,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_confirmSelectionBtn.setVisibility(view.GONE);
                 m_endSelectionBtn.setText(R.string.endSelection);
                 updateScale(tabletScaleBar.getProgress());
+                m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION); //Default == Union
             }
         });
 
@@ -593,16 +642,50 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent)
             {
-                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                    m_model.setTangibleMode(true);
-                else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
-                    m_model.setTangibleMode(false);
+                if(motionEvent.getPointerCount() == 1)
+                {
+                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                        m_model.setTangibleMode(true);
+                    else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
+                        m_model.setTangibleMode(false);
+                }
                 return false;
             }
         });
 
         m_surfaceViewVolumeSelectLayout = v.findViewById(R.id.volumeLayoutInMV);
         m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
+
+        m_unionBtn = (ImageButton)v.findViewById(R.id.unionButton);
+        m_minusBtn = (ImageButton)v.findViewById(R.id.minusButton);
+        m_interBtn = (ImageButton)v.findViewById(R.id.intersectionButton);
+
+        m_unionBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION);
+            }
+        });
+
+        m_minusBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_MINUS);
+            }
+        });
+
+        m_interBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_INTERSECTION);
+            }
+        });
 
         updateScale(tabletScaleBar.getProgress());
     }
@@ -642,6 +725,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             m_surfaceView.setVisibility(View.VISIBLE);
             m_tangibleLayout.setVisibility(View.VISIBLE);
         }
+
         else
         {
             m_tangibleLayout.setVisibility(View.GONE);
