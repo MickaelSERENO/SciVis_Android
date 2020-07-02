@@ -28,6 +28,18 @@
                     </group>
                 </menu>
             </item>
+            <item android:id="@+id/selectionMode">
+                <menu>
+                    <group android:checkableBehavior="single">
+                        <item android:id="@+id/absoluteSelectionMode_item"
+                            android:title="@string/absolute"/>
+                        <item android:id="@+id/relativeSelectionModeAligned_item"
+                            android:title="@string/relativeAligned"/>
+                        <item android:id="@+id/relativeSelectionModeFull_item"
+                            android:title="@string/relativeFull"/>
+                    </group>
+                </menu>
+            </item>
         </menu>
     </item>
 </menu>

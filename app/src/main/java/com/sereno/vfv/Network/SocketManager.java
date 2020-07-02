@@ -68,6 +68,7 @@ public class SocketManager
     public static final short LASSO                   = 23;
     public static final short CONFIRM_SELECTION       = 24;
     public static final short ADD_CLOUD_POINT_DATASET = 25;
+    public static final short ADD_NEW_SELECTION_INPUT = 26;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -715,6 +716,20 @@ public class SocketManager
 
         for(int i = 0; i < lasso.length; i++)
             buf.putFloat(lasso[i]);
+
+        return buf.array();
+    }
+
+    /** Create a new selection input event
+     * @param booleanOp the boolean operation to use for this new input
+     * @return array of byte to send to push*/
+    public static byte[] createAddNewSelectionInputEvent(int booleanOp)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(ADD_NEW_SELECTION_INPUT);
+        buf.putInt(booleanOp);
 
         return buf.array();
     }

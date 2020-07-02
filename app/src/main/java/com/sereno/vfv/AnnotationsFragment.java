@@ -310,6 +310,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     @Override
+    public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
 
     @Override
@@ -323,6 +326,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
+
+    @Override
+    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode) {}
 
 
     /** Set up the main layout

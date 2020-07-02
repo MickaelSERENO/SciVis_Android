@@ -458,6 +458,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     @Override
+    public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
 
     @Override
@@ -492,6 +495,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 break;
         }
     }
+
+    @Override
+    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode)
+    {}
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/

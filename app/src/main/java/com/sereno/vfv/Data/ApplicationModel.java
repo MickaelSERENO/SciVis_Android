@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
@@ -109,6 +110,16 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
          * @param model the app data model
          * @param op the new operation in action*/
         void onSetCurrentBooleanOperation(ApplicationModel model, int op);
+
+        /** Called when the tangible mode of the application has changed
+         * @param model the app data model
+         * @param inTangibleMode is the device in the tangible mode?*/
+        void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode);
+
+        /** Called when the selection mode of the application has changed
+         * @param model the app data model
+         * @param selectMode the new selection mode to use. See SELECTION_MODE_* */
+        void onSetSelectionMode(ApplicationModel model, int selectMode);
     }
 
     /** Annotation meta data*/
@@ -145,20 +156,30 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     }
 
     /** All the available current action*/
-    public final int CURRENT_ACTION_NOTHING             = 0;
-    public final int CURRENT_ACTION_MOVING              = 1;
-    public final int CURRENT_ACTION_SCALING             = 2;
-    public final int CURRENT_ACTION_ROTATING            = 3;
-    public final int CURRENT_ACTION_SKETCHING           = 4;
-    public final int CURRENT_ACTION_LASSO               = 6;
-    public final int CURRENT_ACTION_SELECTING           = 7;
-    public final int CURRENT_ACTION_REVIEWING_SELECTION = 8;
+    public static final int CURRENT_ACTION_NOTHING             = 0;
+    public static final int CURRENT_ACTION_MOVING              = 1;
+    public static final int CURRENT_ACTION_SCALING             = 2;
+    public static final int CURRENT_ACTION_ROTATING            = 3;
+    public static final int CURRENT_ACTION_SKETCHING           = 4;
+    public static final int CURRENT_ACTION_LASSO               = 6;
+    public static final int CURRENT_ACTION_SELECTING           = 7;
+    public static final int CURRENT_ACTION_REVIEWING_SELECTION = 8;
 
     /** The pointing technique IDs*/
     public static final int POINTING_GOGO        = 0;
     public static final int POINTING_WIM         = 1;
     public static final int POINTING_WIM_POINTER = 2;
     public static final int POINTING_MANUAL      = 3;
+
+    /** The type of tangible selection mode*/
+    /** Absolute position*/
+    public static final int SELECTION_MODE_ABSOLUTE = 0;
+
+    /** Relative position but absolute rotation*/
+    public static final int SELECTION_MODE_RELATIVE_ALIGNED = 1;
+
+    /** Relative position and rotation*/
+    public static final int SELECTION_MODE_RELATIVE_FULL    = 2;
 
     /** Boolean operation IDs*/
     public static final int BOOLEAN_NONE         = -1;
@@ -170,21 +191,23 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public static final int HANDEDNESS_LEFT = 0;
     public static final int HANDEDNESS_RIGHT  = 1;
 
+    private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
+    private Configuration            m_config;          /**!< The configuration object*/
+
+    /*********************************************************************/
+    /************************ DATASETS ATTRIBUTES ************************/
+    /*********************************************************************/
+
     private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
     private ArrayList<VectorFieldDataset> m_vectorFieldDatasets;  /**!< The open vectorField Datasets */
     private ArrayList<CloudPointDataset>  m_cloudPointDatasets;   /**!< The open cloud point Datasets*/
     private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + vectorField)*/
-    private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
-    private Configuration            m_config;          /**!< The configuration object*/
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
 
     /** The current action*/
     private int m_currentAction = CURRENT_ACTION_NOTHING;
-
-    /** THe current boolean operation in use*/
-    private int m_currentBooleanOperation = BOOLEAN_UNION;
 
     /** The current subdataset*/
     private SubDataset m_currentSubDataset = null;
@@ -201,16 +224,42 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     /** Array containing the GTF Data of all the SubDataset*/
     private ArrayList<GTFData> m_gtfData = new ArrayList<>();
 
-    /** Current position*/
+    /** The current pointing technique to use*/
+    private int m_curPointingTechnique = POINTING_MANUAL;
+
+    /*********************************************************************/
+    /***************** TANGIBLE INTERACTION ATTRIBUTES *******************/
+    /*********************************************************************/
+
+    /** Current tablet's virtual position*/
     private float[] m_position;
 
-    /** Current rotation*/
+    /** Current tablet's virtual rotation*/
     private float[] m_rotation;
 
     /** Current lasso*/
     private float[] m_lasso;
 
-    private int m_curPointingTechnique = POINTING_MANUAL;
+    /** The physical physical origin for relative movements*/
+    private float[] m_originPosition = new float[3];
+
+    /** The physical orientation origin for relative movements*/
+    private Quaternion m_originRotation = new Quaternion();
+
+    /** The start position of the tablet during its movements*/
+    private float[] m_startPosition = new float[3];
+
+    /** The start orientation of the tablet during its movements*/
+    private Quaternion m_startRotation = new Quaternion();
+
+    /** Was the tangible movement restarted?*/
+    private boolean m_reinitTangible = false;
+
+    /** THe current boolean operation in use*/
+    private int m_currentBooleanOperation = BOOLEAN_UNION;
+
+    /** The current selection mode technique in use*/
+    private int m_curSelectionMode = SELECTION_MODE_ABSOLUTE;
 
     /** Is the application currently in the tangible mode?*/
     private boolean m_inTangibleMode = false;
@@ -580,6 +629,22 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         return m_curPointingTechnique;
     }
 
+    /** Set the current selection mode to use
+     * @param selectMode the new selection mode to use (see SELECTION_MODE* )*/
+    public void setCurrentSelectionMode(int selectMode)
+    {
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetSelectionMode(this, selectMode);
+        m_curSelectionMode = selectMode;
+    }
+
+    /** Get the current selection mode in use
+     * @return the current selection mode ID. See SELECTION_MODE_* */
+    public int getCurrentSelectionMode()
+    {
+        return m_curSelectionMode;
+    }
+
     /** Return the GTF bound to a given SubDataset
      * @param sd the key dataset
      * @return the corresponding GTFData, null if not found*/
@@ -591,17 +656,46 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         return null;
     }
 
-    /** @brief update the tablet's location
+
+    /** @brief update the tablet's location if the location is significant for the current mode of the tablet
      * @param pos the tablet's position
      * @param rot the tablet's rotation*/
     public void setLocation(float[] pos, float[] rot)
     {
-        if(m_currentAction == CURRENT_ACTION_NOTHING || m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
+        if(m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
         {
-            m_position = pos;
-            m_rotation = rot;
+            if(m_reinitTangible)
+            {
+                m_reinitTangible = false;
+                m_startPosition  = pos.clone();
+                m_startRotation  = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+            }
+
+            float[]    p = pos.clone();
+            Quaternion r = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+
+            //Apply our choice in the selection mode
+            if(m_curSelectionMode == SELECTION_MODE_ABSOLUTE || m_currentAction == CURRENT_ACTION_LASSO) {} //Nothing to do here
+
+            else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_ALIGNED)
+                for(int i = 0; i < 3; i++)
+                    p[i] = p[i]-m_startPosition[i] + m_originPosition[i];
+
+            else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_FULL)
+            {
+                //First position
+                for(int i = 0; i < 3; i++)
+                    p[i] = p[i]-m_startPosition[i] + m_originPosition[i];
+
+                //Then rotation
+                r = r.multiplyBy(m_startRotation.getInverse().multiplyBy(m_originRotation));
+            }
+
             for(IDataCallback clbk : m_listeners)
-                clbk.onSetLocation(this, pos, rot);
+                clbk.onSetLocation(this, p, r.toFloatArray());
+
+            m_position = p;
+            m_rotation = r.toFloatArray();
         }
     }
 
@@ -621,9 +715,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @param data the lasso data*/
     public void setLasso(final float[] data)
     {
-        m_lasso = data;
         for(IDataCallback clbk : m_listeners)
             clbk.onSetLasso(this, data);
+        m_lasso = data;
     }
 
     /** @brief confirm the current selection*/
@@ -637,6 +731,19 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @param mode true if true, false otherwise*/
     public void setTangibleMode(boolean mode)
     {
+        if(!m_inTangibleMode && mode)
+        {
+            m_reinitTangible = true;
+        }
+
+        if(!mode)
+        {
+            m_originPosition = m_position.clone();
+            m_originRotation = new Quaternion(m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
+        }
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetTangibleMode(this, mode);
         m_inTangibleMode = mode;
     }
 
@@ -651,9 +758,9 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
      * @param op the current boolean operation in use. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/
     public void setCurrentBooleanOperation(int op)
     {
-        m_currentBooleanOperation = op;
         for(IDataCallback clbk : m_listeners)
             clbk.onSetCurrentBooleanOperation(this, op);
+        m_currentBooleanOperation = op;
     }
 
     /** Get the current boolean operation the tablet is performing in selection mode

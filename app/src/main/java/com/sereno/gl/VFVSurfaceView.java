@@ -215,6 +215,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
 
+    @Override
+    public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+
+    @Override
+    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode) {}
+
     private void onAddDataset(ApplicationModel model, Dataset d)
     {
         d.addListener(this);
@@ -304,7 +310,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     /** Delete the arguments sent to the main function
      * @param ptr the ptr to delete*/
-    private native long nativeDeleteMainArgs(long ptr);
+    private native void nativeDeleteMainArgs(long ptr);
 
     /** Change the current sub dataset to display
      * @param ptr the ptr associated with the main Argument

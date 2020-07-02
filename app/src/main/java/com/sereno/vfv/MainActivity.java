@@ -190,6 +190,18 @@ public class MainActivity extends AppCompatActivity
             case R.id.gogoPointing_item:
                 m_model.setCurrentPointingTechnique(ApplicationModel.POINTING_GOGO);
                 break;
+
+            case R.id.absoluteSelectionMode_item:
+                m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_ABSOLUTE);
+                break;
+
+            case R.id.relativeSelectionModeAligned_item:
+                m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_ALIGNED);
+                break;
+
+            case R.id.relativeSelectionModeFull_item:
+                m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_FULL);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -924,7 +936,22 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
+    public void onSetCurrentBooleanOperation(ApplicationModel model, int op)
+    {
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
+            m_socket.push(SocketManager.createAddNewSelectionInputEvent(op));
+    }
+
+    @Override
+    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode)
+    {
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
+            m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+    }
+
+    @Override
+    public void onSetSelectionMode(ApplicationModel model, int selectMode)
+    {}
 
     @Override
     public void onEnableSwipping(Fragment fragment)
