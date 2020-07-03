@@ -63,6 +63,17 @@ public class Quaternion
                               w*q.w - x*q.x - y*q.y - z*q.z); //The real part
     }
 
+    /** Rotate a vector v via this quaternion
+     * @param v the vector to rotate. The float array should be of size 3 (or more)
+     * @return a new vector in a float[3] {x, y, z} array.*/
+    public float[] rotateVector(float[] v)
+    {
+        Quaternion invQ  = getInverse();
+        Quaternion qPure = new Quaternion(v[0], v[1], v[2], 0);
+        Quaternion res   = multiplyBy(qPure).multiplyBy(invQ);
+        return new float[]{res.x, res.y, res.z};
+    }
+
     /** Convert this quaternion to a float array
      * @return a float array containing {x, y, z, w}*/
     public float[] toFloatArray()

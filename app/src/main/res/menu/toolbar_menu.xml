@@ -28,7 +28,9 @@
                     </group>
                 </menu>
             </item>
-            <item android:id="@+id/selectionMode">
+            <item android:id="@+id/selectionMode"
+                android:title="@string/selectSelectionMode"
+                app:showAsAction="ifRoom">
                 <menu>
                     <group android:checkableBehavior="single">
                         <item android:id="@+id/absoluteSelectionMode_item"

@@ -239,6 +239,7 @@ public class MainActivity extends AppCompatActivity
         m_menu = menu;
         super.onCreateOptionsMenu(menu);
         onUpdatePointingTechnique(m_model, m_model.getCurrentPointingTechnique());
+        onSetSelectionMode(m_model, m_model.getCurrentSelectionMode());
 
         //Hide the WIM pointer during CHI 2020 experiment
         m_menu.findItem(R.id.wimRayPointing_item).setVisible(false);
@@ -951,7 +952,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onSetSelectionMode(ApplicationModel model, int selectMode)
-    {}
+    {
+        if(m_menu == null)
+            return;
+
+        MenuItem[] itms = new MenuItem[3];
+        itms[ApplicationModel.SELECTION_MODE_ABSOLUTE]         = m_menu.findItem(R.id.absoluteSelectionMode_item);
+        itms[ApplicationModel.SELECTION_MODE_RELATIVE_ALIGNED] = m_menu.findItem(R.id.relativeSelectionModeAligned_item);
+        itms[ApplicationModel.SELECTION_MODE_RELATIVE_FULL]    = m_menu.findItem(R.id.relativeSelectionModeFull_item);
+
+        //selectMode can be "-1"
+        if(selectMode >= 0 && selectMode <= 2)
+            itms[selectMode].setChecked(true);
+    }
 
     @Override
     public void onEnableSwipping(Fragment fragment)

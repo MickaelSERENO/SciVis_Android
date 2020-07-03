@@ -38,6 +38,7 @@
     <string name="endSelection">End Selection</string>
     <string name="cancelSelection">Cancel Selection</string>
     <string name="confirmSelection">Confirm Selection</string>
+    <string name="selectSelectionMode">Select the Selection Mode</string>
     <string name="relativeFull">Relative Full</string>
     <string name="relativeAligned">Relative Aligned</string>
     <string name="absolute">Absolute</string>

@@ -148,6 +148,8 @@ namespace sereno
                                 else
                                     mag = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + i*valueFormatInt*val.nbValuePerTuple, val.format);
 
+                                if(mag > 0)
+                                    LOG_INFO("OK\n");
                                 //Save it at the correct indice in the TF indice (clamped into [0,1])
                                 tfInd[j] = (mag-val.minVal)/(val.maxVal-val.minVal);
                             }
@@ -171,9 +173,11 @@ namespace sereno
                 }
             }
 
-            if(m_newCols)
-                free(m_newCols);
-            m_newCols = cols;
+            m_updateColorLock.lock();
+                if(m_newCols)
+                    free(m_newCols);
+                m_newCols = cols;
+            m_updateColorLock.unlock();
             m_updateTFLock.unlock();
             LOG_INFO("End Computing Colors\n");
         }).detach();

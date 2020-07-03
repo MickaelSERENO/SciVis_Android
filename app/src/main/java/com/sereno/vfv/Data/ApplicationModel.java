@@ -3,6 +3,7 @@ package com.sereno.vfv.Data;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.sereno.math.Quaternion;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
@@ -664,8 +665,10 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     {
         if(m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
         {
+            boolean isReinited = false;
             if(m_reinitTangible)
             {
+                isReinited = true;
                 m_reinitTangible = false;
                 m_startPosition  = pos.clone();
                 m_startRotation  = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
@@ -683,12 +686,27 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
             else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_FULL)
             {
-                //First position
-                for(int i = 0; i < 3; i++)
-                    p[i] = p[i]-m_startPosition[i] + m_originPosition[i];
-
                 //Then rotation
-                r = r.multiplyBy(m_startRotation.getInverse().multiplyBy(m_originRotation));
+                r = r.multiplyBy(m_startRotation.getInverse());
+
+                //First position
+                if(isReinited)
+                    for(int i = 0; i < 3; i++)
+                        p[i] = m_originPosition[i];
+
+                else
+                {
+                    //Rotate the displacement
+                    float[] movementRotate = new float[3];
+                    for(int i = 0; i < 3; i++)
+                        movementRotate[i] = (p[i]-m_startPosition[i]);
+                    p = r.rotateVector(movementRotate);
+
+                    for(int i = 0; i < 3; i++)
+                        p[i] = p[i] + m_originPosition[i];
+                }
+
+                r = r.multiplyBy(m_originRotation);
             }
 
             for(IDataCallback clbk : m_listeners)
