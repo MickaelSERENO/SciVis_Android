@@ -233,10 +233,10 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     /*********************************************************************/
 
     /** Current tablet's virtual position*/
-    private float[] m_position;
+    private float[] m_position = new float[]{0.0f, 0.0f, 0.0f};
 
     /** Current tablet's virtual rotation*/
-    private float[] m_rotation;
+    private float[] m_rotation = new float[]{0.0f, 0.0f, 0.0f, 1.0f};
 
     /** Current lasso*/
     private float[] m_lasso;
@@ -686,13 +686,14 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
             else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_FULL)
             {
-                //Then rotation
-                r = r.multiplyBy(m_startRotation.getInverse());
+                //Find the suitable rotation
 
                 //First position
                 if(isReinited)
+                {
                     for(int i = 0; i < 3; i++)
                         p[i] = m_originPosition[i];
+                }
 
                 else
                 {
@@ -700,12 +701,13 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
                     float[] movementRotate = new float[3];
                     for(int i = 0; i < 3; i++)
                         movementRotate[i] = (p[i]-m_startPosition[i]);
-                    p = r.rotateVector(movementRotate);
 
+                    p = m_originRotation.multiplyBy(m_startRotation.getInverse()).rotateVector(movementRotate);
                     for(int i = 0; i < 3; i++)
                         p[i] = p[i] + m_originPosition[i];
                 }
 
+                r = r.multiplyBy(m_startRotation.getInverse());
                 r = r.multiplyBy(m_originRotation);
             }
 

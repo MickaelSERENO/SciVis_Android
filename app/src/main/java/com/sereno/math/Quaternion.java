@@ -70,7 +70,7 @@ public class Quaternion
     {
         Quaternion invQ  = getInverse();
         Quaternion qPure = new Quaternion(v[0], v[1], v[2], 0);
-        Quaternion res   = multiplyBy(qPure).multiplyBy(invQ);
+        Quaternion res   = this.multiplyBy(qPure).multiplyBy(invQ);
         return new float[]{res.x, res.y, res.z};
     }
 
