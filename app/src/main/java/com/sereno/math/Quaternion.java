@@ -80,4 +80,10 @@ public class Quaternion
     {
         return new float[]{x, y, z, w};
     }
+
+    @Override
+    public Object clone()
+    {
+        return new Quaternion(x, y, z, w);
+    }
 }

@@ -219,7 +219,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
 
     @Override
-    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode) {}
+    public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
 
     private void onAddDataset(ApplicationModel model, Dataset d)
     {

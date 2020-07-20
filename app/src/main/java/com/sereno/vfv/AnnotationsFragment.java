@@ -328,7 +328,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
 
     @Override
-    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode) {}
+    public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
 
 
     /** Set up the main layout

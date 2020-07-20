@@ -114,8 +114,8 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
         /** Called when the tangible mode of the application has changed
          * @param model the app data model
-         * @param inTangibleMode is the device in the tangible mode?*/
-        void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode);
+         * @param inTangibleMode the device current the tangible mode?*/
+        void onSetTangibleMode(ApplicationModel model, int inTangibleMode);
 
         /** Called when the selection mode of the application has changed
          * @param model the app data model
@@ -187,6 +187,11 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public static final int BOOLEAN_UNION        = 0;
     public static final int BOOLEAN_MINUS        = 1;
     public static final int BOOLEAN_INTERSECTION = 2;
+
+    /** The different tangible mode*/
+    public static final int TANGIBLE_MODE_NONE   = 0;
+    public static final int TANGIBLE_MODE_MOVE   = 1;
+    public static final int TANGIBLE_MODE_ORIGIN = 2;
 
     /** The handedness values*/
     public static final int HANDEDNESS_LEFT = 0;
@@ -262,8 +267,8 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     /** The current selection mode technique in use*/
     private int m_curSelectionMode = SELECTION_MODE_ABSOLUTE;
 
-    /** Is the application currently in the tangible mode?*/
-    private boolean m_inTangibleMode = false;
+    /** The application current tangible mode?*/
+    private int m_tangibleMode = TANGIBLE_MODE_NONE;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -657,7 +662,6 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         return null;
     }
 
-
     /** @brief update the tablet's location if the location is significant for the current mode of the tablet
      * @param pos the tablet's position
      * @param rot the tablet's rotation*/
@@ -678,7 +682,14 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
             Quaternion r = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
 
             //Apply our choice in the selection mode
-            if(m_curSelectionMode == SELECTION_MODE_ABSOLUTE || m_currentAction == CURRENT_ACTION_LASSO) {} //Nothing to do here
+            if(m_curSelectionMode == SELECTION_MODE_ABSOLUTE) {} //Nothing to do here
+
+            //Set the origin
+            else if(m_tangibleMode == TANGIBLE_MODE_ORIGIN)
+            {
+                m_originPosition = p.clone();
+                m_originRotation = (Quaternion)r.clone();
+            }
 
             else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_ALIGNED)
                 for(int i = 0; i < 3; i++)
@@ -749,29 +760,24 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     /** Set whether or not the tablet is currently in a tangible mode
      * @param mode true if true, false otherwise*/
-    public void setTangibleMode(boolean mode)
+    public void setTangibleMode(int mode)
     {
-        if(!m_inTangibleMode && mode)
+        if(m_tangibleMode == TANGIBLE_MODE_NONE &&
+           mode != TANGIBLE_MODE_NONE)
         {
             m_reinitTangible = true;
         }
 
-        if(!mode)
-        {
-            m_originPosition = m_position.clone();
-            m_originRotation = new Quaternion(m_rotation[0], m_rotation[1], m_rotation[2], m_rotation[3]);
-        }
-
         for(IDataCallback clbk : m_listeners)
             clbk.onSetTangibleMode(this, mode);
-        m_inTangibleMode = mode;
+        m_tangibleMode = mode;
     }
 
-    /** Get whether or not the tablet is currently in a tangible mode
-     * @return true if in tangible, false otherwise*/
-    public boolean isInTangibleMode()
+    /** Get the tablet current tangible mode
+     * @return the tablet current tangible mode*/
+    public int getCurrentTangibleMode()
     {
-        return m_inTangibleMode;
+        return m_tangibleMode;
     }
 
     /** Set the current boolean operation the tablet is performing in selection mode

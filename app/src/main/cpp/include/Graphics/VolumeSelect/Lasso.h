@@ -17,8 +17,16 @@ namespace sereno
             void clearLasso();
             void draw(const Render& render);
             void startLasso(float x, float y, float z);
-            void continueLasso(float x, float y, float z);
+
+            /** \brief Continue the creation of the lasso
+             * \param x the x position of the new point
+             * \param y the y position of the new point
+             * \param z the z position of the new point
+             * \return true if the point should be added, false otherwise*/
+            bool continueLasso(float x, float y, float z);
+
             bool endLasso();
+
             const std::vector<float>& getData() const;
         protected:
             GLuint   m_vboID = 0;

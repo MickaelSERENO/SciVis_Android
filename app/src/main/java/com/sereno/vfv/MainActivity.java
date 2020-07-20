@@ -675,7 +675,7 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 //Log.i("LOCATION_TABLET", "Position: " + msg.getPosition()[0] + " " + msg.getPosition()[1] + " " + msg.getPosition()[2] + "; "
                 //         + "Rotation: " + msg.getRotation()[0] + " " + msg.getRotation()[1] + " " + msg.getRotation()[2] + " " + msg.getRotation()[3]);
-                if(m_model.isInTangibleMode())
+                if(m_model.getCurrentTangibleMode() != ApplicationModel.TANGIBLE_MODE_NONE)
                     m_model.setLocation(msg.getPosition(), msg.getRotation());
             }
         });
@@ -960,9 +960,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode)
+    public void onSetTangibleMode(ApplicationModel model, int tangibleMode)
     {
-        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING && tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
             m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
     }
 

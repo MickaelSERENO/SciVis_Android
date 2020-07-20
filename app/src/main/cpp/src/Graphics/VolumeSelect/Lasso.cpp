@@ -25,13 +25,15 @@ namespace sereno
 
         m_nbVertices = 1;
     }
-#define _MIN_LASSO_DISTANCE_AXIS 0.05
-    void Lasso::continueLasso(float x, float y, float z)
+#define _MIN_LASSO_DISTANCE_AXIS  0.05
+#define _MAX_LASSO_CLOSE_DISTANCE 0.20
+    bool Lasso::continueLasso(float x, float y, float z)
     {
-        if(x - m_data.at(m_nbVertices*3-3) >  _MIN_LASSO_DISTANCE_AXIS
-        || x - m_data.at(m_nbVertices*3-3) < -_MIN_LASSO_DISTANCE_AXIS
-        || y - m_data.at(m_nbVertices*3-2) >  _MIN_LASSO_DISTANCE_AXIS
-        || y - m_data.at(m_nbVertices*3-2) < -_MIN_LASSO_DISTANCE_AXIS)
+        float diffX = x - m_data[m_nbVertices*3-3];
+        float diffY = y - m_data[m_nbVertices*3-2];
+        float mag = sqrt(diffX*diffX + diffY*diffY);
+
+        if(mag < _MIN_LASSO_DISTANCE_AXIS)
         {
             m_data.push_back(x);
             m_data.push_back(y);
@@ -40,15 +42,18 @@ namespace sereno
             m_nbVertices += 1;
             
             buildVBO();
+            return true;
         }
+        return false;
     }
 
     bool Lasso::endLasso()
     {
-        if(m_data.at(0) - m_data.at(m_nbVertices*3-3) <  _MIN_LASSO_DISTANCE_AXIS
-        && m_data.at(0) - m_data.at(m_nbVertices*3-3) > -_MIN_LASSO_DISTANCE_AXIS
-        && m_data.at(1) - m_data.at(m_nbVertices*3-2) <  _MIN_LASSO_DISTANCE_AXIS
-        && m_data.at(1) - m_data.at(m_nbVertices*3-2) > -_MIN_LASSO_DISTANCE_AXIS)
+        float diffX = m_data[0] - m_data[m_nbVertices*3-3];
+        float diffY = m_data[1] - m_data[m_nbVertices*3-2];
+        float mag = sqrt(diffX*diffX + diffY*diffY);
+
+        if(mag < _MAX_LASSO_CLOSE_DISTANCE)
         {
             m_data.push_back(m_data.at(0));
             m_data.push_back(m_data.at(1));
@@ -62,6 +67,7 @@ namespace sereno
         return false;
     }
 #undef _MIN_LASSO_DISTANCE_AXIS
+#undef _MAX_LASSO_CLOSE_DISTANCE
 
     void Lasso::buildVBO()
     {

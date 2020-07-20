@@ -667,7 +667,8 @@ namespace sereno
                 
                 //selection
                 if(m_selecting){
-                    m_lasso->continueLasso(event->x, event->y, 0);
+                    if(m_lasso->continueLasso(event->x, event->y, 0))
+                        m_mainData->setLasso(m_lasso->getData());
                 }
 
                 //Z Translation

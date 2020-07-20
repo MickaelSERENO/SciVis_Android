@@ -497,7 +497,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onSetTangibleMode(ApplicationModel model, boolean inTangibleMode)
+    public void onSetTangibleMode(ApplicationModel model, int inTangibleMode)
     {}
 
     /** Set up the main layout
@@ -594,10 +594,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_tangibleLayout = (ViewGroup) v.findViewById(R.id.tangibleLayout);
         m_tangibleLayout.setVisibility(View.GONE);
 
-        m_startSelectionBtn     = (Button) v.findViewById(R.id.startSelection);
-        m_endSelectionBtn       = (Button) v.findViewById(R.id.endSelection);
-        m_confirmSelectionBtn   = (Button) v.findViewById(R.id.confirmSelection);
-        ImageButton tangibleBtn = (ImageButton) v.findViewById(R.id.tangibleButton);
+        m_startSelectionBtn      = (Button) v.findViewById(R.id.startSelection);
+        m_endSelectionBtn        = (Button) v.findViewById(R.id.endSelection);
+        m_confirmSelectionBtn    = (Button) v.findViewById(R.id.confirmSelection);
+        ImageButton tangibleBtn  = (ImageButton) v.findViewById(R.id.tangibleButton);
+        ImageButton setOriginBtn = (ImageButton) v.findViewById(R.id.originButton);
 
         m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -652,9 +653,25 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 if(motionEvent.getPointerCount() == 1)
                 {
                     if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                        m_model.setTangibleMode(true);
+                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_MOVE);
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
-                        m_model.setTangibleMode(false);
+                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
+                }
+                return false;
+            }
+        });
+
+        setOriginBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(motionEvent.getPointerCount() == 1)
+                {
+                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN || motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_ORIGIN);
+                    else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
+                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
                 }
                 return false;
             }

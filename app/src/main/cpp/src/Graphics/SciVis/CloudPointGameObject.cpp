@@ -16,11 +16,11 @@ namespace sereno
 
                 //Configurate the VAO
                 //Position
-                glVertexAttribPointer(MATERIAL_VPOSITION, 3, GL_FLOAT, 0, 0, (void*)(0));
                 glEnableVertexAttribArray(MATERIAL_VPOSITION);
+                glVertexAttribPointer(MATERIAL_VPOSITION, 3, GL_FLOAT, 0, 0, (void*)(0));
                 //Color
-                glVertexAttribPointer(MATERIAL_VCOLOR, 4, GL_UNSIGNED_BYTE, 0, 0, (void*)(3*sizeof(float)*cloudPoint->getNbPoints()));
                 glEnableVertexAttribArray(MATERIAL_VCOLOR);
+                glVertexAttribPointer(MATERIAL_VCOLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)(3*sizeof(float)*cloudPoint->getNbPoints()));
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
