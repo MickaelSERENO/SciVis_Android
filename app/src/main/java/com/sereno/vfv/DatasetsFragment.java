@@ -668,7 +668,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {
                 if(motionEvent.getPointerCount() == 1)
                 {
-                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN || motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_ORIGIN);
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);

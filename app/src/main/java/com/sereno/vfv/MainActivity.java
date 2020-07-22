@@ -954,10 +954,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onSetCurrentBooleanOperation(ApplicationModel model, int op)
-    {
-        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
-            m_socket.push(SocketManager.createAddNewSelectionInputEvent(op));
-    }
+    {}
 
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode)

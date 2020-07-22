@@ -33,7 +33,7 @@ namespace sereno
         float diffY = y - m_data[m_nbVertices*3-2];
         float mag = sqrt(diffX*diffX + diffY*diffY);
 
-        if(mag < _MIN_LASSO_DISTANCE_AXIS)
+        if(mag > _MIN_LASSO_DISTANCE_AXIS)
         {
             m_data.push_back(x);
             m_data.push_back(y);
