@@ -63,6 +63,7 @@ import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.vfv.Network.TFDatasetMessage;
+import com.sereno.vfv.Network.ToggleMapVisibilityMessage;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
@@ -462,6 +463,10 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
+    public void onSetMapVisibility(SubDataset dataset, boolean visibility)
+    {}
+
+    @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
     }
@@ -673,8 +678,6 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //Log.i("LOCATION_TABLET", "Position: " + msg.getPosition()[0] + " " + msg.getPosition()[1] + " " + msg.getPosition()[2] + "; "
-                //         + "Rotation: " + msg.getRotation()[0] + " " + msg.getRotation()[1] + " " + msg.getRotation()[2] + " " + msg.getRotation()[3]);
                 if(m_model.getCurrentTangibleMode() != ApplicationModel.TANGIBLE_MODE_NONE)
                     m_model.setLocation(msg.getPosition(), msg.getRotation());
             }
@@ -695,6 +698,19 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 m_model.addCloudPointDataset(dataset);
+            }
+        });
+    }
+
+    @Override
+    public void onToggleMapVisibilityMessage(final ToggleMapVisibilityMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if(sd != null)
+                    sd.setMapVisibility(msg.getVisibility());
             }
         });
     }
@@ -1026,6 +1042,12 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
+    public void onRenameSubDataset(DatasetsFragment frag, SubDataset sd, String name)
+    {
+
+    }
+
+    @Override
     public void onDuplicateSubDataset(DatasetsFragment frag, SubDataset sd)
     {
         m_socket.push(SocketManager.createDuplicateSubDatasetEvent(getDatasetIDBinding(sd)));
@@ -1047,6 +1069,18 @@ public class MainActivity extends AppCompatActivity
     public void onRequestMakeSubDatasetPublic(DatasetsFragment frag, SubDataset sd)
     {
         m_socket.push(SocketManager.createMakeSubDatasetPublicEvent(getDatasetIDBinding(sd)));
+    }
+
+    @Override
+    public void onRequestChangeSubDatasetMapVisibility(DatasetsFragment frag, SubDataset sd, boolean visibility)
+    {
+        m_socket.push(SocketManager.createToggleMapVisibility(getDatasetIDBinding(sd), visibility));
+    }
+
+    @Override
+    public void onMergeSubDatasets(DatasetsFragment frag, SubDataset sd1, SubDataset sd2)
+    {
+
     }
 
     @Override

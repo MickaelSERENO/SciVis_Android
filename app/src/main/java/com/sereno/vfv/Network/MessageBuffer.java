@@ -115,6 +115,10 @@ public class MessageBuffer
         /** Called when the message "GET_ADD_CLOUDPOINT_DATASET" has been successfully parsed
          * @param msg the message parsed*/
         void onAddCloudPointDatasetMessage(AddCloudPointDatasetMessage msg);
+
+        /** Called when the message "GET_TOGGLE_MAP_VISIBILITY" has been successfully parsed
+         * @param msg the message parsed*/
+        void onToggleMapVisibilityMessage(ToggleMapVisibilityMessage msg);
     }
 
     /** No current type received*/
@@ -163,6 +167,9 @@ public class MessageBuffer
 
     /** Add a cloud point dataset*/
     public static final int GET_ADD_CLOUD_POINT_DATASET = 23;
+
+    /** Toggle the map visibility*/
+    public static final int GET_TOGGLE_MAP_VISIBILITY   = 25;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -322,6 +329,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onAddCloudPointDatasetMessage((AddCloudPointDatasetMessage)m_curMsg);
                         break;
+                    case GET_TOGGLE_MAP_VISIBILITY:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onToggleMapVisibilityMessage((ToggleMapVisibilityMessage) m_curMsg);
+                        break;
 
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
@@ -397,6 +408,9 @@ public class MessageBuffer
                 break;
             case GET_ADD_CLOUD_POINT_DATASET:
                 m_curMsg = new AddCloudPointDatasetMessage();
+                break;
+            case GET_TOGGLE_MAP_VISIBILITY:
+                m_curMsg = new ToggleMapVisibilityMessage();
                 break;
 
             default:

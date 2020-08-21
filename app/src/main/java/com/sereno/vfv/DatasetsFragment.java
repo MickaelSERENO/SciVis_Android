@@ -1,11 +1,14 @@
 package com.sereno.vfv;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.Image;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -13,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -45,6 +49,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     /** Interface proposing callback methods regarding the DatasetsFragment*/
     public interface IDatasetsFragmentListener
     {
+        /** Called when a SubDatasets needs to be renamed
+         * @param frag the Fragment calling this method
+         * @param sd the SubDataset to rename
+         * @param name the new name to apply*/
+        void onRenameSubDataset(DatasetsFragment frag, SubDataset sd, String name);
+
         /** Called when a SubDataset needs to be duplicated
          * @param frag the Fragment calling this method
          * @param sd the SubDataset to duplicate*/
@@ -65,6 +75,18 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param frag the Fragment calling this method
          * @param sd the SubDataset to consider*/
         void onRequestMakeSubDatasetPublic(DatasetsFragment frag, SubDataset sd);
+
+        /** Called when the fragment ask to change the visibility of the map associated to a particular SubDataset
+         * @param frag the Fragment calling this method
+         * @param sd the SubDataset to consider
+         * @param visibility the new map visibility to apply*/
+        void onRequestChangeSubDatasetMapVisibility(DatasetsFragment frag, SubDataset sd, boolean visibility);
+
+        /** Called when the fragment ask to merge two different subdatasets
+         * @param frag the Fragment calling this method
+         * @param sd1 the first SubDataset to merge
+         * @param sd2 the second SubDataset to merge*/
+        void onMergeSubDatasets(DatasetsFragment frag, SubDataset sd1, SubDataset sd2);
     }
 
     public static final float INCH_TO_METER = 0.0254f;
@@ -82,9 +104,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private HashMap<SubDataset, Tree<View>> m_sdTrees      = new HashMap<>(); /*!< HashMap binding subdataset to their represented Tree*/
     private HashMap<Dataset, Tree<View>>    m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
 
-    private HashMap<SubDataset, ImageView> m_sdImages  = new HashMap<>(); /*!< HashMap binding subdataset to their represented ImageView*/
+    private HashMap<SubDataset, ImageView> m_sdImages  = new HashMap<>();     /*!< HashMap binding subdataset to their represented ImageView*/
 
-    private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>();
+    private ArrayList<IDatasetsFragmentListener> m_dfListeners = new ArrayList<>(); /*!< Object that registered to this DatasetFragment events*/
+
+    private SubDataset m_inMergedSubDataset = null; /*!< Is there an object that requested to be merged?*/
 
     /** Selection menu buttons*/
     private Button m_startSelectionBtn   = null;
@@ -221,7 +245,22 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         final ImageView snapImg = (ImageView)layout.findViewById(R.id.snapshotImageView);
         final GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.OnGestureListener() {
             @Override
-            public boolean onDown(MotionEvent motionEvent) {return false;}
+            public boolean onDown(MotionEvent motionEvent)
+            {
+                if(m_inMergedSubDataset != null && m_inMergedSubDataset != sd)
+                {
+                    for(IDatasetsFragmentListener listener : m_dfListeners)
+                        listener.onMergeSubDatasets(DatasetsFragment.this, m_inMergedSubDataset, sd);
+                    m_inMergedSubDataset = null;
+                    return true;
+                }
+                else
+                {
+                    Toast.makeText(getContext(),"Merging Cancelled", Toast.LENGTH_SHORT).show();
+                    m_inMergedSubDataset = null;
+                }
+                return false;
+            }
 
             @Override
             public void onShowPress(MotionEvent motionEvent) {}
@@ -241,10 +280,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 popup.getMenuInflater().inflate(R.menu.subdataset_menu, popup.getMenu());
 
                 //Remove useless items
-                MenuItem makePublicItem = popup.getMenu().findItem(R.id.makePublicSD_item);
                 if(!sd.getCanBeModified() || sd.getOwnerID() == -1 || //Cannot be modified or already public
                    (sd.getOwnerID() != -1 && sd.getOwnerID() != m_model.getBindingInfo().getHeadsetID())) //If not public but not our subdataset
-                    makePublicItem.setVisible(false);
+                    popup.getMenu().findItem(R.id.makePublicSD_item).setVisible(false);
+
+                //Toggle the correct visibility button
+                if(sd.getMapVisibility())
+                    popup.getMenu().findItem(R.id.enableMap_item).setVisible(false);
+                else
+                    popup.getMenu().findItem(R.id.disableMap_item).setVisible(false);
+
 
                 //registering popup with OnMenuItemClickListener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -253,6 +298,31 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                         Toast.makeText(getContext(),"You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
                         switch(item.getItemId())
                         {
+                            case R.id.rename_item:
+                                //Open an alert dialog to ask for the new name
+                                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                                builder.setTitle(getResources().getString(R.string.renameTitle));
+
+                                final EditText input = new EditText(getContext());
+                                builder.setView(input);
+
+                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        for(IDatasetsFragmentListener listener : m_dfListeners)
+                                            listener.onRenameSubDataset(DatasetsFragment.this, sd, input.getText().toString());
+                                    }
+                                });
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                                builder.show();
+                                break;
+
                             case R.id.duplicateSD_item:
                                 for(IDatasetsFragmentListener listener : m_dfListeners)
                                     listener.onDuplicateSubDataset(DatasetsFragment.this, sd);
@@ -266,6 +336,20 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                             case R.id.makePublicSD_item:
                                 for(IDatasetsFragmentListener listener : m_dfListeners)
                                     listener.onRequestMakeSubDatasetPublic(DatasetsFragment.this, sd);
+                                break;
+
+                            case R.id.disableMap_item:
+                                for(IDatasetsFragmentListener listener : m_dfListeners)
+                                    listener.onRequestChangeSubDatasetMapVisibility(DatasetsFragment.this, sd, false);
+                                break;
+
+                            case R.id.enableMap_item:
+                                for(IDatasetsFragmentListener listener : m_dfListeners)
+                                    listener.onRequestChangeSubDatasetMapVisibility(DatasetsFragment.this, sd, true);
+                                break;
+
+                            case R.id.mergeWith_item:
+                                m_inMergedSubDataset = sd;
                                 break;
                         }
                         return true;
@@ -380,6 +464,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             @Override
             public void onSetCanBeModified(SubDataset dataset, boolean status)
+            {}
+
+            @Override
+            public void onSetMapVisibility(SubDataset dataset, boolean visibility)
             {}
         };
         sd.addListener(snapEvent);

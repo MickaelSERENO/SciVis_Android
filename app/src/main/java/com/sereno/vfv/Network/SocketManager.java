@@ -69,6 +69,7 @@ public class SocketManager
     public static final short CONFIRM_SELECTION       = 24;
     public static final short ADD_CLOUD_POINT_DATASET = 25;
     public static final short ADD_NEW_SELECTION_INPUT = 26;
+    public static final short TOGGLE_MAP_VISIBILITY   = 27;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -742,6 +743,19 @@ public class SocketManager
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(CONFIRM_SELECTION);
+
+        return buf.array();
+    }
+
+    public static byte[] createToggleMapVisibility(MainActivity.DatasetIDBinding ids, boolean visibility)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+4+4+1);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(TOGGLE_MAP_VISIBILITY);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
+        buf.put((byte)(visibility? 0 : 1));
 
         return buf.array();
     }

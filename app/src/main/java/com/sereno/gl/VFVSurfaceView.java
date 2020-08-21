@@ -281,6 +281,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         //TODO notify application about this status
     }
 
+    @Override
+    public void onSetMapVisibility(SubDataset dataset, boolean visibility)
+    {}
+
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously
      * @param a the new action to use*/

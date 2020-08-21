@@ -43,10 +43,7 @@
         app:layout_rowWeight="1"
         app:layout_columnWeight="1"
         app:layout_column="0">
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2px"
-            android:background="@android:color/black"/>
+
         <LinearLayout
             android:paddingTop="5dp"
             android:layout_width="wrap_content"
@@ -187,7 +184,9 @@
         android:id="@+id/selectionMenu"
         android:orientation="vertical"
         app:layout_column="1"
-        app:layout_columnWeight="1"
+        app:layout_columnWeight="3"
+        android:layout_width="300px"
+        android:layout_height="300px"
         app:layout_row="1"
         app:layout_rowWeight="1">
 
@@ -198,7 +197,42 @@
             android:checked="false"
             android:text="@string/startSelection"/>
 
+        <View style="@style/Divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
+            <ImageButton
+                android:id="@+id/resumeTimeButton"
+                android:layout_width="60dp"
+                android:layout_height="60dp" />
+
+            <ImageButton
+                android:id="@+id/pauseTimeButton"
+                android:layout_width="60dp"
+                android:layout_height="60dp" />
+
+            <TextView
+                android:id="@+id/startTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <SeekBar
+                android:id="@+id/timeSlider"
+                android:progress="1"
+                android:max="1000"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/endTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 </android.support.v7.widget.GridLayout>

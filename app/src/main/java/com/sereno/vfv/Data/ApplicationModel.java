@@ -369,6 +369,10 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
             @Override
             public void onSetCanBeModified(SubDataset dataset, boolean status){}
+
+            @Override
+            public void onSetMapVisibility(SubDataset dataset, boolean visibility)
+            {}
         });
 
         sd.setCanBeModified(canModifySubDataset(sd));

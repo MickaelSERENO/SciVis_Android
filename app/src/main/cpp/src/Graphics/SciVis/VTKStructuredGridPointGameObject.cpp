@@ -16,7 +16,7 @@ namespace sereno
      * \param desiredDensity the desired density
      * \param [out] outDimensions the output dimensions
      */
-    static void VTKStructuredPoint_getDimensions(const VTKStructuredPoints& ptsDesc, uint32_t desiredDensity, uint32_t* outDimensions)
+    static void VTKStructuredPoint_getDimension(const VTKStructuredPoints& ptsDesc, uint32_t desiredDensity, uint32_t* outDimensions)
     {
         if(ptsDesc.size[0] == 0 || ptsDesc.size[1] == 0 || ptsDesc.size[2] == 0)
             for(uint32_t i = 0; i < 3; i++)
@@ -37,7 +37,7 @@ namespace sereno
     {
         //Determine dimensions
         const VTKStructuredPoints& ptsDesc = m_vtkParser->getStructuredPointsDescriptor();
-        VTKStructuredPoint_getDimensions(ptsDesc, desiredDensity, m_dimensions);
+        VTKStructuredPoint_getDimension(ptsDesc, desiredDensity, m_dimensions);
 
         //Determine the new spacing
         float  maxAxis   = std::max(ptsDesc.spacing[0]*ptsDesc.size[0],
@@ -246,12 +246,21 @@ namespace sereno
             //Apply the transfer function
             std::shared_ptr<TF> tf = getModel()->getTransferFunction();
 
-            if(tf != NULL && tf->getDimension() <= ptFieldDescs.size()+1) //Check if the TF can be applied. +1 == m_grads
+            if(tf != NULL && tf->getDimension() - tf->hasGradient() <= ptFieldDescs.size()) //Check if the TF can be applied.
             {
+                //Check for the indice enabled
+                std::vector<uint32_t> indices;
+                for(uint32_t h = 0; h < tf->getDimension() - tf->hasGradient(); h++)
+                    if(tf->getEnabledDimensions()[h])
+                        indices.push_back(ptFieldDescs[h].id);
+
+                //Get the associated gradient
+                DatasetGradient* grad = getModel()->getParent()->getOrComputeGradient(indices);
+
                 //Use the transfer function to generate the 3D texture
                 #pragma omp parallel
                 {
-                    float* tfInd = (float*)malloc((ptFieldDescs.size()+1)*sizeof(float)); //The indice of the transfer function
+                    float* tfInd = (float*)malloc(tf->getDimension()*sizeof(float)); //The indice of the transfer function
 
                     #pragma omp for
                     {
@@ -279,26 +288,32 @@ namespace sereno
                                     }
 
                                     //For each parameter (e.g., temperature, presure, etc.)
-                                    for(uint32_t h = 0; h < ptFieldDescs.size(); h++)
+                                    for(uint32_t h = 0; h < tf->getDimension() - tf->hasGradient(); h++)
                                     {
-                                        const PointFieldDesc& val = ptFieldDescs[h];
-                                        uint8_t valueFormatInt = VTKValueFormatInt(val.format);
-
-                                        //Compute the vector magnitude
-                                        float mag = 0;
-                                        for(uint32_t l = 0; l < val.nbValuePerTuple; l++)
+                                        if(tf->getEnabledDimensions()[h])
                                         {
-                                            float readVal = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + srcID*valueFormatInt*val.nbValuePerTuple + l*valueFormatInt, val.format);
-                                            mag = readVal*readVal;
-                                        }
-                                        mag = sqrt(mag);
+                                            const PointFieldDesc& val = ptFieldDescs[h];
+                                            uint8_t valueFormatInt = VTKValueFormatInt(val.format);
 
-                                        //Save it at the correct indice in the TF indice (clamped into [0,1])
-                                        tfInd[h] = (mag-val.minVal)/(val.maxVal-val.minVal);
+                                            //Compute the vector magnitude
+                                            float mag = 0;
+                                            for(uint32_t l = 0; l < val.nbValuePerTuple; l++)
+                                            {
+                                                float readVal = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + srcID*valueFormatInt*val.nbValuePerTuple + l*valueFormatInt, val.format);
+                                                mag = readVal*readVal;
+                                            }
+                                            mag = sqrt(mag);
+
+                                            //Save it at the correct indice in the TF indice (clamped into [0,1])
+                                            tfInd[h] = (mag-val.minVal)/(val.maxVal-val.minVal);
+                                        }
+                                        else
+                                            tfInd[h] = 0;
                                     }
 
                                     //Do not forget the gradient (clamped)!
-                                    tfInd[ptFieldDescs.size()] = m_model->getParent()->getGradient()[srcID];
+                                    if(tf->hasGradient())
+                                        tfInd[tf->getDimension()-1] = grad->grads.get()[srcID];
 
                                     //Apply the transfer function
                                     uint8_t outCol[4];

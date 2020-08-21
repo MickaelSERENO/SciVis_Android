@@ -2,6 +2,8 @@
     <string name="app_name">VFV_Hololens</string>
     <string name="addDataBtn">Add Dataset</string>
     <string name="deleteDataBtn">Delete Dataset</string>
+    <string name="rename">Rename</string>
+    <string name="renameTitle">Enter the new name</string>
     <string name="amplitudeRange">Clamp Amplitude</string>
     <string name="vorticity">Vorticity</string>
     <string name="colorMode">Color Mode</string>
@@ -42,4 +44,7 @@
     <string name="relativeFull">Relative Full</string>
     <string name="relativeAligned">Relative Aligned</string>
     <string name="absolute">Absolute</string>
+    <string name="disableMap">Disable Map</string>
+    <string name="enableMap">Enable Map</string>
+    <string name="mergeWith">Merge With</string>
 </resources>

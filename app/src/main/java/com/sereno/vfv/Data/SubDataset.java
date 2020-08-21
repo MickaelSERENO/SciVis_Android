@@ -77,6 +77,11 @@ public class SubDataset
          * @param dataset the dataset calling this method
          * @param status true if the subdataset can be modified, false otherwise*/
         void onSetCanBeModified(SubDataset dataset, boolean status);
+
+        /** Method called when the visibility of map associated to subdataset instance has changed
+         * @param dataset the dataset calling this method
+         * @param visibility the new visibility (true == visible, false == invisible)*/
+        void onSetMapVisibility(SubDataset dataset, boolean visibility);
     }
 
     /** The native C++ handle*/
@@ -102,6 +107,9 @@ public class SubDataset
 
     /** Tells whether this application can modify or not this SubDataset*/
     private boolean m_canBeModified = true;
+
+    /** Is the map activaed? Works only for VTK Datasets*/
+    private boolean m_mapActivated = true;
 
     /** Constructor. Link the Java object with the C++ native SubDataset object
      * @param ptr the native C++ pointer
@@ -425,6 +433,21 @@ public class SubDataset
                 m_listeners.get(i).onRemoveAnnotation(this, annot);
             m_annotations.remove(annot);
         }
+    }
+
+    public void setMapVisibility(boolean visible)
+    {
+        if(visible != m_mapActivated)
+        {
+            m_mapActivated = visible;
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetMapVisibility(this, visible);
+        }
+    }
+
+    public boolean getMapVisibility()
+    {
+        return m_mapActivated;
     }
 
     /** Free the internal data. Do that only on CLONED SubDataset*/

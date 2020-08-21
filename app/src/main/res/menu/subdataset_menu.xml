@@ -5,17 +5,31 @@
     tools:context=".MainActivity">
 
     <item
+        android:title="@string/rename"
+        android:id="@+id/rename_item">
+    </item>
+    <item
         android:title="@string/duplicateSD"
         android:id="@+id/duplicateSD_item">
     </item>
-
     <item
         android:title="@string/removeSD"
         android:id="@+id/removeSD_item">
     </item>
-
     <item
         android:title="@string/makePublicSD"
         android:id="@+id/makePublicSD_item">
+    </item>
+    <item
+        android:title="@string/disableMap"
+        android:id="@+id/disableMap_item">
+    </item>
+    <item
+        android:title="@string/enableMap"
+        android:id="@+id/enableMap_item">
+    </item>
+    <item
+        android:title="@string/mergeWith"
+        android:id="@+id/mergeWith_item">
     </item>
 </menu>
