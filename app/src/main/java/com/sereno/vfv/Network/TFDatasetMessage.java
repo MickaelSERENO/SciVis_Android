@@ -24,6 +24,41 @@ public class TFDatasetMessage extends ServerMessage
         public PropData[] propData = new PropData[0];
     }
 
+    /** Class representing the Merge transfer function*/
+    public static class MergeTFData
+    {
+        /** The linear interpolation t parameter. Must be between 0.0 and 1.0*/
+        public float  t;
+
+        /** The ID of the first transfer function*/
+        public int    tf1ID;
+
+        /** The first transfer function data. Use tf1ID to cast this object*/
+        public Object tf1Data;
+
+        /** The ID of the second transfer function*/
+        public int    tf2ID;
+
+        /** The second transfer function data. Use tf2ID to cast this object*/
+        public Object tf2Data;
+    }
+
+    /** Class permitting to parse successfully merge transfer function*/
+    private static class ParseMergeTF
+    {
+        /** The data being parsed*/
+        MergeTFData data = null;
+
+        /** The t parameter to pass to the merge tf data object*/
+        float t = 0;
+
+        /** The first transfer function message being parsed*/
+        TFDatasetMessage tf1Msg = new TFDatasetMessage();
+
+        /** The second transfer function message being parsed*/
+        TFDatasetMessage tf2Msg = new TFDatasetMessage();
+    }
+
     /** The datasetID of the message*/
     private int m_datasetID;
 
@@ -39,8 +74,8 @@ public class TFDatasetMessage extends ServerMessage
     /** The color mode to apply*/
     private int m_colorMode;
 
-    /** The GTF data for GTF and TriangularGTF*/
-    private GTFData m_gtfData = null;
+    /** The current transfer function data*/
+    private Object m_tfData = null;
 
     @Override
     public void pushValue(int val)
@@ -58,19 +93,32 @@ public class TFDatasetMessage extends ServerMessage
                 case SubDataset.TRANSFER_FUNCTION_GTF:
                 case SubDataset.TRANSFER_FUNCTION_TGTF:
                 {
+                    GTFData data = (GTFData)m_tfData;
+
                     if(cursor == 5)
                     {
-                        m_gtfData.propData = new GTFData.PropData[val];
+                        data.propData = new GTFData.PropData[val];
                         for(int i = 0; i < val; i++)
-                            m_gtfData.propData[i] = new GTFData.PropData();
+                            data.propData[i] = new GTFData.PropData();
                     }
                     else if(cursor >= 6)
                     {
                         int propID = (cursor - 6)/3;
                         int offset = (cursor - 6)%3;
-                        if(propID < m_gtfData.propData.length && offset == 0)
-                            m_gtfData.propData[propID].propID = val;
+                        if(propID < data.propData.length && offset == 0)
+                            data.propData[propID].propID = val;
                     }
+                    break;
+                }
+                case SubDataset.TRANSFER_FUNCTION_MERGE:
+                {
+                    ParseMergeTF data = (ParseMergeTF) m_tfData;
+
+                    if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
+                        data.tf1Msg.pushValue(val);
+                    else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
+                        data.tf2Msg.pushValue(val);
+                    break;
                 }
             }
         }
@@ -89,7 +137,14 @@ public class TFDatasetMessage extends ServerMessage
                 case SubDataset.TRANSFER_FUNCTION_GTF:
                 case SubDataset.TRANSFER_FUNCTION_TGTF:
                 {
-                    m_gtfData = new GTFData();
+                    m_tfData = new GTFData();
+                    break;
+                }
+                case SubDataset.TRANSFER_FUNCTION_MERGE:
+                {
+                    m_tfData = new ParseMergeTF();
+                    ((ParseMergeTF) m_tfData).tf1Msg.cursor = 3; //Ignore datasetID, subdatasetID, and headsetID
+                    ((ParseMergeTF) m_tfData).tf2Msg.cursor = 3;
                     break;
                 }
                 default:
@@ -110,17 +165,34 @@ public class TFDatasetMessage extends ServerMessage
             case SubDataset.TRANSFER_FUNCTION_GTF:
             case SubDataset.TRANSFER_FUNCTION_TGTF:
             {
+                GTFData data = (GTFData)m_tfData;
+
                 if(cursor >= 6)
                 {
                     int propID = (cursor - 6)/3;
                     int offset = (cursor - 6)%3;
-                    if(propID < m_gtfData.propData.length)
+                    if(propID < data.propData.length)
                     {
                         if(offset == 1)
-                            m_gtfData.propData[propID].center = val;
+                            data.propData[propID].center = val;
                         else if(offset == 2)
-                            m_gtfData.propData[propID].scale  = val;
+                            data.propData[propID].scale  = val;
                     }
+                }
+                break;
+            }
+            case SubDataset.TRANSFER_FUNCTION_MERGE:
+            {
+                ParseMergeTF data = (ParseMergeTF) m_tfData;
+
+                if(cursor == 5)
+                    data.t = val;
+                else
+                {
+                    if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
+                        data.tf1Msg.pushValue(val);
+                    else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
+                        data.tf2Msg.pushValue(val);
                 }
                 break;
             }
@@ -153,7 +225,24 @@ public class TFDatasetMessage extends ServerMessage
 
     /** Get the GTF Data, used for TRANSFER_FUNCTION_GTF and TRANSFER_FUNCTION_TGTF transfer functions
      * @return the gtf data. If getTFType is not equal to TRANSFER_FUNCTION_GTF or TRANSFER_FUNCTION_TGTF, this function returns null. */
-    public GTFData getGTFData() {return m_gtfData;}
+    public GTFData getGTFData()
+    {
+        if(m_tfID == SubDataset.TRANSFER_FUNCTION_GTF || m_tfID == SubDataset.TRANSFER_FUNCTION_TGTF)
+            return (GTFData)m_tfData;
+        return null;
+    }
+
+    public MergeTFData getMergeTFData()
+    {
+        if(m_tfID == SubDataset.TRANSFER_FUNCTION_MERGE)
+        {
+            ParseMergeTF data = (ParseMergeTF)m_tfData;
+            if(data.data == null)
+                finishMergeTF();
+            return data.data;
+        }
+        return null;
+    }
 
     /** Get the color mode to apply
      * @return the color mode. See ColorMode class for more details.*/
@@ -173,11 +262,14 @@ public class TFDatasetMessage extends ServerMessage
         {
             case SubDataset.TRANSFER_FUNCTION_GTF:
             case SubDataset.TRANSFER_FUNCTION_TGTF:
+            {
+                GTFData data = (GTFData)m_tfData;
+
                 if(cursor == 5)
                     return 'I'; //nbProps
                 else
                 {
-                    if((cursor-6)/3 < m_gtfData.propData.length)
+                    if((cursor-6)/3 < data.propData.length)
                     {
                         int offset = (cursor-6)%3;
                         switch(offset)
@@ -191,6 +283,16 @@ public class TFDatasetMessage extends ServerMessage
                     }
                 }
                 break;
+            }
+            case SubDataset.TRANSFER_FUNCTION_MERGE:
+            {
+                ParseMergeTF data = (ParseMergeTF)m_tfData;
+                if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
+                    return data.tf1Msg.getCurrentType();
+                else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
+                    return data.tf2Msg.getCurrentType();
+                break;
+            }
         }
         return 0;
     }
@@ -206,12 +308,59 @@ public class TFDatasetMessage extends ServerMessage
         {
             case SubDataset.TRANSFER_FUNCTION_GTF:
             case SubDataset.TRANSFER_FUNCTION_TGTF:
-                maxCursor += (1 + 3*m_gtfData.propData.length);
+            {
+                GTFData data = (GTFData)m_tfData;
+
+                maxCursor += (1 + 3 * data.propData.length);
                 break;
+            }
+            case SubDataset.TRANSFER_FUNCTION_MERGE:
+            {
+                ParseMergeTF data = (ParseMergeTF)m_tfData;
+
+                maxCursor += 1 + data.tf1Msg.getMaxCursor() + data.tf2Msg.getMaxCursor() - 4; //-4 == datasetID + subDatasetID + headsetID for BOTH transfer functions (we ignore them).
+                                                                                              // We remind that the current cursor is included (hence -4 and not -6)
+
+                break;
+            }
             default:
                 break;
         }
 
         return maxCursor;
+    }
+
+    /** Once the whole message is parsed, finish the MergeTF object*/
+    private void finishMergeTF()
+    {
+        if(m_tfID == SubDataset.TRANSFER_FUNCTION_MERGE)
+        {
+            ParseMergeTF data = (ParseMergeTF)m_tfData;
+            data.data   = new MergeTFData();
+            data.data.t = data.t;
+
+            class Lambda
+            {
+                Object func(TFDatasetMessage msg)
+                {
+                    switch(msg.m_tfID)
+                    {
+                        case SubDataset.TRANSFER_FUNCTION_GTF:
+                        case SubDataset.TRANSFER_FUNCTION_TGTF:
+                            return msg.getGTFData();
+                        case SubDataset.TRANSFER_FUNCTION_MERGE:
+                            return msg.getMergeTFData();
+                    }
+                    return null;
+                }
+            }
+
+            Lambda lambda = new Lambda();
+            data.data.tf1Data = lambda.func(data.tf1Msg);
+            data.data.tf1ID   = data.tf1Msg.m_tfID;
+
+            data.data.tf2Data = lambda.func(data.tf2Msg);
+            data.data.tf2ID   = data.tf2Msg.m_tfID;
+        }
     }
 }

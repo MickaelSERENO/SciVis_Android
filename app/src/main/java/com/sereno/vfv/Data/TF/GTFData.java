@@ -1,19 +1,16 @@
-package com.sereno.view;
-
-import android.graphics.PointF;
+package com.sereno.vfv.Data.TF;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-import com.sereno.color.ColorMode;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.PointFieldDesc;
 import com.sereno.vfv.Data.SubDataset;
 
 /** Model used for the GTF*/
-public class GTFData implements Dataset.IDatasetListener
+public class GTFData extends TransferFunction implements Dataset.IDatasetListener
 {
     /** The Listener interface*/
     public interface IGTFDataListener
@@ -32,11 +29,6 @@ public class GTFData implements Dataset.IDatasetListener
          * @param model the model calling this method
          * @param order the new order to apply. See getCPCPOrder() for more details.*/
         void onSetCPCPOrder(GTFData model, int[] order);
-
-        /** Function called when a new color mode is to be applied to the visualization widget
-         * @param model the model colling this method
-         * @param colorMode the new color mode to apply (see ColorMode static fields)*/
-        void onSetColorMode(GTFData model, int colorMode);
 
         /** Function called when the SubDataset internal data has been loaded
          * @param model the model calling this method
@@ -120,11 +112,14 @@ public class GTFData implements Dataset.IDatasetListener
     /** The listeners to call when the current state of the GTF model changed*/
     private ArrayList<IGTFDataListener> m_listeners = new ArrayList<>();
 
-    /** The color mode to apply in the GTF visualization widget*/
-    private int m_colorMode = ColorMode.GRAYSCALE;
+    /** The C++ native pointer of the GTF / Triangular GTF objects*/
+    private long m_ptr = 0;
 
     /** The current order of cpcp to display*/
     protected int[] m_cpcpOrder = new int[0];
+
+    /** Is the gradient enabled?*/
+    protected boolean m_gradientEnabled = false;
 
     public GTFData(SubDataset sd)
     {
@@ -175,8 +170,8 @@ public class GTFData implements Dataset.IDatasetListener
                 m_cpcpOrder[i] = desc.getID();
             }
 
-            m_colorMode = sd.getColorMode();
             m_dataset.addListener(this);
+            createNativeTransferFunction();
         }
 
         for(int i = 0; i < m_listeners.size(); i++)
@@ -207,6 +202,8 @@ public class GTFData implements Dataset.IDatasetListener
         {
             boolean callListener = !(m_ranges.get(ptFieldID).equals(range));
             m_ranges.put(ptFieldID, range);
+            updatePtrRanges();
+
             if(callListener)
                 for(int i = 0; i < m_listeners.size(); i++)
                     m_listeners.get(i).onSetGTFRanges(this, m_ranges);
@@ -222,8 +219,11 @@ public class GTFData implements Dataset.IDatasetListener
         boolean callListener = !m_ranges.equals(ranges);
         m_ranges = ranges;
         if(callListener)
+        {
+            updatePtrRanges();
             for(int i = 0; i < m_listeners.size(); i++)
                 m_listeners.get(i).onSetGTFRanges(this, m_ranges);
+        }
     }
 
     /** Get the CPCP order.
@@ -241,23 +241,23 @@ public class GTFData implements Dataset.IDatasetListener
             m_listeners.get(i).onSetCPCPOrder(this, order);
     }
 
-    /** Get the color mode to apply to the visualization widget
-     * @return the color mode to apply (see ColorMode static fields)*/
-    public int getColorMode()
+    /** Set the gradient enability of this GTF
+     * @param enabled the new value to apply*/
+    public void setGradient(boolean enabled)
     {
-        return m_colorMode;
+        boolean oldGradient = m_gradientEnabled;
+        m_gradientEnabled = enabled;
+
+        if(oldGradient != enabled)
+             createNativeTransferFunction(); //Change the type of the transfer function
     }
 
-    /** Set the color mode to apply to the visualization widget
-     * @param mode the color mode to apply (see ColorMode static fields)*/
-    public void setColorMode(int mode)
-    {
-        boolean changed = (mode != m_colorMode);
-        m_colorMode = mode;
 
-        if(changed)
-            for(int i = 0; i < m_listeners.size(); i++)
-                m_listeners.get(i).onSetColorMode(this, mode);
+    /** Is the gradient enabled for this GTF
+     * @return true if yes, false otherwise*/
+    public boolean isGradientEnabled()
+    {
+        return m_gradientEnabled;
     }
 
     @Override
@@ -280,4 +280,51 @@ public class GTFData implements Dataset.IDatasetListener
     @Override
     public void onLoad1DHistogram(Dataset dataset, float[] values, int pID)
     {}
+
+    @Override
+    public long getNativeTransferFunction()
+    {
+        if(m_ptr == 0)
+            createNativeTransferFunction();
+        return m_ptr;
+    }
+
+    private void createNativeTransferFunction()
+    {
+        if(m_sd == null)
+            return;
+
+        if(m_ptr != 0)
+            nativeDeleteTF(m_ptr);
+        m_ptr = nativeCreatePtr(m_dataset.getPtr(), m_gradientEnabled, getColorMode());
+        updatePtrRanges();
+    }
+
+    private void updatePtrRanges()
+    {
+        if(m_sd == null)
+            return;
+
+        HashMap<Integer, GTFPoint> ranges = getRanges();
+
+        //Parse the HashMap in a easy-to-send data to C++
+        int[]   pIDs    = new int[ranges.size()];
+        float[] centers = new float[ranges.size()];
+        float[] scales  = new float[ranges.size()];
+        int i = 0;
+
+        for (Integer pID : getRanges().keySet())
+        {
+            pIDs[i] = pID;
+            centers[i] = ranges.get(pID).center;
+            scales[i]  = ranges.get(pID).scale;
+            i++;
+        }
+
+        nativeUpdateRanges(m_ptr, m_dataset.getPtr(), m_gradientEnabled, getColorMode(), pIDs, centers, scales);
+        callOnUpdateListeners();
+    }
+
+    native private long nativeCreatePtr(long datasetPtr, boolean enableGradient, int colorMode);
+    native private void nativeUpdateRanges(long ptr, long datasetPtr, boolean enabledGradient, int colorMode, int[] pIDS, float[] centers, float[] scales);
 }

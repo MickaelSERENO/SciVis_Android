@@ -25,14 +25,6 @@ JNIEXPORT bool JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsValid(JNIEnv*
     return sd->isValid();
 }
 
-JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-    if(sd->getTransferFunction())
-        return sd->getTransferFunction()->getColorMode();
-    return RAINBOW;
-}
-
 JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetSnapshot(JNIEnv* env, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
@@ -110,102 +102,13 @@ JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* j
     return sd->getID();
 }
 
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTFType(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType)
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTF(JNIEnv* jenv, jobject jobj, jlong ptr, jint type, jlong tfPtr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-
-    //Save color mode and delete the old tf
-    ColorMode colorMode = RAINBOW;
-    if(sd->getTransferFunction())
-    {
-        colorMode = sd->getTransferFunction()->getColorMode();
-        //delete sd->getTransferFunction(); std::shared_ptr is the format, no need to delete
-    }
-
-    //Create the new TF
-    TF* tf = NULL;
-    if(tfType == TF_GTF)
-        tf = new GTF(sd->getParent()->getPointFieldDescs().size(), colorMode);
-    else if(tfType == TF_TRIANGULAR_GTF)
-        tf = new TriangularGTF(sd->getParent()->getPointFieldDescs().size()+1, colorMode);
+    if(tfPtr == 0)
+        sd->setTransferFunction(nullptr);
     else
-        LOG_ERROR("Type %d unknown for transfer function...\n", tfType);
-
-    sd->setTransferFunction(std::shared_ptr<TF>(tf));
-}
-
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetGTFRanges(JNIEnv* jenv, jobject jobj, jlong ptr, jint tfType, jintArray jpIDs, jfloatArray jcenters, jfloatArray jscales)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-
-    if(sd->getTransferFunction() == NULL)
-    {
-        LOG_ERROR("No transfer function to use...\n");
-        return;
-    }
-
-    //Parse java values
-    int*   pIDs = jenv->GetIntArrayElements(jpIDs, 0);
-    float* centerPID = jenv->GetFloatArrayElements(jcenters, 0);
-    float* scalePID  = jenv->GetFloatArrayElements(jscales, 0);
-
-    int size = jenv->GetArrayLength(jpIDs);
-
-    float* center = (float*)malloc(sizeof(float)*size);
-    float* scale  = (float*)malloc(sizeof(float)*size);
-
-    for(int i = 0; i < size; i++)
-    {
-        uint32_t tfID = sd->getParent()->getTFIndiceFromPointFieldID(pIDs[i]);
-        if(tfID != (uint32_t)-1 && tfID < size)
-        {
-            center[tfID] = centerPID[i];
-            scale[tfID] = scalePID[i];
-        }
-        else
-        {
-            LOG_ERROR("Error, cannot update TF");
-            return;
-        }
-    }
-
-    //Update transfer function
-    if(tfType == TF_GTF)
-    {
-        GTF* gtf = reinterpret_cast<GTF*>(sd->getTransferFunction().get());
-        if(size == gtf->getDimension())
-        {
-            gtf->setCenter(center);
-            gtf->setScale(scale);
-        }
-    }
-
-    else if(tfType == TF_TRIANGULAR_GTF)
-    {
-        TriangularGTF* gtf = reinterpret_cast<TriangularGTF*>(sd->getTransferFunction().get());
-        if(size == gtf->getDimension() -1)
-        {
-            gtf->setCenter(center);
-            gtf->setScale(scale);
-        }
-    }
-
-    //Free variables
-    free(center);
-    free(scale);
-}
-
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetColorMode(JNIEnv* jenv, jobject jobj, jlong ptr, int mode)
-{
-    SubDataset* sd = (SubDataset*)ptr;
-
-    if(sd->getTransferFunction() == NULL)
-    {
-        LOG_ERROR("No transfer function to use...\n");
-        return;
-    }
-
-    sd->getTransferFunction()->setColorMode((ColorMode)mode);
+        sd->setTransferFunction(*((std::shared_ptr<TF>*)(tfPtr)));
 }
 
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* jenv, jobject jobj, jlong ptr)
@@ -213,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* 
     return (jlong)(new SubDataset(*(SubDataset*)ptr));
 }
 
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeFree(JNIEnv* jenv, jobject jobj, jlong ptr)
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeDelPtr(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)(ptr);
     delete sd;

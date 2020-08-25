@@ -1,26 +1,22 @@
 package com.sereno.vfv.Data;
 
 import android.graphics.Bitmap;
-import android.graphics.PointF;
 
-import com.sereno.color.ColorMode;
-import com.sereno.gl.VFVSurfaceView;
 import com.sereno.view.AnnotationData;
-import com.sereno.view.GTFData;
+import com.sereno.vfv.Data.TF.TransferFunction;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class SubDataset
+public class SubDataset implements TransferFunction.ITransferFunctionListener
 {
     public static final int VISIBILITY_PUBLIC  = 1;
     public static final int VISIBILITY_PRIVATE = 0;
 
-    public static final int TRANSFER_FUNCTION_NONE = 0;
-    public static final int TRANSFER_FUNCTION_GTF  = 1;
-    public static final int TRANSFER_FUNCTION_TGTF = 2;
+    public static final int TRANSFER_FUNCTION_NONE  = 0;
+    public static final int TRANSFER_FUNCTION_GTF   = 1;
+    public static final int TRANSFER_FUNCTION_TGTF  = 2;
+    public static final int TRANSFER_FUNCTION_MERGE = 3;
 
     /** Callback interface called when the SubDataset is modified*/
     public interface ISubDatasetListener
@@ -103,7 +99,10 @@ public class SubDataset
     private int m_currentHeadsetID = -1;
 
     /** The type of the subdataset current transfer function*/
-    private int m_tfType;
+    private int m_tfType = SubDataset.TRANSFER_FUNCTION_NONE;
+
+    /** The current transfer function this object uses*/
+    private TransferFunction m_tf = null;
 
     /** Tells whether this application can modify or not this SubDataset*/
     private boolean m_canBeModified = true;
@@ -120,7 +119,8 @@ public class SubDataset
         m_ptr = ptr;
         m_parent = parent;
         m_ownerHeadsetID = ownerID;
-        setTransferFunctionType(SubDataset.TRANSFER_FUNCTION_GTF);
+
+        setTransferFunction(SubDataset.TRANSFER_FUNCTION_NONE, null);
     }
 
     @Override
@@ -206,15 +206,6 @@ public class SubDataset
     public long getNativePtr()
     {
         return m_ptr;
-    }
-
-    /** Get the current color mode of this SubDataset
-     * @return the current color mode being displayed*/
-    public int getColorMode()
-    {
-        if(m_ptr == 0)
-            return ColorMode.RAINBOW;
-        return nativeGetColorMode(m_ptr);
     }
 
     /** Function called frm C++ code when a new snapshot has been created
@@ -338,58 +329,33 @@ public class SubDataset
         return m_tfType;
     }
 
-    /** Set the transfer function type in use
-     * @return the transfer function type to use*/
-    public void setTransferFunctionType(int tfType)
+    /** Set the transfer function to use for this object.
+     * @param tfType the new type of transfer function to use
+     * @param tf the model transfer function to use*/
+    public void setTransferFunction(int tfType, TransferFunction tf)
     {
-        if(m_tfType != tfType)
+        if(m_tf != tf)
         {
-            nativeSetTFType(m_ptr, tfType);
-
-            m_tfType = tfType;
-
-            for (int j = 0; j < m_listeners.size(); j++)
-                m_listeners.get(j).onUpdateTF(this);
-        }
-    }
-
-    /** Update the Gaussian Transfer Function ranges
-     * @param ranges the ranges to use. Key == point field ID. Values should be normalized.*/
-    public void setGTFRanges(HashMap<Integer, GTFData.GTFPoint> ranges)
-    {
-        //Parse the HashMap in a easy-to-send data to C++
-        int[]   pIDs    = new int[ranges.size()];
-        float[] centers = new float[ranges.size()];
-        float[] scales = new float[ranges.size()];
-        int i = 0;
-        for (Integer pID : ranges.keySet())
-        {
-            pIDs[i] = pID;
-            centers[i] = ranges.get(pID).center;
-            scales[i]  = ranges.get(pID).scale;
-            i++;
+            if(m_tf != null)
+                m_tf.removeListener(this);
+            if(tf != null)
+                tf.addListener(this);
         }
 
-        //Update in C++
-        nativeSetGTFRanges(m_ptr, m_tfType, pIDs, centers, scales);
+        long tfPtr = 0;
+        if(tf != null)
+            tfPtr = tf.getNativeTransferFunction();
+        nativeSetTF(m_ptr, tfType, tfPtr);
+        m_tfType = tfType;
+        m_tf = tf;
 
-        //Call listeners
-        for(int j = 0; j < m_listeners.size(); j++)
+        for (int j = 0; j < m_listeners.size(); j++)
             m_listeners.get(j).onUpdateTF(this);
     }
 
-    /** Set the color mode of the SubDataset
-     * @param mode the new color mode*/
-    public void setColorMode(int mode)
+    public TransferFunction getTransferFunction()
     {
-        if(mode != nativeGetColorMode(m_ptr))
-        {
-            nativeSetColorMode(m_ptr, mode);
-
-            //Call listeners
-            for (int j = 0; j < m_listeners.size(); j++)
-                m_listeners.get(j).onUpdateTF(this);
-        }
+        return m_tf;
     }
 
     /** Add a new annotation
@@ -450,12 +416,18 @@ public class SubDataset
         return m_mapActivated;
     }
 
-    /** Free the internal data. Do that only on CLONED SubDataset*/
-    public void free()
+    public void finalize()
     {
         if(m_ptr == 0)
             return;
         nativeDelPtr(m_ptr);
+    }
+
+
+    @Override
+    public void onUpdateTransferFunction(TransferFunction tf)
+    {
+        setTransferFunction(m_tfType, tf);
     }
 
     /** Create a new SubDataset native C++ ptr
@@ -477,11 +449,6 @@ public class SubDataset
      * @param ptr the native pointer
      * @return true if in a valid state, false otherwise*/
     private native boolean nativeIsValid(long ptr);
-
-    /** Get the current color mode of this SubDataset
-     * @param ptr  the native pointer
-     * @return the current color mode being displayed*/
-    private native int nativeGetColorMode(long ptr);
 
     /** Native code to get a snapshot of this SubDataset in the main rendering object
      * @param ptr the native pointer
@@ -518,16 +485,11 @@ public class SubDataset
      * @param s the 3D scale vector*/
     private native void nativeSetScale(long ptr, float[] s);
 
-    /** Native code to set the clamping of this SubDataset being displayed
+    /** Set the transfer function model of the native C++ SD object
      * @param ptr the native pointer
-     * @param min the minimum (between 0.0 and 1.0) value to display. Values lower than min will be discarded
-     * @param max the maximum (between 0.0 and 1.0) value to display. Values greater than max will be discarded*/
-    private native void nativeSetClamping(long ptr, float min, float max);
-
-    /** Set the transfer function type of the native C++ SD object
-     * @param ptr the native pointer
-     * @param tfType the new transfer function type*/
-    private native void nativeSetTFType(long ptr, int tfType);
+     * @param tfType the new transfer function type
+     * @param tfPtr the transfer function ptr to apply*/
+    private native void nativeSetTF(long ptr, int tfType, long tfPtr);
 
     /** Native code to set the Gaussian Transfer Function ranges
      * pIDs, minVals, and maxVals should be coherent (same size and correspond to each one)
@@ -537,11 +499,6 @@ public class SubDataset
      * @param centers the list of centers normalized
      * @param scales the list of scales normalized*/
     private native void nativeSetGTFRanges(long ptr, int tfType, int[] pIDs, float[] centers, float[] scales);
-
-    /** Native code to set the color mode applied to this SubDataset
-     * @param ptr the native pointer
-     * @param mode the new color mode to apply*/
-    private native void nativeSetColorMode(long ptr, int mode);
 
     /** Native code to get the SubDataset name
      * @param ptr the native pointer

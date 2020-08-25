@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Display the color range-->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/colorRange"
+        android:textSize="20sp"/>
+
+    <com.sereno.view.RangeColorView
+        android:id="@+id/colorRange"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        app:enableHandle="false"
+        app:textSize="12sp"/>
+
+    <View
+        style="@style/Divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+    <!-- Transfer Function Parameters-->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/transferFunction"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- The range color manipulation -->
+        <com.sereno.view.GTFView
+            android:id="@+id/gtfView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:pcStrokeWidth="1dp"
+            app:textSize="12sp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:paddingBottom="4dp"/>
+
+        <!-- Layout filled by the application for handling the size of the GTF ranges-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/gtfSizeLayout"/>
+
+        <!-- The color mode setting -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Spinner
+                android:id="@+id/colorModeSpinner"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:entries="@array/colorMode"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enableGradient"
+                android:id="@+id/enableGradientCheckBox"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -1,21 +1,16 @@
 package com.sereno.vfv.Network;
 
 import android.graphics.Point;
-import android.graphics.PointF;
-import android.util.Log;
 
 import com.sereno.vfv.Data.ApplicationModel;
-import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
 import com.sereno.view.AnnotationData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
-import com.sereno.view.GTFData;
+import com.sereno.vfv.Data.TF.GTFData;
 
 import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -25,8 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Map;
-
-import static com.sereno.vfv.Data.SubDataset.VISIBILITY_PRIVATE;
 
 public class SocketManager
 {

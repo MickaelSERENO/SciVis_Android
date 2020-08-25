@@ -6,9 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
-import android.graphics.PointF;
-import android.icu.util.Measure;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -20,6 +17,7 @@ import com.sereno.color.ColorMode;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.PointFieldDesc;
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.Data.TF.GTFData;
 import com.sereno.vfv.R;
 
 import java.util.HashMap;
@@ -577,12 +575,6 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     public void onSetCPCPOrder(GTFData model, int[] order)
     {
         safeRequestLayout();
-    }
-
-    @Override
-    public void onSetColorMode(GTFData model, int colorMode)
-    {
-        safeInvalidate();
     }
 
     @Override

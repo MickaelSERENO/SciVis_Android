@@ -2,21 +2,18 @@ package com.sereno.vfv.Data;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.PointF;
-import android.util.Log;
 
 import com.sereno.math.Quaternion;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
-import com.sereno.view.GTFData;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /** @brief The Model component on the MVC architecture */
-public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFDataListener
+public class ApplicationModel implements Dataset.IDatasetListener
 {
     /** @brief Interface possessing functions called when deleting or adding new datasets */
     public interface IDataCallback
@@ -197,17 +194,17 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     public static final int HANDEDNESS_LEFT = 0;
     public static final int HANDEDNESS_RIGHT  = 1;
 
-    private ArrayList<IDataCallback> m_listeners;       /**!< The known listeners to call when the model changed*/
-    private Configuration            m_config;          /**!< The configuration object*/
+    private ArrayList<IDataCallback> m_listeners = new ArrayList<>(); /**!< The known listeners to call when the model changed*/
+    private Configuration            m_config;                        /**!< The configuration object*/
 
     /*********************************************************************/
     /************************ DATASETS ATTRIBUTES ************************/
     /*********************************************************************/
 
-    private ArrayList<VTKDataset>    m_vtkDatasets;     /**!< The vtk dataset */
-    private ArrayList<VectorFieldDataset> m_vectorFieldDatasets;  /**!< The open vectorField Datasets */
-    private ArrayList<CloudPointDataset>  m_cloudPointDatasets;   /**!< The open cloud point Datasets*/
-    private ArrayList<Dataset>       m_datasets;        /**!< The open Dataset (vtk + vectorField)*/
+    private ArrayList<VTKDataset>         m_vtkDatasets         = new ArrayList<>(); /**!< The vtk dataset */
+    private ArrayList<VectorFieldDataset> m_vectorFieldDatasets = new ArrayList<>(); /**!< The open vectorField Datasets */
+    private ArrayList<CloudPointDataset>  m_cloudPointDatasets  = new ArrayList<>(); /**!< The open cloud point Datasets*/
+    private ArrayList<Dataset>            m_datasets            = new ArrayList<>(); /**!< The open Dataset (vtk + vectorField)*/
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
@@ -226,9 +223,6 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     /** The subdataset waiting to be added*/
     private SubDataset m_pendingSubDataset = null;
-
-    /** Array containing the GTF Data of all the SubDataset*/
-    private ArrayList<GTFData> m_gtfData = new ArrayList<>();
 
     /** The current pointing technique to use*/
     private int m_curPointingTechnique = POINTING_MANUAL;
@@ -273,12 +267,6 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
     {
-        m_vtkDatasets         = new ArrayList<>();
-        m_vectorFieldDatasets = new ArrayList<>();
-        m_cloudPointDatasets  = new ArrayList<>();
-        m_datasets            = new ArrayList<>();
-        m_listeners           = new ArrayList<>();
-
         readConfig(ctx);
     }
 
@@ -376,11 +364,6 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         });
 
         sd.setCanBeModified(canModifySubDataset(sd));
-
-        GTFData newGTF = new GTFData(sd);
-        m_gtfData.add(newGTF);
-
-        newGTF.addListener(this);
     }
 
     /** Perform common actions when adding datasets
@@ -655,17 +638,6 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
         return m_curSelectionMode;
     }
 
-    /** Return the GTF bound to a given SubDataset
-     * @param sd the key dataset
-     * @return the corresponding GTFData, null if not found*/
-    public GTFData getGTFData(SubDataset sd)
-    {
-        for(GTFData gtf : m_gtfData)
-            if(gtf.getDataset() == sd)
-                return gtf;
-        return null;
-    }
-
     /** @brief update the tablet's location if the location is significant for the current mode of the tablet
      * @param pos the tablet's position
      * @param rot the tablet's rotation*/
@@ -817,37 +789,6 @@ public class ApplicationModel implements Dataset.IDatasetListener, GTFData.IGTFD
 
     @Override
     public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
-
-    @Override
-    public void onSetDataset(GTFData model, SubDataset dataset){}
-
-    @Override
-    public void onSetGTFRanges(GTFData model, HashMap<Integer, GTFData.GTFPoint> ranges)
-    {
-        //Update transfer function
-        SubDataset sd = model.getDataset();
-
-        if(sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF ||
-           sd.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF)
-            sd.setGTFRanges(ranges);
-    }
-
-    @Override
-    public void onSetCPCPOrder(GTFData model, int[] order)
-    {
-
-    }
-
-    @Override
-    public void onSetColorMode(GTFData model, int colorMode)
-    {
-        SubDataset sd = model.getDataset();
-        sd.setColorMode(colorMode);
-    }
-
-    @Override
-    public void onLoadDataset(GTFData model, SubDataset dataset){}
-
 
     /** @brief Read the configuration file
      * @param ctx The Context object*/
