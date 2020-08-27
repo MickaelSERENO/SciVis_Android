@@ -1,6 +1,7 @@
 package com.sereno.vfv.Data.TF;
 
 import com.sereno.color.ColorMode;
+import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Network.MessageBuffer;
 
 import java.util.ArrayList;
@@ -56,6 +57,11 @@ public abstract class TransferFunction
     {
         for(ITransferFunctionListener l : m_listeners)
             l.onUpdateTransferFunction(this);
+    }
+
+    public int getType()
+    {
+        return SubDataset.TRANSFER_FUNCTION_NONE;
     }
 
     /** Create a native std::shared_ptr\<TF\> associated with this TransferFunction java counterpart

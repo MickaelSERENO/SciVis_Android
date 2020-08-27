@@ -748,7 +748,7 @@ public class SocketManager
         buf.putShort(TOGGLE_MAP_VISIBILITY);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
-        buf.put((byte)(visibility? 0 : 1));
+        buf.put((byte)(visibility ? 1 : 0));
 
         return buf.array();
     }

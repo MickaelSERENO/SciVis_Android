@@ -133,6 +133,12 @@ public class MergeTFData extends TransferFunction
         return nativeCreatePtr(m_t, m_tf1Ptr, m_tf2Ptr);
     }
 
+    @Override
+    public int getType()
+    {
+        return SubDataset.TRANSFER_FUNCTION_MERGE;
+    }
+
     public void finalize()
     {
         nativeDeletePtr(m_tf1Ptr);

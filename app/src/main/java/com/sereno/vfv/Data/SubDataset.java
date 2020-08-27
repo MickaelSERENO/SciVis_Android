@@ -427,7 +427,7 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     @Override
     public void onUpdateTransferFunction(TransferFunction tf)
     {
-        setTransferFunction(m_tfType, tf);
+        setTransferFunction(tf.getType(), tf);
     }
 
     /** Create a new SubDataset native C++ ptr

@@ -289,6 +289,12 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
         return m_ptr;
     }
 
+    @Override
+    public int getType()
+    {
+        return (m_gradientEnabled ? SubDataset.TRANSFER_FUNCTION_TGTF : SubDataset.TRANSFER_FUNCTION_GTF);
+    }
+
     private void createNativeTransferFunction()
     {
         if(m_sd == null)

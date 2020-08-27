@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity
     private int              m_currentTFViewType = SubDataset.TRANSFER_FUNCTION_NONE;
     private ViewGroup        m_currentTFView = null;     /*!< The Current transfer function view to use*/
     private HashMap<Integer, View>  m_gtfSizeViews = new HashMap<>(); /*!< The views handling the size of the GTF*/
+    private SubDataset       m_currentTFSubDataset = null;
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -391,7 +392,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateTF(SubDataset dataset)
     {
-
         if(m_model.canModifySubDataset(dataset) && (dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF || dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF))
         {
             final GTFData gtf = (GTFData) dataset.getTransferFunction();
@@ -408,7 +408,7 @@ public class MainActivity extends AppCompatActivity
         if(dataset == null)
             return;
 
-        if(dataset.getTransferFunctionType() != m_currentTFViewType)
+        if(dataset.getTransferFunctionType() != m_currentTFViewType || m_currentTFSubDataset != dataset)
         {
             recreateCurrentTFView();
         }
@@ -427,6 +427,9 @@ public class MainActivity extends AppCompatActivity
     /** Remove the current transfer function view*/
     private void removeCurrentTFView()
     {
+        if(m_currentTFViewType == SubDataset.TRANSFER_FUNCTION_GTF || m_currentTFViewType == SubDataset.TRANSFER_FUNCTION_TGTF)
+            m_gtfSizeViews.clear();
+
         if(m_currentTFView != null)
             ((ViewGroup)m_currentTFView.getParent()).removeView(m_currentTFView);
     }
@@ -444,12 +447,15 @@ public class MainActivity extends AppCompatActivity
             case SubDataset.TRANSFER_FUNCTION_GTF:
             case SubDataset.TRANSFER_FUNCTION_TGTF:
             {
-                final GTFData gtfData = (GTFData)m_model.getCurrentSubDataset().getTransferFunction();
-                View gtfLayout = getLayoutInflater().inflate(R.layout.gtf_layout, layout);
+                View gtfLayout = getLayoutInflater().inflate(R.layout.gtf_layout, null);
+                layout.addView(gtfLayout);
+
 
                 //Configure the spinner color mode
                 Spinner colorModeSpinner = (Spinner)gtfLayout.findViewById(R.id.colorModeSpinner);
                 final GTFView gtfView = gtfLayout.findViewById(R.id.gtfView);
+
+                GTFData gtfData = (GTFData)m_model.getCurrentSubDataset().getTransferFunction();
                 gtfView.setModel(gtfData);
 
                 colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
@@ -490,23 +496,24 @@ public class MainActivity extends AppCompatActivity
                        public void onCheckedChanged(CompoundButton compoundButton, boolean b)
                        {
                            //Update the GTF type (TGTF or GTF)
-                           SubDataset sd = m_model.getCurrentSubDataset();
+                           GTFData gtfData = (GTFData)m_model.getCurrentSubDataset().getTransferFunction();
                            gtfData.setGradient(b);
                        }
                    }
                 );
+
+                //Disable the possibility to change the checkbox if the user cannot modify the subdataset
                 gtfEnableGradient.setOnTouchListener(new View.OnTouchListener()
                 {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent)
                     {
                         if(m_model.getCurrentSubDataset().getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_GTF &&
-                                m_model.getCurrentSubDataset().getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_TGTF)
-                            return false;
-                        GTFData gtf = (GTFData)m_model.getCurrentSubDataset().getTransferFunction();
+                           m_model.getCurrentSubDataset().getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_TGTF)
+                            return true;
 
-                        if(gtf != null && gtf.getDataset() != null &&
-                            gtf.getDataset().getCanBeModified())
+                        GTFData gtf = (GTFData)m_model.getCurrentSubDataset().getTransferFunction();
+                        if(gtf != null && gtf.getDataset() != null && gtf.getDataset().getCanBeModified())
                             return false;
                         return true;
                     }
@@ -521,8 +528,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
         }
+
+        m_currentTFSubDataset = m_model.getCurrentSubDataset();
         m_currentTFViewType = type;
-        layout.invalidate();
     }
 
     private void updateGTFWidgets()
@@ -558,7 +566,9 @@ public class MainActivity extends AppCompatActivity
 
 
         //Update the transfer function view not link to any model
-        gtfEnableGradient.setChecked(m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF);
+        boolean isTriangularGTF = m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF;
+        if(isTriangularGTF != gtfEnableGradient.isChecked())
+            gtfEnableGradient.setChecked(isTriangularGTF);
         colorModeSpinner.setSelection(m_model.getCurrentSubDataset().getTransferFunction().getColorMode());
         redoGTFSizeLayout();
         redoGTFSizeRanges();

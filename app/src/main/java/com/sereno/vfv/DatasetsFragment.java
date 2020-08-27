@@ -254,7 +254,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     m_inMergedSubDataset = null;
                     return true;
                 }
-                else
+                else if(m_inMergedSubDataset != null)
                 {
                     Toast.makeText(getContext(),"Merging Cancelled", Toast.LENGTH_SHORT).show();
                     m_inMergedSubDataset = null;
