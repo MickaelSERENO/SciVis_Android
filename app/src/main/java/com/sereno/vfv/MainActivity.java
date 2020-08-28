@@ -407,7 +407,10 @@ public class MainActivity extends AppCompatActivity
     {
         SubDataset dataset = m_model.getCurrentSubDataset();
         if(dataset == null)
+        {
+            removeCurrentTFView();
             return;
+        }
 
         if(dataset.getTransferFunctionType() != m_currentTFViewType || m_currentTFSubDataset != dataset)
         {
@@ -432,7 +435,12 @@ public class MainActivity extends AppCompatActivity
             m_gtfSizeViews.clear();
 
         if(m_currentTFView != null)
+        {
             ((ViewGroup)m_currentTFView.getParent()).removeView(m_currentTFView);
+            m_currentTFView       = null;
+            m_currentTFViewType   = SubDataset.TRANSFER_FUNCTION_NONE;
+            m_currentTFSubDataset = null;
+        }
     }
 
     /** Recreate the current transfer function view based on the current SubDataset's TF type*/
@@ -727,6 +735,7 @@ public class MainActivity extends AppCompatActivity
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
                         sd.setTransferFunction(msg.getTFType(), tfMessageToTFObject(msg));
+                        redoTFWidget();
                     sd.addListener(MainActivity.this);
                 }
             }

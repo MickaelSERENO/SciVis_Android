@@ -200,14 +200,14 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
     {
         if(m_ranges.containsKey(ptFieldID))
         {
-            boolean callListener = !(m_ranges.get(ptFieldID).equals(range));
-            m_ranges.put(ptFieldID, range);
-            updatePtrRanges();
-
-            if(callListener)
+            if(!m_ranges.get(ptFieldID).equals(range))
+            {
+                m_ranges.put(ptFieldID, range);
                 for(int i = 0; i < m_listeners.size(); i++)
                     m_listeners.get(i).onSetGTFRanges(this, m_ranges);
-            return true;
+                updatePtrRanges();
+                return true;
+            }
         }
         return false;
     }

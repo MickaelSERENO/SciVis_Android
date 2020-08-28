@@ -262,6 +262,9 @@ public class TFDatasetMessage extends ServerMessage
             }
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
+                if(cursor == 5)
+                    return 'f'; //t
+
                 MergeTFData data = (MergeTFData)m_tfData;
                 if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
                     return data.tf1Msg.getCurrentType();

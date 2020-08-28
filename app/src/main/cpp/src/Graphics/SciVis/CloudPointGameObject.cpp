@@ -170,10 +170,13 @@ namespace sereno
                             }
 
                             //Do not forget the gradient (clamped)!
-                            if(grad && tf->hasGradient())
-                                tfInd[tf->getDimension()-1] = grad->grads.get()[i];
-                            else
-                                tfInd[tf->getDimension()-1] = 0;
+                            if(tf->hasGradient())
+                            {
+                                if(grad)
+                                    tfInd[tf->getDimension()-1] = grad->grads.get()[i];
+                                else
+                                    tfInd[tf->getDimension()-1] = 0;
+                            }
 
                             //Apply the transfer function
                             uint8_t outCol[4];
