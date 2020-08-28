@@ -3,6 +3,7 @@ package com.sereno.vfv.Network;
 import android.graphics.Point;
 
 import com.sereno.vfv.Data.ApplicationModel;
+import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
 import com.sereno.view.AnnotationData;
@@ -63,6 +64,7 @@ public class SocketManager
     public static final short ADD_CLOUD_POINT_DATASET = 25;
     public static final short ADD_NEW_SELECTION_INPUT = 26;
     public static final short TOGGLE_MAP_VISIBILITY   = 27;
+    public static final short MERGE_SUBDATSETS        = 28;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -729,17 +731,24 @@ public class SocketManager
     }
 
     /** Create a lasso event
+     * @param ids the subdataset IDs for the selection to be confirmed
      * @return array of byte to send to push*/
-    public static byte[] createConfirmSelectionEvent()
+    public static byte[] createConfirmSelectionEvent(MainActivity.DatasetIDBinding ids)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = ByteBuffer.allocate(2+4+4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(CONFIRM_SELECTION);
+        buf.putInt(ids.dataset.getID());
+        buf.putInt(ids.subDatasetID);
 
         return buf.array();
     }
 
+    /** Create a toggle map visibility event. Change the visibility of the map associated to a SubDataset
+     * @param ids the subdataset ids
+     * @param visibility the new map visibility
+     * @return array of byte to send to push*/
     public static byte[] createToggleMapVisibility(MainActivity.DatasetIDBinding ids, boolean visibility)
     {
         ByteBuffer buf = ByteBuffer.allocate(2+4+4+1);
@@ -749,6 +758,23 @@ public class SocketManager
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
         buf.put((byte)(visibility ? 1 : 0));
+
+        return buf.array();
+    }
+
+    /** Create a merge subdataset event between two subdatasets. Pay attention that the subdatasets must share the same parent (this function does not check that)
+     * @param sd1 the first subdataset to merge
+     * @param sd2 the second subdataset to merge
+     * @return array of byte to send to push*/
+    public static byte[] createMergeSubDatasetsEvent(SubDataset sd1, SubDataset sd2)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+4+4+4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(MERGE_SUBDATSETS);
+        buf.putInt(sd1.getParent().getID());
+        buf.putInt(sd1.getID());
+        buf.putInt(sd2.getID());
 
         return buf.array();
     }

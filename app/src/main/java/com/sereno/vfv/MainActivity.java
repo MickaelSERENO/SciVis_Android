@@ -31,6 +31,7 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.DataFile;
+import com.sereno.vfv.Data.TF.MergeTFData;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.PointFieldDesc;
@@ -564,11 +565,8 @@ public class MainActivity extends AppCompatActivity
             rangeColorView.getModel().setRawRange(0.0f, 1.0f, false);
         rangeColorView.getModel().setColorMode(gtf.getColorMode());
 
-
-        //Update the transfer function view not link to any model
         boolean isTriangularGTF = m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF;
-        if(isTriangularGTF != gtfEnableGradient.isChecked())
-            gtfEnableGradient.setChecked(isTriangularGTF);
+        gtfEnableGradient.setChecked(isTriangularGTF);
         colorModeSpinner.setSelection(m_model.getCurrentSubDataset().getTransferFunction().getColorMode());
         redoGTFSizeLayout();
         redoGTFSizeRanges();
@@ -728,32 +726,44 @@ public class MainActivity extends AppCompatActivity
                 {
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
-                        switch(msg.getTFType())
-                        {
-                            case SubDataset.TRANSFER_FUNCTION_GTF:
-                            case SubDataset.TRANSFER_FUNCTION_TGTF:
-                            {
-                                GTFData gtf = new GTFData(sd);
-                                gtf.setColorMode(msg.getColorMode());
-
-                                for(TFDatasetMessage.GTFData.PropData prop : msg.getGTFData().propData)
-                                {
-                                    if(!gtf.setRange(prop.propID, new GTFData.GTFPoint(prop.center, prop.scale)))
-                                        Log.e(MainActivity.TAG, "Could not set the property " + prop.propID);
-                                }
-
-                                sd.setTransferFunction(msg.getTFType(), gtf);
-                                break;
-                            }
-                        }
+                        sd.setTransferFunction(msg.getTFType(), tfMessageToTFObject(msg));
                     sd.addListener(MainActivity.this);
                 }
             }
         });
     }
 
-    private TransferFunction TFMessageToTFObject(final TFDatasetMessage msg)
+    /** Parse a TFDatasetMessage to an exploitable TransferFunction object
+     * @param msg the network message to convert
+     * @return an exploitable TransferFunction, or null if an issue occured*/
+    private TransferFunction tfMessageToTFObject(TFDatasetMessage msg)
     {
+        SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+
+        switch(msg.getTFType())
+        {
+            case SubDataset.TRANSFER_FUNCTION_GTF:
+            case SubDataset.TRANSFER_FUNCTION_TGTF:
+            {
+                GTFData gtf = new GTFData(sd);
+                gtf.setColorMode(msg.getColorMode());
+
+                for(TFDatasetMessage.GTFData.PropData prop : msg.getGTFData().propData)
+                {
+                    if(!gtf.setRange(prop.propID, new GTFData.GTFPoint(prop.center, prop.scale)))
+                        Log.e(MainActivity.TAG, "Could not set the property " + prop.propID);
+                }
+                return gtf;
+            }
+
+            case SubDataset.TRANSFER_FUNCTION_MERGE:
+            {
+                TFDatasetMessage.MergeTFData merge = msg.getMergeTFData();
+                MergeTFData tf = new MergeTFData(sd, tfMessageToTFObject(merge.tf1Msg), tfMessageToTFObject(merge.tf2Msg));
+                tf.setInterpolationParameter(merge.t);
+                return tf;
+            }
+        }
         return null;
     }
 
@@ -1089,7 +1099,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConfirmSelection(ApplicationModel model) {
-        m_socket.push(SocketManager.createConfirmSelectionEvent());
+        m_socket.push(SocketManager.createConfirmSelectionEvent(getDatasetIDBinding(model.getCurrentSubDataset())));
     }
 
     @Override
@@ -1204,7 +1214,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMergeSubDatasets(DatasetsFragment frag, SubDataset sd1, SubDataset sd2)
     {
-
+        m_socket.push(SocketManager.createMergeSubDatasetsEvent(sd1, sd2));
     }
 
     public void redoGTFSizeRanges()

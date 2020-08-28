@@ -24,39 +24,17 @@ public class TFDatasetMessage extends ServerMessage
         public PropData[] propData = new PropData[0];
     }
 
-    /** Class representing the Merge transfer function*/
+    /** Class permitting to parse successfully merge transfer function*/
     public static class MergeTFData
     {
-        /** The linear interpolation t parameter. Must be between 0.0 and 1.0*/
-        public float  t;
-
-        /** The ID of the first transfer function*/
-        public int    tf1ID;
-
-        /** The first transfer function data. Use tf1ID to cast this object*/
-        public Object tf1Data;
-
-        /** The ID of the second transfer function*/
-        public int    tf2ID;
-
-        /** The second transfer function data. Use tf2ID to cast this object*/
-        public Object tf2Data;
-    }
-
-    /** Class permitting to parse successfully merge transfer function*/
-    private static class ParseMergeTF
-    {
-        /** The data being parsed*/
-        MergeTFData data = null;
-
         /** The t parameter to pass to the merge tf data object*/
-        float t = 0;
+        public float t = 0;
 
         /** The first transfer function message being parsed*/
-        TFDatasetMessage tf1Msg = new TFDatasetMessage();
+        public TFDatasetMessage tf1Msg = new TFDatasetMessage();
 
         /** The second transfer function message being parsed*/
-        TFDatasetMessage tf2Msg = new TFDatasetMessage();
+        public TFDatasetMessage tf2Msg = new TFDatasetMessage();
     }
 
     /** The datasetID of the message*/
@@ -112,7 +90,7 @@ public class TFDatasetMessage extends ServerMessage
                 }
                 case SubDataset.TRANSFER_FUNCTION_MERGE:
                 {
-                    ParseMergeTF data = (ParseMergeTF) m_tfData;
+                    MergeTFData data = (MergeTFData)m_tfData;
 
                     if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
                         data.tf1Msg.pushValue(val);
@@ -142,9 +120,9 @@ public class TFDatasetMessage extends ServerMessage
                 }
                 case SubDataset.TRANSFER_FUNCTION_MERGE:
                 {
-                    m_tfData = new ParseMergeTF();
-                    ((ParseMergeTF) m_tfData).tf1Msg.cursor = 3; //Ignore datasetID, subdatasetID, and headsetID
-                    ((ParseMergeTF) m_tfData).tf2Msg.cursor = 3;
+                    m_tfData = new MergeTFData();
+                    ((MergeTFData) m_tfData).tf1Msg.cursor = 3; //Ignore datasetID, subdatasetID, and headsetID
+                    ((MergeTFData) m_tfData).tf2Msg.cursor = 3;
                     break;
                 }
                 default:
@@ -183,7 +161,7 @@ public class TFDatasetMessage extends ServerMessage
             }
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
-                ParseMergeTF data = (ParseMergeTF) m_tfData;
+                MergeTFData data = (MergeTFData) m_tfData;
 
                 if(cursor == 5)
                     data.t = val;
@@ -236,10 +214,8 @@ public class TFDatasetMessage extends ServerMessage
     {
         if(m_tfID == SubDataset.TRANSFER_FUNCTION_MERGE)
         {
-            ParseMergeTF data = (ParseMergeTF)m_tfData;
-            if(data.data == null)
-                finishMergeTF();
-            return data.data;
+            MergeTFData data = (MergeTFData)m_tfData;
+            return data;
         }
         return null;
     }
@@ -286,7 +262,7 @@ public class TFDatasetMessage extends ServerMessage
             }
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
-                ParseMergeTF data = (ParseMergeTF)m_tfData;
+                MergeTFData data = (MergeTFData)m_tfData;
                 if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
                     return data.tf1Msg.getCurrentType();
                 else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
@@ -316,11 +292,9 @@ public class TFDatasetMessage extends ServerMessage
             }
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
-                ParseMergeTF data = (ParseMergeTF)m_tfData;
-
+                MergeTFData data = (MergeTFData)m_tfData;
                 maxCursor += 1 + data.tf1Msg.getMaxCursor() + data.tf2Msg.getMaxCursor() - 4; //-4 == datasetID + subDatasetID + headsetID for BOTH transfer functions (we ignore them).
                                                                                               // We remind that the current cursor is included (hence -4 and not -6)
-
                 break;
             }
             default:
@@ -328,39 +302,5 @@ public class TFDatasetMessage extends ServerMessage
         }
 
         return maxCursor;
-    }
-
-    /** Once the whole message is parsed, finish the MergeTF object*/
-    private void finishMergeTF()
-    {
-        if(m_tfID == SubDataset.TRANSFER_FUNCTION_MERGE)
-        {
-            ParseMergeTF data = (ParseMergeTF)m_tfData;
-            data.data   = new MergeTFData();
-            data.data.t = data.t;
-
-            class Lambda
-            {
-                Object func(TFDatasetMessage msg)
-                {
-                    switch(msg.m_tfID)
-                    {
-                        case SubDataset.TRANSFER_FUNCTION_GTF:
-                        case SubDataset.TRANSFER_FUNCTION_TGTF:
-                            return msg.getGTFData();
-                        case SubDataset.TRANSFER_FUNCTION_MERGE:
-                            return msg.getMergeTFData();
-                    }
-                    return null;
-                }
-            }
-
-            Lambda lambda = new Lambda();
-            data.data.tf1Data = lambda.func(data.tf1Msg);
-            data.data.tf1ID   = data.tf1Msg.m_tfID;
-
-            data.data.tf2Data = lambda.func(data.tf2Msg);
-            data.data.tf2ID   = data.tf2Msg.m_tfID;
-        }
     }
 }

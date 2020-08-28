@@ -99,12 +99,8 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_GTFData_nativeUpdateRanges(JN
         (*gtf)->setScale(scale);
     }
 
+//Free variables
 freeObj:
-    /*jenv->ReleaseIntArrayElements(jpIDs, pIDs, 0);
-    jenv->ReleaseFloatArrayElements(jcenters, center, 0);
-    jenv->ReleaseFloatArrayElements(jscale, scale, 0);*/
-
-    //Free variables
     free(center);
     free(scale);
 }
@@ -115,4 +111,11 @@ JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeCreatePtr(
     std::shared_ptr<TF>* tf2 = (std::shared_ptr<TF>*)tf2Ptr;
     MergeTF* tf = new MergeTF(*tf1, *tf2, t);
     return (jlong)(new std::shared_ptr<MergeTF>(tf));
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeSetInterpolationParameter(JNIEnv* jenv, jobject instance, jlong ptr, jfloat t)
+{
+    std::shared_ptr<MergeTF>* tf = (std::shared_ptr<MergeTF>*)ptr;
+    if(tf)
+        (*tf)->setInterpolationParameter(t);
 }

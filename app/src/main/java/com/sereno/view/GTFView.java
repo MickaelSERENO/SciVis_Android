@@ -30,7 +30,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
     public static final int TEXT_OFFSET_HANDLE = 5;   /*!< The offset applied to the handle's text in CPCP mode*/
     public static final int COLLISION_WIDTH    = 30;  /*!< The number of pixels allowed for collisions with CPCP*/
     public static final int MAX_1D_HEIGHT      = 150; /*!< The maximum 1D height in pixel*/
-    public static final int MAX_2D_HEIGHT      = 920; /*!< The maximum 1D height in pixel*/
+    public static final int MAX_2D_HEIGHT      = 420; /*!< The maximum 1D height in pixel*/
 
     public static final int MANIPULATING_NO_VALUE  = 0; /*!< Manipulating nothing (no touch)*/
     public static final int MANIPULATING_CENTER    = 1; /*!< Manipulating the center*/

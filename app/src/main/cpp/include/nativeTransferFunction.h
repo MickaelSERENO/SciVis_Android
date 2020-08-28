@@ -17,6 +17,8 @@ extern "C"
                                                                                    jintArray jpIDs, jfloatArray jcenters, jfloatArray jscale);
 
     JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeCreatePtr(JNIEnv* jenv, jobject instance, jfloat t, jlong tf1Ptr, jlong tf2Ptr);
+
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeSetInterpolationParameter(JNIEnv* jenv, jobject instance, jlong ptr, jfloat t);
 }
 
 #endif
