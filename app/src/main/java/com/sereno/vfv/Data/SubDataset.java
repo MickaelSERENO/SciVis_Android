@@ -98,9 +98,6 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     /** The current headset modifying this subdataset. -1 == no one is modifying this subdataset*/
     private int m_currentHeadsetID = -1;
 
-    /** The type of the subdataset current transfer function*/
-    private int m_tfType = SubDataset.TRANSFER_FUNCTION_NONE;
-
     /** The current transfer function this object uses*/
     private TransferFunction m_tf = null;
 
@@ -120,7 +117,7 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         m_parent = parent;
         m_ownerHeadsetID = ownerID;
 
-        setTransferFunction(SubDataset.TRANSFER_FUNCTION_NONE, null);
+        setTransferFunction(null);
     }
 
     @Override
@@ -322,18 +319,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         return m_currentHeadsetID;
     }
 
-    /** Get the transfer function type in use
-     * @return the integer representing the transfer function type being used. See SubDataset.TRANSFER_FUNCTION_**/
-    public int getTransferFunctionType()
-    {
-        return m_tfType;
-    }
-
     /** Set the transfer function to use for this object.
-     * @param tfType the new type of transfer function to use
      * @param tf the model transfer function to use*/
-    public void setTransferFunction(int tfType, TransferFunction tf)
+    public void setTransferFunction(TransferFunction tf)
     {
+        int tfType = SubDataset.TRANSFER_FUNCTION_NONE;
         if(m_tf != tf)
         {
             if(m_tf != null)
@@ -344,18 +334,31 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
 
         long tfPtr = 0;
         if(tf != null)
+        {
+            tfType = tf.getType();
             tfPtr = tf.getNativeTransferFunction();
+        }
         nativeSetTF(m_ptr, tfType, tfPtr);
-        m_tfType = tfType;
         m_tf = tf;
 
         for (int j = 0; j < m_listeners.size(); j++)
             m_listeners.get(j).onUpdateTF(this);
     }
 
+    /** Get the bound transfer function to this SubDataset
+     * @return the transfer function being used*/
     public TransferFunction getTransferFunction()
     {
         return m_tf;
+    }
+
+    /** Get the type of the bound transfer function to this SubDataset
+     * @return the transfer function type being used. Return TRANSFER_FUNCTION_NONE is getTransferFunction() == null*/
+    public int getTransferFunctionType()
+    {
+        if(m_tf != null)
+            return m_tf.getType();
+        return SubDataset.TRANSFER_FUNCTION_NONE;
     }
 
     /** Add a new annotation
@@ -427,7 +430,7 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     @Override
     public void onUpdateTransferFunction(TransferFunction tf)
     {
-        setTransferFunction(tf.getType(), tf);
+        setTransferFunction(tf);
     }
 
     /** Create a new SubDataset native C++ ptr

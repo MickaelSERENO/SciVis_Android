@@ -393,11 +393,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onUpdateTF(SubDataset dataset)
     {
-        if(m_model.canModifySubDataset(dataset) && (dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_GTF || dataset.getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF))
-        {
-            final GTFData gtf = (GTFData) dataset.getTransferFunction();
-            m_socket.push(SocketManager.createGTFEvent(getDatasetIDBinding(dataset), gtf));
-        }
+        if(m_model.canModifySubDataset(dataset) && dataset.getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_NONE)
+            m_socket.push(SocketManager.createTFEvent(getDatasetIDBinding(dataset), dataset.getTransferFunction()));
 
         if(dataset == m_model.getCurrentSubDataset())
             redoTFWidget();
@@ -734,7 +731,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
-                        sd.setTransferFunction(msg.getTFType(), tfMessageToTFObject(msg));
+                        sd.setTransferFunction(tfMessageToTFObject(msg));
                         redoTFWidget();
                     sd.addListener(MainActivity.this);
                 }
