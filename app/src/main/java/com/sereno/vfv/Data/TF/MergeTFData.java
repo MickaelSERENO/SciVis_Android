@@ -50,7 +50,6 @@ public class MergeTFData extends TransferFunction
     {
         m_tf1     = tf1;
         m_tf2     = tf2;
-
         setDataset(sd);
     }
 

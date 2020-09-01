@@ -1,6 +1,9 @@
 package com.sereno.vfv.Network;
 
+import android.util.Log;
+
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.MainActivity;
 
 public class TFDatasetMessage extends ServerMessage
 {
@@ -94,7 +97,7 @@ public class TFDatasetMessage extends ServerMessage
 
                     if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
                         data.tf1Msg.pushValue(val);
-                    else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
+                    else if(data.tf2Msg.cursor <= data.tf2Msg.getMaxCursor())
                         data.tf2Msg.pushValue(val);
                     break;
                 }
@@ -132,6 +135,24 @@ public class TFDatasetMessage extends ServerMessage
 
         else if(cursor == 4)
             m_colorMode = val;
+        else
+        {
+            switch(m_tfID)
+            {
+                case SubDataset.TRANSFER_FUNCTION_MERGE:
+                {
+                    MergeTFData data = (MergeTFData) m_tfData;
+
+                    if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
+                        data.tf1Msg.pushValue(val);
+                    else if(data.tf2Msg.cursor <= data.tf2Msg.getMaxCursor())
+                        data.tf2Msg.pushValue(val);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
         super.pushValue(val);
     }
 
@@ -169,7 +190,7 @@ public class TFDatasetMessage extends ServerMessage
                 {
                     if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
                         data.tf1Msg.pushValue(val);
-                    else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
+                    else if(data.tf2Msg.cursor <= data.tf2Msg.getMaxCursor())
                         data.tf2Msg.pushValue(val);
                 }
                 break;
@@ -268,7 +289,7 @@ public class TFDatasetMessage extends ServerMessage
                 MergeTFData data = (MergeTFData)m_tfData;
                 if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
                     return data.tf1Msg.getCurrentType();
-                else if(data.tf2Msg.cursor <= data.tf1Msg.getMaxCursor())
+                else if(data.tf2Msg.cursor <= data.tf2Msg.getMaxCursor())
                     return data.tf2Msg.getCurrentType();
                 break;
             }
@@ -298,6 +319,7 @@ public class TFDatasetMessage extends ServerMessage
                 MergeTFData data = (MergeTFData)m_tfData;
                 maxCursor += 1 + data.tf1Msg.getMaxCursor() + data.tf2Msg.getMaxCursor() - 4; //-4 == datasetID + subDatasetID + headsetID for BOTH transfer functions (we ignore them).
                                                                                               // We remind that the current cursor is included (hence -4 and not -6)
+                Log.e(MainActivity.TAG, "MergeTF maxCursor : " + Integer.toString(maxCursor));
                 break;
             }
             default:
