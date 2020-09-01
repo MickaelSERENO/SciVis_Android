@@ -1,9 +1,6 @@
 package com.sereno.vfv.Network;
 
-import android.util.Log;
-
 import com.sereno.vfv.Data.SubDataset;
-import com.sereno.vfv.MainActivity;
 
 public class TFDatasetMessage extends ServerMessage
 {
@@ -319,7 +316,6 @@ public class TFDatasetMessage extends ServerMessage
                 MergeTFData data = (MergeTFData)m_tfData;
                 maxCursor += 1 + data.tf1Msg.getMaxCursor() + data.tf2Msg.getMaxCursor() - 4; //-4 == datasetID + subDatasetID + headsetID for BOTH transfer functions (we ignore them).
                                                                                               // We remind that the current cursor is included (hence -4 and not -6)
-                Log.e(MainActivity.TAG, "MergeTF maxCursor : " + Integer.toString(maxCursor));
                 break;
             }
             default:

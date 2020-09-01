@@ -542,8 +542,11 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int prog, boolean b)
                     {
-                        MergeTFData merge = (MergeTFData)m_model.getCurrentSubDataset().getTransferFunction();
-                        merge.setInterpolationParameter((float)(seekBar.getProgress())/seekBar.getMax());
+                        if(m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_MERGE)
+                        {
+                            MergeTFData merge = (MergeTFData) m_model.getCurrentSubDataset().getTransferFunction();
+                            merge.setInterpolationParameter((float) (seekBar.getProgress()) / seekBar.getMax());
+                        }
                     }
 
                     @Override

@@ -517,8 +517,7 @@ public class SocketManager
         int tfSize2 = getTFEventSpecificSize(data.getTF2Data());
 
         return (4   + //t
-                2*2 + //Twice colormode
-                2*2 + //Twice TFID
+                2*2 + //Twice colormode + tfID
                 tfSize1 + tfSize2);
     }
 
