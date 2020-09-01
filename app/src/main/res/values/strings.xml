@@ -47,4 +47,5 @@
     <string name="disableMap">Disable Map</string>
     <string name="enableMap">Enable Map</string>
     <string name="mergeWith">Merge With</string>
+    <string name="interpolationParameter">t</string>
 </resources>
