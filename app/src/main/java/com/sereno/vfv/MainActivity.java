@@ -531,6 +531,42 @@ public class MainActivity extends AppCompatActivity
             {
                 m_currentTFView = (ViewGroup)getLayoutInflater().inflate(R.layout.merging_tf_view, null);
                 layout.addView(m_currentTFView);
+                MergeTFData merge = (MergeTFData)m_model.getCurrentSubDataset().getTransferFunction();
+
+                SeekBarHintView seekBar = m_currentTFView.findViewById(R.id.tSeekBar);
+                seekBar.setMax(1000); //For doing some math. 1000 == 1.0
+                seekBar.setProgress((int)(1000*merge.getInterpolationParameter()));
+
+                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+                {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int prog, boolean b)
+                    {
+                        MergeTFData merge = (MergeTFData)m_model.getCurrentSubDataset().getTransferFunction();
+                        merge.setInterpolationParameter((float)(seekBar.getProgress())/seekBar.getMax());
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar){}
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar){}
+                });
+
+                seekBar.setOnTouchListener(new View.OnTouchListener()
+                {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent)
+                    {
+                        if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                            m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                        else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
+                                motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                            m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+
+                        return !m_model.getCurrentSubDataset().getCanBeModified(); //Disable the scrolling if needed
+                    }
+                });
                 break;
             }
         }
@@ -579,7 +615,16 @@ public class MainActivity extends AppCompatActivity
 
     private void updateMergeTFWidgets()
     {
-        //TODO
+        //If no subdataset
+        if(m_model.getCurrentSubDataset() == null)
+            return;
+
+        if(m_model.getCurrentSubDataset().getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_MERGE)
+            return;
+
+        MergeTFData     merge   = (MergeTFData)m_model.getCurrentSubDataset().getTransferFunction();
+        SeekBarHintView seekBar = m_currentTFView.findViewById(R.id.tSeekBar);
+        seekBar.setProgress((int)(seekBar.getMax()*merge.getInterpolationParameter()));
     }
 
     @Override
