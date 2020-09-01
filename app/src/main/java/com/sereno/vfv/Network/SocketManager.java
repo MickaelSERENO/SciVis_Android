@@ -4,6 +4,8 @@ import android.graphics.Point;
 
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.Data.TF.MergeTFData;
+import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
 import com.sereno.view.AnnotationData;
@@ -463,12 +465,15 @@ public class SocketManager
         return buf.array();
     }
 
-    /** Fill common data stored in a GTFData
+    /** Create a transfer function event
      * @param ids the dataset and subdatasets IDs
-     * @param data the gtf data to look at*/
-    public static byte[] createGTFEvent(MainActivity.DatasetIDBinding ids, GTFData data)
+     * @param tf the transfer function data
+     * @return array of byte to send to push*/
+    public static byte[] createTFEvent(MainActivity.DatasetIDBinding ids, TransferFunction tf)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2 + 3*4 + 2*1 + (3*4*data.getRanges().size()));
+        int tfSize = getTFEventSpecificSize(tf);
+
+        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 2*1 + tfSize);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(TF_SUBDATASET);
@@ -476,9 +481,98 @@ public class SocketManager
         //Header common to TF
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
-        buf.put((byte)data.getDataset().getTransferFunctionType());
-        buf.put((byte)data.getColorMode());
+        buf.put((byte)tf.getType());
+        buf.put((byte)tf.getColorMode());
 
+        fillTFEvent(buf, tf);
+
+        return buf.array();
+    }
+
+    /** Get the size of the specific part of a specific TF Object for TF Event
+     * @param tf the Transferfunction to measure
+     * @return the size in byte to add to the specific bytebuffer*/
+    private static int getTFEventSpecificSize(TransferFunction tf)
+    {
+        //Get the size for the byte buffer for specific transfer functions
+        switch(tf.getType())
+        {
+            case SubDataset.TRANSFER_FUNCTION_GTF:
+            case SubDataset.TRANSFER_FUNCTION_TGTF:
+                return getGTFEventSize((GTFData)tf);
+
+            case SubDataset.TRANSFER_FUNCTION_MERGE:
+                return getMergeTFEventSize((MergeTFData)tf);
+        }
+
+        return 0;
+    }
+
+    /** Get the size of the specific part of MergeTF for TF Event
+     * @param data the MergeTFData information
+     * @return the size in byte to add to the specific bytebuffer*/
+    private static int getMergeTFEventSize(MergeTFData data)
+    {
+        int tfSize1 = getTFEventSpecificSize(data.getTF1Data());
+        int tfSize2 = getTFEventSpecificSize(data.getTF2Data());
+
+        return (4   + //t
+                2*2 + //Twice colormode
+                2*2 + //Twice TFID
+                tfSize1 + tfSize2);
+    }
+
+    /** Get the size of the specific part of GTF for TF Event
+     * @param data the GTFData information
+     * @return the size in byte to add to the specific bytebuffer*/
+    private static int getGTFEventSize(GTFData data)
+    {
+        return (3*4*data.getRanges().size() + 4);
+    }
+
+    /** Fill specific data stored in a TransferFunction for TFEvent
+     * @param buf the ByteBuffer to fill
+     * @param tf the transferfunction to evaluate*/
+    private static void fillTFEvent(ByteBuffer buf, TransferFunction tf)
+    {
+        switch(tf.getType())
+        {
+            case SubDataset.TRANSFER_FUNCTION_GTF:
+            case SubDataset.TRANSFER_FUNCTION_TGTF:
+                fillGTFEvent(buf, (GTFData)tf);
+                break;
+
+            case SubDataset.TRANSFER_FUNCTION_MERGE:
+                fillMergeTFEvent(buf, (MergeTFData)tf);
+                break;
+        }
+    }
+
+    /** Fill specific data stored in a MergeTFData for TFEvent
+     * @param buf the ByteBuffer to fill
+     * @param data the merge data to look at*/
+    private static void fillMergeTFEvent(ByteBuffer buf, MergeTFData data)
+    {
+        //t
+        buf.putFloat(data.getInterpolationParameter());
+
+        //data of tf1
+        buf.put((byte)data.getTF1Data().getType());
+        buf.put((byte)data.getTF1Data().getColorMode());
+        fillTFEvent(buf, data.getTF1Data());
+
+        //data of tf2
+        buf.put((byte)data.getTF2Data().getType());
+        buf.put((byte)data.getTF2Data().getColorMode());
+        fillTFEvent(buf, data.getTF2Data());
+    }
+
+
+    /** Fill specific data stored in a GTFData for TFEvent
+     * @param buf the ByteBuffer to fill
+     * @param data the gtf data to look at*/
+    private static void fillGTFEvent(ByteBuffer buf, GTFData data)
+    {
         //Common values for all GTF properties
         buf.putInt(data.getRanges().size());
 
@@ -490,8 +584,6 @@ public class SocketManager
             buf.putFloat(range.center);
             buf.putFloat(range.scale);
         }
-
-        return buf.array();
     }
 
     /** Create a Add VTK Dataset Event to send to the server
