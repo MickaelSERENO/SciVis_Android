@@ -206,8 +206,8 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
                 for(int i = 0; i < m_listeners.size(); i++)
                     m_listeners.get(i).onSetGTFRanges(this, m_ranges);
                 updatePtrRanges();
-                return true;
             }
+            return true;
         }
         return false;
     }

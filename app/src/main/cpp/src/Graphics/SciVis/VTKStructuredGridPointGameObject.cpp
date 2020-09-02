@@ -315,7 +315,7 @@ namespace sereno
                                     if(tf->hasGradient())
                                     {
                                         if(grad)
-                                            tfInd[tf->getDimension()-1] = grad->grads.get()[i];
+                                            tfInd[tf->getDimension()-1] = grad->grads.get()[srcID];
                                         else
                                             tfInd[tf->getDimension()-1] = 0;
                                     }

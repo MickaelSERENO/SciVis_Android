@@ -433,7 +433,8 @@ public class MainActivity extends AppCompatActivity
 
         if(m_currentTFView != null)
         {
-            ((ViewGroup)m_currentTFView.getParent()).removeView(m_currentTFView);
+            if(m_currentTFView.getParent() != null)
+                ((ViewGroup)m_currentTFView.getParent()).removeView(m_currentTFView);
             m_currentTFView       = null;
             m_currentTFViewType   = SubDataset.TRANSFER_FUNCTION_NONE;
             m_currentTFSubDataset = null;
@@ -779,7 +780,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     //Remove and re add the listener for not ending in a while loop
                     sd.removeListener(MainActivity.this);
-                        sd.setTransferFunction(tfMessageToTFObject(msg));
+                        sd.setTransferFunction(tfMessageToTFObject(sd, msg));
                         redoTFWidget();
                     sd.addListener(MainActivity.this);
                 }
@@ -788,12 +789,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     /** Parse a TFDatasetMessage to an exploitable TransferFunction object
+     * @param sd the SubDataset associated to this (in)complete message
      * @param msg the network message to convert
      * @return an exploitable TransferFunction, or null if an issue occured*/
-    private TransferFunction tfMessageToTFObject(TFDatasetMessage msg)
+    private TransferFunction tfMessageToTFObject(SubDataset sd, TFDatasetMessage msg)
     {
-        SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
-
         switch(msg.getTFType())
         {
             case SubDataset.TRANSFER_FUNCTION_GTF:
@@ -801,11 +801,12 @@ public class MainActivity extends AppCompatActivity
             {
                 GTFData gtf = new GTFData(sd);
                 gtf.setColorMode(msg.getColorMode());
+                gtf.setGradient(msg.getTFType() == SubDataset.TRANSFER_FUNCTION_TGTF);
 
                 for(TFDatasetMessage.GTFData.PropData prop : msg.getGTFData().propData)
                 {
                     if(!gtf.setRange(prop.propID, new GTFData.GTFPoint(prop.center, prop.scale)))
-                        Log.e(MainActivity.TAG, "Could not set the property " + prop.propID);
+                        Log.e(MainActivity.TAG, "Could not set the GTF property " + prop.propID);
                 }
                 return gtf;
             }
@@ -813,7 +814,7 @@ public class MainActivity extends AppCompatActivity
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
                 TFDatasetMessage.MergeTFData merge = msg.getMergeTFData();
-                MergeTFData tf = new MergeTFData(sd, tfMessageToTFObject(merge.tf1Msg), tfMessageToTFObject(merge.tf2Msg));
+                MergeTFData tf = new MergeTFData(sd, tfMessageToTFObject(sd, merge.tf1Msg), tfMessageToTFObject(sd, merge.tf2Msg));
                 tf.setInterpolationParameter(merge.t);
                 return tf;
             }
