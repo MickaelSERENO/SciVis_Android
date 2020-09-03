@@ -206,3 +206,10 @@ JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnTFUpdated(JNIEn
     if(sd != NULL)
         data->onTFChange(sd);
 }
+
+JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetTBUserStudyMode(JNIEnv* env, jobject instance, jlong ptr, jint tbMode)
+{
+    VFVData* data = (VFVData*)ptr;
+
+    data->onSetTBUserStudyMode(tbMode);
+}
