@@ -48,4 +48,6 @@
     <string name="enableMap">Enable Map</string>
     <string name="mergeWith">Merge With</string>
     <string name="interpolationParameter">t</string>
+    <string name="constrained">Constrained</string>
+    <string name="unConstrained">Unconstrained</string>
 </resources>

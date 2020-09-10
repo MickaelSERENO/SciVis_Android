@@ -267,6 +267,9 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /** Was the tangible movement restarted?*/
     private boolean m_reinitTangible = false;
 
+    /** Is the volumetric selection constrained toward the tablet's normal axis?*/
+    private boolean m_volumeSelectionConstrained = false;
+
     /** THe current boolean operation in use*/
     private int m_currentBooleanOperation = BOOLEAN_UNION;
 
@@ -634,6 +637,13 @@ public class ApplicationModel implements Dataset.IDatasetListener
         return m_curPointingTechnique;
     }
 
+    /** Change whether or not should the volumetric brushing should be constrained with respect to the device's normal axis
+     * @param b true if constrained mode should be activated, false otherwise*/
+    public void changeConstrainVolumeSelectionMode(boolean b)
+    {
+        m_volumeSelectionConstrained = b;
+    }
+
     /** Set the current selection mode to use
      * @param selectMode the new selection mode to use (see SELECTION_MODE* )*/
     public void setCurrentSelectionMode(int selectMode)
@@ -666,8 +676,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
                 m_startRotation  = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
             }
 
-            float[]    p = pos.clone();
-            Quaternion r = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+            float[]    p  = pos.clone();
+            Quaternion r  = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
 
             //Apply our choice in the selection mode
             if(m_curSelectionMode == SELECTION_MODE_ABSOLUTE) {} //Nothing to do here
@@ -710,11 +720,28 @@ public class ApplicationModel implements Dataset.IDatasetListener
                 r = r.multiplyBy(m_originRotation);
             }
 
-            for(IDataCallback clbk : m_listeners)
-                clbk.onSetLocation(this, p, r.toFloatArray());
+            //Handle the constraint mode
+            if(m_volumeSelectionConstrained)
+            {
+                float[] t = new float[]{0.0f, 0.0f, 1.0f};
+                t = m_startRotation.rotateVector(t);
+                float mag = 0.0f;
+                for(int i = 0; i < 3; i++)
+                    mag += t[i]*(p[i]-m_startPosition[i]);
+                for(int i = 0; i < 3; i++)
+                    t[i] *= mag;
+                m_rotation = m_startRotation.toFloatArray();
+                m_position = t;
+            }
+            else
+            {
+                m_position = p;
+                m_rotation = r.toFloatArray();
+            }
 
-            m_position = p;
-            m_rotation = r.toFloatArray();
+            for(IDataCallback clbk : m_listeners)
+                clbk.onSetLocation(this, m_position, m_rotation);
+
         }
     }
 
