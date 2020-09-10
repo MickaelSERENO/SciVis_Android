@@ -89,6 +89,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param sd1 the first SubDataset to merge
          * @param sd2 the second SubDataset to merge*/
         void onMergeSubDatasets(DatasetsFragment frag, SubDataset sd1, SubDataset sd2);
+
+        /** Reset the volumetric selection performed on one particular subdataset
+         * @param frag the Fragment calling this method
+         * @param sd the subdataset to reset the selection on*/
+        void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd);
     }
 
     public static final float INCH_TO_METER = 0.0254f;
@@ -809,6 +814,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onCheckedChanged(CompoundButton compoundButton, boolean b)
             {
                 m_model.changeConstrainVolumeSelectionMode(b);
+            }
+        });
+
+        v.findViewById(R.id.resetSelection).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                for(IDatasetsFragmentListener l : m_dfListeners)
+                    l.onResetVolumetricSelection(DatasetsFragment.this, m_model.getCurrentSubDataset());
             }
         });
 

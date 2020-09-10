@@ -119,6 +119,10 @@ public class MessageBuffer
         /** Called when the message "GET_TOGGLE_MAP_VISIBILITY" has been successfully parsed
          * @param msg the message parsed*/
         void onToggleMapVisibilityMessage(ToggleMapVisibilityMessage msg);
+
+        /** Called when the message "GET_RESET_VOLUMETRIC_SELECTION" has been successfully parsed
+         * @param msg the message parsed*/
+        void onResetVolumetricSelectionMessage(ResetVolumetricSelectionMessage msg);
     }
 
     /** No current type received*/
@@ -170,6 +174,9 @@ public class MessageBuffer
 
     /** Toggle the map visibility*/
     public static final int GET_TOGGLE_MAP_VISIBILITY   = 25;
+
+    /** Reset the volumetric selection of a particular subdataset*/
+    public static final int GET_RESET_VOLUMETRIC_SELECTION = 26;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -333,7 +340,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onToggleMapVisibilityMessage((ToggleMapVisibilityMessage) m_curMsg);
                         break;
-
+                    case GET_RESET_VOLUMETRIC_SELECTION:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onResetVolumetricSelectionMessage((ResetVolumetricSelectionMessage) m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -412,7 +422,9 @@ public class MessageBuffer
             case GET_TOGGLE_MAP_VISIBILITY:
                 m_curMsg = new ToggleMapVisibilityMessage();
                 break;
-
+            case GET_RESET_VOLUMETRIC_SELECTION:
+                m_curMsg = new ResetVolumetricSelectionMessage();
+                break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
                 return;
