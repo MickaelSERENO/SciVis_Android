@@ -149,6 +149,20 @@
             android:layout_gravity="bottom"
             android:id="@+id/volumeLayoutInMV">
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="bottom">
+
+                <ToggleButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="@string/constrained"
+                    android:textOff="@string/unConstrained"
+                    android:id="@+id/constraintSelection"/>
+            </LinearLayout>
+
             <SeekBar
                 android:id="@+id/tabletScaleBar"
                 android:layout_width="0dp"

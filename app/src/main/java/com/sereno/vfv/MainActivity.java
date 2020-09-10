@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.ApplicationModel;
@@ -1369,6 +1370,17 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onPageScrollStateChanged(int state) {}
+        });
+
+        //Handle constrain volume selection mode
+        ToggleButton constrainSelection = findViewById(R.id.constraintSelection);
+        constrainSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+            {
+                m_model.changeConstrainVolumeSelectionMode(b);
+            }
         });
     }
 
