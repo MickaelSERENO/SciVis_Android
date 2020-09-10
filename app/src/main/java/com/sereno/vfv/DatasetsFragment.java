@@ -16,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.sereno.Tree;
 import com.sereno.gl.GLSurfaceView;
@@ -87,6 +89,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param sd1 the first SubDataset to merge
          * @param sd2 the second SubDataset to merge*/
         void onMergeSubDatasets(DatasetsFragment frag, SubDataset sd1, SubDataset sd2);
+
+        /** Reset the volumetric selection performed on one particular subdataset
+         * @param frag the Fragment calling this method
+         * @param sd the subdataset to reset the selection on*/
+        void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd);
     }
 
     public static final float INCH_TO_METER = 0.0254f;
@@ -799,6 +806,27 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onClick(View view)
             {
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_INTERSECTION);
+            }
+        });
+
+        //Handle constrain volume selection mode
+        ToggleButton constrainSelection = v.findViewById(R.id.constraintSelection);
+        constrainSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+            {
+                m_model.changeConstrainVolumeSelectionMode(b);
+            }
+        });
+
+        v.findViewById(R.id.resetSelection).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                for(IDatasetsFragmentListener l : m_dfListeners)
+                    l.onResetVolumetricSelection(DatasetsFragment.this, m_model.getCurrentSubDataset());
             }
         });
 

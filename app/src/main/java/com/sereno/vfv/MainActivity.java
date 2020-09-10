@@ -58,6 +58,7 @@ import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.NextTBTrialMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetMessage;
+import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
@@ -75,6 +76,7 @@ import com.sereno.view.SeekBarHintView;
 import com.sereno.vfv.Data.TF.TransferFunction;
 
 import java.io.File;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -919,6 +921,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onResetVolumetricSelectionMessage(ResetVolumetricSelectionMessage msg)
+    {}
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -1286,6 +1292,12 @@ public class MainActivity extends AppCompatActivity
         m_socket.push(SocketManager.createMergeSubDatasetsEvent(sd1, sd2));
     }
 
+    @Override
+    public void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd)
+    {
+        m_socket.push(SocketManager.createResetVolumetricSelection(getDatasetIDBinding(sd)));
+    }
+
     public void redoGTFSizeRanges()
     {
         if(m_model.getCurrentSubDataset().getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_GTF &&
@@ -1383,17 +1395,6 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onPageScrollStateChanged(int state) {}
-        });
-
-        //Handle constrain volume selection mode
-        ToggleButton constrainSelection = findViewById(R.id.constraintSelection);
-        constrainSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
-            {
-                m_model.changeConstrainVolumeSelectionMode(b);
-            }
         });
     }
 

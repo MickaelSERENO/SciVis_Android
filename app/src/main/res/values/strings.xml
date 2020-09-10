@@ -50,4 +50,5 @@
     <string name="interpolationParameter">t</string>
     <string name="constrained">Constrained</string>
     <string name="unConstrained">Unconstrained</string>
+    <string name="reset">Reset</string>
 </resources>
