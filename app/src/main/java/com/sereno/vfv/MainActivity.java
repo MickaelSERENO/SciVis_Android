@@ -1371,17 +1371,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onPageScrollStateChanged(int state) {}
         });
-
-        //Handle constrain volume selection mode
-        ToggleButton constrainSelection = findViewById(R.id.constraintSelection);
-        constrainSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
-            {
-                m_model.changeConstrainVolumeSelectionMode(b);
-            }
-        });
     }
 
     /** \brief Set up the drawer layout (root layout)*/

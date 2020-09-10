@@ -16,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.sereno.Tree;
 import com.sereno.gl.GLSurfaceView;
@@ -796,6 +798,17 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onClick(View view)
             {
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_INTERSECTION);
+            }
+        });
+
+        //Handle constrain volume selection mode
+        ToggleButton constrainSelection = v.findViewById(R.id.constraintSelection);
+        constrainSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+            {
+                m_model.changeConstrainVolumeSelectionMode(b);
             }
         });
 
