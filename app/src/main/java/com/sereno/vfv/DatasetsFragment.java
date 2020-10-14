@@ -476,6 +476,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onSetMapVisibility(SubDataset dataset, boolean visibility)
             {}
+
+            @Override
+            public void onSetVolumetricMask(SubDataset dataset)
+            {}
         };
         sd.addListener(snapEvent);
         snapEvent.onSetOwner(sd, sd.getOwnerID());

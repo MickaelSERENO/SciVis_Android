@@ -101,6 +101,10 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_GTFData_nativeUpdateRanges(JN
 
 //Free variables
 freeObj:
+    jenv->ReleaseIntArrayElements(jpIDs, pIDs, JNI_ABORT);
+    jenv->ReleaseFloatArrayElements(jcenters, centerPID, JNI_ABORT);
+    jenv->ReleaseFloatArrayElements(jscale, scalePID, JNI_ABORT);
+
     free(center);
     free(scale);
 }

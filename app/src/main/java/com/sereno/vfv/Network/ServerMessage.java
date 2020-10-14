@@ -38,6 +38,10 @@ abstract class ServerMessage
      * @param value the value to push*/
     void pushValue(String value) {cursor++;}
 
+    /** Push a byte array value
+     * @param value the value to push*/
+    void pushValue(byte[] value) {cursor++;}
+
     /** What is the maximum cursor of this message?
      * @return the maximum cursor (included) this message can handle. -1 == no data to push*/
     int getMaxCursor() {return -1;}

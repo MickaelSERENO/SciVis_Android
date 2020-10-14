@@ -78,7 +78,7 @@ public class Quaternion
      * @return a float array containing {x, y, z, w}*/
     public float[] toFloatArray()
     {
-        return new float[]{x, y, z, w};
+        return new float[]{w, x, y, z};
     }
 
     @Override

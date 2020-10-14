@@ -235,7 +235,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     private float[] m_position = new float[]{0.0f, 0.0f, 0.0f};
 
     /** Current tablet's virtual rotation*/
-    private float[] m_rotation = new float[]{0.0f, 0.0f, 0.0f, 1.0f};
+    private float[] m_rotation = new float[]{1.0f, 0.0f, 0.0f, 0.0f};
 
     /** Current lasso*/
     private float[] m_lasso;
@@ -363,6 +363,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
             @Override
             public void onSetMapVisibility(SubDataset dataset, boolean visibility)
+            {}
+
+            @Override
+            public void onSetVolumetricMask(SubDataset dataset)
             {}
         });
 
@@ -661,11 +665,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
                 isReinited = true;
                 m_reinitTangible = false;
                 m_startPosition  = pos.clone();
-                m_startRotation  = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+                m_startRotation  = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
             }
 
-            float[]    p  = pos.clone();
-            Quaternion r  = new Quaternion(rot[0], rot[1], rot[2], rot[3]);
+            float[]    p = pos.clone();
+            Quaternion r = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
 
             //Apply our choice in the selection mode
             if(m_curSelectionMode == SELECTION_MODE_ABSOLUTE) {} //Nothing to do here

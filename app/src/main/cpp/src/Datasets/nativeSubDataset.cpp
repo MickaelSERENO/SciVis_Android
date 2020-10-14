@@ -53,6 +53,8 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetRotation(JNI
 
     SubDataset* sd = (SubDataset*)ptr;
     sd->setGlobalRotate(Quaternionf(qArr[1], qArr[2], qArr[3], qArr[0]));
+    jenv->ReleaseFloatArrayElements(q, qArr, JNI_ABORT);
+
 }
 
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetPosition(JNIEnv* jenv, jobject jobj, jlong ptr)
@@ -70,6 +72,8 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetPosition(JNI
 
     SubDataset* sd = (SubDataset*)ptr;
     sd->setPosition(glm::vec3(pArr[0], pArr[1], pArr[2]));
+
+    jenv->ReleaseFloatArrayElements(p, pArr, JNI_ABORT);
 }
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetScale(JNIEnv* jenv, jobject jobj, jlong ptr, jfloatArray s)
@@ -78,6 +82,29 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetScale(JNIEnv
 
     SubDataset* sd = (SubDataset*)ptr;
     sd->setScale(glm::vec3(sArr[0], sArr[1], sArr[2]));
+
+    jenv->ReleaseFloatArrayElements(s, sArr, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetVolumetricMask(JNIEnv* jenv, jobject jobj, jlong ptr, jbyteArray m)
+{
+    jbyte* mArr = jenv->GetByteArrayElements(m, 0);
+    uint32_t size = jenv->GetArrayLength(m);
+
+    SubDataset* sd = (SubDataset*)ptr;
+
+    if(size == sd->getVolumetricMaskSize())
+        memcpy(sd->getVolumetricMask(), mArr, size);
+    else
+        LOG_INFO("Error, the size of the java-size volumetric mask %d is different than the size of the C++ subdataset volumetric mask %d", size, (uint32_t)sd->getVolumetricMaskSize());
+
+    jenv->ReleaseByteArrayElements(m, mArr, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeResetVolumetricMask(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->resetVolumetricMask(false);
 }
 
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetScale(JNIEnv* jenv, jobject jobj, jlong ptr)

@@ -82,13 +82,13 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetLocation(JN
     pos.x = jPosArr[0];
     pos.y = jPosArr[1];
     pos.z = jPosArr[2];
-    rot.x = jRotArr[0];
-    rot.y = jRotArr[1];
-    rot.z = jRotArr[2];
-    rot.w = jRotArr[3];
+    rot.x = jRotArr[1];
+    rot.y = jRotArr[2];
+    rot.z = jRotArr[3];
+    rot.w = jRotArr[0];
 
-    env->ReleaseFloatArrayElements(jPos, jPosArr, 0);
-    env->ReleaseFloatArrayElements(jRot, jRotArr, 0);
+    env->ReleaseFloatArrayElements(jPos, jPosArr, JNI_ABORT);
+    env->ReleaseFloatArrayElements(jRot, jRotArr, JNI_ABORT);
 
     data->onSetLocation(pos, rot);
 }
@@ -155,8 +155,8 @@ JNIEXPORT void  JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeUpdateHeadsetsSt
         for(int j = 0; j < 4; j++)
             (*hs)[i].rotation[j] = jRotArr[j];
         LOG_INFO("Rotation : %f %f %f %f", jRotArr[0], jRotArr[1], jRotArr[2], jRotArr[3]);
-        env->ReleaseFloatArrayElements(jPos, jPosArr, 0);
-        env->ReleaseFloatArrayElements(jRot, jRotArr, 0);
+        env->ReleaseFloatArrayElements(jPos, jPosArr, JNI_ABORT);
+        env->ReleaseFloatArrayElements(jRot, jRotArr, JNI_ABORT);
 
         //Delete local references
         env->DeleteLocalRef(jPos);
