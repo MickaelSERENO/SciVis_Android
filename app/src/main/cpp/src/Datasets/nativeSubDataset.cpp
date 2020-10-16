@@ -94,7 +94,10 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetVolumetricMa
     SubDataset* sd = (SubDataset*)ptr;
 
     if(size == sd->getVolumetricMaskSize())
+    {
         memcpy(sd->getVolumetricMask(), mArr, size);
+        sd->enableVolumetricMask(true);
+    }
     else
         LOG_INFO("Error, the size of the java-size volumetric mask %d is different than the size of the C++ subdataset volumetric mask %d", size, (uint32_t)sd->getVolumetricMaskSize());
 
@@ -104,7 +107,13 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetVolumetricMa
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeResetVolumetricMask(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    sd->resetVolumetricMask(false);
+    sd->resetVolumetricMask(false, false);
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeEnableVolumetricMask(JNIEnv* jenv, jobject jobj, jlong ptr, jboolean b)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->enableVolumetricMask(b);
 }
 
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetScale(JNIEnv* jenv, jobject jobj, jlong ptr)

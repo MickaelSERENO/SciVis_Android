@@ -75,7 +75,7 @@ public class Quaternion
     }
 
     /** Convert this quaternion to a float array
-     * @return a float array containing {x, y, z, w}*/
+     * @return a float array containing {w, x, y, z}*/
     public float[] toFloatArray()
     {
         return new float[]{w, x, y, z};

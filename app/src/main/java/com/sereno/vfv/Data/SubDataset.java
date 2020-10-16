@@ -271,6 +271,18 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
             m_listeners.get(i).onSetVolumetricMask(this);
     }
 
+    /** Enable/Disable the volumetric mask
+     * @param b true to enable the volumetric mask, false otherwise*/
+    public void enableVolumetricMask(boolean b)
+    {
+        if(m_ptr == 0)
+            return;
+        nativeEnableVolumetricMask(m_ptr, b);
+
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetVolumetricMask(this);
+    }
+
     /** Get the SubDataset name
      * @return the SubDataset name*/
     public String getName()
@@ -527,6 +539,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     /** Reset the volumetric mask of the native C++ SD object to false
      * @param ptr the native pointer*/
     private native void nativeResetVolumetricMask(long ptr);
+
+    /** Enable/Disable the volumetric mask of the native C++ SD object
+     * @param ptr the native pointer
+     * @param isEnabled true to enable the volumetric mask, false otherwise*/
+    private native void nativeEnableVolumetricMask(long ptr, boolean isEnabled);
 
     /** Native code to set the Gaussian Transfer Function ranges
      * pIDs, minVals, and maxVals should be coherent (same size and correspond to each one)

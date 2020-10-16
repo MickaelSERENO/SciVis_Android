@@ -938,7 +938,10 @@ public class MainActivity extends AppCompatActivity
             public void run(){
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
                 if (sd != null)
+                {
                     sd.setVolumetricMask(msg.getMask());
+                    sd.enableVolumetricMask(msg.isEnabled());
+                }
             }
         });
     }
