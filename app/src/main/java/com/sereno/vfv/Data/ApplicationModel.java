@@ -666,69 +666,80 @@ public class ApplicationModel implements Dataset.IDatasetListener
                 m_reinitTangible = false;
                 m_startPosition  = pos.clone();
                 m_startRotation  = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
+
+                m_originPosition = m_position.clone();
+                m_originRotation = new Quaternion(m_rotation[1], m_rotation[2], m_rotation[3], m_rotation[0]);
             }
 
             float[]    p = pos.clone();
             Quaternion r = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
 
-            //Apply our choice in the selection mode
-            if(m_curSelectionMode == SELECTION_MODE_ABSOLUTE) {} //Nothing to do here
-
             //Set the origin
-            else if(m_tangibleMode == TANGIBLE_MODE_ORIGIN)
+            if(m_tangibleMode == TANGIBLE_MODE_ORIGIN)
             {
                 m_originPosition = p.clone();
                 m_originRotation = (Quaternion)r.clone();
+
+                m_position = p;
+                m_rotation = r.toFloatArray();
             }
 
-            else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_ALIGNED)
-                for(int i = 0; i < 3; i++)
-                    p[i] = p[i]-m_startPosition[i] + m_originPosition[i];
-
-            else if(m_curSelectionMode == SELECTION_MODE_RELATIVE_FULL)
+            else if(m_tangibleMode == TANGIBLE_MODE_MOVE)
             {
-                //Find the suitable rotation
+                //Apply our choice in the selection mode
+                if (m_curSelectionMode == SELECTION_MODE_ABSOLUTE) {} //Nothing to do here
 
-                //First position
-                if(isReinited)
+                else if (m_curSelectionMode == SELECTION_MODE_RELATIVE_ALIGNED)
+                    for (int i = 0; i < 3; i++)
+                        p[i] = p[i] - m_startPosition[i] + m_originPosition[i];
+
+                else if (m_curSelectionMode == SELECTION_MODE_RELATIVE_FULL)
                 {
-                    for(int i = 0; i < 3; i++)
-                        p[i] = m_originPosition[i];
+                    //Find the suitable rotation
+
+                    //First position
+                    if (isReinited)
+                    {
+                        for (int i = 0; i < 3; i++)
+                            p[i] = m_originPosition[i];
+                    }
+
+                    else
+                    {
+                        //Rotate the displacement
+                        float[] movementRotate = new float[3];
+                        for (int i = 0; i < 3; i++)
+                            movementRotate[i] = (p[i] - m_startPosition[i]);
+
+                        p = m_originRotation.multiplyBy(m_startRotation.getInverse()).rotateVector(movementRotate);
+                        for (int i = 0; i < 3; i++)
+                            p[i] = p[i] + m_originPosition[i];
+                    }
+
+                    r = m_originRotation.multiplyBy(r).multiplyBy(m_startRotation.getInverse());
+                }
+
+                //Handle the constraint mode
+                if(m_volumeSelectionConstrained && m_tangibleMode != TANGIBLE_MODE_ORIGIN)
+                {
+                    float[] t = new float[]{0.0f, -1.0f, 0.0f};
+                    t = m_originRotation.rotateVector(t);
+                    float mag = 0.0f;
+                    for (int i = 0; i < 3; i++) //Dot product
+                        mag += t[i] * (p[i] - m_position[i]);
+
+                    for (int i = 0; i < 3; i++)
+                        t[i] = t[i] * mag + m_position [i];
+
+                    m_rotation = m_originRotation.toFloatArray();
+                    m_position = t;
                 }
 
                 else
                 {
-                    //Rotate the displacement
-                    float[] movementRotate = new float[3];
-                    for(int i = 0; i < 3; i++)
-                        movementRotate[i] = (p[i]-m_startPosition[i]);
-
-                    p = m_originRotation.multiplyBy(m_startRotation.getInverse()).rotateVector(movementRotate);
-                    for(int i = 0; i < 3; i++)
-                        p[i] = p[i] + m_originPosition[i];
+                    m_position = p;
+                    m_rotation = r.toFloatArray();
                 }
-
-                r = r.multiplyBy(m_startRotation.getInverse());
-                r = r.multiplyBy(m_originRotation);
-            }
-
-            //Handle the constraint mode
-            if(m_volumeSelectionConstrained)
-            {
-                float[] t = new float[]{0.0f, 0.0f, 1.0f};
-                t = m_startRotation.rotateVector(t);
-                float mag = 0.0f;
-                for(int i = 0; i < 3; i++)
-                    mag += t[i]*(p[i]-m_startPosition[i]);
-                for(int i = 0; i < 3; i++)
-                    t[i] *= mag;
-                m_rotation = m_startRotation.toFloatArray();
-                m_position = t;
-            }
-            else
-            {
-                m_position = p;
-                m_rotation = r.toFloatArray();
             }
 
             for(IDataCallback clbk : m_listeners)
