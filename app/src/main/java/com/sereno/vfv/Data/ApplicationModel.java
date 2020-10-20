@@ -702,10 +702,13 @@ public class ApplicationModel implements Dataset.IDatasetListener
                     {
                         for (int i = 0; i < 3; i++)
                             p[i] = m_originPosition[i];
+                        r = (Quaternion)m_originRotation.clone();
                     }
 
                     else
                     {
+                        r = m_originRotation.multiplyBy(m_startRotation.getInverse()).multiplyBy(r);
+
                         //Rotate the displacement
                         float[] movementRotate = new float[3];
                         for (int i = 0; i < 3; i++)
@@ -715,8 +718,6 @@ public class ApplicationModel implements Dataset.IDatasetListener
                         for (int i = 0; i < 3; i++)
                             p[i] = p[i] + m_originPosition[i];
                     }
-
-                    r = m_originRotation.multiplyBy(r).multiplyBy(m_startRotation.getInverse());
                 }
 
                 //Handle the constraint mode
