@@ -224,7 +224,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:visibility="gone">
 
             <ImageButton
                 android:id="@+id/resumeTimeButton"
@@ -253,6 +254,19 @@
                 android:id="@+id/endTimeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/endTask"
+                android:id="@+id/endTaskButton" />
         </LinearLayout>
     </LinearLayout>
 </android.support.v7.widget.GridLayout>

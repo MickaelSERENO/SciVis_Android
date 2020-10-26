@@ -1314,6 +1314,12 @@ public class MainActivity extends AppCompatActivity
         m_socket.push(SocketManager.createResetVolumetricSelection(getDatasetIDBinding(sd)));
     }
 
+    @Override
+    public void onRequestEndTask(DatasetsFragment frag)
+    {
+        //TODO
+    }
+
     public void redoGTFSizeRanges()
     {
         if(m_model.getCurrentSubDataset().getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_GTF &&

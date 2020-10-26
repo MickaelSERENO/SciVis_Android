@@ -94,6 +94,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param frag the Fragment calling this method
          * @param sd the subdataset to reset the selection on*/
         void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd);
+
+        /** End the current task
+         * @param frag the dataset fragment calling this method*/
+        void onRequestEndTask(DatasetsFragment frag);
     }
 
     public static final float INCH_TO_METER = 0.0254f;
@@ -830,8 +834,19 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     l.onResetVolumetricSelection(DatasetsFragment.this, m_model.getCurrentSubDataset());
             }
         });
-
         updateScale(tabletScaleBar.getProgress());
+
+        //End task
+        Button endTaskButton = v.findViewById(R.id.endTaskButton);
+        endTaskButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                for(IDatasetsFragmentListener l : m_dfListeners)
+                    l.onRequestEndTask(DatasetsFragment.this);
+            }
+        });
     }
 
     public void updateScale(int progress)
