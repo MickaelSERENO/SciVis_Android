@@ -127,6 +127,10 @@ public class MessageBuffer
          * @param msg the message parsed*/
         void onToggleMapVisibilityMessage(ToggleMapVisibilityMessage msg);
 
+        /** Called when the message "GET_NEXT_TB_TRIAL" has been successfully parsed
+         * @param msg the message parsed*/
+        void onNextTBTrialMessage(NextTBTrialMessage msg);
+
         /** Called when the message "GET_RESET_VOLUMETRIC_SELECTION" has been successfully parsed
          * @param msg the message parsed*/
         void onResetVolumetricSelectionMessage(ResetVolumetricSelectionMessage msg);
@@ -191,6 +195,9 @@ public class MessageBuffer
 
     /** Reset the volumetric selection of a particular subdataset*/
     public static final int GET_RESET_VOLUMETRIC_SELECTION = 27;
+
+    /** Launch the next trial of the TangibleBrush project*/
+    public static final int GET_NEXT_TB_TRIAL           = 28;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -369,6 +376,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onToggleMapVisibilityMessage((ToggleMapVisibilityMessage) m_curMsg);
                         break;
+                    case GET_NEXT_TB_TRIAL:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onNextTBTrialMessage((NextTBTrialMessage)m_curMsg);
+                        break;
                     case GET_RESET_VOLUMETRIC_SELECTION:
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onResetVolumetricSelectionMessage((ResetVolumetricSelectionMessage) m_curMsg);
@@ -455,11 +466,12 @@ public class MessageBuffer
             case GET_TOGGLE_MAP_VISIBILITY:
                 m_curMsg = new ToggleMapVisibilityMessage();
                 break;
-
+            case GET_NEXT_TB_TRIAL:
+                m_curMsg = new NextTBTrialMessage();
+                break;
             case GET_RESET_VOLUMETRIC_SELECTION:
                 m_curMsg = new ResetVolumetricSelectionMessage();
                 break;
-
             case GET_VOLUMETRIC_MASK:
                 m_curMsg = new SubDatasetVolumetricMaskMessage();
                 break;

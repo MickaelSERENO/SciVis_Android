@@ -37,6 +37,7 @@ namespace sereno
         VFV_SET_LOCATION,          /*!< Update the tablet's location*/
         VFV_SET_TABLET_SCALE,      /*!< Update the tablet's location*/
         VFV_SET_SELECTION,         /*!< Set selection event*/
+        VFV_SET_TB_USER_STUDY_MODE, /*!< Set the tangible brush user study mode*/
     };
 
     /* \brief Enumeration representing the different current actions the multi-touch device can enter*/
@@ -50,6 +51,13 @@ namespace sereno
         VFV_CURRENT_ACTION_LASSO               = 6,
         VFV_CURRENT_ACTION_SELECTING           = 7,
         VFV_CURRENT_ACTION_REVIEWING_SELECTION = 8,
+    };
+
+    /* \brief Enumeration representing the different mode for the tangible brush user study*/
+    enum VFVTBUserStudyMode
+    {
+        VFV_TB_USER_STUDY_AR = 0,
+        VFV_TB_USER_STUDY_2D = 1,
     };
 
     struct SubDatasetEvent
@@ -101,6 +109,11 @@ namespace sereno
         bool starting; /*!< True if start of a selecton*/
     };
 
+    struct TBUserStudyEvent
+    {
+        VFVTBUserStudyMode tbMode; /*!< The tangible brush user study mode*/
+    };
+
     /* \brief The Event that can be sent from JNI */
     struct VFVEvent
     {
@@ -114,6 +127,7 @@ namespace sereno
             SetLocationEvent      setLocation;    /*!< location event information */
             SetTabletScaleEvent   setTabletScale; /*!< location event information */
             SelectionEvent        selection;      /*!< Selection event*/
+            TBUserStudyEvent      tbUserStudy;    /*!< Tangible Brush User Study*/
         };
 
         VFVEvent(VFVEventType t) : type(t)
@@ -140,6 +154,9 @@ namespace sereno
                     break;
                 case VFV_SET_SELECTION:
                     new(&selection) SelectionEvent;
+                    break;
+                case VFV_SET_TB_USER_STUDY_MODE:
+                    new(&tbUserStudy) TBUserStudyEvent;
                     break;
                 default:
                     new(&sdEvent) SubDatasetEvent;
@@ -171,6 +188,9 @@ namespace sereno
                     break;
                 case VFV_SET_SELECTION:
                     selection.~SelectionEvent();
+                    break;
+                case VFV_SET_TB_USER_STUDY_MODE:
+                    tbUserStudy.~TBUserStudyEvent();
                     break;
                 default:
                     sdEvent.~SubDatasetEvent();
@@ -255,8 +275,12 @@ namespace sereno
              * \param data the SubDataset changing */
             void onTFChange(SubDataset* data);
 
+            /* \brief Function called when the mode of the tangible brush user study has changed
+             * \param mode the new mode to use*/
+            void onSetTBUserStudyMode(int mode);
+
             /* \brief Set the current data displayed in the application
-             * \param sd the new SubDataset to display*/
+            * \param sd the new SubDataset to display*/
             void setCurrentSubDataset(SubDataset* sd);
 
             /* \brief Get the headsets status. You should probably lock this object before calling this function 
@@ -399,6 +423,7 @@ namespace sereno
             std::map<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>> m_datasetMetaDatas; /*!< MetaData of Loaded dataset*/
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
+            VFVTBUserStudyMode m_tbUserStudyMode = VFV_TB_USER_STUDY_AR; /*!< The current tangible mode for the associated user study*/
 
             jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
             std::deque<VFVEvent*>    m_events;         /*!< The events from Java*/

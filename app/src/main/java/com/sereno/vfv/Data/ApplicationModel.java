@@ -118,6 +118,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param model the app data model
          * @param selectMode the new selection mode to use. See SELECTION_MODE_* */
         void onSetSelectionMode(ApplicationModel model, int selectMode);
+
+        /** Called when the tangible brush user study mode has changed
+         * @param model the app data model
+         * @param tbMode the new tangible brush mode for the user study to use. See TB_USER_STUDY_* */
+        void onSetTBUserStudyMode(ApplicationModel model, int tbMode);
     }
 
     /** Annotation meta data*/
@@ -194,8 +199,15 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public static final int HANDEDNESS_LEFT = 0;
     public static final int HANDEDNESS_RIGHT  = 1;
 
+    /** The different mode for the user study*/
+    public static final int TB_USER_STUDY_AR = 0;
+    public static final int TB_USER_STUDY_2D = 1;
+
     private ArrayList<IDataCallback> m_listeners = new ArrayList<>(); /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;                        /**!< The configuration object*/
+
+    private int m_currentTrial           = 0;                  /**!< The current trial for the TB user study */
+    private int m_currentTBUserStudyMode = TB_USER_STUDY_2D;   /**!< The current tangible brush mode for the user study (AR vs 2D)*/
 
     /*********************************************************************/
     /************************ DATASETS ATTRIBUTES ************************/
@@ -798,6 +810,35 @@ public class ApplicationModel implements Dataset.IDatasetListener
     {
         return m_tangibleMode;
     }
+
+    /** Set the current tangible brush mode for the user study
+     * @param mode the new tangible brush mode. See TB_USER_STUDY_* */
+    public void setCurrentTBUserStudyMode(int mode)
+    {
+        if(mode != m_currentTBUserStudyMode)
+        {
+            m_currentTBUserStudyMode = mode;
+
+            for(IDataCallback clbk : m_listeners)
+                clbk.onSetTBUserStudyMode(this, mode);
+        }
+    }
+
+    /** Get the current tangible brush mode for the user study
+     * @return the current tangible brush mode. See TB_USER_STUDY_* */
+    public int getCurrentTBUserStudyMode() {return m_currentTBUserStudyMode;}
+
+    /** Set the current trial ID of the TB User Study
+     * @param trialID the new current trial ID*/
+    public void setCurrentTBTrial(int trialID)
+    {
+        m_currentTrial = trialID;
+        //TODO
+    }
+
+    /** Get the current trial ID of the TB User Study
+     * @return the current trial ID*/
+    public int getCurrentTBTrial() {return m_currentTrial;}
 
     /** Set the current boolean operation the tablet is performing in selection mode
      * @param op the current boolean operation in use. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/

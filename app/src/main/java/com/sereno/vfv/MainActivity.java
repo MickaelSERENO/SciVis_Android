@@ -56,6 +56,7 @@ import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.vfv.Network.LocationTabletMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
+import com.sereno.vfv.Network.NextTBTrialMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetMessage;
 import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
@@ -946,6 +947,11 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    public void onNextTBTrialMessage(NextTBTrialMessage msg)
+    {
+        //TODO
+    }
+
     @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
@@ -1218,6 +1224,12 @@ public class MainActivity extends AppCompatActivity
         //selectMode can be "-1"
         if(selectMode >= 0 && selectMode <= 2)
             itms[selectMode].setChecked(true);
+    }
+
+    @Override
+    public void onSetTBUserStudyMode(ApplicationModel model, int tbMode)
+    {
+
     }
 
     @Override

@@ -208,6 +208,15 @@ namespace sereno
         unlock();
     }
 
+    void VFVData::onSetTBUserStudyMode(int mode)
+    {
+        VFVEvent* ev = new VFVEvent(VFV_SET_TB_USER_STUDY_MODE);
+        ev->tbUserStudy.tbMode = (VFVTBUserStudyMode)mode;
+
+        m_tbUserStudyMode = ev->tbUserStudy.tbMode;
+        addEvent(ev);
+    }
+
     VFVEvent* VFVData::pollEvent()
     {
         VFVEvent* ev = NULL;

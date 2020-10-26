@@ -219,6 +219,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
 
     @Override
+    public void onSetTBUserStudyMode(ApplicationModel model, int tbMode)
+    {
+        nativeOnSetTBUserStudyMode(m_ptr, tbMode);
+    }
+
+    @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
 
     private void onAddDataset(ApplicationModel model, Dataset d)
@@ -412,4 +418,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param data the C++ internal data pointer
      * @param selection true if the selection is in progress, false otherwise*/
     private native void nativeOnSetSelection(long data, boolean selection);
+
+    /** Native function called when the tangible brush mode for the associated user study has changed
+     * @param data the C++ internal data pointer
+     * @param tbMode the tangible brush mode ID. See TB_USER_STUDY_* */
+    private native void nativeOnSetTBUserStudyMode(long ptr, int tbMode);
 }
