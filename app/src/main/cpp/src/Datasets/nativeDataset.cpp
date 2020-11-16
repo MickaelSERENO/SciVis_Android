@@ -19,6 +19,12 @@ JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetNbSubDatasets(J
     return (*d)->getNbSubDatasets();
 }
 
+JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetNbTimesteps(JNIEnv* jenv, jclass jcls, jlong ptr)
+{
+    std::shared_ptr<Dataset>* d = (std::shared_ptr<Dataset>*)ptr;
+    return (*d)->getNbTimesteps();
+}
+
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jint i)
 {
     std::shared_ptr<Dataset>* d = (std::shared_ptr<Dataset>*)ptr;

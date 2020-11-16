@@ -8,8 +8,11 @@ import java.util.ArrayList;
 
 public abstract class TransferFunction
 {
+    /** Interface useful when the associated transfer function is being updated*/
     public interface ITransferFunctionListener
     {
+        /** Called when the transfer function "tf" is being updated
+         * @param tf the transfer function being updated*/
         void onUpdateTransferFunction(TransferFunction tf);
     }
 
@@ -30,6 +33,23 @@ public abstract class TransferFunction
         m_listeners.remove(listener);
     }
 
+    /** Get the current timer this transfer function is set to
+     * @return the current timestep this transfer function is currently applying. The time is based on the timeline of the associated visualization
+     * (i.e., it does not represent absolute seconds/minutes/whatsoever)*/
+    public float getTimestep() {return nativeGetTimestep(getNativeTransferFunction());}
+
+    /** Set the current timer this transfer function is set to
+     * @param t the new timestep this transfer function should apply. The time is based on the timeline of the associated visualization
+     * (i.e., it does not represent absolute seconds/minutes/whatsoever)*/
+    public void setTimestep(float t)
+    {
+        if(t != getTimestep())
+        {
+            nativeSetTimestep(getNativeTransferFunction(), t);
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onUpdateTransferFunction(this);
+        }
+    }
 
     /** Get the color mode to apply to the visualization widget
      * @return the color mode to apply (see ColorMode static fields)*/
@@ -76,6 +96,16 @@ public abstract class TransferFunction
      * @param tfPtr the native transfer function pointer
      * @param mode the new color mode*/
     protected native void nativeSetColorMode(long tfPtr, int mode);
+
+    /** Set the timestep of the transfer function
+     * @param tfPtr the native transfer function pointer
+     * @param timestep the new timestep to apply*/
+    protected native void nativeSetTimestep(long tfPtr, float timestep);
+
+    /** Get the timestep of the transfer function
+     * @param tfPtr the native transfer function pointer
+     * @return the timestep to apply*/
+    protected native float nativeGetTimestep(long tfPtr);
 
     /** Delete the native C++ std::shared_ptr\<TF\> object
      * @param tfPtr the pointer to delete*/

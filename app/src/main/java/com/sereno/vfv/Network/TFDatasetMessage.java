@@ -52,6 +52,9 @@ public class TFDatasetMessage extends ServerMessage
     /** The color mode to apply*/
     private int m_colorMode;
 
+    /** The timestep cursor this transfer function is placed on*/
+    private float m_timestep;
+
     /** The current transfer function data*/
     private Object m_tfData = null;
 
@@ -73,16 +76,16 @@ public class TFDatasetMessage extends ServerMessage
                 {
                     GTFData data = (GTFData)m_tfData;
 
-                    if(cursor == 5)
+                    if(cursor == 6)
                     {
                         data.propData = new GTFData.PropData[val];
                         for(int i = 0; i < val; i++)
                             data.propData[i] = new GTFData.PropData();
                     }
-                    else if(cursor >= 6)
+                    else if(cursor >= 7)
                     {
-                        int propID = (cursor - 6)/3;
-                        int offset = (cursor - 6)%3;
+                        int propID = (cursor - 7)/3;
+                        int offset = (cursor - 7)%3;
                         if(propID < data.propData.length && offset == 0)
                             data.propData[propID].propID = val;
                     }
@@ -156,41 +159,49 @@ public class TFDatasetMessage extends ServerMessage
     @Override
     public void pushValue(float val)
     {
-        switch(m_tfID)
+        if(cursor == 5)
         {
-            case SubDataset.TRANSFER_FUNCTION_GTF:
-            case SubDataset.TRANSFER_FUNCTION_TGTF:
-            {
-                GTFData data = (GTFData)m_tfData;
+            m_timestep = val;
+        }
 
-                if(cursor >= 6)
+        else
+        {
+            switch(m_tfID)
+            {
+                case SubDataset.TRANSFER_FUNCTION_GTF:
+                case SubDataset.TRANSFER_FUNCTION_TGTF:
                 {
-                    int propID = (cursor - 6)/3;
-                    int offset = (cursor - 6)%3;
-                    if(propID < data.propData.length)
+                    GTFData data = (GTFData)m_tfData;
+
+                    if(cursor >= 7)
                     {
-                        if(offset == 1)
-                            data.propData[propID].center = val;
-                        else if(offset == 2)
-                            data.propData[propID].scale  = val;
+                        int propID = (cursor - 7)/3;
+                        int offset = (cursor - 7)%3;
+                        if(propID < data.propData.length)
+                        {
+                            if(offset == 1)
+                                data.propData[propID].center = val;
+                            else if(offset == 2)
+                                data.propData[propID].scale  = val;
+                        }
                     }
+                    break;
                 }
-                break;
-            }
-            case SubDataset.TRANSFER_FUNCTION_MERGE:
-            {
-                MergeTFData data = (MergeTFData) m_tfData;
-
-                if(cursor == 5)
-                    data.t = val;
-                else
+                case SubDataset.TRANSFER_FUNCTION_MERGE:
                 {
-                    if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
-                        data.tf1Msg.pushValue(val);
-                    else if(data.tf2Msg.cursor <= data.tf2Msg.getMaxCursor())
-                        data.tf2Msg.pushValue(val);
+                    MergeTFData data = (MergeTFData) m_tfData;
+
+                    if(cursor == 6)
+                        data.t = val;
+                    else
+                    {
+                        if(data.tf1Msg.cursor <= data.tf1Msg.getMaxCursor())
+                            data.tf1Msg.pushValue(val);
+                        else if(data.tf2Msg.cursor <= data.tf2Msg.getMaxCursor())
+                            data.tf2Msg.pushValue(val);
+                    }
+                    break;
                 }
-                break;
             }
         }
 
@@ -242,6 +253,10 @@ public class TFDatasetMessage extends ServerMessage
      * @return the color mode. See ColorMode class for more details.*/
     public int getColorMode() {return m_colorMode;}
 
+    /** Get the cursor timestep to apply in the subdataset's own timeline (i.e., this "value" is not in an absolute unit such as seconds, minutes, etc.)
+     * @return the cursor timestep*/
+    public float getTimestep() {return m_timestep;}
+
     @Override
     byte getCurrentType()
     {
@@ -251,6 +266,8 @@ public class TFDatasetMessage extends ServerMessage
             return 'b'; //tfID
         else if(cursor == 4)
             return 'b'; //colorMode
+        else if(cursor == 5)
+            return 'f'; //timestep
 
         switch(m_tfID)
         {
@@ -259,13 +276,13 @@ public class TFDatasetMessage extends ServerMessage
             {
                 GTFData data = (GTFData)m_tfData;
 
-                if(cursor == 5)
+                if(cursor == 6)
                     return 'I'; //nbProps
                 else
                 {
-                    if((cursor-6)/3 < data.propData.length)
+                    if((cursor-7)/3 < data.propData.length)
                     {
-                        int offset = (cursor-6)%3;
+                        int offset = (cursor-7)%3;
                         switch(offset)
                         {
                             case 0:
@@ -280,7 +297,7 @@ public class TFDatasetMessage extends ServerMessage
             }
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
-                if(cursor == 5)
+                if(cursor == 6)
                     return 'f'; //t
 
                 MergeTFData data = (MergeTFData)m_tfData;
@@ -298,7 +315,7 @@ public class TFDatasetMessage extends ServerMessage
     public int getMaxCursor()
     {
         //Default values
-        int maxCursor = 4;
+        int maxCursor = 5;
 
         //Then an offset depending on the type of the transfer function
         switch(m_tfID)

@@ -194,6 +194,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     @Override
+    public void onChangeTimeAnimationStatus(ApplicationModel model, boolean isInPlay, int speed, float step)
+    {}
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
     {
         nativeOnSetLocation(m_ptr, pos, rot);

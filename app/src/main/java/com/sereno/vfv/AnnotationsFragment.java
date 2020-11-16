@@ -310,6 +310,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     @Override
+    public void onChangeTimeAnimationStatus(ApplicationModel model, boolean isInPlay, int speed, float step)
+    {}
+
+    @Override
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
 
     @Override

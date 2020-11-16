@@ -18,6 +18,13 @@ extern "C"
      * \return  ptr->getNbSubDatasets() */
 	JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetNbSubDatasets(JNIEnv* jenv, jclass jcls, jlong ptr);
 
+    /* \brief  Get the number of timesteps the Dataset "ptr" registered
+    * \param jenv the JNIEnvironment
+    * \param jobj the Java Object calling this function
+    * \param ptr the Dataset ptr
+    * \return  ptr->getNbTimesteps() */
+	JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetNbTimesteps(JNIEnv* jenv, jclass jcls, jlong ptr);
+
     /* \brief  Get the native pointer of the SubDataset #i
      * \param jenv the JNIEnvironment
      * \param jobj the Java Object calling this function
