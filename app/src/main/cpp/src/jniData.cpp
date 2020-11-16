@@ -175,7 +175,7 @@ jobject createjARGBBitmap(uint32_t* pixels, uint32_t width, uint32_t height, JNI
             uint8_t r =  pixels[ind];
 
             jPixelsPtr[i+j*width] = (a << 24) + (r << 16) +
-                                          (g << 8)  + b;
+                                    (g << 8)  + b;
         }
 
     env->ReleaseIntArrayElements(jPixels, (jint*)jPixelsPtr, 0);

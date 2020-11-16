@@ -661,6 +661,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
+    public void onSetVolumetricMask(SubDataset dataset)
+    {}
+
+    @Override
     public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);

@@ -286,7 +286,8 @@ namespace sereno
                                                     ptsDesc.size[0]*(j*ptsDesc.size[1]/m_gridPointVBO->m_dimensions[1]) +
                                                     ptsDesc.size[1]*ptsDesc.size[0]*(k*ptsDesc.size[2]/m_gridPointVBO->m_dimensions[2]);
 
-                                    if(!vtk->getMask(srcID))
+                                    if(!vtk->getMask(srcID) ||
+                                       (m_model->isVolumetricMaskEnabled() && !m_model->getVolumetricMaskAt(srcID)))
                                     {
                                         for(uint8_t h = 0; h < 3; h++)
                                             cols[4*destID+h] = 0;

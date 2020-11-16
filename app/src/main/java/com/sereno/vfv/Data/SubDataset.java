@@ -78,6 +78,10 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
          * @param dataset the dataset calling this method
          * @param visibility the new visibility (true == visible, false == invisible)*/
         void onSetMapVisibility(SubDataset dataset, boolean visibility);
+
+        /** Method called when the volumetric mask associated to a SubDataset has changed
+         * @param dataset the dataset calling this method*/
+        void onSetVolumetricMask(SubDataset dataset);
     }
 
     /** The native C++ handle*/
@@ -244,6 +248,39 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         nativeSetScale(m_ptr, scale);
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onScaleEvent(this, scale);
+    }
+
+    public void setVolumetricMask(byte[] mask)
+    {
+        if(m_ptr == 0)
+            return;
+        nativeSetVolumetricMask(m_ptr, mask);
+
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetVolumetricMask(this);
+    }
+
+    /** Reset the volumetric mask to false*/
+    public void resetVolumetricMask()
+    {
+        if(m_ptr == 0)
+            return;
+        nativeResetVolumetricMask(m_ptr);
+
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetVolumetricMask(this);
+    }
+
+    /** Enable/Disable the volumetric mask
+     * @param b true to enable the volumetric mask, false otherwise*/
+    public void enableVolumetricMask(boolean b)
+    {
+        if(m_ptr == 0)
+            return;
+        nativeEnableVolumetricMask(m_ptr, b);
+
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onSetVolumetricMask(this);
     }
 
     /** Get the SubDataset name
@@ -493,6 +530,20 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param tfType the new transfer function type
      * @param tfPtr the transfer function ptr to apply*/
     private native void nativeSetTF(long ptr, int tfType, long tfPtr);
+
+    /** Set the volumetric mask of the native C++ SD object
+     * @param ptr the native pointer
+     * @param mask the new mask to apply*/
+    private native void nativeSetVolumetricMask(long ptr, byte[] mask);
+
+    /** Reset the volumetric mask of the native C++ SD object to false
+     * @param ptr the native pointer*/
+    private native void nativeResetVolumetricMask(long ptr);
+
+    /** Enable/Disable the volumetric mask of the native C++ SD object
+     * @param ptr the native pointer
+     * @param isEnabled true to enable the volumetric mask, false otherwise*/
+    private native void nativeEnableVolumetricMask(long ptr, boolean isEnabled);
 
     /** Native code to set the Gaussian Transfer Function ranges
      * pIDs, minVals, and maxVals should be coherent (same size and correspond to each one)

@@ -138,6 +138,14 @@ namespace sereno
                         //For all values in the grid
                         for(uint32_t i = 0; i < m_dataset->getNbPoints(); i++)
                         {
+                            //Check the mask
+                            if(m_model->isVolumetricMaskEnabled() && !m_model->getVolumetricMaskAt(i))
+                            {
+                                for(uint8_t h = 0; h < 4; h++)
+                                    cols[4*i+h] = 0;
+                                continue;
+                            }
+
                             //For each parameter (e.g., temperature, presure, etc.)
                             for(uint32_t j = 0; j < tf->getDimension() - tf->hasGradient(); j++)
                             {

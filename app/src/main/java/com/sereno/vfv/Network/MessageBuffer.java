@@ -49,6 +49,13 @@ public class MessageBuffer
         String  value;
     }
 
+    /** The byte array value read*/
+    private class ReadByteArray extends ReadValue
+    {
+        /** The value*/
+        byte[] value;
+    }
+
     /** Callback interface used when new message has been successfully parsed*/
     public interface IMessageBufferCallback
     {
@@ -123,6 +130,10 @@ public class MessageBuffer
         /** Called when the message "GET_RESET_VOLUMETRIC_SELECTION" has been successfully parsed
          * @param msg the message parsed*/
         void onResetVolumetricSelectionMessage(ResetVolumetricSelectionMessage msg);
+
+        /** Called when the message "GET_VOLUMETRIC_MASK" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSubDatasetVolumetricMaskMessage(SubDatasetVolumetricMaskMessage msg);
     }
 
     /** No current type received*/
@@ -175,8 +186,11 @@ public class MessageBuffer
     /** Toggle the map visibility*/
     public static final int GET_TOGGLE_MAP_VISIBILITY   = 25;
 
+    /** Get a volumetric mask to apply to a subdataset*/
+    public static final int GET_VOLUMETRIC_MASK         = 26;
+
     /** Reset the volumetric selection of a particular subdataset*/
-    public static final int GET_RESET_VOLUMETRIC_SELECTION = 26;
+    public static final int GET_RESET_VOLUMETRIC_SELECTION = 27;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -189,8 +203,12 @@ public class MessageBuffer
 
     /** Special string buffer for strings*/
     private StringBuilder m_stringBuf  = null;
+
     /** The total amount of size for the current string buffer being used*/
     private int m_stringSize = -1;
+
+    /** The current byte array being parsed*/
+    private byte[] m_byteArray = null;
 
     private ArrayList<IMessageBufferCallback> m_listeners = new ArrayList<>();
 
@@ -233,6 +251,17 @@ public class MessageBuffer
                         m_curMsg.pushValue(val.value);
                         break;
                     }
+
+                    case 'a':
+                    {
+                        ReadByteArray val = readByteArray(buffer, bufPos, readSize);
+                        bufPos = val.bufOff;
+                        if(!val.valid)
+                            return;
+                        m_curMsg.pushValue(val.value);
+                        break;
+                    }
+
                     case 'i':
                     {
                         ReadInt16 val = readInt16(buffer, bufPos, readSize);
@@ -344,6 +373,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onResetVolumetricSelectionMessage((ResetVolumetricSelectionMessage) m_curMsg);
                         break;
+                    case GET_VOLUMETRIC_MASK:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSubDatasetVolumetricMaskMessage((SubDatasetVolumetricMaskMessage) m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -422,8 +455,13 @@ public class MessageBuffer
             case GET_TOGGLE_MAP_VISIBILITY:
                 m_curMsg = new ToggleMapVisibilityMessage();
                 break;
+
             case GET_RESET_VOLUMETRIC_SELECTION:
                 m_curMsg = new ResetVolumetricSelectionMessage();
+                break;
+
+            case GET_VOLUMETRIC_MASK:
+                m_curMsg = new SubDatasetVolumetricMaskMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
@@ -546,4 +584,45 @@ public class MessageBuffer
         }
         return val;
     }
+
+    /** Read a Byte Array (32 bits + n bits) in the incoming byte
+     * @param data the incoming data
+     * @param offset the offset in the data array
+     * @param readSize the size of the data (initial size)
+     * @return the value read*/
+    private ReadByteArray readByteArray(byte[] data, int offset, int readSize)
+    {
+        ReadByteArray val = new ReadByteArray();
+        val.valid  = false;
+        val.bufOff = offset;
+
+        if(m_byteArray == null)
+        {
+            ReadInt32 arraySize = readInt32(data, offset, readSize);
+            val.bufOff = arraySize.bufOff;
+            if(!arraySize.valid)
+                return val;
+
+            if(arraySize.value < 0)
+            {
+                Log.e(MainActivity.TAG, "Received a byte array size inferior than 0... Treat it as 0");
+                m_stringSize = 0;
+            }
+
+            m_byteArray = new byte[arraySize.value];
+        }
+
+        for(; m_dataPos != m_byteArray.length && val.bufOff < readSize; val.bufOff++, m_dataPos++)
+            m_byteArray[m_dataPos] = (byte)data[val.bufOff];
+
+        if(m_dataPos == m_byteArray.length)
+        {
+            val.valid = true;
+            val.value = m_byteArray;
+            m_byteArray = null;
+            m_dataPos = 0;
+        }
+        return val;
+    }
+
 }

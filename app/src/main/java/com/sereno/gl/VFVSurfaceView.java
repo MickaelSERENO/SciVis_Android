@@ -289,6 +289,13 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onSetMapVisibility(SubDataset dataset, boolean visibility)
     {}
 
+    @Override
+    public void onSetVolumetricMask(SubDataset dataset)
+    {
+        //Hack, this is similar to a transfer function update
+        onUpdateTF(dataset);
+    }
+
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously
      * @param a the new action to use*/

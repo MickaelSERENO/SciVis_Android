@@ -63,6 +63,7 @@ import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
+import com.sereno.vfv.Network.SubDatasetVolumetricMaskMessage;
 import com.sereno.vfv.Network.TFDatasetMessage;
 import com.sereno.vfv.Network.ToggleMapVisibilityMessage;
 import com.sereno.view.AnnotationData;
@@ -660,6 +661,10 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
+    public void onSetVolumetricMask(SubDataset dataset)
+    {}
+
+    @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
     }
@@ -930,8 +935,32 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onResetVolumetricSelectionMessage(ResetVolumetricSelectionMessage msg)
-    {}
+    public void onResetVolumetricSelectionMessage(final ResetVolumetricSelectionMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run(){
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if (sd != null)
+                    sd.resetVolumetricMask();
+            }
+        });
+    }
+
+    public void onSubDatasetVolumetricMaskMessage(final SubDatasetVolumetricMaskMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run(){
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if (sd != null)
+                {
+                    sd.setVolumetricMask(msg.getMask());
+                    sd.enableVolumetricMask(msg.isEnabled());
+                }
+            }
+        });
+    }
 
     @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
