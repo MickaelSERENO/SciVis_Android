@@ -690,16 +690,18 @@ public class ApplicationModel implements Dataset.IDatasetListener
                     {
                         TransferFunction tf = m_currentSubDataset.getTransferFunction();
                         if(tf != null)
-                            tf.setTimestep(Math.max(tf.getTimestep() + m_animSpeed, (float)m_currentSubDataset.getParent().getNbTimesteps()));
+                            tf.setTimestep(Math.min(tf.getTimestep() + m_animStep, (float)m_currentSubDataset.getParent().getNbTimesteps()));
                     }
                 }
 
                 @Override
                 public void onFinish()
                 {
-                    m_animTimer.start();
+                    if(m_animTimer != null && isTimeAnimationPlaying())
+                        m_animTimer.start();
                 }
             };
+            m_animTimer.start();
         }
 
         for(int i = 0; i < m_listeners.size(); i++)

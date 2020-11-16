@@ -826,6 +826,7 @@ public class MainActivity extends AppCompatActivity
                         Log.e(MainActivity.TAG, "Could not set the GTF property " + prop.propID);
                 }
                 tf = gtf;
+                break;
             }
 
             case SubDataset.TRANSFER_FUNCTION_MERGE:
@@ -835,6 +836,7 @@ public class MainActivity extends AppCompatActivity
                 mergeTF.setInterpolationParameter(merge.t);
 
                 tf=mergeTF;
+                break;
             }
         }
 
@@ -843,7 +845,7 @@ public class MainActivity extends AppCompatActivity
             tf.setTimestep(msg.getTimestep());
             tf.setColorMode(msg.getColorMode());
         }
-        return null;
+        return tf;
     }
 
     @Override

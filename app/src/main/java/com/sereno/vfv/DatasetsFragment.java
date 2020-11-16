@@ -498,7 +498,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onLoadDataset(Dataset dataset, boolean success) {
-
+        updateTimeWidgets();
     }
 
     @Override
@@ -621,25 +621,27 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private void updateTimeWidgets()
     {
         SubDataset sd = m_model.getCurrentSubDataset();
-        if(sd != null)
+        if(sd == null)
+            return;
+
+        TransferFunction tf = sd.getTransferFunction();
+        if(tf == null)
+            return;
+
+        //Update the time slider
+        m_timeSlider.setMax(TIME_SLIDER_MAX*sd.getParent().getNbTimesteps());
+        m_timeSlider.setProgress((int)(tf.getTimestep()*TIME_SLIDER_MAX));
+
+        //Update the play/pause buttons
+        if(m_model.isTimeAnimationPlaying())
         {
-            //Update the time slider
-            TransferFunction tf = sd.getTransferFunction();
-            m_timeSlider.setMax(TIME_SLIDER_MAX*sd.getParent().getNbTimesteps());
-            m_timeSlider.setProgress((int)(tf.getTimestep()*TIME_SLIDER_MAX));
-
-            //Update the play/pause buttons
-            if(m_model.isTimeAnimationPlaying())
-            {
-                m_playTimeBtn.setVisibility(View.GONE);
-                m_pauseTimeBtn.setVisibility(View.VISIBLE);
-            }
-            else
-            {
-                m_pauseTimeBtn.setVisibility(View.GONE);
-                m_playTimeBtn.setVisibility(View.VISIBLE);
-            }
-
+            m_playTimeBtn.setVisibility(View.GONE);
+            m_pauseTimeBtn.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            m_pauseTimeBtn.setVisibility(View.GONE);
+            m_playTimeBtn.setVisibility(View.VISIBLE);
         }
     }
 
@@ -887,7 +889,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                m_model.setTimeAnimationStatus(false, 500, 0.2f);
+                m_model.setTimeAnimationStatus(false, 500, 1.0f/3.0f);
             }
         });
 
@@ -896,7 +898,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                m_model.setTimeAnimationStatus(true, 500, 0.2f);
+                m_model.setTimeAnimationStatus(true, 500, 1.0f/3.0f);
             }
         });
 
@@ -906,7 +908,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onProgressChanged(SeekBar seekBar, int i, boolean b)
             {
                 SubDataset sd = m_model.getCurrentSubDataset();
-                if(sd != null)
+                if(sd != null && sd.getTransferFunction() != null && sd.getParent().isLoaded())
                     sd.getTransferFunction().setTimestep((float)i/TIME_SLIDER_MAX);
             }
 
