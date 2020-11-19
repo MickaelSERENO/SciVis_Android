@@ -908,8 +908,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onProgressChanged(SeekBar seekBar, int i, boolean b)
             {
                 SubDataset sd = m_model.getCurrentSubDataset();
-                if(sd != null && sd.getTransferFunction() != null && sd.getParent().isLoaded())
-                    sd.getTransferFunction().setTimestep((float)i/TIME_SLIDER_MAX);
+                float t = (float)i/TIME_SLIDER_MAX;
+                if(sd != null && sd.getTransferFunction() != null && sd.getParent().isLoaded() && t != sd.getTransferFunction().getTimestep())
+                    sd.getTransferFunction().setTimestep(t);
             }
 
             @Override
