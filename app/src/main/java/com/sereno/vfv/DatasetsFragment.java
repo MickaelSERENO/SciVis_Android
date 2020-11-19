@@ -31,6 +31,7 @@ import com.sereno.gl.GLSurfaceView;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
+import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
@@ -100,7 +101,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         void onRequestEndTask(DatasetsFragment frag);
     }
 
-    public static final float INCH_TO_METER = 0.0254f;
+    public static final float INCH_TO_METER   = 0.0254f;
+    public static final int   TIME_SLIDER_MAX = 10;
 
     private VFVSurfaceView   m_surfaceView       = null;  /*!< The surface view displaying the vector field*/
     private ViewGroup m_surfaceViewVolumeSelectLayout = null; /*!< The layout containing all the widgets to display during a volume selection process*/
@@ -126,10 +128,15 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private Button m_endSelectionBtn     = null;
     private Button m_confirmSelectionBtn = null;
 
-    /** Boolean button*/
+    /** Boolean buttons*/
     private ImageButton m_unionBtn = null;
     private ImageButton m_interBtn = null;
     private ImageButton m_minusBtn = null;
+
+    /** Time buttons*/
+    private ImageButton m_playTimeBtn  = null;
+    private ImageButton m_pauseTimeBtn = null;
+    private SeekBar     m_timeSlider   = null;
 
     public DatasetsFragment()
     {
@@ -447,7 +454,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
 
             @Override
-            public void onUpdateTF(SubDataset dataset) {}
+            public void onUpdateTF(SubDataset dataset)
+            {
+                if(dataset == m_model.getCurrentSubDataset())
+                    updateTimeWidgets();
+            }
 
             @Override
             public void onSetCurrentHeadset(SubDataset dataset, int headsetID) {}
@@ -491,7 +502,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onLoadDataset(Dataset dataset, boolean success) {
-
+        updateTimeWidgets();
     }
 
     @Override
@@ -526,6 +537,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             v.setBackgroundResource(0);
         if(sd != null && m_sdImages.containsKey(sd))
             m_sdImages.get(sd).setBackgroundResource(R.drawable.round_rectangle_background);
+        updateTimeWidgets();
     }
 
     @Override
@@ -559,6 +571,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
+
+    @Override
+    public void onChangeTimeAnimationStatus(ApplicationModel model, boolean isInPlay, int speed, float step)
+    {
+        updateTimeWidgets();
+    }
 
     @Override
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
@@ -605,6 +623,34 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onSetTangibleMode(ApplicationModel model, int inTangibleMode)
     {}
+
+    /** Update all the widgets for time-manipulations*/
+    private void updateTimeWidgets()
+    {
+        SubDataset sd = m_model.getCurrentSubDataset();
+        if(sd == null)
+            return;
+
+        TransferFunction tf = sd.getTransferFunction();
+        if(tf == null)
+            return;
+
+        //Update the time slider
+        m_timeSlider.setMax(TIME_SLIDER_MAX*sd.getParent().getNbTimesteps());
+        m_timeSlider.setProgress((int)(tf.getTimestep()*TIME_SLIDER_MAX));
+
+        //Update the play/pause buttons
+        if(m_model.isTimeAnimationPlaying())
+        {
+            m_playTimeBtn.setVisibility(View.GONE);
+            m_pauseTimeBtn.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            m_pauseTimeBtn.setVisibility(View.GONE);
+            m_playTimeBtn.setVisibility(View.VISIBLE);
+        }
+    }
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
@@ -848,6 +894,51 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {
                 for(IDatasetsFragmentListener l : m_dfListeners)
                     l.onRequestEndTask(DatasetsFragment.this);
+            }
+        });
+
+        //Handle time buttons
+        m_pauseTimeBtn = v.findViewById(R.id.pauseTimeButton);
+        m_playTimeBtn  = v.findViewById(R.id.playTimeButton);
+        m_timeSlider   = v.findViewById(R.id.timeSlider);
+
+        m_pauseTimeBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_model.setTimeAnimationStatus(false, 500, 1.0f/3.0f);
+            }
+        });
+
+        m_playTimeBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                m_model.setTimeAnimationStatus(true, 500, 1.0f/3.0f);
+            }
+        });
+
+        m_timeSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+            {
+                SubDataset sd = m_model.getCurrentSubDataset();
+                float t = (float)i/TIME_SLIDER_MAX;
+                if(sd != null && sd.getTransferFunction() != null && sd.getParent().isLoaded() && t != sd.getTransferFunction().getTimestep())
+                    sd.getTransferFunction().setTimestep(t);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
             }
         });
     }

@@ -1,0 +1,18 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:drawable="@drawable/pause_time_item"
+        android:top="0dp"
+        android:right="8dp"
+        android:bottom="0dp"
+        android:left="0dp"
+        android:gravity="right"/>
+
+    <item
+        android:drawable="@drawable/pause_time_item"
+        android:top="0dp"
+        android:right="0dp"
+        android:bottom="0dp"
+        android:left="8dp"
+        android:gravity="left"/>
+</layer-list>

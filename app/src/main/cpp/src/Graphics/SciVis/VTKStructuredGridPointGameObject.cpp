@@ -257,10 +257,17 @@ namespace sereno
                 //Get the associated gradient
                 DatasetGradient* grad = getModel()->getParent()->getOrComputeGradient(indices);
 
+                float    t  =  tf->getCurrentTimestep();
+                uint32_t t1 = std::min((uint32_t)floor(t), getModel()->getParent()->getNbTimesteps());
+                uint32_t t2 = std::min((uint32_t)ceil (t), getModel()->getParent()->getNbTimesteps());
+
                 //Use the transfer function to generate the 3D texture
                 #pragma omp parallel
                 {
-                    float* tfInd = (float*)malloc(tf->getDimension()*sizeof(float)); //The indice of the transfer function
+                    float* tfIndT1 = (float*)malloc(2*tf->getDimension()*sizeof(float)); //The indice of the transfer function for the first timestep
+                    float* tfIndT2 = tfIndT1 + tf->getDimension(); //The indice of the transfer function for the second timestep. DO NOT FREE
+
+                    struct {float* tfInd; uint32_t t;} tfInds[] = {{tfIndT1, t1}, {tfIndT2, t2}};
 
                     #pragma omp for
                     {
@@ -288,49 +295,55 @@ namespace sereno
                                         continue;
                                     }
 
-                                    //For each parameter (e.g., temperature, presure, etc.)
-                                    for(uint32_t h = 0; h < tf->getDimension() - tf->hasGradient(); h++)
+                                    for(const auto& tfInd : tfInds)
                                     {
-                                        if(tf->getEnabledDimensions()[h])
+                                        //For each parameter (e.g., temperature, presure, etc.)
+                                        for(uint32_t h = 0; h < tf->getDimension() - tf->hasGradient(); h++)
                                         {
-                                            const PointFieldDesc& val = ptFieldDescs[h];
-                                            uint8_t valueFormatInt = VTKValueFormatInt(val.format);
-
-                                            //Compute the vector magnitude
-                                            float mag = 0;
-                                            for(uint32_t l = 0; l < val.nbValuePerTuple; l++)
+                                            if(tf->getEnabledDimensions()[h])
                                             {
-                                                float readVal = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + srcID*valueFormatInt*val.nbValuePerTuple + l*valueFormatInt, val.format);
-                                                mag = readVal*readVal;
+                                                const PointFieldDesc& val = ptFieldDescs[h];
+                                                uint8_t valueFormatInt = VTKValueFormatInt(val.format);
+
+                                                //Compute the vector magnitude
+                                                float mag = 0;
+                                                for(uint32_t l = 0; l < val.nbValuePerTuple; l++)
+                                                {
+                                                    float readVal = readParsedVTKValue<float>((uint8_t*)(val.values[tfInd.t].get()) + srcID*valueFormatInt*val.nbValuePerTuple + l*valueFormatInt, val.format);
+                                                    mag = readVal*readVal;
+                                                }
+                                                mag = sqrt(mag);
+
+                                                //Save it at the correct indice in the TF indice (clamped into [0,1])
+                                                tfInd.tfInd[h] = (mag-val.minVal)/(val.maxVal-val.minVal);
                                             }
-                                            mag = sqrt(mag);
-
-                                            //Save it at the correct indice in the TF indice (clamped into [0,1])
-                                            tfInd[h] = (mag-val.minVal)/(val.maxVal-val.minVal);
+                                            else
+                                                tfInd.tfInd[h] = 0;
                                         }
-                                        else
-                                            tfInd[h] = 0;
-                                    }
 
-                                    //Do not forget the gradient (clamped)!
-                                    if(tf->hasGradient())
-                                    {
-                                        if(grad)
-                                            tfInd[tf->getDimension()-1] = grad->grads.get()[srcID];
-                                        else
-                                            tfInd[tf->getDimension()-1] = 0;
+                                        //Do not forget the gradient (clamped)!
+                                        if(tf->hasGradient())
+                                        {
+                                            if(grad)
+                                                tfInd.tfInd[tf->getDimension()-1] = grad->grads[0].get()[srcID];
+                                            else
+                                                tfInd.tfInd[tf->getDimension()-1] = 0;
+                                        }
                                     }
 
                                     //Apply the transfer function
-                                    uint8_t outCol[4];
-                                    tf->computeColor(tfInd, outCol);
+                                    double intPart;
+                                    uint8_t outColT1[4];
+                                    tf->computeColor(tfIndT1, outColT1);
+                                    uint8_t outColT2[4];
+                                    tf->computeColor(tfIndT2, outColT2);
                                     for(uint8_t h = 0; h < 3; h++)
-                                        cols[4*destID+h] = outCol[h];
-                                    cols[4*destID+3] = tf->computeAlpha(tfInd);
+                                        cols[4*destID+h] = ((float)outColT1[h] * (1.0f-modf(t, &intPart)) + (float)outColT2[h] * modf(t, &intPart));
+                                    cols[4*destID+3] = tf->computeAlpha(tfIndT1);
                                 }
                     }
 
-                    free(tfInd);
+                    free(tfIndT1);
                 }
             }
 
@@ -343,7 +356,7 @@ namespace sereno
             m_updateTFLock.unlock();
             LOG_INFO("End Computing Colors\n");
 
-        }).detach();
+        });
     }
 
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity) : dataset(d)

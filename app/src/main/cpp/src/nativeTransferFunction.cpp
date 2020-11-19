@@ -15,12 +15,29 @@ JNIEXPORT int JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetColo
     return 0;
 }
 
+JNIEXPORT float JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetTimestep(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        return (*tf)->getCurrentTimestep();
+    return 0;
+}
+
+
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetColorMode(JNIEnv* jenv, jobject instance, jlong ptr, jint mode)
 {
     std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
     if(tf)
         (*tf)->setColorMode((ColorMode)mode);
 }
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetTimestep(JNIEnv* jenv, jobject instance, jlong ptr, jfloat time)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        (*tf)->setCurrentTimestep(time);
+}
+
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeDeleteTF(JNIEnv* jenv, jobject instance, jlong ptr)
 {

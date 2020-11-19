@@ -13,7 +13,7 @@ android {
                 println("Use cmakeArguments for adding arguments to this script. Use ',' for separating the arguments !")
                 getCMakeArgument().each {arguments.add(it.trim())}
                 arguments.addAll("-DANDROID_STL=c++_shared")
-                cppFlags "-std=c++14 -frtti -fexceptions"
+                cppFlags "-std=c++1z -frtti -fexceptions"
                 abiFilters 'armeabi-v7a','x86'
             }
         }

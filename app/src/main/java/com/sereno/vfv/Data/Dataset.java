@@ -72,7 +72,8 @@ public abstract class Dataset
         m_ptr  = ptr;
         m_name = name;
 
-        for(int i = 0; i < nativeGetNbSubDatasets(m_ptr); i++)
+        int nbSubDatasets = nativeGetNbSubDatasets(m_ptr);
+        for(int i = 0; i < nbSubDatasets; i++)
             m_subDatasets.add(new SubDataset(nativeGetSubDataset(m_ptr, i), this, -1));
     }
 
@@ -109,6 +110,10 @@ public abstract class Dataset
     /** @brief Get the number of sub dataset this dataset is bound to
      * @return the number of sub datasets*/
     public int getNbSubDataset() {return m_subDatasets.size();}
+
+    /** Get the number of registered timesteps of this dataset
+     * @return the number of registered timesteps*/
+    public int getNbTimesteps() {return nativeGetNbTimesteps(m_ptr);}
 
     /** @brief Get the SubDataset at indice i
      * @param i the SubDataset ID #i
@@ -251,6 +256,11 @@ public abstract class Dataset
      * @param ptr the native C++ pointer
      * @return the number of sub datasets*/
     private native int nativeGetNbSubDatasets(long ptr);
+
+    /** @brief Get the number of registered timesteps from the native C++ object
+     * @param ptr the native C++ pointer
+     * @return the number of registered timesteps*/
+    private native int nativeGetNbTimesteps(long ptr);
 
     /** @brief Get the SubDataset at indice i
      * @param ptr the native C++ pointer

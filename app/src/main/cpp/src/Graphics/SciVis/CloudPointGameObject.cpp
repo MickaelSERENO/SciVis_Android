@@ -160,13 +160,13 @@ namespace sereno
                                     {
                                         for(uint32_t k = 0; k < val.nbValuePerTuple; k++)
                                         {
-                                            float readVal = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + i*valueFormatInt*val.nbValuePerTuple + k*valueFormatInt, val.format);
+                                            float readVal = readParsedVTKValue<float>((uint8_t*)(val.values[0].get()) + i*valueFormatInt*val.nbValuePerTuple + k*valueFormatInt, val.format);
                                             mag = readVal*readVal;
                                         }
                                         mag = sqrt(mag);
                                     }
                                     else
-                                        mag = readParsedVTKValue<float>((uint8_t*)(val.values.get()) + i*valueFormatInt*val.nbValuePerTuple, val.format);
+                                        mag = readParsedVTKValue<float>((uint8_t*)(val.values[0].get()) + i*valueFormatInt*val.nbValuePerTuple, val.format);
 
                                     if(mag > 0)
                                         LOG_INFO("OK\n");
@@ -181,7 +181,7 @@ namespace sereno
                             if(tf->hasGradient())
                             {
                                 if(grad)
-                                    tfInd[tf->getDimension()-1] = grad->grads.get()[i];
+                                    tfInd[tf->getDimension()-1] = grad->grads[0].get()[i];
                                 else
                                     tfInd[tf->getDimension()-1] = 0;
                             }

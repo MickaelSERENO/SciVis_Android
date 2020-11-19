@@ -228,14 +228,19 @@
             android:visibility="gone">
 
             <ImageButton
-                android:id="@+id/resumeTimeButton"
+                android:id="@+id/playTimeButton"
                 android:layout_width="60dp"
-                android:layout_height="60dp" />
+                android:layout_height="60dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/start_time" />
 
             <ImageButton
                 android:id="@+id/pauseTimeButton"
                 android:layout_width="60dp"
-                android:layout_height="60dp" />
+                android:layout_height="60dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/pause_time"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/startTimeText"

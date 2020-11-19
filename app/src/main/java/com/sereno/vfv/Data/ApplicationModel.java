@@ -2,8 +2,10 @@ package com.sereno.vfv.Data;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.CountDownTimer;
 
 import com.sereno.math.Quaternion;
+import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationData;
@@ -79,6 +81,13 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param model the app data
          * @param pt the new pointing technique in use*/
         void onUpdatePointingTechnique(ApplicationModel model, int pt);
+
+        /** Method called when the animation status has changed
+         * @param model the app data
+         * @param isInPlay is the animation being played?
+         * @param speed the number of milliseconds before going to the next step
+         * @param step the time step to apply after each "speed" milliseconds */
+        void onChangeTimeAnimationStatus(ApplicationModel model, boolean isInPlay, int speed, float step);
 
         /** Method called when the tablet's location is being updated
          * @param model the app data
@@ -238,6 +247,22 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** The current pointing technique to use*/
     private int m_curPointingTechnique = POINTING_MANUAL;
+
+    /*********************************************************************/
+    /******************** TIME ANIMATION ATTRIBUTES **********************/
+    /*********************************************************************/
+
+    /** Are you playing or not the time animation?*/
+    private boolean m_inTimePlay = false;
+
+    /** The current speed to play the animation. The value represent the number of milliseconds the animation is paused (lower == faster)*/
+    private int  m_animSpeed = 500;
+
+    /** The current animation step to apply between each animation update. Lower is slower*/
+    private float m_animStep = 0.20f;
+
+    /** The countdown timer for animation*/
+    private CountDownTimer m_animTimer = null;
 
     /*********************************************************************/
     /***************** TANGIBLE INTERACTION ATTRIBUTES *******************/
@@ -549,7 +574,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param sd The new current SubDataset*/
     public void setCurrentSubDataset(SubDataset sd)
     {
+        SubDataset old = m_currentSubDataset;
         m_currentSubDataset = sd;
+
+        //Put in pause the animation if we change the current subdataset
+        if(old != sd)
+            setTimeAnimationStatus(false, m_animSpeed, m_animStep);
 
         for(IDataCallback clbk : m_listeners)
             clbk.onChangeCurrentSubDataset(this, sd);
@@ -640,6 +670,56 @@ public class ApplicationModel implements Dataset.IDatasetListener
     {
         return m_curPointingTechnique;
     }
+
+    /** Is the current dataset being played (regarding time-animation)?
+     * @return true if yes, false otherwise*/
+    public boolean isTimeAnimationPlaying() {return m_inTimePlay;}
+
+    /** Set the current data time animation status
+     * @param isPlaying should the animation be played?
+     * @param speed the number of milliseconds before going to the next step
+     * @param step the time step to apply after each "speed" milliseconds */
+    public void setTimeAnimationStatus(boolean isPlaying, int speed, float step)
+    {
+        if(m_animTimer != null)
+        {
+            m_animTimer.cancel();
+            m_animTimer = null;
+        }
+
+        m_inTimePlay = isPlaying;
+        m_animSpeed  = speed;
+        m_animStep   = step;
+
+        if(isPlaying)
+        {
+            m_animTimer = new CountDownTimer(speed, speed)
+            {
+                @Override
+                public void onTick(long l)
+                {
+                    if(m_currentSubDataset != null)
+                    {
+                        TransferFunction tf = m_currentSubDataset.getTransferFunction();
+                        if(tf != null)
+                            tf.setTimestep(Math.min(tf.getTimestep() + m_animStep, (float)m_currentSubDataset.getParent().getNbTimesteps()));
+                    }
+                }
+
+                @Override
+                public void onFinish()
+                {
+                    if(m_animTimer != null && isTimeAnimationPlaying())
+                        m_animTimer.start();
+                }
+            };
+            m_animTimer.start();
+        }
+
+        for(int i = 0; i < m_listeners.size(); i++)
+            m_listeners.get(i).onChangeTimeAnimationStatus(this, isPlaying, speed, step);
+    }
+    
 
     /** Change whether or not should the volumetric brushing should be constrained with respect to the device's normal axis
      * @param b true if constrained mode should be activated, false otherwise*/

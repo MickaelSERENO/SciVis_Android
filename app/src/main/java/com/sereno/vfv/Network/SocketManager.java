@@ -474,7 +474,7 @@ public class SocketManager
     {
         int tfSize = getTFEventSpecificSize(tf);
 
-        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 2*1 + tfSize);
+        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 2*1 + 4 + tfSize);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(TF_SUBDATASET);
@@ -484,6 +484,7 @@ public class SocketManager
         buf.putInt(ids.subDatasetID);
         buf.put((byte)tf.getType());
         buf.put((byte)tf.getColorMode());
+        buf.putFloat(tf.getTimestep());
 
         fillTFEvent(buf, tf);
 
@@ -517,8 +518,8 @@ public class SocketManager
         int tfSize1 = getTFEventSpecificSize(data.getTF1Data());
         int tfSize2 = getTFEventSpecificSize(data.getTF2Data());
 
-        return (4   + //t
-                2*2 + //Twice colormode + tfID
+        return (4   +       //t
+                2*(2 + 4) + //Twice colormode + tfID + timestep
                 tfSize1 + tfSize2);
     }
 
@@ -559,11 +560,13 @@ public class SocketManager
         //data of tf1
         buf.put((byte)data.getTF1Data().getType());
         buf.put((byte)data.getTF1Data().getColorMode());
+        buf.putFloat(data.getTF1Data().getTimestep());
         fillTFEvent(buf, data.getTF1Data());
 
         //data of tf2
         buf.put((byte)data.getTF2Data().getType());
         buf.put((byte)data.getTF2Data().getColorMode());
+        buf.putFloat(data.getTF2Data().getTimestep());
         fillTFEvent(buf, data.getTF2Data());
     }
 

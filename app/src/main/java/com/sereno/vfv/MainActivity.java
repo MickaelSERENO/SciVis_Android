@@ -405,6 +405,7 @@ public class MainActivity extends AppCompatActivity
             redoTFWidget();
     }
 
+    /** Redo all the transfer function widgets and/or update them accordingly*/
     private void redoTFWidget()
     {
         SubDataset dataset = m_model.getCurrentSubDataset();
@@ -428,6 +429,14 @@ public class MainActivity extends AppCompatActivity
         {
             updateMergeTFWidgets();
         }
+
+        updateCommonTFWidgets();
+    }
+
+    /** Update all the widgets common to all transfer functions, such as time*/
+    private void updateCommonTFWidgets()
+    {
+
     }
 
     /** Remove the current transfer function view*/
@@ -803,13 +812,13 @@ public class MainActivity extends AppCompatActivity
      * @return an exploitable TransferFunction, or null if an issue occured*/
     private TransferFunction tfMessageToTFObject(SubDataset sd, TFDatasetMessage msg)
     {
+        TransferFunction tf = null;
         switch(msg.getTFType())
         {
             case SubDataset.TRANSFER_FUNCTION_GTF:
             case SubDataset.TRANSFER_FUNCTION_TGTF:
             {
                 GTFData gtf = new GTFData(sd);
-                gtf.setColorMode(msg.getColorMode());
                 gtf.setGradient(msg.getTFType() == SubDataset.TRANSFER_FUNCTION_TGTF);
 
                 for(TFDatasetMessage.GTFData.PropData prop : msg.getGTFData().propData)
@@ -817,18 +826,27 @@ public class MainActivity extends AppCompatActivity
                     if(!gtf.setRange(prop.propID, new GTFData.GTFPoint(prop.center, prop.scale)))
                         Log.e(MainActivity.TAG, "Could not set the GTF property " + prop.propID);
                 }
-                return gtf;
+                tf = gtf;
+                break;
             }
 
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
                 TFDatasetMessage.MergeTFData merge = msg.getMergeTFData();
-                MergeTFData tf = new MergeTFData(sd, tfMessageToTFObject(sd, merge.tf1Msg), tfMessageToTFObject(sd, merge.tf2Msg));
-                tf.setInterpolationParameter(merge.t);
-                return tf;
+                MergeTFData mergeTF = new MergeTFData(sd, tfMessageToTFObject(sd, merge.tf1Msg), tfMessageToTFObject(sd, merge.tf2Msg));
+                mergeTF.setInterpolationParameter(merge.t);
+
+                tf=mergeTF;
+                break;
             }
         }
-        return null;
+
+        if(tf != null)
+        {
+            tf.setTimestep(msg.getTimestep());
+            tf.setColorMode(msg.getColorMode());
+        }
+        return tf;
     }
 
     @Override
@@ -1177,6 +1195,10 @@ public class MainActivity extends AppCompatActivity
         if(pt >= 0 && pt <= 3)
             itms[pt].setChecked(true);
     }
+
+    @Override
+    public void onChangeTimeAnimationStatus(ApplicationModel model, boolean isInPlay, int speed, float step)
+    {}
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
