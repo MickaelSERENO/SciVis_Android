@@ -965,9 +965,11 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    @Override
     public void onNextTBTrialMessage(NextTBTrialMessage msg)
     {
-        //TODO
+        m_model.setCurrentSelectionMode(msg.getTangibleMode());
+        m_model.startTBTrial();
     }
 
     @Override
@@ -1250,9 +1252,17 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onSetTBUserStudyMode(ApplicationModel model, int tbMode)
-    {
+    {}
 
+    @Override
+    public void onEndTBTrial(ApplicationModel model)
+    {
+        m_socket.push(SocketManager.createEndTBTask());
     }
+
+    @Override
+    public void onStartNextTrial(ApplicationModel model)
+    {}
 
     @Override
     public void onEnableSwipping(Fragment fragment)
@@ -1348,11 +1358,6 @@ public class MainActivity extends AppCompatActivity
         m_socket.push(SocketManager.createResetVolumetricSelection(getDatasetIDBinding(sd)));
     }
 
-    @Override
-    public void onRequestEndTask(DatasetsFragment frag)
-    {
-        //TODO
-    }
 
     public void redoGTFSizeRanges()
     {

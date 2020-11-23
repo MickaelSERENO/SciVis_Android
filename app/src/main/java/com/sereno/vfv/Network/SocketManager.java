@@ -68,6 +68,7 @@ public class SocketManager
     public static final short TOGGLE_MAP_VISIBILITY      = 27;
     public static final short MERGE_SUBDATSETS           = 28;
     public static final short RESET_VOLUMETRIC_SELECTION = 29;
+    public static final short END_TB_TASK                = 30;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -885,6 +886,18 @@ public class SocketManager
         buf.putShort(RESET_VOLUMETRIC_SELECTION);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
+
+        return buf.array();
+    }
+
+    /** Create an "END_TB_TASK" message to end the current tangible brush task
+     * @return array of byte to send to push*/
+    public static byte[] createEndTBTask()
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(END_TB_TASK);
 
         return buf.array();
     }

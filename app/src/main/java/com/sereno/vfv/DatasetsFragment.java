@@ -3,6 +3,7 @@ package com.sereno.vfv;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -95,10 +96,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param frag the Fragment calling this method
          * @param sd the subdataset to reset the selection on*/
         void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd);
-
-        /** End the current task
-         * @param frag the dataset fragment calling this method*/
-        void onRequestEndTask(DatasetsFragment frag);
     }
 
     public static final float INCH_TO_METER   = 0.0254f;
@@ -583,6 +580,19 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onSetTBUserStudyMode(ApplicationModel model, int tbMode){}
 
+    @Override
+    public void onEndTBTrial(ApplicationModel model)
+    {}
+
+    @Override
+    public void onStartNextTrial(ApplicationModel model)
+    {
+        //Set the layout correctly
+        m_surfaceView.setSelection(false);
+        setSVFullScreen(false);
+        m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
+    }
+
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
@@ -757,6 +767,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
+                if(!m_model.hasTrialStarted())
+                    return;
                 m_surfaceView.setSelection(true);
                 setSVFullScreen(true);
                 m_surfaceViewVolumeSelectLayout.setVisibility(View.VISIBLE);
@@ -892,8 +904,28 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                for(IDatasetsFragmentListener l : m_dfListeners)
-                    l.onRequestEndTask(DatasetsFragment.this);
+                //try to end the trial, and handle possible errors
+                switch(m_model.endTBTrial())
+                {
+                    case ApplicationModel.END_TB_ERROR_NO_SELECTION:
+                    {
+                        String err = getContext().getString(R.string.errorNoSelection);
+                        Toast.makeText(getContext(), err, Toast.LENGTH_LONG).show();
+                        break;
+                    }
+
+                    case ApplicationModel.END_TB_ERROR_NO_TRIAL:
+                    {
+                        String err = getContext().getString(R.string.errorNoTrialYet);
+                        Toast.makeText(getContext(), err, Toast.LENGTH_LONG).show();
+                        break;
+                    }
+
+                    case ApplicationModel.END_TB_ERROR_NONE:
+                    {
+                        break;
+                    }
+                }
             }
         });
 

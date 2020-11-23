@@ -132,6 +132,14 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param model the app data model
          * @param tbMode the new tangible brush mode for the user study to use. See TB_USER_STUDY_* */
         void onSetTBUserStudyMode(ApplicationModel model, int tbMode);
+
+        /** Called when the current trial has ended
+         * @param model the app data model*/
+        void onEndTBTrial(ApplicationModel model);
+
+        /** Called when the next trial has started
+         * @param model the app data model*/
+        void onStartNextTrial(ApplicationModel model);
     }
 
     /** Annotation meta data*/
@@ -211,6 +219,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /** The different mode for the user study*/
     public static final int TB_USER_STUDY_AR = 0;
     public static final int TB_USER_STUDY_2D = 1;
+
+    /** The different kind of errors for ending the TB trial*/
+    public static final int END_TB_ERROR_NONE         = 0;
+    public static final int END_TB_ERROR_NO_SELECTION = 1;
+    public static final int END_TB_ERROR_NO_TRIAL     = 2;
+
 
     private ArrayList<IDataCallback> m_listeners = new ArrayList<>(); /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;                        /**!< The configuration object*/
@@ -303,6 +317,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** The application current tangible mode?*/
     private int m_tangibleMode = TANGIBLE_MODE_NONE;
+
+    /** Have we performed a selection during this trial?*/
+    private boolean m_hasPerformedSelection = false;
+
+    /** Has the trial started?*/
+    private boolean m_hasTrialStarted = false;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -865,6 +885,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /** @brief confirm the current selection*/
     public void confirmSelection()
     {
+        m_hasPerformedSelection = true;
         for(IDataCallback clbk : m_listeners)
             clbk.onConfirmSelection(this);
     }
@@ -913,7 +934,6 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public void setCurrentTBTrial(int trialID)
     {
         m_currentTrial = trialID;
-        //TODO
     }
 
     /** Get the current trial ID of the TB User Study
@@ -931,9 +951,47 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** Get the current boolean operation the tablet is performing in selection mode
      * @return the current boolean operation. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/
-     public int getCurrentBooleanOperation()
+    public int getCurrentBooleanOperation()
     {
         return m_currentBooleanOperation;
+    }
+
+    /** Request to end the current tangible brush trial
+     * @return see END_TB_ERROR_* values*/
+    public int endTBTrial()
+    {
+        if(!m_hasTrialStarted)
+            return END_TB_ERROR_NO_TRIAL;
+
+        if(!m_hasPerformedSelection)
+            return END_TB_ERROR_NO_SELECTION;
+
+        m_hasPerformedSelection = false;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onEndTBTrial(this);
+        m_hasTrialStarted = false;
+
+        return END_TB_ERROR_NONE;
+    }
+
+    /** Start the next TB trial
+     * @return true on success if the user is not already in a trial, false otherwise*/
+    public boolean startTBTrial()
+    {
+        if(m_hasTrialStarted)
+            return false;
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onStartNextTrial(this);
+        m_hasTrialStarted = true;
+        return true;
+    }
+
+    /** Are we currently in a trial?
+     * @return true if yes, false otherwise*/
+    public boolean hasTrialStarted()
+    {
+        return m_hasTrialStarted;
     }
 
     @Override

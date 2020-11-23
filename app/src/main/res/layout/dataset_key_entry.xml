@@ -17,5 +17,6 @@
         android:maxHeight="64px"
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
-        android:id="@+id/dataset_key_entry_add"/>
+        android:id="@+id/dataset_key_entry_add"
+        android:visibility="gone"/>
 </LinearLayout>

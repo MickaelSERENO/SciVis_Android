@@ -321,6 +321,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {}
 
     @Override
+    public void onEndTBTrial(ApplicationModel model)
+    {}
+
+    @Override
+    public void onStartNextTrial(ApplicationModel model)
+    {}
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
 
     @Override
