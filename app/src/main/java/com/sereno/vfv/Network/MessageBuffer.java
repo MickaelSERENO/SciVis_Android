@@ -8,7 +8,7 @@ import com.sereno.vfv.MainActivity;
 import java.util.ArrayList;
 
 /** Message Buffer class. Permits to parse the incoming server data correctly
- * Format : 2byte -> typeOfMessage then follows (depending on the message) 4 bytes for int/float,
+ * Format : 2 bytes -> typeOfMessage then follows (depending on the message) 4 bytes for int/float,
  *          2 bytes for short and/or 4 bytes + n bytes for String (n depending on the first 4 bytes received)*/
 public class MessageBuffer
 {

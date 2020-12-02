@@ -11,7 +11,7 @@ public class NextTBTrialMessage extends ServerMessage
     public void pushValue(int value)
     {
         if(cursor == 0)
-            m_trialID = value;
+            m_tangibleMode = value;
         else if(cursor == 1)
             m_trialID = value;
         else if(cursor == 2)

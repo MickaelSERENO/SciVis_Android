@@ -969,6 +969,7 @@ public class MainActivity extends AppCompatActivity
     public void onNextTBTrialMessage(NextTBTrialMessage msg)
     {
         m_model.setCurrentSelectionMode(msg.getTangibleMode());
+	m_model.setCurrentTBTrial(msg.getTrialID());
         m_model.startTBTrial();
     }
 

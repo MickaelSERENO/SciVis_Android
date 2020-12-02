@@ -191,7 +191,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public static final int POINTING_WIM_POINTER = 2;
     public static final int POINTING_MANUAL      = 3;
 
+
+
     /** The type of tangible selection mode*/
+    /** No selection mode currently*/
+    public static final int SELECTION_MODE_NONE = -1;
+    
     /** Absolute position*/
     public static final int SELECTION_MODE_ABSOLUTE = 0;
 
@@ -960,7 +965,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @return see END_TB_ERROR_* values*/
     public int endTBTrial()
     {
-        if(!m_hasTrialStarted)
+        if(!m_hasTrialStarted || m_currentTrial < 0)
             return END_TB_ERROR_NO_TRIAL;
 
         if(!m_hasPerformedSelection)
