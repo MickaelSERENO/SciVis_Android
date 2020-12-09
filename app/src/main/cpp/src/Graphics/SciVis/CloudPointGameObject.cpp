@@ -139,7 +139,7 @@ namespace sereno
                         for(uint32_t i = 0; i < m_dataset->getNbPoints(); i++)
                         {
                             //Check the mask
-                            if(m_model->isVolumetricMaskEnabled() && !m_model->getVolumetricMaskAt(i))
+                            if(m_model->isVolumetricMaskEnabled() && m_model->getVolumetricMaskAt(i))
                             {
                                 for(uint8_t h = 0; h < 4; h++)
                                     cols[4*i+h] = 0;

@@ -969,7 +969,7 @@ public class MainActivity extends AppCompatActivity
     public void onNextTBTrialMessage(NextTBTrialMessage msg)
     {
         m_model.setCurrentSelectionMode(msg.getTangibleMode());
-	m_model.setCurrentTBTrial(msg.getTrialID());
+	    m_model.setCurrentTBTrial(msg.getTrialID());
         m_model.startTBTrial();
     }
 
@@ -1231,8 +1231,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode)
     {
-        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING && tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
-            m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
+        {
+            if(tangibleMode == ApplicationModel.TANGIBLE_MODE_ORIGIN)
+                m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE)); //Specify that we are not in an operation
+
+            else if(tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
+                m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+        }
     }
 
     @Override
