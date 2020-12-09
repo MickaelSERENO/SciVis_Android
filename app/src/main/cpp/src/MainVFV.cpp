@@ -379,7 +379,7 @@ namespace sereno
 
                             if(m_selecting)
                             {
-                                m_lasso->startLasso(x, y/ratio, 0);
+                                m_lasso->startLasso(x, y/ratio, -1);
                             }
                             else
                             {
@@ -667,7 +667,7 @@ namespace sereno
                 
                 //selection
                 if(m_selecting){
-                    if(m_lasso->continueLasso(event->x, event->y, 0))
+                    if(m_lasso->continueLasso(event->x, event->y, -1))
                         m_mainData->setLasso(m_lasso->getData());
                 }
 

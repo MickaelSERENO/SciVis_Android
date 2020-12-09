@@ -1222,8 +1222,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode)
     {
-        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING && tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
-            m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
+        {
+            if(tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
+                m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+            else
+                m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE));
+        }
     }
 
     @Override
