@@ -626,7 +626,7 @@ namespace sereno
                 //Modify the scale
                 glm::vec3 currentScale = sd->getScale();
                 currentScale.x = currentScale.y = currentScale.z = fmax((float)currentScale.x+factor*2.0f, 0.0f);
-                m_mainData->sendScaleEvent(sd, currentScale);
+                //m_mainData->sendScaleEvent(sd, currentScale); DISABLED BECAUSE USERS STUDY
                 break;
             }
 
@@ -728,6 +728,7 @@ namespace sereno
         {
             findHeadsetCameraTransformation(NULL, &cameraRot);
             glm::vec3 newPos = m_animationRotation.getInverse() * movement;
+            newPos.x = newPos.z = 0.0f; //Disable some positions because USERS STUDY
             m_mainData->sendPositionEvent(sd, sd->getPosition() + newPos);
         }
     }
