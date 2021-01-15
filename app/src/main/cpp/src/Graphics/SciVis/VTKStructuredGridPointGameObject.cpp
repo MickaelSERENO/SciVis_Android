@@ -356,7 +356,7 @@ namespace sereno
             m_updateTFLock.unlock();
             LOG_INFO("End Computing Colors\n");
 
-        });
+        }).detach();
     }
 
     VTKStructuredGridPointSciVis::VTKStructuredGridPointSciVis(GLRenderer* renderer, Material* material, std::shared_ptr<VTKDataset> d, uint32_t desiredDensity) : dataset(d)
