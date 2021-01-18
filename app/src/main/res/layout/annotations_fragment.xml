@@ -51,11 +51,19 @@
             android:gravity="center"/>
 
         <!-- Stroke/Text view -->
-        <com.sereno.view.AnnotationView
+        <com.sereno.view.AnnotationCanvasView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/annotView"
-            app:fontSize="64"/>
+            android:id="@+id/annotCanvasView"
+            app:fontSize="64"
+            android:visibility="gone"/>
+<!--
+        <com.sereno.view.AnnotationPositionView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/annotPositionView"
+            android:visibility="gone"/>
+-->
 
         <!-- Button views -->
         <LinearLayout

@@ -13,7 +13,7 @@ import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,7 +140,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData) {}
+    public void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, ApplicationModel.AnnotationMetaData metaData) {}
 
     @Override
     public void onPendingAnnotation(ApplicationModel model, SubDataset sd) {
@@ -255,7 +255,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+    public void onAddCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
     @Override
     public void onRemove(SubDataset dataset)
@@ -265,7 +265,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
+    public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
     @Override
     public void onUpdateTF(SubDataset dataset)

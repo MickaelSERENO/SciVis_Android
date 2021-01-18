@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -26,10 +25,10 @@ import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
-import com.sereno.view.AnnotationView;
+import com.sereno.view.AnnotationCanvasView;
 import com.sereno.view.ColorPickerData;
 import com.sereno.view.ColorPickerView;
 import com.sereno.view.TreeView;
@@ -37,7 +36,7 @@ import com.sereno.view.TreeView;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener,
+public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationCanvasData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener,
                                                                 SubDataset.ISubDatasetListener, Dataset.IDatasetListener
 {
     private static class AnnotationBitmap
@@ -53,7 +52,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private TreeView m_previews;
 
     /** The annotation view*/
-    private AnnotationView m_annotView;
+    private AnnotationCanvasView m_annotView;
 
     private View m_pendingView;
 
@@ -77,7 +76,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private LinearLayout m_textParamLayout = null;
 
     /** The bitmap showing the content of the annotations*/
-    private HashMap<AnnotationData, AnnotationBitmap> m_bitmaps = new HashMap<>();
+    private HashMap<AnnotationCanvasData, AnnotationBitmap> m_bitmaps = new HashMap<>();
 
     /** The trees of SubDataset*/
     private HashMap<SubDataset, Tree<View>> m_subDatasetTrees = new HashMap<>();
@@ -86,10 +85,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private HashMap<Dataset, Tree<View>> m_datasetTrees = new HashMap<>();
 
     /** The trees per Annotation*/
-    private HashMap<AnnotationData, Tree<View>> m_annotationTrees = new HashMap<>();
+    private HashMap<AnnotationCanvasData, Tree<View>> m_annotationTrees = new HashMap<>();
 
     /** The current Drawing mode*/
-    private AnnotationData.AnnotationMode m_mode = AnnotationData.AnnotationMode.STROKE;
+    private AnnotationCanvasData.AnnotationMode m_mode = AnnotationCanvasData.AnnotationMode.STROKE;
 
     /** The current stroke color*/
     private int m_currentStrokeColor = 0xff000000;
@@ -112,7 +111,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         View v = inflater.inflate(R.layout.annotations_fragment, container, false);
         setUpMainLayout(v);
-        setMode(AnnotationData.AnnotationMode.STROKE);
+        setMode(AnnotationCanvasData.AnnotationMode.STROKE);
         return v;
     }
 
@@ -140,8 +139,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             {
                 for(SubDataset sd : d.getSubDatasets())
                 {
-                    for(AnnotationData annot : sd.getAnnotations())
-                        onAddAnnotation(sd, annot);
+                    for(AnnotationCanvasData annot : sd.getAnnotations())
+                        onAddCanvasAnnotation(sd, annot);
                 }
             }
 
@@ -250,7 +249,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
+    public void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, ApplicationModel.AnnotationMetaData metaData)
     { }
 
     @Override
@@ -340,7 +339,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private void setUpMainLayout(View v)
     {
         m_previews  = (TreeView)v.findViewById(R.id.annotPreviewLayout);
-        m_annotView = (AnnotationView)v.findViewById(R.id.annotView);
+        m_annotView = (AnnotationCanvasView)v.findViewById(R.id.annotCanvasView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
         m_strokeParamLayout = (LinearLayout)v.findViewById(R.id.annotationStrokeParamLayout);
         m_textParamLayout   = (LinearLayout)v.findViewById(R.id.annotationTextParamLayout);
@@ -397,12 +396,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
-                    AnnotationData.AnnotationMode mode = m_mode;
+                    AnnotationCanvasData.AnnotationMode mode = m_mode;
                     int visibility = m_strokeParamLayout.getVisibility();
-                    setMode(AnnotationData.AnnotationMode.STROKE);
+                    setMode(AnnotationCanvasData.AnnotationMode.STROKE);
 
                     //If reselected, toggle the visibility
-                    if(mode == AnnotationData.AnnotationMode.STROKE)
+                    if(mode == AnnotationCanvasData.AnnotationMode.STROKE)
                         m_strokeParamLayout.setVisibility(visibility == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     return true;
                 }
@@ -415,12 +414,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
-                    AnnotationData.AnnotationMode mode = m_mode;
+                    AnnotationCanvasData.AnnotationMode mode = m_mode;
                     int visibility = m_textParamLayout.getVisibility();
-                    setMode(AnnotationData.AnnotationMode.TEXT);
+                    setMode(AnnotationCanvasData.AnnotationMode.TEXT);
 
                     //If reselected, toggle the visibility
-                    if(mode == AnnotationData.AnnotationMode.TEXT)
+                    if(mode == AnnotationCanvasData.AnnotationMode.TEXT)
                         m_textParamLayout.setVisibility(visibility == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     return true;
                 }
@@ -443,9 +442,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     /** Set the current mode to apply
      * @param mode the mode to apply*/
-    private void setMode(AnnotationData.AnnotationMode mode)
+    private void setMode(AnnotationCanvasData.AnnotationMode mode)
     {
-        if(mode == AnnotationData.AnnotationMode.STROKE)
+        if(mode == AnnotationCanvasData.AnnotationMode.STROKE)
         {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -456,7 +455,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 }
             });
         }
-        else if(mode == AnnotationData.AnnotationMode.TEXT)
+        else if(mode == AnnotationCanvasData.AnnotationMode.TEXT)
         {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -475,9 +474,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     /**Update the bitmap bound to an annotation data
      * @param data the data being updated*/
-    private void updateBitmap(final AnnotationData data)
+    private void updateBitmap(final AnnotationCanvasData data)
     {
-        AnnotationData savedModel = m_annotView.getModel(); //Save the last model
+        AnnotationCanvasData savedModel = m_annotView.getModel(); //Save the last model
         m_annotView.setModel(data);
 
         //Draw on the bitmap
@@ -493,7 +492,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
      * @param stroke the stroke being updated*/
     private void updateBitmapStroke(AnnotationStroke stroke)
     {
-        for(AnnotationData key : m_bitmaps.keySet())
+        for(AnnotationCanvasData key : m_bitmaps.keySet())
             for(AnnotationStroke s : key.getStrokes())
             {
                 if(s == stroke)
@@ -508,7 +507,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
      * @param text the text being updated*/
     private void updateBitmapText(AnnotationText text)
     {
-        for(AnnotationData key : m_bitmaps.keySet())
+        for(AnnotationCanvasData key : m_bitmaps.keySet())
             for(AnnotationText t : key.getTexts())
             {
                 if(t == text)
@@ -519,10 +518,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
     }
 
-    private void changeCurrentAnnotation(ImageView snapImg, AnnotationData annotation)
+    private void changeCurrentAnnotation(ImageView snapImg, AnnotationCanvasData annotation)
     {
         //Eveything to default
-        for(Map.Entry<AnnotationData, AnnotationBitmap> bmp : m_bitmaps.entrySet())
+        for(Map.Entry<AnnotationCanvasData, AnnotationBitmap> bmp : m_bitmaps.entrySet())
             bmp.getValue().imageView.setBackground(m_defaultImageViewBackground);
 
         //Our particular stylized
@@ -560,7 +559,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
-    public void onAddAnnotation(final SubDataset dataset, final AnnotationData annotation)
+    public void onAddCanvasAnnotation(final SubDataset dataset, final AnnotationCanvasData annotation)
     {
         annotation.addListener(this);
 
@@ -604,7 +603,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annot)
+    public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annot)
     {
         if(annot == m_annotView.getModel())
             m_annotView.setModel(null);
@@ -656,36 +655,34 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onSetMapVisibility(SubDataset dataset, boolean visibility)
-    {
-
-    }
+    {}
 
     @Override
     public void onSetVolumetricMask(SubDataset dataset)
     {}
 
     @Override
-    public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
+    public void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);
         stroke.setColor(m_currentStrokeColor);
     }
 
     @Override
-    public void onAddText(AnnotationData data, AnnotationText text)
+    public void onAddText(AnnotationCanvasData data, AnnotationText text)
     {
         text.setColor(m_currentTextColor);
         text.addListener(this);
     }
 
     @Override
-    public void onAddImage(AnnotationData data)
+    public void onAddImage(AnnotationCanvasData data)
     {
         updateBitmap(data);
     }
 
     @Override
-    public void onSetMode(AnnotationData data, AnnotationData.AnnotationMode mode)
+    public void onSetMode(AnnotationCanvasData data, AnnotationCanvasData.AnnotationMode mode)
     {
         updateBitmap(data);
     }

@@ -8,7 +8,7 @@ import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,11 +35,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param d the dataset to add*/
         void onAddVTKDataset(ApplicationModel model, VTKDataset d);
 
-        /** @brief Function called when a new Annotation has been added
+        /** @brief Function called when a new Canvas Annotation has been added
          * @param model the app data
          * @param annot the annotation true value
          * @param metaData the annotation meta data value*/
-        void onAddAnnotation(ApplicationModel model, AnnotationData annot, AnnotationMetaData metaData);
+        void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, AnnotationMetaData metaData);
 
         /** @brief Function called when an annotation is waiting to be added
          * @param model the app data
@@ -216,7 +216,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     private ArrayList<Dataset>            m_datasets            = new ArrayList<>(); /**!< The open Dataset (vtk + vectorField)*/
 
     /** The bitmap showing the content of the annotations*/
-    private HashMap<AnnotationData, AnnotationMetaData> m_annotations = new HashMap<>();
+    private HashMap<AnnotationCanvasData, AnnotationMetaData> m_annotations = new HashMap<>();
 
     /** The current action*/
     private int m_currentAction = CURRENT_ACTION_NOTHING;
@@ -354,13 +354,13 @@ public class ApplicationModel implements Dataset.IDatasetListener
             public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
             @Override
-            public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+            public void onAddCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
             @Override
             public void onRemove(SubDataset dataset) {removeSubDataset(dataset);}
 
             @Override
-            public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation)
+            public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation)
             {
                 m_annotations.remove(annotation);
             }
@@ -523,18 +523,18 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /** Add a new annotation
      * @param annotation the annotation to add
      * @param metaData the annotation meta data*/
-    public void addAnnotation(AnnotationData annotation, AnnotationMetaData metaData)
+    public void addCanvasAnnotation(AnnotationCanvasData annotation, AnnotationMetaData metaData)
     {
         m_annotations.put(annotation, metaData);
         metaData.getSubDataset().addAnnotation(annotation);
 
         for(IDataCallback clbk : m_listeners)
-            clbk.onAddAnnotation(this, annotation, metaData);
+            clbk.onAddCanvasAnnotation(this, annotation, metaData);
     }
 
     /** Get the annations registered
      * @return a map containing the annotations and annotation metadata*/
-    public HashMap<AnnotationData, AnnotationMetaData> getAnnotations()
+    public HashMap<AnnotationCanvasData, AnnotationMetaData> getAnnotations()
     {
         return m_annotations;
     }

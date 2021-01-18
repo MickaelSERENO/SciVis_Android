@@ -2,7 +2,7 @@ package com.sereno.vfv.Data;
 
 import android.graphics.Bitmap;
 
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 import com.sereno.vfv.Data.TF.TransferFunction;
 
 import java.util.ArrayList;
@@ -41,19 +41,19 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
          * @param snapshot the snapshot created*/
         void onSnapshotEvent(SubDataset dataset, Bitmap snapshot);
 
-        /** Method called when a new annotation has been added to this SubDataset
+        /** Method called when a new canvas annotation has been added to this SubDataset
          * @param dataset the dataset receiving a new annotation
          * @param annotation the annotation added*/
-        void onAddAnnotation(SubDataset dataset, AnnotationData annotation);
+        void onAddCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation);
 
         /** Method called when a SubDataset is being removed
          * @param dataset the subdataset being removed*/
         void onRemove(SubDataset dataset);
 
-        /** Method called when an annotation is being removed from the SubDataset
+        /** Method called when a canvas annotation is being removed from the SubDataset
          * @param dataset the dataset bound to the annotation
          * @param annotation the annotation being removed*/
-        void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation);
+        void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation);
 
         /** Method called when the SubDataset transfer function has been updated
          * @param dataset the dataset that has been updated*/
@@ -94,7 +94,7 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     private List<ISubDatasetListener> m_listeners = new ArrayList<>();
 
     /** List of annotations bound to this SubDataset*/
-    private List<AnnotationData> m_annotations = new ArrayList<>();
+    private List<AnnotationCanvasData> m_canvasAnnotations = new ArrayList<>();
 
     /** The current headset owning this subdataset. -1 == public subDataset*/
     private int m_ownerHeadsetID = -1;
@@ -400,26 +400,26 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
 
     /** Add a new annotation
      * @param annot the annotation to add*/
-    public void addAnnotation(AnnotationData annot)
+    public void addAnnotation(AnnotationCanvasData annot)
     {
-        m_annotations.add(annot);
+        m_canvasAnnotations.add(annot);
         for(int i = 0; i < m_listeners.size(); i++)
-            m_listeners.get(i).onAddAnnotation(this, annot);
+            m_listeners.get(i).onAddCanvasAnnotation(this, annot);
     }
 
     /** Get the list of annotations
      * @return the list of annotations. Please, do not modify the list (list item can however be modified)*/
-    public List<AnnotationData> getAnnotations()
+    public List<AnnotationCanvasData> getAnnotations()
     {
-        return m_annotations;
+        return m_canvasAnnotations;
     }
 
     /** unlink the SubDataset*/
     public void inRemoving()
     {
         /* Remove the annotation*/
-        while(m_annotations.size() > 0)
-            removeAnnotation(m_annotations.get(m_annotations.size()-1));
+        while(m_canvasAnnotations.size() > 0)
+            removeCanvasAnnotation(m_canvasAnnotations.get(m_canvasAnnotations.size()-1));
 
         Object[] listeners = m_listeners.toArray(); //Do a copy because on "onRemove", objects may want to get removed from the list of listeners
 
@@ -429,15 +429,15 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         m_ptr = 0;
     }
 
-    /** Remove an annotation from this SubDataset
+    /** Remove a canvas annotation from this SubDataset
      * @param annot the annotation to remove. This function does nothing if the annotation cannot be found*/
-    public void removeAnnotation(AnnotationData annot)
+    public void removeCanvasAnnotation(AnnotationCanvasData annot)
     {
-        if(m_annotations.contains(annot))
+        if(m_canvasAnnotations.contains(annot))
         {
             for(int i = 0; i < m_listeners.size(); i++)
-                m_listeners.get(i).onRemoveAnnotation(this, annot);
-            m_annotations.remove(annot);
+                m_listeners.get(i).onRemoveCanvasAnnotation(this, annot);
+            m_canvasAnnotations.remove(annot);
         }
     }
 

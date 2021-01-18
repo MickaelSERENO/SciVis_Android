@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,19 +18,18 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 
-import com.sereno.vfv.MainActivity;
 import com.sereno.vfv.R;
 
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AnnotationView extends View implements AnnotationData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener
+public class AnnotationCanvasView extends View implements AnnotationCanvasData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener
 {
     private static final int TEXT_TIMER=1000;
 
     /** The internal data of the annotation view*/
-    private AnnotationData m_model = new AnnotationData(512, 512);
+    private AnnotationCanvasData m_model = new AnnotationCanvasData(512, 512);
 
     /** The paint object used to draw strokes on screen*/
     private Paint m_strokePaint = new Paint();
@@ -48,25 +46,25 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
     /** Should we draw the text cursor? Works only on Text mode*/
     private boolean m_drawTextCursor = false;
 
-    public AnnotationView(Context context)
+    public AnnotationCanvasView(Context context)
     {
         super(context);
         init(null);
     }
 
-    public AnnotationView(Context context, @Nullable AttributeSet attrs)
+    public AnnotationCanvasView(Context context, @Nullable AttributeSet attrs)
     {
         super(context, attrs);
         init(attrs);
     }
 
-    public AnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
+    public AnnotationCanvasView(Context context, @Nullable AttributeSet attrs, int defStyleAttr)
     {
         super(context, attrs, defStyleAttr);
         init(attrs);
     }
 
-    public AnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes)
+    public AnnotationCanvasView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes)
     {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(attrs);
@@ -134,7 +132,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
         if(m_model == null)
             return false;
 
-        if(m_model.getMode() == AnnotationData.AnnotationMode.STROKE)
+        if(m_model.getMode() == AnnotationCanvasData.AnnotationMode.STROKE)
         {
             boolean addStrokePoint = false;
             if(e.getAction() == MotionEvent.ACTION_DOWN)
@@ -157,7 +155,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
             }
         }
 
-        else if(m_model.getMode() == AnnotationData.AnnotationMode.TEXT)
+        else if(m_model.getMode() == AnnotationCanvasData.AnnotationMode.TEXT)
         {
             if(e.getAction() == MotionEvent.ACTION_DOWN)
             {
@@ -179,7 +177,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
 
     /** Set the AnnotationData model
      * @param model the new AnnotationData model*/
-    public void setModel(AnnotationData model)
+    public void setModel(AnnotationCanvasData model)
     {
         if(m_model != null)
             m_model.removeListener(this);
@@ -209,7 +207,7 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
     @Override
     public boolean onKeyUp(int code, KeyEvent event)
     {
-        if(m_model.getMode() == AnnotationData.AnnotationMode.TEXT)
+        if(m_model.getMode() == AnnotationCanvasData.AnnotationMode.TEXT)
         {
             ArrayList<AnnotationText> texts = m_model.getTexts();
             texts.get(texts.size()-1).addKey(code, event.getUnicodeChar());
@@ -220,16 +218,16 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
 
     /** Get the AnnotationData model
      * @return the AnnotationData model*/
-    public AnnotationData getModel()
+    public AnnotationCanvasData getModel()
     {
         return m_model;
     }
 
     /** Check the current mode to handle specific annimations
      * @param mode the mode to apply*/
-    private void checkMode(AnnotationData.AnnotationMode mode)
+    private void checkMode(AnnotationCanvasData.AnnotationMode mode)
     {
-        if(mode == AnnotationData.AnnotationMode.TEXT)
+        if(mode == AnnotationCanvasData.AnnotationMode.TEXT)
         {
             m_textTimer = new Timer();
             m_textTimer.schedule(new TimerTask() {
@@ -250,25 +248,25 @@ public class AnnotationView extends View implements AnnotationData.IAnnotationDa
     }
 
     @Override
-    public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
+    public void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);
         invalidate();
     }
 
     @Override
-    public void onAddText(AnnotationData data, AnnotationText text) {
+    public void onAddText(AnnotationCanvasData data, AnnotationText text) {
         invalidate();
     }
 
     @Override
-    public void onAddImage(AnnotationData data)
+    public void onAddImage(AnnotationCanvasData data)
     {
         invalidate();
     }
 
     @Override
-    public void onSetMode(AnnotationData data, AnnotationData.AnnotationMode mode)
+    public void onSetMode(AnnotationCanvasData data, AnnotationCanvasData.AnnotationMode mode)
     {
         checkMode(mode);
     }

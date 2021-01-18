@@ -6,9 +6,7 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -41,7 +39,7 @@ import com.sereno.vfv.Dialog.Listener.INoticeCreateSDDialogListener;
 import com.sereno.vfv.Dialog.OpenCreateSDDialog;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
@@ -433,7 +431,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
 
             @Override
-            public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+            public void onAddCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
             @Override
             public void onRemove(SubDataset dataset)
@@ -447,7 +445,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
 
             @Override
-            public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
+            public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
             @Override
             public void onUpdateTF(SubDataset dataset)
@@ -508,7 +506,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
 
     @Override
-    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
+    public void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, ApplicationModel.AnnotationMetaData metaData)
     {}
 
     @Override

@@ -1,12 +1,8 @@
 package com.sereno.view;
 
-import android.graphics.Color;
-import android.graphics.Point;
-
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 
-public class AnnotationData
+public class AnnotationCanvasData
 {
     /** Listener of the class AnnotationData*/
     public interface IAnnotationDataListener
@@ -14,19 +10,19 @@ public class AnnotationData
         /** Method called when a new stroke has been added
          * @param data the AnnotationData firing this call
          * @param stroke  the stroke added*/
-        void onAddStroke(AnnotationData data, AnnotationStroke stroke);
+        void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke);
 
         /** Method called when a new text has been added
          * @param data the AnnotationData firing this call
          * @param stroke  the stroke added*/
-        void onAddText(AnnotationData data, AnnotationText text);
+        void onAddText(AnnotationCanvasData data, AnnotationText text);
 
-        void onAddImage(AnnotationData data);
+        void onAddImage(AnnotationCanvasData data);
 
         /** Methode called when the annotation mode changed
          * @param data the AnnotationData firing this call
          * @param mode the new mode*/
-        void onSetMode(AnnotationData data, AnnotationMode mode);
+        void onSetMode(AnnotationCanvasData data, AnnotationMode mode);
     }
 
     /** Enum listing the different annotation mode available*/
@@ -58,7 +54,7 @@ public class AnnotationData
     /** Constructor
      * @param width  the texture width where this annotation belongs to
      * @param height the texture height where this annotation belongs to*/
-    public AnnotationData(int width, int height)
+    public AnnotationCanvasData(int width, int height)
     {
         m_width  = width;
         m_height = height;

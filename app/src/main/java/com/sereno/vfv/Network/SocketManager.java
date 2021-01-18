@@ -8,7 +8,7 @@ import com.sereno.vfv.Data.TF.MergeTFData;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.MainActivity;
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.vfv.Data.TF.GTFData;
@@ -630,14 +630,14 @@ public class SocketManager
 
     /** Create an annotation event to send
      * @param ids the Dataset and SubDataset ids attached to this annotation
-     * @param annotationData the annotation data
+     * @param annotationCanvasData the annotation data
      * @param metaData the meta data of this annotation*/
-    public static byte[] createAnnotationEvent(MainActivity.DatasetIDBinding ids, AnnotationData annotationData, ApplicationModel.AnnotationMetaData metaData)
+    public static byte[] createAnnotationEvent(MainActivity.DatasetIDBinding ids, AnnotationCanvasData annotationCanvasData, ApplicationModel.AnnotationMetaData metaData)
     {
         int size = 2+7*4;
-        for(AnnotationStroke s : annotationData.getStrokes())
+        for(AnnotationStroke s : annotationCanvasData.getStrokes())
             size += 3*4 + 2*s.getPoints().size()*4;
-        for(AnnotationText t : annotationData.getTexts())
+        for(AnnotationText t : annotationCanvasData.getTexts())
             size += 3*4 + 4 + t.getText().length();
         ByteBuffer buf = ByteBuffer.allocate(size);
         buf.order(ByteOrder.BIG_ENDIAN);
@@ -647,13 +647,13 @@ public class SocketManager
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
         buf.putInt(metaData.getAnnotationID());
-        buf.putInt(annotationData.getWidth());
-        buf.putInt(annotationData.getHeight());
-        buf.putInt(annotationData.getStrokes().size());
-        buf.putInt(annotationData.getTexts().size());
+        buf.putInt(annotationCanvasData.getWidth());
+        buf.putInt(annotationCanvasData.getHeight());
+        buf.putInt(annotationCanvasData.getStrokes().size());
+        buf.putInt(annotationCanvasData.getTexts().size());
 
         //Send strokes data
-        for(AnnotationStroke s : annotationData.getStrokes())
+        for(AnnotationStroke s : annotationCanvasData.getStrokes())
         {
             buf.putInt(s.getColor());
             buf.putFloat(s.getWidth());
@@ -667,7 +667,7 @@ public class SocketManager
         }
 
         //Send text data
-        for(AnnotationText t : annotationData.getTexts())
+        for(AnnotationText t : annotationCanvasData.getTexts())
         {
             buf.putInt(t.getColor());
             buf.putFloat(t.getPosition().x);

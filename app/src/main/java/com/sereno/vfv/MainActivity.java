@@ -25,7 +25,6 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.ApplicationModel;
@@ -66,7 +65,7 @@ import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetVolumetricMaskMessage;
 import com.sereno.vfv.Network.TFDatasetMessage;
 import com.sereno.vfv.Network.ToggleMapVisibilityMessage;
-import com.sereno.view.AnnotationData;
+import com.sereno.view.AnnotationCanvasData;
 import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.vfv.Data.TF.GTFData;
@@ -76,7 +75,6 @@ import com.sereno.view.SeekBarHintView;
 import com.sereno.vfv.Data.TF.TransferFunction;
 
 import java.io.File;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,7 +82,7 @@ import java.util.Map;
 /* \brief The MainActivity. First Activity to be launched*/
 public class MainActivity extends AppCompatActivity
                           implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener,
-                                     MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationData.IAnnotationDataListener,
+                                     MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationCanvasData.IAnnotationDataListener,
                                      SocketManager.ISocketManagerListener, Dataset.IDatasetListener, DatasetsFragment.IDatasetsFragmentListener
 {
     /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
@@ -317,7 +315,7 @@ public class MainActivity extends AppCompatActivity
     public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
 
     @Override
-    public void onAddAnnotation(ApplicationModel model, AnnotationData annot, ApplicationModel.AnnotationMetaData metaData)
+    public void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, ApplicationModel.AnnotationMetaData metaData)
     {
         annot.addListener(this);
     }
@@ -385,14 +383,14 @@ public class MainActivity extends AppCompatActivity
     public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
 
     @Override
-    public void onAddAnnotation(SubDataset dataset, AnnotationData annotation) {}
+    public void onAddCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
     @Override
     public void onRemove(SubDataset dataset)
     {}
 
     @Override
-    public void onRemoveAnnotation(SubDataset dataset, AnnotationData annotation) {}
+    public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
 
     @Override
     public void onUpdateTF(SubDataset dataset)
@@ -983,9 +981,9 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
 
-                AnnotationData data = new AnnotationData(320, 160);
+                AnnotationCanvasData data = new AnnotationCanvasData(320, 160);
                 ApplicationModel.AnnotationMetaData annotMetaData = new ApplicationModel.AnnotationMetaData(sd, -1);
-                m_model.addAnnotation(data, annotMetaData);
+                m_model.addCanvasAnnotation(data, annotMetaData);
 
                 if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
                 {
@@ -1007,7 +1005,7 @@ public class MainActivity extends AppCompatActivity
                     return;
 
                 while(sd.getAnnotations().size() > 0)
-                    sd.removeAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
+                    sd.removeCanvasAnnotation(sd.getAnnotations().get(sd.getAnnotations().size()-1));
             }
         });
     }
@@ -1259,7 +1257,7 @@ public class MainActivity extends AppCompatActivity
         m_viewPager.setPagingEnabled(false);
     }
 
-    private void sendAnnotationToServer(AnnotationData annotation)
+    private void sendAnnotationToServer(AnnotationCanvasData annotation)
     {
         ApplicationModel.AnnotationMetaData metaData = m_model.getAnnotations().get(annotation);
 
@@ -1272,25 +1270,25 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onAddStroke(AnnotationData data, AnnotationStroke stroke)
+    public void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke)
     {
         sendAnnotationToServer(data);
     }
 
     @Override
-    public void onAddText(AnnotationData data, AnnotationText text)
+    public void onAddText(AnnotationCanvasData data, AnnotationText text)
     {
         sendAnnotationToServer(data);
     }
 
     @Override
-    public void onAddImage(AnnotationData data)
+    public void onAddImage(AnnotationCanvasData data)
     {
         sendAnnotationToServer(data);
     }
 
     @Override
-    public void onSetMode(AnnotationData data, AnnotationData.AnnotationMode mode)
+    public void onSetMode(AnnotationCanvasData data, AnnotationCanvasData.AnnotationMode mode)
     {}
 
     @Override
