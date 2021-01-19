@@ -51,4 +51,7 @@
     <string name="constrained">Constrained</string>
     <string name="unConstrained">Unconstrained</string>
     <string name="reset">Reset</string>
+    <string name="annotPositionColor">Color: </string>
+    <string name="annotPositionDimension">Dimensions: </string>
+    <string name="annotPositionFollowTime">Follow Time: </string>
 </resources>

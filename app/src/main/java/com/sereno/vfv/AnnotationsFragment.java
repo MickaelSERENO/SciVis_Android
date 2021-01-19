@@ -339,7 +339,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private void setUpMainLayout(View v)
     {
         m_previews  = (TreeView)v.findViewById(R.id.annotPreviewLayout);
-        m_annotView = (AnnotationCanvasView)v.findViewById(R.id.annotCanvasView);
+        m_annotView = (AnnotationCanvasView)v.findViewById(R.id.strokeTextView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
         m_strokeParamLayout = (LinearLayout)v.findViewById(R.id.annotationStrokeParamLayout);
         m_textParamLayout   = (LinearLayout)v.findViewById(R.id.annotationTextParamLayout);
