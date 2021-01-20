@@ -1,6 +1,6 @@
 package com.sereno.vfv;
 
-import android.app.DialogFragment;
+import android.support.v4.app.DialogFragment;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.ApplicationModel;
@@ -83,7 +84,8 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity
                           implements ApplicationModel.IDataCallback, SubDataset.ISubDatasetListener,
                                      MessageBuffer.IMessageBufferCallback, VFVFragment.IFragmentListener, AnnotationCanvasData.IAnnotationDataListener,
-                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener, DatasetsFragment.IDatasetsFragmentListener
+                                     SocketManager.ISocketManagerListener, Dataset.IDatasetListener,
+                                     DatasetsFragment.IDatasetsFragmentListener, AnnotationsFragment.IAnnotationsFragmentListener
 {
     /** Dataset Binding structure containing data permitting the remote server to identify which dataset we are performing operations*/
     public static class DatasetIDBinding
@@ -116,7 +118,7 @@ public class MainActivity extends AppCompatActivity
     private int              m_currentTFViewType = SubDataset.TRANSFER_FUNCTION_NONE;
     private ViewGroup        m_currentTFView = null;     /*!< The Current transfer function view to use*/
     private HashMap<Integer, View>  m_gtfSizeViews = new HashMap<>(); /*!< The views handling the size of the GTF*/
-    private SubDataset       m_currentTFSubDataset = null;
+    private SubDataset       m_currentTFSubDataset = null; /*!< The current subdataset from which the transfer function widgets applies to*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -186,7 +188,7 @@ public class MainActivity extends AppCompatActivity
                     {
                     }
                 });
-                dialogFragment.show(getFragmentManager(), "dialog");
+                dialogFragment.show(getSupportFragmentManager(), "dialog");
                 return true;
             }
 
@@ -321,7 +323,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPendingAnnotation(ApplicationModel model, SubDataset sd)
+    public void onPendingCanvasAnnotation(ApplicationModel model, SubDataset sd)
     {
         if(m_model.getBindingInfo() != null && m_model.getBindingInfo().getHeadsetID() != -1)
         {
@@ -332,7 +334,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
+    public void onEndPendingCanvasAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
     {}
 
     @Override
@@ -854,7 +856,7 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 m_model.setBindingInfo(msg);
                 if(msg.getHeadsetID() == -1)
-                    m_model.endPendingAnnotation(true);
+                    m_model.endPendingCanvasAnnotation(true);
             }
         });
     }
@@ -987,7 +989,7 @@ public class MainActivity extends AppCompatActivity
 
                 if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
                 {
-                    m_model.endPendingAnnotation(false);
+                    m_model.endPendingCanvasAnnotation(false);
                 }
             }
         });
@@ -1386,6 +1388,12 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
+    @Override
+    public void onOpenAnnotationLog(AnnotationsFragment frag, String path, boolean hasHeader, int timeHeader)
+    {
+        Toast.makeText(this, "Opening " + path, Toast.LENGTH_LONG);
+    }
+
     /** Set up the main layout*/
     private void setUpMainLayout()
     {
@@ -1399,6 +1407,7 @@ public class MainActivity extends AppCompatActivity
 
         //Add "Annotations" tab
         final  AnnotationsFragment annotationsFragment = new AnnotationsFragment();
+        annotationsFragment.addAFListener(this);
         adapter.addFragment(annotationsFragment, "Annotations");
 
         m_dataFragment.addListener((VFVFragment.IFragmentListener)this);
@@ -1551,7 +1560,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        dialogFragment.show(getFragmentManager(), "dialog");
+        dialogFragment.show(getSupportFragmentManager(), "dialog");
     }
 
     /** Function called for gathering common actions when adding a new Dataset

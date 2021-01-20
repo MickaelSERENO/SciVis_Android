@@ -510,12 +510,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     {}
 
     @Override
-    public void onPendingAnnotation(ApplicationModel model, SubDataset sd) {
+    public void onPendingCanvasAnnotation(ApplicationModel model, SubDataset sd) {
 
     }
 
     @Override
-    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel) {
+    public void onEndPendingCanvasAnnotation(ApplicationModel model, SubDataset sd, boolean cancel) {
 
     }
 

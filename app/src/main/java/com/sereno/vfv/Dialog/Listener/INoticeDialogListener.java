@@ -1,6 +1,6 @@
 package com.sereno.vfv.Dialog.Listener;
 
-import android.app.DialogFragment;
+import android.support.v4.app.DialogFragment;
 import android.view.View;
 
 /** \brief Listener for Alert dialog fragment */

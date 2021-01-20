@@ -1,5 +1,6 @@
 package com.sereno.vfv;
 
+import android.support.v4.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -8,21 +9,29 @@ import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.sereno.Tree;
+import com.sereno.vfv.Data.Annotation.AnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
+import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
+import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
+import com.sereno.vfv.Dialog.OpenAnnotationLogDialogFragment;
+import com.sereno.vfv.Dialog.OpenDatasetDialogFragment;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationCanvasData;
@@ -33,6 +42,7 @@ import com.sereno.view.ColorPickerData;
 import com.sereno.view.ColorPickerView;
 import com.sereno.view.TreeView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +53,18 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         public Bitmap    bitmap;
         public ImageView imageView;
+    }
+
+    /** Interface proposing callback methods regarding the AnnotationFragment*/
+    public interface IAnnotationsFragmentListener
+    {
+        /** Called when the user wants to open an annotation fragment.
+         * Note that the log can already be opened: it is the call of the listener to check that information
+         * @param frag the fragment calling this function
+         * @param path the data sub file
+         * @param hasHeader has the data a header?
+         * @param timeHeader which column should represent the time values? -1 == no time available*/
+        void onOpenAnnotationLog(AnnotationsFragment frag, String path, boolean hasHeader, int timeHeader);
     }
 
     /** The application model in use*/
@@ -96,6 +118,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The current text color*/
     private int m_currentTextColor = 0xff000000;
 
+    /** The registered listeners*/
+    private ArrayList<IAnnotationsFragmentListener> m_afListeners = new ArrayList<>(); /*!< Object that registered to this AnnotationsFragment events*/
+
     private Context m_ctx  = null;
 
 
@@ -144,10 +169,27 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 }
             }
 
-            if(m_model.getPendingSubDatasetForAnnotation() != null)
-                onPendingAnnotation(m_model, m_model.getPendingSubDatasetForAnnotation());
+            if(m_model.getPendingSubDatasetForCanvasAnnotation() != null)
+                onPendingCanvasAnnotation(m_model, m_model.getPendingSubDatasetForCanvasAnnotation());
         }
     }
+
+
+    /** Remove an already registered listener for the AnnotationsFragment specification
+     * @param clbk the listener to not call anymore*/
+    public void removeAFListener(IAnnotationsFragmentListener clbk)
+    {
+        m_afListeners.remove(clbk);
+    }
+
+    /** @brief Add a callback object to call at actions performed by the annotations fragment
+     * @param clbk the new callback to take account of*/
+    public void addAFListener(IAnnotationsFragmentListener clbk)
+    {
+        if(!m_afListeners.contains(clbk))
+            m_afListeners.add(clbk);
+    }
+
 
     @Override
     public void onAttach(Context context)
@@ -195,14 +237,49 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 sdTitleText.setText(sd.getName());
 
                 ImageView addView = (ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add);
-                addView.setOnTouchListener(new View.OnTouchListener() {
+                addView.setOnClickListener(new View.OnClickListener(){
                     @Override
-                    public boolean onTouch(View view, MotionEvent motionEvent) {
-                        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                            m_model.pendingAnnotation(sd);
-                            return true;
-                        }
-                        return false;
+                    public void onClick(View view) {
+                        PopupMenu popup = new PopupMenu(getContext(), view);
+                        popup.getMenuInflater().inflate(R.menu.annotation_type_menu, popup.getMenu());
+
+                        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
+                        {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem menuItem)
+                            {
+                                switch(menuItem.getItemId())
+                                {
+                                    case R.id.canvasAnnot_item:
+                                        m_model.pendingCanvasAnnotation(sd);
+                                        break;
+                                    case R.id.logAnnot_item:
+                                    {
+                                        OpenAnnotationLogDialogFragment dialogFragment = new OpenAnnotationLogDialogFragment();
+                                        dialogFragment.setNoticeDialogListener(new INoticeDialogListener()
+                                        {
+                                            @Override
+                                            public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
+                                            {
+                                                OpenAnnotationLogDialogFragment af = (OpenAnnotationLogDialogFragment)(dialogFrag);
+
+                                                for(IAnnotationsFragmentListener list : m_afListeners)
+                                                    list.onOpenAnnotationLog(AnnotationsFragment.this, af.getSelectedFile().getFile().getName(), af.hasHeader(), af.getSelectedHeader());
+                                            }
+
+                                            @Override
+                                            public void onDialogNegativeClick(DialogFragment dialogFrag, View view)
+                                            {}
+                                        });
+                                        dialogFragment.show(getFragmentManager(), "dialog");
+                                    }
+                                    break;
+                                }
+                                return true;
+                            }
+                        });
+
+                        popup.show();
                     }
                 });
 
@@ -253,7 +330,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     { }
 
     @Override
-    public void onPendingAnnotation(ApplicationModel model, SubDataset sd)
+    public void onPendingCanvasAnnotation(ApplicationModel model, SubDataset sd)
     {
         m_pendingView.setVisibility(View.VISIBLE);
         m_annotView.setVisibility(View.GONE);
@@ -261,7 +338,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
+    public void onEndPendingCanvasAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
     {
         m_pendingView.setVisibility(View.GONE);
         m_annotView.setVisibility(View.VISIBLE);
@@ -516,6 +593,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                     return;
                 }
             }
+    }
+
+    private void changeCurrentAnnotation(AnnotationPosition pos)
+    {
+        //TODO
     }
 
     private void changeCurrentAnnotation(ImageView snapImg, AnnotationCanvasData annotation)

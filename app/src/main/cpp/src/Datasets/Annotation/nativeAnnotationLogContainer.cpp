@@ -29,8 +29,8 @@ JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLog
 {
     std::shared_ptr<AnnotationLogContainer>* ptr = (std::shared_ptr<AnnotationLogContainer>*)jptr;
 
-    jobjectArray ret = jenv->NewObjectArray(5, jenv->FindClass("java/lang/String"), NULL);
-    for(uint32_t i=0; i<5; i++) 
+    jobjectArray ret = jenv->NewObjectArray((*ptr)->getHeaders().size(), jenv->FindClass("java/lang/String"), NULL);
+    for(uint32_t i=0; i<(*ptr)->getHeaders().size(); i++)
         jenv->SetObjectArrayElement(ret, i, jenv->NewStringUTF((*ptr)->getHeaders()[i].c_str()));
 
     return ret;

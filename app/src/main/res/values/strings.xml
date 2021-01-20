@@ -54,4 +54,10 @@
     <string name="annotPositionColor">Color: </string>
     <string name="annotPositionDimension">Dimensions: </string>
     <string name="annotPositionFollowTime">Follow Time: </string>
+    <string name="logAnnot">Logged annotations</string>
+    <string name="canvasAnnot">Canvas annotation</string>
+    <string name="openAnnotationLogs">Open an Annotation Log</string>
+    <string name="errorAnnotationLogs">No annotation log available</string>
+    <string name="annotLogHasHeader">Has header? </string>
+    <string name="annotLogTimeHeader">Time header: </string>
 </resources>

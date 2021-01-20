@@ -2,7 +2,7 @@ package com.sereno.vfv.Dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
+import android.support.v4.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
@@ -13,8 +13,7 @@ import com.sereno.vfv.Data.DataFile;
 import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
 import com.sereno.vfv.R;
 
-
-/* \brief Dialog fragment for the opening of a new dataset */
+/**Dialog fragment for the opening of a new dataset */
 public class OpenDatasetDialogFragment extends DialogFragment
 {
     private INoticeDialogListener m_listener       = null; /**!< The Notice Dialog Listener object to call when the user has finished with the dialog*/
@@ -59,15 +58,15 @@ public class OpenDatasetDialogFragment extends DialogFragment
         return dialog;
     }
 
-    /** \brief set the INoticeDialogListener associated with this object
+    /** set the INoticeDialogListener associated with this object
      * @param listener the new INoticeDialogListener*/
     public void setNoticeDialogListener(INoticeDialogListener listener)
     {
         m_listener = listener;
     }
 
-    /** \brief setup the layout of the dialog
-     * \return true if the layout can be set up correctly. If no datasets, this function returns false*/
+    /** setup the layout of the dialog
+     * @return true if the layout can be set up correctly. If no datasets, this function returns false*/
     private boolean setupLayout(View view)
     {
         Spinner datasetSpinner = (Spinner)view.findViewById(R.id.openDatasetSpinner);

@@ -41,16 +41,16 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param metaData the annotation meta data value*/
         void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, AnnotationMetaData metaData);
 
-        /** @brief Function called when an annotation is waiting to be added
+        /** @brief Function called when a canvas annotation is waiting to be added
          * @param model the app data
          * @param sd the targeted subdataset */
-        void onPendingAnnotation(ApplicationModel model, SubDataset sd);
+        void onPendingCanvasAnnotation(ApplicationModel model, SubDataset sd);
 
-        /** @brief Function called when a pending annotation ended
+        /** @brief Function called when a pending canvas annotation ended
          * @param model the app data
          * @param sd the targeted subdataset
          * @param cancel true if the annotation has been canceled, false otherwise*/
-        void onEndPendingAnnotation(ApplicationModel model, SubDataset sd, boolean cancel);
+        void onEndPendingCanvasAnnotation(ApplicationModel model, SubDataset sd, boolean cancel);
 
         /** @brief Method called when the current device action changed
          * @param model the app data
@@ -473,7 +473,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
             setCurrentSubDataset(null);
 
         else if(sd == m_pendingSubDataset)
-            pendingAnnotation(null);
+            pendingCanvasAnnotation(null);
 
         /////////////////////////////////////
         //Look for a new current subdataset//
@@ -617,29 +617,29 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** Put a new SubDataset in wait for an annotation
      * @param sd the SubDataset waiting the annotation to be anchored*/
-    public void pendingAnnotation(SubDataset sd)
+    public void pendingCanvasAnnotation(SubDataset sd)
     {
         if(m_pendingSubDataset != null)
-            endPendingAnnotation(true);
+            endPendingCanvasAnnotation(true);
 
         m_pendingSubDataset = sd;
         for(IDataCallback clbk : m_listeners)
-            clbk.onPendingAnnotation(this, sd);
+            clbk.onPendingCanvasAnnotation(this, sd);
     }
 
     /** Get the SubDataset waiting to create an annotation
      * @return the subdataset waiting for the annotation. Can be null (no subdataset waiting)*/
-    public SubDataset getPendingSubDatasetForAnnotation()
+    public SubDataset getPendingSubDatasetForCanvasAnnotation()
     {
         return m_pendingSubDataset;
     }
 
     /** End the waiting for an annotation to be anchored
      * @param cancel true if the pending is to be canceled, false otherwise*/
-    public void endPendingAnnotation(boolean cancel)
+    public void endPendingCanvasAnnotation(boolean cancel)
     {
         for(IDataCallback clbk : m_listeners)
-            clbk.onEndPendingAnnotation(this, m_pendingSubDataset, cancel);
+            clbk.onEndPendingCanvasAnnotation(this, m_pendingSubDataset, cancel);
         m_pendingSubDataset = null;
     }
 
