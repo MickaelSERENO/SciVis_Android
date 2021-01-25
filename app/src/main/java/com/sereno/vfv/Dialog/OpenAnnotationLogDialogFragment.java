@@ -157,12 +157,16 @@ public class OpenAnnotationLogDialogFragment extends DialogFragment
         return true;
     }
 
+    /** Get the file that has been selected
+     * @return the selected file*/
     public DataFile getSelectedFile()
     {
         return m_datasetSpinner != null ? (DataFile)m_datasetSpinner.getSelectedItem() : null;
     }
 
-    public int getSelectedHeader()
+    /** Get the selected header as being the time header
+     * @return the indice of the header (column ID) corresponding to time. -1 == no time*/
+    public int getTimeHeaderID()
     {
         if(m_hasHeader != null)
         {
@@ -180,6 +184,8 @@ public class OpenAnnotationLogDialogFragment extends DialogFragment
         return -1;
     }
 
+    /** Has this log annotation a header?
+     * @return true if yes, false otherwise*/
     public boolean hasHeader()
     {
         if(m_hasHeader != null)

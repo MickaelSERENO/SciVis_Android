@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">VFV_Hololens</string>
     <string name="addDataBtn">Add Dataset</string>
+    <string name="openLogData">Open Log Data</string>
     <string name="deleteDataBtn">Delete Dataset</string>
     <string name="rename">Rename</string>
     <string name="renameTitle">Enter the new name</string>
@@ -60,4 +61,7 @@
     <string name="errorAnnotationLogs">No annotation log available</string>
     <string name="annotLogHasHeader">Has header? </string>
     <string name="annotLogTimeHeader">Time header: </string>
+    <string name="fileName">File name: </string>
+    <string name="headers">Headers: </string>
+    <string name="annotLogPosition">Position</string>
 </resources>

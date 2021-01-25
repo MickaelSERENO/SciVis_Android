@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.os.CountDownTimer;
 
 import com.sereno.math.Quaternion;
+import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -127,6 +128,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param model the app data model
          * @param selectMode the new selection mode to use. See SELECTION_MODE_* */
         void onSetSelectionMode(ApplicationModel model, int selectMode);
+
+        /** Called when an annotation log as been added to the known logs
+         * @param model the app data model
+         * @param container the annotation log data*/
+        void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container);
     }
 
     /** Annotation meta data*/
@@ -210,10 +216,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /************************ DATASETS ATTRIBUTES ************************/
     /*********************************************************************/
 
-    private ArrayList<VTKDataset>         m_vtkDatasets         = new ArrayList<>(); /**!< The vtk dataset */
-    private ArrayList<VectorFieldDataset> m_vectorFieldDatasets = new ArrayList<>(); /**!< The open vectorField Datasets */
-    private ArrayList<CloudPointDataset>  m_cloudPointDatasets  = new ArrayList<>(); /**!< The open cloud point Datasets*/
-    private ArrayList<Dataset>            m_datasets            = new ArrayList<>(); /**!< The open Dataset (vtk + vectorField)*/
+    private ArrayList<VTKDataset>             m_vtkDatasets         = new ArrayList<>(); /**!< The opened vtk dataset */
+    private ArrayList<VectorFieldDataset>     m_vectorFieldDatasets = new ArrayList<>(); /**!< The opened vectorField Datasets */
+    private ArrayList<CloudPointDataset>      m_cloudPointDatasets  = new ArrayList<>(); /**!< The opened cloud point Datasets*/
+    private ArrayList<Dataset>                m_datasets            = new ArrayList<>(); /**!< The opened Dataset (vtk + vectorField)*/
+    private ArrayList<AnnotationLogContainer> m_annotationLogs      = new ArrayList<>(); /**!< The opened logs containing annotation data*/
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationCanvasData, AnnotationMetaData> m_annotations = new HashMap<>();
@@ -442,6 +449,16 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
         for(SubDataset sd : dataset.getSubDatasets())
             onAddSubDataset(sd);
+    }
+
+    /** @brief Add an annotation log container object into the known object loaded
+     * @param container the annotation log container to add*/
+    public void addAnnotationLog(AnnotationLogContainer container)
+    {
+        m_annotationLogs.add(container);
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onAddAnnotationLog(this, container);
     }
 
     /** @brief Get the Configuration object

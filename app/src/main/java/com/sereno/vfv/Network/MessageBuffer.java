@@ -134,6 +134,10 @@ public class MessageBuffer
         /** Called when the message "GET_VOLUMETRIC_MASK" has been successfully parsed
          * @param msg the message parsed*/
         void onSubDatasetVolumetricMaskMessage(SubDatasetVolumetricMaskMessage msg);
+
+        /** Called when the message "ADD_LOG_DATA" has been successfully parsed
+         * @param msg the message parsed*/
+        void onOpenLogDataMessage(OpenLogDataMessage msg);
     }
 
     /** No current type received*/
@@ -191,6 +195,9 @@ public class MessageBuffer
 
     /** Reset the volumetric selection of a particular subdataset*/
     public static final int GET_RESET_VOLUMETRIC_SELECTION = 27;
+
+    /** Open a log data*/
+    public static final int ADD_LOG_DATA = 28;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -377,6 +384,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onSubDatasetVolumetricMaskMessage((SubDatasetVolumetricMaskMessage) m_curMsg);
                         break;
+                    case ADD_LOG_DATA:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onOpenLogDataMessage((OpenLogDataMessage) m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -463,6 +474,11 @@ public class MessageBuffer
             case GET_VOLUMETRIC_MASK:
                 m_curMsg = new SubDatasetVolumetricMaskMessage();
                 break;
+
+            case ADD_LOG_DATA:
+                m_curMsg = new OpenLogDataMessage();
+                break;
+
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
                 return;

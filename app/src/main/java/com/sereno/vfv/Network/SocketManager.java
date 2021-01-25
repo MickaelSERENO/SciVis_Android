@@ -68,6 +68,7 @@ public class SocketManager
     public static final short TOGGLE_MAP_VISIBILITY      = 27;
     public static final short MERGE_SUBDATSETS           = 28;
     public static final short RESET_VOLUMETRIC_SELECTION = 29;
+    public static final short OPEN_LOG_DATA              = 30;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -885,6 +886,24 @@ public class SocketManager
         buf.putShort(RESET_VOLUMETRIC_SELECTION);
         buf.putInt(ids.dataset.getID());
         buf.putInt(ids.subDatasetID);
+
+        return buf.array();
+    }
+
+    /** Create a "open log data" event
+     * @param fileName the data's fileName
+     * @param hasHeader has the log data a header?
+     * @param timeID which column ID represents the time values? -1 == no time
+     * @return array of byte to send to push*/
+    public static byte[] createOpenLogData(String fileName, boolean hasHeader, int timeID)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4 + fileName.length() + 1 + 4); //command ID, fileName, hasHeader, timeID
+        buf.order(ByteOrder.BIG_ENDIAN);
+        buf.putShort(OPEN_LOG_DATA);
+        buf.putInt(fileName.length());
+        buf.put(fileName.getBytes(StandardCharsets.US_ASCII));
+        buf.put((byte)(hasHeader?1:0));
+        buf.putInt(timeID);
 
         return buf.array();
     }

@@ -172,10 +172,11 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
 
             int maxWidth  = Math.max(0, state.maximumWidth-leftOffset);
             int maxHeight = Math.max(0, state.maximumHeight-state.topOffset);
+            int diffHeight = Math.abs(m_extendHeight - t.value.getMeasuredHeight());
 
             measureChild(t.value, MeasureSpec.makeMeasureSpec(maxWidth, state.widthMode), MeasureSpec.makeMeasureSpec(maxHeight, state.heightMode));
 
-            state.height = Math.max(state.topOffset+t.value.getMeasuredHeight(), state.height);
+            state.height = Math.max(state.topOffset+t.value.getMeasuredHeight() + diffHeight, state.height);
             state.width  = Math.max(leftOffset+t.value.getMeasuredWidth(), state.width);
             state.topOffset += t.value.getMeasuredHeight() + m_topOffsetPerChild;
 
@@ -183,7 +184,7 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
             state.measureState = combineMeasuredStates(state.measureState, t.value.getMeasuredState());
 
             if(t.getChildren().size() > 0)
-                state.topOffset += Math.max(m_extendHeight - t.value.getMeasuredHeight(), 0.0);
+                state.topOffset += Math.max(m_extendHeight - t.value.getMeasuredHeight(), 0.0)/2;
         }
 
         extend = extend && t.getExtend();
@@ -247,7 +248,7 @@ public class TreeView extends ViewGroup implements Tree.ITreeListener<View>
             if(leaf.getChildren().size() > 0)
             {
                 leftMargin += m_extendWidth;
-                topMargin  += Math.max(m_extendHeight-height, 0.0);
+                topMargin  += Math.max(m_extendHeight-height, 0.0)/2;
             }
 
             // These are the far left and right edges in which we are performing layout.

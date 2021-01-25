@@ -27,6 +27,7 @@ import android.widget.ToggleButton;
 import com.sereno.Tree;
 import com.sereno.gl.GLSurfaceView;
 import com.sereno.gl.VFVSurfaceView;
+import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.TF.TransferFunction;
@@ -574,6 +575,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+
+    @Override
+    public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container)
+    {}
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}

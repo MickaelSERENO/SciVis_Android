@@ -30,6 +30,13 @@
             android:layout_width="wrap_content"
             app:layout_rowWeight="1"
             android:text="@string/addDataBtn"/>
+
+        <Button
+            android:id="@+id/addNewLogAnnotation"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:layout_rowWeight="1"
+            android:text="@string/openLogData"></Button>
     </LinearLayout>
 
     <View style="@style/Divider"

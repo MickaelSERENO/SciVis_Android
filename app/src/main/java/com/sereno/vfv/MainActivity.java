@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sereno.VFVViewPager;
+import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.CloudPointDataset;
@@ -40,6 +41,7 @@ import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Data.VTKFieldValue;
 import com.sereno.vfv.Data.VTKParser;
+import com.sereno.vfv.Dialog.OpenAnnotationLogDialogFragment;
 import com.sereno.vfv.Dialog.OpenConnectDialogFragment;
 import com.sereno.vfv.Dialog.OpenDatasetDialogFragment;
 import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
@@ -56,6 +58,7 @@ import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.vfv.Network.LocationTabletMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
+import com.sereno.vfv.Network.OpenLogDataMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetMessage;
 import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
@@ -965,6 +968,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onOpenLogDataMessage(final OpenLogDataMessage msg)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run()
+            {
+                AnnotationLogContainer container = new AnnotationLogContainer(getExternalFilesDir(null) + "/Logs/" + msg.getPath(), msg.hasHeader());
+                container.setTimeHeader(msg.getTimeHeaderID());
+                if(container.isValid())
+                    m_model.addAnnotationLog(container);
+                else
+                    Log.e(MainActivity.TAG, "Could not parse Logs/" + msg.getPath());
+            }
+        });
+    }
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -1248,6 +1268,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container)
+    {}
+
+    @Override
     public void onEnableSwipping(Fragment fragment)
     {
         m_viewPager.setPagingEnabled(true);
@@ -1466,7 +1490,7 @@ public class MainActivity extends AppCompatActivity
         actionbar.setDisplayHomeAsUpEnabled(true);
     }
 
-    /** \brief Setup the hidden menu (left menu) part of the drawer */
+    /** Setup the hidden menu (left menu) part of the drawer */
     private void setUpHiddenMenu()
     {
         m_deleteDataBtn  = (Button)findViewById(R.id.deleteDataBtn);
@@ -1476,9 +1500,38 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view){openNewDataDialog();}
         });
+        Button openLog   = (Button)findViewById(R.id.addNewLogAnnotation);
+
+        openLog.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                OpenAnnotationLogDialogFragment dialogFragment = new OpenAnnotationLogDialogFragment();
+                dialogFragment.setNoticeDialogListener(new INoticeDialogListener()
+                {
+                    @Override
+                    public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
+                    {
+                        OpenAnnotationLogDialogFragment af = (OpenAnnotationLogDialogFragment)(dialogFrag);
+                        m_socket.push(SocketManager.createOpenLogData(af.getSelectedFile().getFile().getName(), af.hasHeader(), af.getTimeHeaderID()));
+
+                        //Set the Annotation tab as the current tab
+                        TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
+                        m_viewPager.setCurrentItem(1); //Annotation index
+                        tabLayout.setupWithViewPager(m_viewPager);
+                    }
+
+                    @Override
+                    public void onDialogNegativeClick(DialogFragment dialogFrag, View view)
+                    {}
+                });
+                dialogFragment.show(getSupportFragmentManager(), "dialog");
+            }
+        });
     }
 
-    /** \brief Dialog about opening a new dataset */
+    /** Dialog about opening a new dataset */
     private void openNewDataDialog()
     {
         OpenDatasetDialogFragment dialogFragment = new OpenDatasetDialogFragment();

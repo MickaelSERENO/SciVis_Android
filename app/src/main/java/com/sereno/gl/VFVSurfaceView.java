@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
+import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
@@ -221,6 +222,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     @Override
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+
+    @Override
+    public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container)
+    {}
 
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}

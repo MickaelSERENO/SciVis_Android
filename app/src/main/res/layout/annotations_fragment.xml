@@ -10,8 +10,43 @@
     android:layout_height="match_parent">
 
     <!-- Previews -->
-    <ScrollView
+    <LinearLayout
         app:layout_row="0"
+        app:layout_rowWeight="2"
+        app:layout_columnWeight="1"
+        app:layout_column="0"
+        android:background="@color/treeColor"
+        android:layout_height="0px"
+        android:layout_width="0px"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.sereno.view.TreeView
+                android:textAlignment="center"
+                android:id="@+id/annotPreviewLayout"
+                app:topOffsetPerChild="10px"
+                app:leftOffsetPerLevel="25px"
+                app:strokeWidth="3px"
+                app:extendHeight="64px"
+                app:extendWidth="64px"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                app:inExtendSrc="@drawable/in_expend"
+                app:notExtendSrc="@drawable/not_expend"/>
+        </ScrollView>
+
+        <View style="@style/Divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
+
+    </LinearLayout>
+
+    <ScrollView
+        app:layout_row="1"
         app:layout_rowWeight="1"
         app:layout_columnWeight="1"
         app:layout_column="0"
@@ -19,33 +54,124 @@
         android:layout_height="0px"
         android:layout_width="0px">
 
-        android:textAlignment="center"
         <com.sereno.view.TreeView
-            android:id="@+id/annotPreviewLayout"
+            android:layout_marginLeft="5dp"
+            android:id="@+id/logPreviewLayout"
             app:topOffsetPerChild="10px"
             app:leftOffsetPerLevel="25px"
             app:strokeWidth="3px"
             app:extendHeight="64px"
             app:extendWidth="64px"
+            android:textAlignment="center"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             app:inExtendSrc="@drawable/in_expend"
             app:notExtendSrc="@drawable/not_expend"/>
     </ScrollView>
 
+    <!-- the central layout-->
     <FrameLayout
         app:layout_column="1"
         app:layout_row="0"
         app:layout_rowWeight="1"
         app:layout_columnWeight="3"
+        app:layout_rowSpan="2"
         android:layout_height="0px"
         android:layout_width="0px">
 
+        <!-- The global "Annotation Log" layout-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/annotLogView"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/fileName"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/annotLogFileName"/>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/annotLogHeaderLayout">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/headers"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:id="@+id/annotLogTableHeaders"
+                        android:showDividers="middle"
+                        android:divider="@drawable/table_divider"/>
+                </TableRow>
+            </TableLayout>
+
+            <android.support.v7.widget.GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_row="0"
+                    app:layout_column="0">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/annotLogPosition"/>
+
+                    <ImageView
+                        android:layout_marginLeft="5dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/add"
+                        android:maxWidth="64px"
+                        android:maxHeight="64px"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerInside"/>
+                </LinearLayout>
+
+                <TableLayout
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    app:layout_row="1"
+                    app:layout_column="0"
+                    android:id="@+id/annotLogCurrentPosition">
+                </TableLayout>
+
+            </android.support.v7.widget.GridLayout>
+
+        </LinearLayout>
+
+        <!-- The "Position Log" layout-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/annotPositionView"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"

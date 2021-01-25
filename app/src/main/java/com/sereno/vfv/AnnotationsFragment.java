@@ -17,9 +17,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.sereno.Tree;
+import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.AnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
@@ -42,6 +44,9 @@ import com.sereno.view.ColorPickerData;
 import com.sereno.view.ColorPickerView;
 import com.sereno.view.TreeView;
 
+import org.w3c.dom.Text;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,14 +75,29 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The application model in use*/
     private ApplicationModel m_model = null;
 
+    /** The Panel used for annotation Canvas*/
+    private View m_annotationCanvasPanel;
+
+    /** The Panel used for annotation log*/
+    private View m_annotationLogPanel;
+
     /** The TreeView layout containing the previews of all the annotations*/
     private TreeView m_previews;
+
+    /** The TreeView layout containing the previews of all opened annotation log data*/
+    private TreeView m_logPreview;
+
+    /******************************/
+    /********CANVAS WIDGETS********/
+    /******************************/
 
     /** The annotation view*/
     private AnnotationCanvasView m_annotView;
 
+    /** The view to display while waiting for an annotation to be anchored*/
     private View m_pendingView;
 
+    /** The draw buttons (color, text, image) view*/
     private View m_annotDrawButtonsView;
 
     /** The image view text mode*/
@@ -89,6 +109,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The import images image view*/
     private ImageView m_imageImport;
 
+    /** The default "background" for unselected views */
     private Drawable m_defaultImageViewBackground;
 
     /**The stroke parameter layout*/
@@ -96,6 +117,23 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     /**The stroke parameter layout*/
     private LinearLayout m_textParamLayout = null;
+
+    /******************************/
+    /**********LOG WIDGETS*********/
+    /******************************/
+
+    /** The filename text view for log annot*/
+    private TextView m_annotLogFileName;
+
+    /** The Row containing the headers data*/
+    private View m_annotLogHeadersRow;
+
+    /** The table containing the headers' name*/
+    private LinearLayout m_annotLogHeaders;
+
+    /******************************/
+    /**********MODEL DATA**********/
+    /******************************/
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationCanvasData, AnnotationBitmap> m_bitmaps = new HashMap<>();
@@ -107,7 +145,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private HashMap<Dataset, Tree<View>> m_datasetTrees = new HashMap<>();
 
     /** The trees per Annotation*/
-    private HashMap<AnnotationCanvasData, Tree<View>> m_annotationTrees = new HashMap<>();
+    private HashMap<AnnotationCanvasData, Tree<View>> m_annotationCanvasTrees = new HashMap<>();
+
+    private HashMap<AnnotationLogContainer, Tree<View>> m_annotationLogTrees = new HashMap<>();
 
     /** The current Drawing mode*/
     private AnnotationCanvasData.AnnotationMode m_mode = AnnotationCanvasData.AnnotationMode.STROKE;
@@ -118,11 +158,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The current text color*/
     private int m_currentTextColor = 0xff000000;
 
+    /** The current annotation log container*/
+    private AnnotationLogContainer m_currentSelectedAnnotLog = null;
+
     /** The registered listeners*/
     private ArrayList<IAnnotationsFragmentListener> m_afListeners = new ArrayList<>(); /*!< Object that registered to this AnnotationsFragment events*/
 
+    /** The context creating this fragment*/
     private Context m_ctx  = null;
-
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -255,23 +298,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                                         break;
                                     case R.id.logAnnot_item:
                                     {
-                                        OpenAnnotationLogDialogFragment dialogFragment = new OpenAnnotationLogDialogFragment();
-                                        dialogFragment.setNoticeDialogListener(new INoticeDialogListener()
-                                        {
-                                            @Override
-                                            public void onDialogPositiveClick(DialogFragment dialogFrag, View view)
-                                            {
-                                                OpenAnnotationLogDialogFragment af = (OpenAnnotationLogDialogFragment)(dialogFrag);
 
-                                                for(IAnnotationsFragmentListener list : m_afListeners)
-                                                    list.onOpenAnnotationLog(AnnotationsFragment.this, af.getSelectedFile().getFile().getName(), af.hasHeader(), af.getSelectedHeader());
-                                            }
-
-                                            @Override
-                                            public void onDialogNegativeClick(DialogFragment dialogFrag, View view)
-                                            {}
-                                        });
-                                        dialogFragment.show(getFragmentManager(), "dialog");
                                     }
                                     break;
                                 }
@@ -393,6 +420,45 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
 
     @Override
+    public void onAddAnnotationLog(ApplicationModel model, final AnnotationLogContainer container)
+    {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run()
+            {
+                //Create a title
+                final TextView logTitle = new TextView(getContext());
+                logTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                File f = new File(container.getFilePath());
+                logTitle.setText(f.getName());
+
+                logTitle.setOnClickListener(new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View view)
+                    {
+                        //Show the correct pannel
+                        resetCentralView();
+                        m_annotationLogPanel.setVisibility(View.VISIBLE);
+
+                        //Set the background
+                        view.setBackgroundResource(R.drawable.round_rectangle_background);
+                        m_currentSelectedAnnotLog = container;
+
+                        //Update the view
+                        updateAnnotationLogPanel();
+                    }
+                });
+
+                //Add it to the list of displayed objects
+                Tree<View> logTitleTree = new Tree<View>(logTitle);
+                m_logPreview.getModel().addChild(logTitleTree, -1);
+                m_annotationLogTrees.put(container, logTitleTree);
+            }
+        });
+    }
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
 
     @Override
@@ -415,12 +481,25 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
     {
+        //The mains panels
+        m_annotationCanvasPanel = v.findViewById(R.id.annotCanvasView);
+        m_annotationLogPanel    = v.findViewById(R.id.annotLogView);
+
+        //The tree views
         m_previews  = (TreeView)v.findViewById(R.id.annotPreviewLayout);
+        m_logPreview = (TreeView)v.findViewById(R.id.logPreviewLayout);
+
+        //The annotation log view objects
+        m_annotLogFileName   = (TextView)v.findViewById(R.id.annotLogFileName);
+        m_annotLogHeaders    = (LinearLayout)v.findViewById(R.id.annotLogTableHeaders);
+        m_annotLogHeadersRow = v.findViewById(R.id.annotLogHeaderLayout);
+
+        //The canvas annotation view objects
         m_annotView = (AnnotationCanvasView)v.findViewById(R.id.strokeTextView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
         m_strokeParamLayout = (LinearLayout)v.findViewById(R.id.annotationStrokeParamLayout);
         m_textParamLayout   = (LinearLayout)v.findViewById(R.id.annotationTextParamLayout);
-        m_pendingView = v.findViewById(R.id.annotPendingView);
+        m_pendingView       = v.findViewById(R.id.annotPendingView);
         m_annotDrawButtonsView = v.findViewById(R.id.annotDrawButtons);
         m_pendingView.setVisibility(View.GONE);
         ColorPickerView strokeColorPicker = (ColorPickerView)v.findViewById(R.id.strokeColorPicker);
@@ -595,6 +674,44 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
     }
 
+    /** Update the annotation log panel correctely*/
+    private void updateAnnotationLogPanel()
+    {
+        m_annotationLogPanel.setVisibility(View.VISIBLE);
+        m_annotLogFileName.setText(m_currentSelectedAnnotLog.getFilePath());
+        if(m_currentSelectedAnnotLog.hasHeaders())
+        {
+            m_annotLogHeadersRow.setVisibility(View.VISIBLE);
+            m_annotLogHeaders.removeAllViews();
+
+            for(String h : m_currentSelectedAnnotLog.getHeaders())
+            {
+                final TextView headerView = new TextView(getContext());
+                TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(8, 0, 8, 0);
+                headerView.setLayoutParams(params);
+                headerView.setText(h);
+
+                m_annotLogHeaders.addView(headerView);
+            }
+        }
+        else
+            m_annotLogHeadersRow.setVisibility(View.GONE);
+    }
+
+    /** Reset the central view (framelayout) displaying the current objects to empty*/
+    private void resetCentralView()
+    {
+        //Hide views
+        m_annotationCanvasPanel.setVisibility(View.GONE);
+        m_annotationLogPanel.setVisibility(View.GONE);
+
+        //Reset models
+        if(m_currentSelectedAnnotLog != null)
+            m_annotationLogTrees.get(m_currentSelectedAnnotLog).value.setBackground(m_defaultImageViewBackground);
+        m_currentSelectedAnnotLog = null;
+    }
+
     private void changeCurrentAnnotation(AnnotationPosition pos)
     {
         //TODO
@@ -665,7 +782,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_bitmaps.put(annotation, bmp);
         Tree<View> annotTree = new Tree<View>(snapImg);
         tree.addChild(annotTree, -1);
-        m_annotationTrees.put(annotation, annotTree);
+        m_annotationCanvasTrees.put(annotation, annotTree);
 
         //If no annotation yet added
         if(m_annotView.getModel() == null)
@@ -693,10 +810,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         if(m_bitmaps.containsKey(annot))
             m_bitmaps.remove(annot);
 
-        if(m_annotationTrees.containsKey(annot))
+        if(m_annotationCanvasTrees.containsKey(annot))
         {
-            m_annotationTrees.get(annot).setParent(null, -1);
-            m_annotationTrees.remove(annot);
+            m_annotationCanvasTrees.get(annot).setParent(null, -1);
+            m_annotationCanvasTrees.remove(annot);
         }
     }
 

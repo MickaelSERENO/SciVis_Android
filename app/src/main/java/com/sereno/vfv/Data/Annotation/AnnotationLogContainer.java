@@ -16,8 +16,7 @@ public class AnnotationLogContainer
         m_path = path;
         if(path.endsWith(".csv"))
         {
-            if(nativeParseCSV(m_ptr, path));
-                m_isValid = true;
+            m_isValid = nativeParseCSV(m_ptr, path);
         }
         if(m_isValid && hasHeaders)
             m_headers = nativeGetHeaders(m_ptr);
@@ -57,6 +56,10 @@ public class AnnotationLogContainer
     {
         return nativeHasHeaders(m_ptr);
     }
+
+    /** Is this log container in a valid state?
+     * @return true if yes, false otherwise*/
+    public boolean isValid() {return m_isValid;}
 
     /** Get the headers remaining to use.
      * @return the column IDs that can still be linked to a component*/
