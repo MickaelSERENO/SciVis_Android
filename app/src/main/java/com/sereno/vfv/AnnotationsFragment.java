@@ -359,6 +359,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onPendingCanvasAnnotation(ApplicationModel model, SubDataset sd)
     {
+        resetCentralView();
+        m_annotationCanvasPanel.setVisibility(View.VISIBLE);
         m_pendingView.setVisibility(View.VISIBLE);
         m_annotView.setVisibility(View.GONE);
         m_annotDrawButtonsView.setVisibility(View.GONE);
@@ -367,6 +369,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onEndPendingCanvasAnnotation(ApplicationModel model, SubDataset sd, boolean cancel)
     {
+        resetCentralView();
         m_pendingView.setVisibility(View.GONE);
         m_annotView.setVisibility(View.VISIBLE);
         m_annotDrawButtonsView.setVisibility(View.VISIBLE);
