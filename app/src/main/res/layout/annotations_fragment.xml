@@ -150,7 +150,8 @@
                         android:maxWidth="64px"
                         android:maxHeight="64px"
                         android:adjustViewBounds="true"
-                        android:scaleType="centerInside"/>
+                        android:scaleType="centerInside"
+                        android:id="@+id/annotLogAddPosition"/>
                 </LinearLayout>
 
                 <TableLayout

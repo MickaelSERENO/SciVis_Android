@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
+import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
@@ -70,6 +71,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
          * @param hasHeader has the data a header?
          * @param timeHeader which column should represent the time values? -1 == no time available*/
         void onOpenAnnotationLog(AnnotationsFragment frag, String path, boolean hasHeader, int timeHeader);
+
+        /** Add a new model annotation position in the model container
+         * @param frag the fragment calling this function
+         * @param annot the annotation log container where a new position entry should be added*/
+        void onAddModelAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot);
     }
 
     /** The application model in use*/
@@ -130,6 +136,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     /** The table containing the headers' name*/
     private LinearLayout m_annotLogHeaders;
+
+    /** The table containing the log position information*/
+    private TableLayout m_annotLogPositionTable;
 
     /******************************/
     /**********MODEL DATA**********/
@@ -496,6 +505,22 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_annotLogFileName   = (TextView)v.findViewById(R.id.annotLogFileName);
         m_annotLogHeaders    = (LinearLayout)v.findViewById(R.id.annotLogTableHeaders);
         m_annotLogHeadersRow = v.findViewById(R.id.annotLogHeaderLayout);
+        m_annotLogPositionTable = (TableLayout)v.findViewById(R.id.annotLogCurrentPosition);
+
+        ImageView addPosition = (ImageView)v.findViewById(R.id.annotLogAddPosition);
+        addPosition.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if(m_currentSelectedAnnotLog != null && m_model.getBindingInfo() != null) //Connected and we are in the correct view to add position
+                {
+                    m_currentSelectedAnnotLog.pushAnnotationPosition(m_currentSelectedAnnotLog.initAnnotationPosition());
+                    updateAnnotationLogPanel();
+                }
+            }
+        });
+
 
         //The canvas annotation view objects
         m_annotView = (AnnotationCanvasView)v.findViewById(R.id.strokeTextView);
@@ -681,7 +706,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private void updateAnnotationLogPanel()
     {
         m_annotationLogPanel.setVisibility(View.VISIBLE);
+
+        //Set text
         m_annotLogFileName.setText(m_currentSelectedAnnotLog.getFilePath());
+
+        //Set the available headers
         if(m_currentSelectedAnnotLog.hasHeaders())
         {
             m_annotLogHeadersRow.setVisibility(View.VISIBLE);
@@ -700,6 +729,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         }
         else
             m_annotLogHeadersRow.setVisibility(View.GONE);
+
+        //Redo the position table
+        /*for(AnnotationPosition pos : m_currentSelectedAnnotLog.getAnnotationPosition())
+        {
+
+        }*/
     }
 
     /** Reset the central view (framelayout) displaying the current objects to empty*/

@@ -1418,6 +1418,12 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(this, "Opening " + path, Toast.LENGTH_LONG);
     }
 
+    @Override
+    public void onAddModelAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot)
+    {
+
+    }
+
     /** Set up the main layout*/
     private void setUpMainLayout()
     {
