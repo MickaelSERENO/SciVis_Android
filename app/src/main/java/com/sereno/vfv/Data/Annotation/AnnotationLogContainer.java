@@ -6,7 +6,7 @@ public class AnnotationLogContainer
 {
     private long                          m_ptr;
     private String[]                      m_headers;
-    private ArrayList<AnnotationPosition> m_positions;
+    private ArrayList<AnnotationPosition> m_positions = new ArrayList<>();
     private boolean                       m_isValid = false;
     private String                        m_path;
 
@@ -105,6 +105,13 @@ public class AnnotationLogContainer
     public String getFilePath()
     {
         return m_path;
+    }
+
+    /** Get the annotation positions registered. While those objects can parse data, the "stored" data this container has may differ due to users' changes.
+     * @return the list of registered annotation positions*/
+    public ArrayList<AnnotationPosition> getAnnotationPositions()
+    {
+        return m_positions;
     }
 
     long getPtr()

@@ -97,7 +97,9 @@ public class OpenAnnotationLogDialogFragment extends DialogFragment
                 {
                     //Update the header:
                     AnnotationLogContainer log   = new AnnotationLogContainer(df.getFile().getAbsolutePath(), true);
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item, log.getHeaders());
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item);
+                    adapter.add("-1");
+                    adapter.addAll(log.getHeaders());
                     m_headerStrSpinner.setAdapter(adapter);
 
                     //Update visibility
@@ -173,12 +175,12 @@ public class OpenAnnotationLogDialogFragment extends DialogFragment
             if(m_hasHeader.isChecked())
             {
                 if(m_headerStrSpinner != null)
-                    return (int)m_headerStrSpinner.getSelectedItemId();
+                    return (int)m_headerStrSpinner.getSelectedItemId()-1;
                 return -1;
             }
 
             if(m_headerIntSpinner != null)
-                return (int)m_headerIntSpinner.getSelectedItemId();
+                return (int)m_headerIntSpinner.getSelectedItemId()-1;
             return -1;
         }
         return -1;

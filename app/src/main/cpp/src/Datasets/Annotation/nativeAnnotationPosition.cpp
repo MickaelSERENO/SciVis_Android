@@ -27,13 +27,13 @@ JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosi
     return arr;
 }
 
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeSetXYZHeader_Integer(JNIEnv* jenv, jclass jcls, jlong jptr, jint x, jint y, jint z)
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeSetXYZHeaderInteger(JNIEnv* jenv, jclass jcls, jlong jptr, jint x, jint y, jint z)
 {
     std::shared_ptr<AnnotationPosition>* ptr = (std::shared_ptr<AnnotationPosition>*)jptr;
     (*ptr)->setXYZIndices(x, y, z);
 }
 
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeSetXYZHeader_String(JNIEnv* jenv, jclass jcls, jlong jptr, jstring x, jstring y, jstring z)
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeSetXYZHeaderString(JNIEnv* jenv, jclass jcls, jlong jptr, jstring x, jstring y, jstring z)
 {
     std::shared_ptr<AnnotationPosition>* ptr = (std::shared_ptr<AnnotationPosition>*)jptr;
 

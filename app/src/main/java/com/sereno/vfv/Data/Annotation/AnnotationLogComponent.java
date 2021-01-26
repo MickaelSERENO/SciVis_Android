@@ -29,6 +29,8 @@ public class AnnotationLogComponent
         return nativeGetEnableTime(m_ptr);
     }
 
+    public int[] getHeaders() {return nativeGetHeaders(m_ptr);}
+
     long getPtr()
     {
         return m_ptr;
@@ -37,4 +39,5 @@ public class AnnotationLogComponent
     private static native void    nativeDelPtr(long ptr);
     private static native void    nativeSetEnableTime(long ptr, boolean t);
     private static native boolean nativeGetEnableTime(long ptr);
+    private static native int[]   nativeGetHeaders(long ptr);
 }

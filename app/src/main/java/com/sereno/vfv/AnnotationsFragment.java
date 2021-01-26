@@ -8,11 +8,14 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -731,10 +734,146 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             m_annotLogHeadersRow.setVisibility(View.GONE);
 
         //Redo the position table
-        /*for(AnnotationPosition pos : m_currentSelectedAnnotLog.getAnnotationPosition())
-        {
+        m_annotLogPositionTable.removeAllViews();
 
-        }*/
+        class HeaderID
+        {
+            public int id = -1;
+            public String header;
+
+            public HeaderID(int _id, String _header)
+            {
+                id     = _id;
+                header = _header;
+            }
+
+            @Override
+            public String toString() {return header;}
+        };
+
+        final ArrayList<Runnable> updateAllSpinners = new ArrayList<>();
+
+        for(final AnnotationPosition pos : m_currentSelectedAnnotLog.getAnnotationPositions())
+        {
+            View positionView = getActivity().getLayoutInflater().inflate(R.layout.annotation_log_position_entry, null);
+            positionView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            final Spinner xSpinner = (Spinner)positionView.findViewById(R.id.annotPositionXSpinner);
+            final Spinner ySpinner = (Spinner)positionView.findViewById(R.id.annotPositionYSpinner);
+            final Spinner zSpinner = (Spinner)positionView.findViewById(R.id.annotPositionZSpinner);
+
+            updateAllSpinners.add(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    int[] posHeaders       = pos.getHeaders();
+                    int[] remainingHeaders = m_currentSelectedAnnotLog.getRemainingHeaders();
+                    String[] headers;
+                    if(m_currentSelectedAnnotLog.hasHeaders())
+                    {
+                        headers = m_currentSelectedAnnotLog.getHeaders();
+                    }
+                    else
+                    {
+                        headers = new String[m_currentSelectedAnnotLog.getNbColumns()];
+                        for(int i = 0; i < headers.length; i++)
+                            headers[i] = Integer.toString(i);
+                    }
+
+                    Spinner[] spinners = new Spinner[]{xSpinner, ySpinner, zSpinner};
+
+                    for(int i = 0; i < 3; i++)
+                    {
+                        ArrayAdapter<HeaderID> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item);
+
+                        //Add this header
+                        if(posHeaders[i] != -1)
+                            adapter.add(new HeaderID(posHeaders[i], headers[posHeaders[i]]));
+
+                        //Followed by -1
+                        adapter.add(new HeaderID(-1, "-1"));
+
+                        //Followed by the remaining ones
+                        for(int rem : remainingHeaders)
+                            adapter.add(new HeaderID(rem, headers[rem]));
+
+                        //Modify the spinners
+                        spinners[i].setAdapter(adapter);
+                        spinners[i].setSelection(0);
+                    }
+                }
+            });
+
+            xSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+            {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+                {
+                    int[]    posHeaders = pos.getHeaders();
+                    HeaderID hID        = (HeaderID)adapterView.getSelectedItem();
+
+                    if(hID.id != posHeaders[0])
+                    {
+                        pos.setXYZHeader(hID.id, posHeaders[1], posHeaders[2]);
+                        for(Runnable r : updateAllSpinners)
+                            r.run();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView)
+                {}
+            });
+
+            ySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+            {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+                {
+                    int[]    posHeaders = pos.getHeaders();
+                    HeaderID hID        = (HeaderID)adapterView.getSelectedItem();
+
+                    if(hID.id != posHeaders[1])
+                    {
+                        pos.setXYZHeader(posHeaders[0], hID.id, posHeaders[2]);
+                        for(Runnable r : updateAllSpinners)
+                            r.run();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView)
+                {}
+            });
+
+            zSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+
+            {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+                {
+                    int[]    posHeaders = pos.getHeaders();
+                    HeaderID hID        = (HeaderID)adapterView.getItemAtPosition(i);
+
+                    if(hID.id != posHeaders[2])
+                    {
+                        pos.setXYZHeader(posHeaders[0], posHeaders[1], hID.id);
+                        for(Runnable r : updateAllSpinners)
+                            r.run();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView)
+                {}
+            });
+
+            m_annotLogPositionTable.addView(positionView);
+        }
+
+        for(Runnable r : updateAllSpinners)
+            r.run();
     }
 
     /** Reset the central view (framelayout) displaying the current objects to empty*/

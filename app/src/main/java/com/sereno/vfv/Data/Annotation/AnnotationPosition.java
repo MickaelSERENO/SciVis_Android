@@ -16,12 +16,12 @@ public class AnnotationPosition extends AnnotationLogComponent
 
     public void setXYZHeader(String x, String y, String z)
     {
-        nativeSetXYZHeader_String(m_ptr, x, y, z);
+        nativeSetXYZHeaderString(m_ptr, x, y, z);
     }
 
     public void setXYZHeader(int x, int y, int z)
     {
-        nativeSetXYZHeader_Integer(m_ptr, x, y, z);
+        nativeSetXYZHeaderInteger(m_ptr, x, y, z);
     }
 
     public Color getColor()
@@ -38,6 +38,6 @@ public class AnnotationPosition extends AnnotationLogComponent
     private static native long    nativeInitPtr(long annLogPtr);
     private static native void    nativeSetColor(long ptr, float r, float g, float b, float a);
     private static native float[] nativeGetColor(long ptr);
-    private static native void    nativeSetXYZHeader_String(long ptr, String x, String y, String z);
-    private static native void    nativeSetXYZHeader_Integer(long ptr, int x, int y, int z);
+    private static native void    nativeSetXYZHeaderString(long ptr, String x, String y, String z);
+    private static native void    nativeSetXYZHeaderInteger(long ptr, int x, int y, int z);
 }

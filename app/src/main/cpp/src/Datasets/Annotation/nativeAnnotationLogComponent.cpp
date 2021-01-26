@@ -21,3 +21,14 @@ JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogComp
     std::shared_ptr<AnnotationLogComponent>* ptr = (std::shared_ptr<AnnotationLogComponent>*)jptr;
     return (*ptr)->getEnableTime();
 }
+
+JNIEXPORT jintArray JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogComponent_nativeGetHeaders(JNIEnv* jenv, jclass jcls, jlong jptr)
+{
+    std::shared_ptr<AnnotationLogComponent>* ptr = (std::shared_ptr<AnnotationLogComponent>*)jptr;
+
+    std::vector<int32_t> res((*ptr)->getHeaders());
+    jintArray arr = jenv->NewIntArray(res.size());
+    jenv->SetIntArrayRegion(arr, 0, res.size(), (jint*)res.data());
+
+    return arr;
+}
