@@ -93,12 +93,13 @@ public class OpenAnnotationLogDialogFragment extends DialogFragment
                     return;
 
                 DataFile df = (DataFile)m_datasetSpinner.getSelectedItem();
-                if(m_hasHeader.isChecked())
+                AnnotationLogContainer log   = new AnnotationLogContainer(-1, df.getFile().getAbsolutePath(), m_hasHeader.isChecked());
+
+                if(log.hasHeaders())
                 {
                     //Update the header:
-                    AnnotationLogContainer log   = new AnnotationLogContainer(df.getFile().getAbsolutePath(), true);
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item);
-                    adapter.add("-1");
+                    adapter.add("-1"); //No time header
                     adapter.addAll(log.getHeaders());
                     m_headerStrSpinner.setAdapter(adapter);
 
@@ -108,7 +109,6 @@ public class OpenAnnotationLogDialogFragment extends DialogFragment
                 }
                 else
                 {
-                    AnnotationLogContainer log    = new AnnotationLogContainer(df.getFile().getAbsolutePath(), false);
                     Integer[] headers = new Integer[log.getNbColumns()+1];
                     for(int i = 0; i < headers.length; i++)
                         headers[i] = i-1; //-1 == no time header

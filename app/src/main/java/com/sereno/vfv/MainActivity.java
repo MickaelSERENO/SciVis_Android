@@ -974,7 +974,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run()
             {
-                AnnotationLogContainer container = new AnnotationLogContainer(getExternalFilesDir(null) + "/Logs/" + msg.getPath(), msg.hasHeader());
+                AnnotationLogContainer container = new AnnotationLogContainer(msg.getDataID(), getExternalFilesDir(null) + "/Logs/" + msg.getPath(), msg.hasHeader());
                 container.setTimeHeader(msg.getTimeHeaderID());
                 if(container.isValid())
                     m_model.addAnnotationLog(container);
@@ -1413,15 +1413,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onOpenAnnotationLog(AnnotationsFragment frag, String path, boolean hasHeader, int timeHeader)
+    public void onAddAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot)
     {
-        Toast.makeText(this, "Opening " + path, Toast.LENGTH_LONG);
-    }
-
-    @Override
-    public void onAddModelAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot)
-    {
-
+        m_socket.push(SocketManager.createAddAnnotationPosition(annot.getID()));
     }
 
     /** Set up the main layout*/

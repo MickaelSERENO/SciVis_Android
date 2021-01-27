@@ -1,5 +1,8 @@
 package com.sereno.vfv;
 
+import android.content.ClipData;
+import android.content.ClipDescription;
+import android.graphics.PorterDuff;
 import android.support.v4.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,6 +12,8 @@ import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.DragEvent;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -23,8 +28,10 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sereno.Tree;
+import com.sereno.vfv.Data.Annotation.AnnotationLogComponent;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.AnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
@@ -46,6 +53,7 @@ import com.sereno.view.AnnotationText;
 import com.sereno.view.AnnotationCanvasView;
 import com.sereno.view.ColorPickerData;
 import com.sereno.view.ColorPickerView;
+import com.sereno.view.CustomShadowBuilder;
 import com.sereno.view.TreeView;
 
 import org.w3c.dom.Text;
@@ -55,76 +63,102 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationCanvasData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener,
-                                                                SubDataset.ISubDatasetListener, Dataset.IDatasetListener
+public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationCanvasData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener, SubDataset.ISubDatasetListener, Dataset.IDatasetListener
 {
     private static class AnnotationBitmap
     {
-        public Bitmap    bitmap;
+        public Bitmap bitmap;
         public ImageView imageView;
     }
 
-    /** Interface proposing callback methods regarding the AnnotationFragment*/
+    /**
+     * Interface proposing callback methods regarding the AnnotationFragment
+     */
     public interface IAnnotationsFragmentListener
     {
-        /** Called when the user wants to open an annotation fragment.
-         * Note that the log can already be opened: it is the call of the listener to check that information
-         * @param frag the fragment calling this function
-         * @param path the data sub file
-         * @param hasHeader has the data a header?
-         * @param timeHeader which column should represent the time values? -1 == no time available*/
-        void onOpenAnnotationLog(AnnotationsFragment frag, String path, boolean hasHeader, int timeHeader);
-
-        /** Add a new model annotation position in the model container
-         * @param frag the fragment calling this function
+        /** Add a new annotation position in the model container
+         *
+         * @param frag  the fragment calling this function
          * @param annot the annotation log container where a new position entry should be added*/
-        void onAddModelAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot);
+        void onAddAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot);
     }
 
-    /** The application model in use*/
+    private static final String LABEL_SUBDATASET_DRAG_AND_DROP = "SUBDATASET";
+
+    private static final String MIMETYPE_SUBDATASET = "data/Subdataset";
+
+    /**
+     * The application model in use
+     */
     private ApplicationModel m_model = null;
 
-    /** The Panel used for annotation Canvas*/
+    /**
+     * The Panel used for annotation Canvas
+     */
     private View m_annotationCanvasPanel;
 
-    /** The Panel used for annotation log*/
+    /**
+     * The Panel used for annotation log
+     */
     private View m_annotationLogPanel;
 
-    /** The TreeView layout containing the previews of all the annotations*/
+    /**
+     * The TreeView layout containing the previews of all the annotations
+     */
     private TreeView m_previews;
 
-    /** The TreeView layout containing the previews of all opened annotation log data*/
+    /**
+     * The TreeView layout containing the previews of all opened annotation log data
+     */
     private TreeView m_logPreview;
 
     /******************************/
     /********CANVAS WIDGETS********/
     /******************************/
 
-    /** The annotation view*/
+    /**
+     * The annotation view
+     */
     private AnnotationCanvasView m_annotView;
 
-    /** The view to display while waiting for an annotation to be anchored*/
+    /**
+     * The view to display while waiting for an annotation to be anchored
+     */
     private View m_pendingView;
 
-    /** The draw buttons (color, text, image) view*/
+    /**
+     * The draw buttons (color, text, image) view
+     */
     private View m_annotDrawButtonsView;
 
-    /** The image view text mode*/
+    /**
+     * The image view text mode
+     */
     private ImageView m_textMode;
 
-    /** The color parameters image view*/
+    /**
+     * The color parameters image view
+     */
     private ImageView m_colorParam;
 
-    /** The import images image view*/
+    /**
+     * The import images image view
+     */
     private ImageView m_imageImport;
 
-    /** The default "background" for unselected views */
+    /**
+     * The default "background" for unselected views
+     */
     private Drawable m_defaultImageViewBackground;
 
-    /**The stroke parameter layout*/
+    /**
+     * The stroke parameter layout
+     */
     private LinearLayout m_strokeParamLayout = null;
 
-    /**The stroke parameter layout*/
+    /**
+     * The stroke parameter layout
+     */
     private LinearLayout m_textParamLayout = null;
 
     /******************************/
@@ -143,43 +177,68 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The table containing the log position information*/
     private TableLayout m_annotLogPositionTable;
 
+    /** The array to update the table concerning log annotation positions*/
+    private ArrayList<Runnable> m_updateAnnotLogPositionTable = null;
+
     /******************************/
     /**********MODEL DATA**********/
     /******************************/
 
-    /** The bitmap showing the content of the annotations*/
+    /**
+     * The bitmap showing the content of the annotations
+     */
     private HashMap<AnnotationCanvasData, AnnotationBitmap> m_bitmaps = new HashMap<>();
 
-    /** The trees of SubDataset*/
+    /**
+     * The trees of SubDataset
+     */
     private HashMap<SubDataset, Tree<View>> m_subDatasetTrees = new HashMap<>();
 
-    /** The trees per Dataset*/
+    /**
+     * The trees per Dataset
+     */
     private HashMap<Dataset, Tree<View>> m_datasetTrees = new HashMap<>();
 
-    /** The trees per Annotation*/
+    /**
+     * The trees per Annotation
+     */
     private HashMap<AnnotationCanvasData, Tree<View>> m_annotationCanvasTrees = new HashMap<>();
 
     private HashMap<AnnotationLogContainer, Tree<View>> m_annotationLogTrees = new HashMap<>();
 
-    /** The current Drawing mode*/
+    /**
+     * The current Drawing mode
+     */
     private AnnotationCanvasData.AnnotationMode m_mode = AnnotationCanvasData.AnnotationMode.STROKE;
 
-    /** The current stroke color*/
+    /**
+     * The current stroke color
+     */
     private int m_currentStrokeColor = 0xff000000;
 
-    /** The current text color*/
+    /**
+     * The current text color
+     */
     private int m_currentTextColor = 0xff000000;
 
-    /** The current annotation log container*/
+    /**
+     * The current annotation log container
+     */
     private AnnotationLogContainer m_currentSelectedAnnotLog = null;
 
-    /** The registered listeners*/
+    /**
+     * The registered listeners
+     */
     private ArrayList<IAnnotationsFragmentListener> m_afListeners = new ArrayList<>(); /*!< Object that registered to this AnnotationsFragment events*/
 
-    /** The context creating this fragment*/
-    private Context m_ctx  = null;
+    /**
+     * The context creating this fragment
+     */
+    private Context m_ctx = null;
 
-    /** @brief OnCreate function. Called when the activity is on creation*/
+    /**
+     * @brief OnCreate function. Called when the activity is on creation
+     */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -195,27 +254,28 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         return v;
     }
 
-    /** Set up the model callback through this fragment
-     * @param model the model to link with the internal views*/
+    /**
+     * Set up the model callback through this fragment
+     *
+     * @param model the model to link with the internal views
+     */
     public void setUpModel(ApplicationModel model)
     {
-        if(m_model != null)
-            m_model.removeListener(this);
+        if(m_model != null) m_model.removeListener(this);
         m_model = model;
-        if(m_ctx != null)
-            m_model.addListener(this);
+        if(m_ctx != null) m_model.addListener(this);
 
         if(m_ctx != null)
         {
             //Call the callback functions
-            for (VectorFieldDataset d : model.getVectorFieldDatasets())
+            for(VectorFieldDataset d : model.getVectorFieldDatasets())
                 onAddVectorFieldDataset(m_model, d);
-            for (VTKDataset d : model.getVTKDatasets())
+            for(VTKDataset d : model.getVTKDatasets())
                 onAddVTKDataset(m_model, d);
-            for (CloudPointDataset d : model.getCloudPointDataset())
+            for(CloudPointDataset d : model.getCloudPointDataset())
                 onAddCloudPointDataset(m_model, d);
 
-            for (Dataset d : m_model.getDatasets())
+            for(Dataset d : m_model.getDatasets())
             {
                 for(SubDataset sd : d.getSubDatasets())
                 {
@@ -230,19 +290,23 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
 
-    /** Remove an already registered listener for the AnnotationsFragment specification
-     * @param clbk the listener to not call anymore*/
+    /**
+     * Remove an already registered listener for the AnnotationsFragment specification
+     *
+     * @param clbk the listener to not call anymore
+     */
     public void removeAFListener(IAnnotationsFragmentListener clbk)
     {
         m_afListeners.remove(clbk);
     }
 
-    /** @brief Add a callback object to call at actions performed by the annotations fragment
-     * @param clbk the new callback to take account of*/
+    /**
+     * @param clbk the new callback to take account of
+     * @brief Add a callback object to call at actions performed by the annotations fragment
+     */
     public void addAFListener(IAnnotationsFragmentListener clbk)
     {
-        if(!m_afListeners.contains(clbk))
-            m_afListeners.add(clbk);
+        if(!m_afListeners.contains(clbk)) m_afListeners.add(clbk);
     }
 
 
@@ -252,8 +316,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_ctx = context;
         super.onAttach(context);
 
-        if(m_model != null)
-            setUpModel(m_model);
+        if(m_model != null) setUpModel(m_model);
     }
 
     @Override
@@ -275,26 +338,32 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onRemoveSubDataset(Dataset dataset, SubDataset sd) {}
+    public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
+    {
+    }
 
     @Override
     public void onAddSubDataset(Dataset dataset, final SubDataset sd)
     {
         sd.addListener(this);
 
-        getActivity().runOnUiThread(new Runnable() {
+        getActivity().runOnUiThread(new Runnable()
+        {
             @Override
-            public void run() {
-                View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
+            public void run()
+            {
+                final View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_key_entry, null);
                 sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
                 TextView sdTitleText = (TextView) sdTitle.findViewById(R.id.annotation_key_entry_name);
                 sdTitleText.setText(sd.getName());
 
-                ImageView addView = (ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add);
-                addView.setOnClickListener(new View.OnClickListener(){
+                ImageView addView = (ImageView) sdTitle.findViewById(R.id.annotation_key_entry_add);
+                addView.setOnClickListener(new View.OnClickListener()
+                {
                     @Override
-                    public void onClick(View view) {
+                    public void onClick(View view)
+                    {
                         PopupMenu popup = new PopupMenu(getContext(), view);
                         popup.getMenuInflater().inflate(R.menu.annotation_type_menu, popup.getMenu());
 
@@ -322,6 +391,18 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                     }
                 });
 
+                sdTitle.findViewById(R.id.annotation_key_entry_drag_drop).setOnLongClickListener(new View.OnLongClickListener()
+                {
+                    @Override
+                    public boolean onLongClick(View view)
+                    {
+                        ClipData data = new ClipData(LABEL_SUBDATASET_DRAG_AND_DROP, new String[]{MIMETYPE_SUBDATASET}, new ClipData.Item(sd.getName()));
+                        View.DragShadowBuilder shadow = new CustomShadowBuilder(sdTitle);
+                        view.startDrag(data, shadow, sd, 0);
+                        return true;
+                    }
+                });
+
                 //Add the SubDataset title
                 Tree<View> sdTitleTree = new Tree<View>(sdTitle);
                 m_subDatasetTrees.put(sd, sdTitleTree);
@@ -335,22 +416,30 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onLoadDataset(Dataset dataset, boolean success) {}
+    public void onLoadDataset(Dataset dataset, boolean success)
+    {
+    }
 
     @Override
-    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture) {}
+    public void onLoadCPCPTexture(Dataset dataset, CPCPTexture texture)
+    {
+    }
 
     @Override
-    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID) {}
+    public void onLoad1DHistogram(Dataset dataset, float[] values, int pID)
+    {
+    }
 
     private void onAddDataset(final Dataset d)
     {
         final Tree<View> t = m_previews.getModel();
         d.addListener(this);
 
-        getActivity().runOnUiThread(new Runnable() {
+        getActivity().runOnUiThread(new Runnable()
+        {
             @Override
-            public void run() {
+            public void run()
+            {
                 //Add the dataset title
                 TextView title = new TextView(getContext());
                 title.setText(d.getName());
@@ -366,7 +455,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
     @Override
     public void onAddCanvasAnnotation(ApplicationModel model, AnnotationCanvasData annot, ApplicationModel.AnnotationMetaData metaData)
-    { }
+    {
+    }
 
     @Override
     public void onPendingCanvasAnnotation(ApplicationModel model, SubDataset sd)
@@ -388,32 +478,36 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onChangeCurrentAction(ApplicationModel model, int action) {
+    public void onChangeCurrentAction(ApplicationModel model, int action)
+    {
 
     }
 
     @Override
-    public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd) {
+    public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
+    {
 
     }
 
     @Override
-    public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus) {}
+    public void onUpdateHeadsetsStatus(ApplicationModel model, HeadsetsStatusMessage.HeadsetStatus[] headsetsStatus)
+    {
+    }
 
     @Override
-    public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info) {}
+    public void onUpdateBindingInformation(ApplicationModel model, HeadsetBindingInfoMessage info)
+    {
+    }
 
     @Override
     public void onRemoveDataset(ApplicationModel model, Dataset dataset)
     {
-        if(!m_datasetTrees.containsKey(dataset))
-            return;
+        if(!m_datasetTrees.containsKey(dataset)) return;
 
         //Remove every sub datasets
         for(SubDataset sd : dataset.getSubDatasets())
         {
-            if (!m_subDatasetTrees.containsKey(sd))
-                continue;
+            if(!m_subDatasetTrees.containsKey(sd)) continue;
 
             Tree<View> sdTree = m_subDatasetTrees.get(sd);
             sdTree.setParent(null, 0);
@@ -425,19 +519,51 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
+    public void onUpdatePointingTechnique(ApplicationModel model, int pt)
+    {
+    }
 
     @Override
     public void onChangeTimeAnimationStatus(ApplicationModel model, boolean isInPlay, int speed, float step)
-    {}
+    {
+    }
 
     @Override
-    public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+    public void onSetSelectionMode(ApplicationModel model, int selectMode)
+    {
+    }
 
     @Override
     public void onAddAnnotationLog(ApplicationModel model, final AnnotationLogContainer container)
     {
-        getActivity().runOnUiThread(new Runnable() {
+        container.addListener(new AnnotationLogContainer.AnnotationLogContainerListener()
+        {
+            @Override
+            public void onAddAnnotationLogPosition(final AnnotationLogContainer container, AnnotationPosition position)
+            {
+                position.addListener(new AnnotationLogComponent.AnnotationLogComponentListener()
+                {
+                    @Override
+                    public void onSetHeaders(final AnnotationLogComponent component)
+                    {
+                        //Update the view
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                if(m_currentSelectedAnnotLog == container)
+                                    for(Runnable r : m_updateAnnotLogPositionTable)
+                                        r.run();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        getActivity().runOnUiThread(new Runnable()
+        {
             @Override
             public void run()
             {
@@ -474,43 +600,58 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
+    public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
+    {
+    }
 
     @Override
-    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy) {}
+    public void onSetTabletScale(ApplicationModel model, float scale, float width, float height, float posx, float posy)
+    {
+    }
 
     @Override
-    public void onSetLasso(ApplicationModel model, float[] lasso) {}
+    public void onSetLasso(ApplicationModel model, float[] lasso)
+    {
+    }
 
     @Override
-    public void onConfirmSelection(ApplicationModel model) {}
+    public void onConfirmSelection(ApplicationModel model)
+    {
+    }
 
     @Override
-    public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
+    public void onSetCurrentBooleanOperation(ApplicationModel model, int op)
+    {
+    }
 
     @Override
-    public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
+    public void onSetTangibleMode(ApplicationModel model, int tangibleMode)
+    {
+    }
 
 
-    /** Set up the main layout
-     * @param v the main view containing all the Widgets*/
+    /**
+     * Set up the main layout
+     *
+     * @param v the main view containing all the Widgets
+     */
     private void setUpMainLayout(View v)
     {
         //The mains panels
         m_annotationCanvasPanel = v.findViewById(R.id.annotCanvasView);
-        m_annotationLogPanel    = v.findViewById(R.id.annotLogView);
+        m_annotationLogPanel = v.findViewById(R.id.annotLogView);
 
         //The tree views
-        m_previews  = (TreeView)v.findViewById(R.id.annotPreviewLayout);
-        m_logPreview = (TreeView)v.findViewById(R.id.logPreviewLayout);
+        m_previews = (TreeView) v.findViewById(R.id.annotPreviewLayout);
+        m_logPreview = (TreeView) v.findViewById(R.id.logPreviewLayout);
 
         //The annotation log view objects
-        m_annotLogFileName   = (TextView)v.findViewById(R.id.annotLogFileName);
-        m_annotLogHeaders    = (LinearLayout)v.findViewById(R.id.annotLogTableHeaders);
+        m_annotLogFileName = (TextView) v.findViewById(R.id.annotLogFileName);
+        m_annotLogHeaders = (LinearLayout) v.findViewById(R.id.annotLogTableHeaders);
         m_annotLogHeadersRow = v.findViewById(R.id.annotLogHeaderLayout);
-        m_annotLogPositionTable = (TableLayout)v.findViewById(R.id.annotLogCurrentPosition);
+        m_annotLogPositionTable = (TableLayout) v.findViewById(R.id.annotLogCurrentPosition);
 
-        ImageView addPosition = (ImageView)v.findViewById(R.id.annotLogAddPosition);
+        ImageView addPosition = (ImageView) v.findViewById(R.id.annotLogAddPosition);
         addPosition.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -526,61 +667,73 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
 
         //The canvas annotation view objects
-        m_annotView = (AnnotationCanvasView)v.findViewById(R.id.strokeTextView);
+        m_annotView = (AnnotationCanvasView) v.findViewById(R.id.strokeTextView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
-        m_strokeParamLayout = (LinearLayout)v.findViewById(R.id.annotationStrokeParamLayout);
-        m_textParamLayout   = (LinearLayout)v.findViewById(R.id.annotationTextParamLayout);
-        m_pendingView       = v.findViewById(R.id.annotPendingView);
+        m_strokeParamLayout = (LinearLayout) v.findViewById(R.id.annotationStrokeParamLayout);
+        m_textParamLayout = (LinearLayout) v.findViewById(R.id.annotationTextParamLayout);
+        m_pendingView = v.findViewById(R.id.annotPendingView);
         m_annotDrawButtonsView = v.findViewById(R.id.annotDrawButtons);
         m_pendingView.setVisibility(View.GONE);
-        ColorPickerView strokeColorPicker = (ColorPickerView)v.findViewById(R.id.strokeColorPicker);
-        ColorPickerView textColorPicker   = (ColorPickerView)v.findViewById(R.id.textColorPicker);
+        ColorPickerView strokeColorPicker = (ColorPickerView) v.findViewById(R.id.strokeColorPicker);
+        ColorPickerView textColorPicker = (ColorPickerView) v.findViewById(R.id.textColorPicker);
 
-        m_annotView.setOnTouchListener(new View.OnTouchListener() {
+        m_annotView.setOnTouchListener(new View.OnTouchListener()
+        {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
                 onTouchSwippingEvent(motionEvent);
                 return false;
             }
         });
 
-        strokeColorPicker.setOnTouchListener(new View.OnTouchListener() {
+        strokeColorPicker.setOnTouchListener(new View.OnTouchListener()
+        {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
                 onTouchSwippingEvent(motionEvent);
                 return false;
             }
         });
 
-        textColorPicker.setOnTouchListener(new View.OnTouchListener() {
+        textColorPicker.setOnTouchListener(new View.OnTouchListener()
+        {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
                 onTouchSwippingEvent(motionEvent);
                 return false;
             }
         });
 
-        strokeColorPicker.getModel().addListener(new ColorPickerData.IColorPickerDataListener() {
+        strokeColorPicker.getModel().addListener(new ColorPickerData.IColorPickerDataListener()
+        {
             @Override
-            public void onSetColor(ColorPickerData data, int color) {
+            public void onSetColor(ColorPickerData data, int color)
+            {
                 m_currentStrokeColor = color;
             }
         });
 
-        textColorPicker.getModel().addListener(new ColorPickerData.IColorPickerDataListener() {
+        textColorPicker.getModel().addListener(new ColorPickerData.IColorPickerDataListener()
+        {
             @Override
-            public void onSetColor(ColorPickerData data, int color) {
+            public void onSetColor(ColorPickerData data, int color)
+            {
                 m_currentTextColor = color;
             }
         });
 
-        m_colorParam  = (ImageView)v.findViewById(R.id.annotationStrokeParam);
-        m_textMode    = (ImageView)v.findViewById(R.id.annotationTextMode);
-        m_imageImport = (ImageView)v.findViewById(R.id.annotationImportImage);
+        m_colorParam = (ImageView) v.findViewById(R.id.annotationStrokeParam);
+        m_textMode = (ImageView) v.findViewById(R.id.annotationTextMode);
+        m_imageImport = (ImageView) v.findViewById(R.id.annotationImportImage);
 
-        m_colorParam.setOnTouchListener(new View.OnTouchListener() {
+        m_colorParam.setOnTouchListener(new View.OnTouchListener()
+        {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
                     AnnotationCanvasData.AnnotationMode mode = m_mode;
@@ -596,9 +749,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
         });
 
-        m_textMode.setOnTouchListener(new View.OnTouchListener() {
+        m_textMode.setOnTouchListener(new View.OnTouchListener()
+        {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
                     AnnotationCanvasData.AnnotationMode mode = m_mode;
@@ -617,7 +772,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_defaultImageViewBackground = m_colorParam.getBackground();
     }
 
-    /** Set the image views button backgrounds to TRANSPARENT and hides parameter layouts*/
+    /**
+     * Set the image views button backgrounds to TRANSPARENT and hides parameter layouts
+     */
     private void setImageViewBackgrounds()
     {
         m_colorParam.setBackground(m_defaultImageViewBackground);
@@ -627,26 +784,32 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_textParamLayout.setVisibility(View.INVISIBLE);
     }
 
-    /** Set the current mode to apply
-     * @param mode the mode to apply*/
+    /**
+     * Set the current mode to apply
+     *
+     * @param mode the mode to apply
+     */
     private void setMode(AnnotationCanvasData.AnnotationMode mode)
     {
         if(mode == AnnotationCanvasData.AnnotationMode.STROKE)
         {
-            getActivity().runOnUiThread(new Runnable() {
+            getActivity().runOnUiThread(new Runnable()
+            {
                 @Override
-                public void run() {
+                public void run()
+                {
                     setImageViewBackgrounds();
                     m_colorParam.setBackgroundResource(R.drawable.round_rectangle_background);
                     m_strokeParamLayout.setVisibility(View.VISIBLE);
                 }
             });
-        }
-        else if(mode == AnnotationCanvasData.AnnotationMode.TEXT)
+        } else if(mode == AnnotationCanvasData.AnnotationMode.TEXT)
         {
-            getActivity().runOnUiThread(new Runnable() {
+            getActivity().runOnUiThread(new Runnable()
+            {
                 @Override
-                public void run() {
+                public void run()
+                {
                     setImageViewBackgrounds();
                     m_textMode.setBackgroundResource(R.drawable.round_rectangle_background);
                     m_textParamLayout.setVisibility(View.VISIBLE);
@@ -659,7 +822,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             m_annotView.getModel().setMode(mode);
     }
 
-    /**Update the bitmap bound to an annotation data
+    /** Update the bitmap bound to an annotation data
      * @param data the data being updated*/
     private void updateBitmap(final AnnotationCanvasData data)
     {
@@ -705,7 +868,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
     }
 
-    /** Update the annotation log panel correctely*/
+    /**
+     * Update the annotation log panel correctely
+     */
     private void updateAnnotationLogPanel()
     {
         m_annotationLogPanel.setVisibility(View.VISIBLE);
@@ -729,9 +894,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
                 m_annotLogHeaders.addView(headerView);
             }
-        }
-        else
-            m_annotLogHeadersRow.setVisibility(View.GONE);
+        } else m_annotLogHeadersRow.setVisibility(View.GONE);
 
         //Redo the position table
         m_annotLogPositionTable.removeAllViews();
@@ -743,38 +906,40 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
             public HeaderID(int _id, String _header)
             {
-                id     = _id;
+                id = _id;
                 header = _header;
             }
 
             @Override
-            public String toString() {return header;}
+            public String toString()
+            {
+                return header;
+            }
         };
 
-        final ArrayList<Runnable> updateAllSpinners = new ArrayList<>();
+        m_updateAnnotLogPositionTable = new ArrayList<>();
 
         for(final AnnotationPosition pos : m_currentSelectedAnnotLog.getAnnotationPositions())
         {
             View positionView = getActivity().getLayoutInflater().inflate(R.layout.annotation_log_position_entry, null);
             positionView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            final Spinner xSpinner = (Spinner)positionView.findViewById(R.id.annotPositionXSpinner);
-            final Spinner ySpinner = (Spinner)positionView.findViewById(R.id.annotPositionYSpinner);
-            final Spinner zSpinner = (Spinner)positionView.findViewById(R.id.annotPositionZSpinner);
+            final Spinner xSpinner = (Spinner) positionView.findViewById(R.id.annotPositionXSpinner);
+            final Spinner ySpinner = (Spinner) positionView.findViewById(R.id.annotPositionYSpinner);
+            final Spinner zSpinner = (Spinner) positionView.findViewById(R.id.annotPositionZSpinner);
 
-            updateAllSpinners.add(new Runnable()
+            m_updateAnnotLogPositionTable.add(new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    int[] posHeaders       = pos.getHeaders();
+                    int[] posHeaders = pos.getHeaders();
                     int[] remainingHeaders = m_currentSelectedAnnotLog.getRemainingHeaders();
                     String[] headers;
                     if(m_currentSelectedAnnotLog.hasHeaders())
                     {
                         headers = m_currentSelectedAnnotLog.getHeaders();
-                    }
-                    else
+                    } else
                     {
                         headers = new String[m_currentSelectedAnnotLog.getNbColumns()];
                         for(int i = 0; i < headers.length; i++)
@@ -810,20 +975,21 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
                 {
-                    int[]    posHeaders = pos.getHeaders();
-                    HeaderID hID        = (HeaderID)adapterView.getSelectedItem();
+                    int[] posHeaders = pos.getHeaders();
+                    HeaderID hID = (HeaderID) adapterView.getSelectedItem();
 
                     if(hID.id != posHeaders[0])
                     {
                         pos.setXYZHeader(hID.id, posHeaders[1], posHeaders[2]);
-                        for(Runnable r : updateAllSpinners)
+                        for(Runnable r : m_updateAnnotLogPositionTable)
                             r.run();
                     }
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView)
-                {}
+                {
+                }
             });
 
             ySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
@@ -831,20 +997,21 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
                 {
-                    int[]    posHeaders = pos.getHeaders();
-                    HeaderID hID        = (HeaderID)adapterView.getSelectedItem();
+                    int[] posHeaders = pos.getHeaders();
+                    HeaderID hID = (HeaderID) adapterView.getSelectedItem();
 
                     if(hID.id != posHeaders[1])
                     {
                         pos.setXYZHeader(posHeaders[0], hID.id, posHeaders[2]);
-                        for(Runnable r : updateAllSpinners)
+                        for(Runnable r : m_updateAnnotLogPositionTable)
                             r.run();
                     }
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView)
-                {}
+                {
+                }
             });
 
             zSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
@@ -853,30 +1020,75 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
                 {
-                    int[]    posHeaders = pos.getHeaders();
-                    HeaderID hID        = (HeaderID)adapterView.getItemAtPosition(i);
+                    int[] posHeaders = pos.getHeaders();
+                    HeaderID hID = (HeaderID) adapterView.getItemAtPosition(i);
 
                     if(hID.id != posHeaders[2])
                     {
                         pos.setXYZHeader(posHeaders[0], posHeaders[1], hID.id);
-                        for(Runnable r : updateAllSpinners)
+                        for(Runnable r : m_updateAnnotLogPositionTable)
                             r.run();
                     }
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView)
-                {}
+                {
+                }
+            });
+
+            //Handle drag event
+            positionView.setOnDragListener(new View.OnDragListener()
+            {
+                @Override
+                public boolean onDrag(View v, DragEvent dragEvent)
+                {
+                    if(dragEvent.getAction() == DragEvent.ACTION_DRAG_STARTED || dragEvent.getAction() == DragEvent.ACTION_DRAG_EXITED)
+                    {
+                        // Determines if this View can accept the dragged data
+                        if(dragEvent.getClipDescription().hasMimeType(MIMETYPE_SUBDATASET))
+                        {
+                            v.getBackground().setColorFilter(Color.argb(0.25f, 0.0f, 0.0f, 1.0f), PorterDuff.Mode.LIGHTEN);
+                            v.invalidate();
+                            return true;
+
+                        }
+                    }
+
+                    else if(dragEvent.getAction() == DragEvent.ACTION_DRAG_ENTERED)
+                    {
+                        v.getBackground().setColorFilter(Color.argb(0.25f, 0.0f, 1.0f, 0.0f), PorterDuff.Mode.LIGHTEN);
+                        v.invalidate();
+
+                        return true;
+                    }
+
+                    else if(dragEvent.getAction() == DragEvent.ACTION_DROP)
+                    {
+                        Toast.makeText(m_ctx, "Drag data: " + ((SubDataset) dragEvent.getLocalState()).getName(), Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+
+                    else if(dragEvent.getAction() == DragEvent.ACTION_DRAG_ENDED)
+                    {
+                        v.getBackground().clearColorFilter();
+                        v.invalidate();
+                        return true;
+                    }
+                    return false;
+                }
             });
 
             m_annotLogPositionTable.addView(positionView);
         }
 
-        for(Runnable r : updateAllSpinners)
+        for(Runnable r : m_updateAnnotLogPositionTable)
             r.run();
     }
 
-    /** Reset the central view (framelayout) displaying the current objects to empty*/
+    /**
+     * Reset the central view (framelayout) displaying the current objects to empty
+     */
     private void resetCentralView()
     {
         //Hide views
@@ -906,16 +1118,18 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_annotView.setModel(annotation);
     }
 
-    /** Function to enable or disable the swipping based on a motion event
-     * @param motionEvent the motion event received*/
+    /**
+     * Function to enable or disable the swipping based on a motion event
+     *
+     * @param motionEvent the motion event received
+     */
     private void onTouchSwippingEvent(MotionEvent motionEvent)
     {
         if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
         {
             for(IFragmentListener l : m_listeners)
                 l.onDisableSwipping(AnnotationsFragment.this);
-        }
-        else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+        } else if(motionEvent.getAction() == MotionEvent.ACTION_UP)
         {
             for(IFragmentListener l : m_listeners)
                 l.onEnableSwipping(AnnotationsFragment.this);
@@ -923,16 +1137,24 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onRotationEvent(SubDataset dataset, float[] quaternion) {}
+    public void onRotationEvent(SubDataset dataset, float[] quaternion)
+    {
+    }
 
     @Override
-    public void onPositionEvent(SubDataset dataset, float[] position) {}
+    public void onPositionEvent(SubDataset dataset, float[] position)
+    {
+    }
 
     @Override
-    public void onScaleEvent(SubDataset dataset, float[] scale) {}
+    public void onScaleEvent(SubDataset dataset, float[] scale)
+    {
+    }
 
     @Override
-    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
+    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot)
+    {
+    }
 
     @Override
     public void onAddCanvasAnnotation(final SubDataset dataset, final AnnotationCanvasData annotation)
@@ -949,9 +1171,11 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         snapImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         snapImg.setBackgroundColor(Color.WHITE);
         snapImg.setImageBitmap(bmp.bitmap);
-        snapImg.setOnClickListener(new View.OnClickListener() {
+        snapImg.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View view) {
+            public void onClick(View view)
+            {
                 changeCurrentAnnotation(snapImg, annotation);
             }
         });
@@ -962,15 +1186,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_annotationCanvasTrees.put(annotation, annotTree);
 
         //If no annotation yet added
-        if(m_annotView.getModel() == null)
-            changeCurrentAnnotation(snapImg, annotation);
+        if(m_annotView.getModel() == null) changeCurrentAnnotation(snapImg, annotation);
     }
 
     @Override
     public void onRemove(SubDataset dataset)
     {
-        if(!m_subDatasetTrees.containsKey(dataset))
-            return;
+        if(!m_subDatasetTrees.containsKey(dataset)) return;
 
         Tree<View> sdTree = m_subDatasetTrees.get(dataset);
         sdTree.setParent(null, 0);
@@ -981,11 +1203,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annot)
     {
-        if(annot == m_annotView.getModel())
-            m_annotView.setModel(null);
+        if(annot == m_annotView.getModel()) m_annotView.setModel(null);
 
-        if(m_bitmaps.containsKey(annot))
-            m_bitmaps.remove(annot);
+        if(m_bitmaps.containsKey(annot)) m_bitmaps.remove(annot);
 
         if(m_annotationCanvasTrees.containsKey(annot))
         {
@@ -995,10 +1215,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onUpdateTF(SubDataset dataset) {}
+    public void onUpdateTF(SubDataset dataset)
+    {
+    }
 
     @Override
-    public void onSetCurrentHeadset(SubDataset dataset, int headsetID) {}
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    {
+    }
 
     @Override
     public void onSetOwner(SubDataset dataset, int headsetID)
@@ -1013,8 +1237,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         //Show public / our datasets, hide the others.
         if(headsetID == -1 || headsetID == m_model.getBindingInfo().getHeadsetID())
             sdTitle.setVisibility(View.VISIBLE);
-        else
-            sdTitle.setVisibility(View.GONE);
+        else sdTitle.setVisibility(View.GONE);
     }
 
     @Override
@@ -1022,20 +1245,20 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         //Change the visibility of the add button
         View sdTitle = m_subDatasetTrees.get(dataset).value;
-        ImageView addView = (ImageView)sdTitle.findViewById(R.id.annotation_key_entry_add);
-        if(!dataset.getCanBeModified())
-            addView.setVisibility(View.GONE);
-        else
-            addView.setVisibility(View.VISIBLE);
+        ImageView addView = (ImageView) sdTitle.findViewById(R.id.annotation_key_entry_add);
+        if(!dataset.getCanBeModified()) addView.setVisibility(View.GONE);
+        else addView.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onSetMapVisibility(SubDataset dataset, boolean visibility)
-    {}
+    {
+    }
 
     @Override
     public void onSetVolumetricMask(SubDataset dataset)
-    {}
+    {
+    }
 
     @Override
     public void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke)

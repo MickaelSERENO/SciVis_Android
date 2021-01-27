@@ -4,14 +4,31 @@ import java.util.ArrayList;
 
 public class AnnotationLogContainer
 {
-    private long                          m_ptr;
-    private String[]                      m_headers;
-    private ArrayList<AnnotationPosition> m_positions = new ArrayList<>();
-    private boolean                       m_isValid = false;
-    private String                        m_path;
-
-    public AnnotationLogContainer(String path, boolean hasHeaders)
+    /** Interface for managing events from AnnotationLogContainer objects*/
+    public interface AnnotationLogContainerListener
     {
+        /** Function called when an AnnotationPosition has been added
+         * @param container the container calling this method
+         * @param position the AnnotationPosition added to "container"*/
+        void onAddAnnotationLogPosition(AnnotationLogContainer container, AnnotationPosition position);
+    }
+
+    private ArrayList<AnnotationLogContainerListener> m_listeners = new ArrayList<>(); /**The listener to call on events*/
+
+    private long                          m_ptr;  /**The native C++ pointer of a std::shared_ptr<sereno::AnnotationLogContainer>*/
+    private String[]                      m_headers; /**The headers of the database. Can be null if no header was asked*/
+    private ArrayList<AnnotationPosition> m_positions = new ArrayList<>(); /**The list of registered AnnotationPosition*/
+    private boolean                       m_isValid = false; /**Is this object in a valid state? Can be invalid if, e.g., the input file is ill-formed*/
+    private String                        m_path; /**The path of the internal database. Only CSV are handled for the moment*/
+    private int                           m_id;  /** The object ID (network communication)*/
+
+    /**Constructor. See "isValid" to know if the object is correctly constructed
+     * @param id the annotation log container model ID (used for network communication)
+     * @param path the file path of the database. Only CSV files are handled for the moment
+     * @param hasHeaders has this database any headers (column name)?*/
+    public AnnotationLogContainer(int id, String path, boolean hasHeaders)
+    {
+        m_id = id;
         m_ptr  = nativeInitPtr(hasHeaders);
         m_path = path;
         if(path.endsWith(".csv"))
@@ -20,6 +37,22 @@ public class AnnotationLogContainer
         }
         if(m_isValid && hasHeaders)
             m_headers = nativeGetHeaders(m_ptr);
+    }
+
+    /** Register a listener to this object
+     * @param listener the object to call when events are fired*/
+    public void addListener(AnnotationLogContainerListener listener)
+    {
+        if(!m_listeners.contains(listener))
+            m_listeners.add(listener);
+    }
+
+    /** Do not call anymore a registered listener
+     * @param listener The listener to remove*/
+    public void removeListener(AnnotationLogContainerListener listener)
+    {
+        if(m_listeners.contains(listener))
+            m_listeners.remove(listener);
     }
 
     /** Set the header (column ID) corresponding to the time component
@@ -79,6 +112,10 @@ public class AnnotationLogContainer
     {
         nativeDelPtr(m_ptr);
     }
+
+    /** Get the ID of this object (network communication)
+     * @return The object model ID as defined by the server*/
+    public int getID() {return m_id;}
 
     /** Init an AnnotationPosition object bound to this log
      * @return the annotation position object bound to this log*/

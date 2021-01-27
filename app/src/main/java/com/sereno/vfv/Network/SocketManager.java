@@ -45,30 +45,32 @@ public class SocketManager
     /* ******************Recognizable server type****************** */
     /* ************************************************************ */
 
-    public static final short IDENT_TABLET               = 1;
-    public static final short ADD_VTK_DATASET            = 3;
-    public static final short ROTATE_DATASET             = 4;
-    public static final short SEND_ANNOTATION            = 6;
-    public static final short SEND_CURRENT_ACTION        = 9;
-    public static final short SEND_CURRENT_SUBDATASET    = 10;
-    public static final short TRANSLATE_DATASET          = 11;
-    public static final short SCALE_DATASET              = 12;
-    public static final short TF_SUBDATASET              = 13;
-    public static final short SEND_START_ANNOTATION      = 14;
-    public static final short ADD_SUBDATASET             = 17;
-    public static final short REMOVE_SUBDATASET          = 18;
-    public static final short MAKE_SUBDATASET_PUBLIC     = 19;
-    public static final short DUPLICATE_SUBDATASET       = 20;
-    public static final short LOCATION                   = 21;
-    public static final short TABLETSCALE                = 22;
-    public static final short LASSO                      = 23;
-    public static final short CONFIRM_SELECTION          = 24;
-    public static final short ADD_CLOUD_POINT_DATASET    = 25;
-    public static final short ADD_NEW_SELECTION_INPUT    = 26;
-    public static final short TOGGLE_MAP_VISIBILITY      = 27;
-    public static final short MERGE_SUBDATSETS           = 28;
-    public static final short RESET_VOLUMETRIC_SELECTION = 29;
-    public static final short OPEN_LOG_DATA              = 30;
+    public static final short IDENT_TABLET                    = 1;
+    public static final short ADD_VTK_DATASET                 = 3;
+    public static final short ROTATE_DATASET                  = 4;
+    public static final short SEND_ANNOTATION                 = 6;
+    public static final short SEND_CURRENT_ACTION             = 9;
+    public static final short SEND_CURRENT_SUBDATASET         = 10;
+    public static final short TRANSLATE_DATASET               = 11;
+    public static final short SCALE_DATASET                   = 12;
+    public static final short TF_SUBDATASET                   = 13;
+    public static final short SEND_START_ANNOTATION           = 14;
+    public static final short ADD_SUBDATASET                  = 17;
+    public static final short REMOVE_SUBDATASET               = 18;
+    public static final short MAKE_SUBDATASET_PUBLIC          = 19;
+    public static final short DUPLICATE_SUBDATASET            = 20;
+    public static final short LOCATION                        = 21;
+    public static final short TABLETSCALE                     = 22;
+    public static final short LASSO                           = 23;
+    public static final short CONFIRM_SELECTION               = 24;
+    public static final short ADD_CLOUD_POINT_DATASET         = 25;
+    public static final short ADD_NEW_SELECTION_INPUT         = 26;
+    public static final short TOGGLE_MAP_VISIBILITY           = 27;
+    public static final short MERGE_SUBDATSETS                = 28;
+    public static final short RESET_VOLUMETRIC_SELECTION      = 29;
+    public static final short OPEN_LOG_DATA                   = 30;
+    public static final short ADD_ANNOTATION_POSITION         = 31;
+    public static final short SET_ANNOTATION_POSITION_INDEXES = 32;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -899,11 +901,25 @@ public class SocketManager
     {
         ByteBuffer buf = ByteBuffer.allocate(2 + 4 + fileName.length() + 1 + 4); //command ID, fileName, hasHeader, timeID
         buf.order(ByteOrder.BIG_ENDIAN);
+
         buf.putShort(OPEN_LOG_DATA);
         buf.putInt(fileName.length());
         buf.put(fileName.getBytes(StandardCharsets.US_ASCII));
         buf.put((byte)(hasHeader?1:0));
         buf.putInt(timeID);
+
+        return buf.array();
+    }
+
+    /** Create an "Add Annotation Position" event
+     * @param containerID the ID of the AnnotationLogContainer that shall have a new AnnotationPosition*/
+    public static byte[] createAddAnnotationPosition(int containerID)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(ADD_ANNOTATION_POSITION);
+        buf.putInt(containerID);
 
         return buf.array();
     }
