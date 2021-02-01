@@ -2,6 +2,7 @@ package com.sereno.vfv.Data;
 
 import android.graphics.Bitmap;
 
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.view.AnnotationCanvasData;
 import com.sereno.vfv.Data.TF.TransferFunction;
 
@@ -93,8 +94,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     /** List of listeners bound to this SubDataset*/
     private List<ISubDatasetListener> m_listeners = new ArrayList<>();
 
-    /** List of annotations bound to this SubDataset*/
-    private List<AnnotationCanvasData> m_canvasAnnotations = new ArrayList<>();
+    /** List of canvas annotations bound to this SubDataset*/
+    private List<AnnotationCanvasData> m_annotationCanvases = new ArrayList<>();
+
+    /** List of registered positional annotations bound to this SubDataset*/
+    private List<DrawableAnnotationPosition> m_annotationPositions = new ArrayList<>();
 
     /** The current headset owning this subdataset. -1 == public subDataset*/
     private int m_ownerHeadsetID = -1;
@@ -402,7 +406,7 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param annot the annotation to add*/
     public void addAnnotation(AnnotationCanvasData annot)
     {
-        m_canvasAnnotations.add(annot);
+        m_annotationCanvases.add(annot);
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onAddCanvasAnnotation(this, annot);
     }
@@ -411,15 +415,15 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @return the list of annotations. Please, do not modify the list (list item can however be modified)*/
     public List<AnnotationCanvasData> getAnnotations()
     {
-        return m_canvasAnnotations;
+        return m_annotationCanvases;
     }
 
     /** unlink the SubDataset*/
     public void inRemoving()
     {
         /* Remove the annotation*/
-        while(m_canvasAnnotations.size() > 0)
-            removeCanvasAnnotation(m_canvasAnnotations.get(m_canvasAnnotations.size()-1));
+        while(m_annotationCanvases.size() > 0)
+            removeCanvasAnnotation(m_annotationCanvases.get(m_annotationCanvases.size()-1));
 
         Object[] listeners = m_listeners.toArray(); //Do a copy because on "onRemove", objects may want to get removed from the list of listeners
 
@@ -433,11 +437,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param annot the annotation to remove. This function does nothing if the annotation cannot be found*/
     public void removeCanvasAnnotation(AnnotationCanvasData annot)
     {
-        if(m_canvasAnnotations.contains(annot))
+        if(m_annotationCanvases.contains(annot))
         {
             for(int i = 0; i < m_listeners.size(); i++)
                 m_listeners.get(i).onRemoveCanvasAnnotation(this, annot);
-            m_canvasAnnotations.remove(annot);
+            m_annotationCanvases.remove(annot);
         }
     }
 
@@ -456,13 +460,18 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         return m_mapActivated;
     }
 
+    public void addAnnotationPosition(DrawableAnnotationPosition pos)
+    {
+        m_annotationPositions.add(pos);
+        nativeAddAnnotationPosition(m_ptr, pos.getPtr());
+    }
+
     public void finalize()
     {
         if(m_ptr == 0)
             return;
         nativeDelPtr(m_ptr);
     }
-
 
     @Override
     public void onUpdateTransferFunction(TransferFunction tf)
@@ -563,4 +572,9 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param ptr the native pointer
      * @return the SubDataset id*/
     private native int nativeGetID(long ptr);
+
+    /** Native code to add an annotation position object
+     * @param ptr the native pointer of the subdataset
+     * @param annotPtr a std::shared<DrawableAnnotationPosition> (or derived) native C++ pointer*/
+    private native void nativeAddAnnotationPosition(long ptr, long annotPtr);
 }

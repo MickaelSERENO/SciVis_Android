@@ -28,7 +28,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sereno.VFVViewPager;
+import com.sereno.vfv.Data.Annotation.AnnotationLogComponent;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
+import com.sereno.vfv.Data.Annotation.AnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.CloudPointDataset;
@@ -47,6 +49,7 @@ import com.sereno.vfv.Dialog.OpenDatasetDialogFragment;
 import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
 import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
 import com.sereno.vfv.Dialog.Listener.INoticeVTKDialogListener;
+import com.sereno.vfv.Network.AddAnnotationPositionMessage;
 import com.sereno.vfv.Network.AddCloudPointDatasetMessage;
 import com.sereno.vfv.Network.AddSubDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
@@ -63,6 +66,7 @@ import com.sereno.vfv.Network.RemoveSubDatasetMessage;
 import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
+import com.sereno.vfv.Network.SetAnnotationPositionIndexes;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
@@ -106,6 +110,24 @@ public class MainActivity extends AppCompatActivity
         {
             this.dataset      = dataset;
             this.subDatasetID = subDatasetID;
+        }
+    }
+
+    public static class AnnotationLogComponentIDBinding
+    {
+        /** The annotation log component server ID*/
+        public int componentID;
+
+        /** The container*/
+        public AnnotationLogContainer annot;
+
+        /** Constructor
+         * @param annot the container annotation
+         * @param componentID the annotation log component ID*/
+        public AnnotationLogComponentIDBinding(AnnotationLogContainer annot, int componentID)
+        {
+            this.annot       = annot;
+            this.componentID = componentID;
         }
     }
 
@@ -250,6 +272,11 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return new DatasetIDBinding(parent, subDatasetID);
+    }
+
+    private AnnotationLogComponentIDBinding getAnnotationLogComponentIDBinding(AnnotationLogComponent component)
+    {
+        return new AnnotationLogComponentIDBinding(component.getAnnotationLog(), component.getID());
     }
 
     @Override
@@ -985,6 +1012,56 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onAddAnnotationPositionMessage(final AddAnnotationPositionMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ArrayList<AnnotationLogContainer> annots = m_model.getAnnotationLogs();
+                for(AnnotationLogContainer annot : annots)
+                {
+                    if(annot.getID() == msg.getAnnotID())
+                    {
+                        AnnotationPosition pos = annot.initAnnotationPosition(msg.getComponentID());
+                        annot.pushAnnotationPosition(pos);
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onSetAnnotationPositionIndexes(final SetAnnotationPositionIndexes msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ArrayList<AnnotationLogContainer> annots = m_model.getAnnotationLogs();
+                for(AnnotationLogContainer annot : annots)
+                {
+                    if(annot.getID() == msg.getAnnotID())
+                    {
+                        for(AnnotationPosition pos : annot.getAnnotationPositions())
+                        {
+                            if(pos.getID() == msg.getComponentID())
+                            {
+                                pos.setXYZHeader(msg.getIndexes()[0], msg.getIndexes()[1], msg.getIndexes()[2]);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -1416,6 +1493,12 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot)
     {
         m_socket.push(SocketManager.createAddAnnotationPosition(annot.getID()));
+    }
+
+    @Override
+    public void onLinkSubDatasetAnnotationPosition(AnnotationsFragment frag, SubDataset sd, AnnotationPosition pos)
+    {
+        m_socket.push(SocketManager.createAddAnnotationPositionToSubData(getDatasetIDBinding(sd), getAnnotationLogComponentIDBinding(pos)));
     }
 
     /** Set up the main layout*/

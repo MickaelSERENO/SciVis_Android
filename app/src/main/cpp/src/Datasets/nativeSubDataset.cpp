@@ -147,6 +147,12 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTF(JNIEnv* j
         sd->setTransferFunction(*((std::shared_ptr<TF>*)(tfPtr)));
 }
 
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeAddAnnotationPosition(JNIEnv* jenv, jobject jobj, jlong ptr, jlong annotPtr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->addDrawableAnnotationPosition(*(std::shared_ptr<DrawableAnnotationPosition>*)(annotPtr));
+}
+
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     return (jlong)(new SubDataset(*(SubDataset*)ptr));

@@ -71,20 +71,25 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         public ImageView imageView;
     }
 
-    /**
-     * Interface proposing callback methods regarding the AnnotationFragment
-     */
+    /** Interface proposing callback methods regarding the AnnotationFragment*/
     public interface IAnnotationsFragmentListener
     {
         /** Add a new annotation position in the model container
-         *
          * @param frag  the fragment calling this function
          * @param annot the annotation log container where a new position entry should be added*/
         void onAddAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot);
+
+        /** Link a SubDataset with an AnnotationPosition object
+         * @param frag the fragment calling this function
+         * @param sd the SubDataset to which a request is made
+         * @param pos the AnnotationPosition to add to sd*/
+        void onLinkSubDatasetAnnotationPosition(AnnotationsFragment frag, SubDataset sd, AnnotationPosition pos);
     }
 
+    /** The lab for the drag and drop operation made on subdatasets*/
     private static final String LABEL_SUBDATASET_DRAG_AND_DROP = "SUBDATASET";
 
+    /** The meme type associated to the local state "SubDataset"*/
     private static final String MIMETYPE_SUBDATASET = "data/Subdataset";
 
     /**
@@ -541,6 +546,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             @Override
             public void onAddAnnotationLogPosition(final AnnotationLogContainer container, AnnotationPosition position)
             {
+                updateAnnotationLogPanel();
+
                 position.addListener(new AnnotationLogComponent.AnnotationLogComponentListener()
                 {
                     @Override
@@ -659,8 +666,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             {
                 if(m_currentSelectedAnnotLog != null && m_model.getBindingInfo() != null) //Connected and we are in the correct view to add position
                 {
-                    m_currentSelectedAnnotLog.pushAnnotationPosition(m_currentSelectedAnnotLog.initAnnotationPosition());
-                    updateAnnotationLogPanel();
+                    for(IAnnotationsFragmentListener list : m_afListeners)
+                        list.onAddAnnotationPosition(AnnotationsFragment.this, m_currentSelectedAnnotLog);
                 }
             }
         });
@@ -1065,7 +1072,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
                     else if(dragEvent.getAction() == DragEvent.ACTION_DROP)
                     {
-                        Toast.makeText(m_ctx, "Drag data: " + ((SubDataset) dragEvent.getLocalState()).getName(), Toast.LENGTH_LONG).show();
+                        for(IAnnotationsFragmentListener list : m_afListeners)
+                            list.onLinkSubDatasetAnnotationPosition(AnnotationsFragment.this, ((SubDataset) dragEvent.getLocalState()), pos);
                         return true;
                     }
 

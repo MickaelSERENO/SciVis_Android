@@ -35,6 +35,8 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTF(JNIEnv* jenv, jobject jobj, jlong ptr, jint type, jlong tfPtr);
 
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeAddAnnotationPosition(JNIEnv* jenv, jobject jobj, jlong ptr, jlong annotPtr);
+
     JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeClone(JNIEnv* jenv, jobject jobj, jlong ptr);
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeDelPtr(JNIEnv* jenv, jobject jobj, jlong ptr);

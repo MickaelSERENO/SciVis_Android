@@ -118,10 +118,11 @@ public class AnnotationLogContainer
     public int getID() {return m_id;}
 
     /** Init an AnnotationPosition object bound to this log
+     * @param compID the component ID
      * @return the annotation position object bound to this log*/
-    public AnnotationPosition initAnnotationPosition()
+    public AnnotationPosition initAnnotationPosition(int compID)
     {
-        return new AnnotationPosition(nativeInitAnnotationPosition(m_ptr));
+        return new AnnotationPosition(this, nativeInitAnnotationPosition(m_ptr), compID);
     }
 
     /** Push an AnnotationPosition to this container. This shall update the remaining and consumed headers.

@@ -480,7 +480,13 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @return the list of CloudPoints Datasets opened*/
     public ArrayList<CloudPointDataset> getCloudPointDataset() {return m_cloudPointDatasets;}
 
+    /** Get all registered datasets
+     * @return the registered datasets*/
     public ArrayList<Dataset> getDatasets() {return m_datasets;}
+
+    /** Get all registered AnnotationLogContainer
+     * @return the registered AnnotationLogContainer*/
+    public ArrayList<AnnotationLogContainer> getAnnotationLogs() {return m_annotationLogs;}
 
     /** Remove a SubDataset from the model. Callback what is needed and reinitialize the status of the model
      * @param sd the SubDataset to remove*/

@@ -1,7 +1,6 @@
 #include "Datasets/Annotation/AnnotationPosition.h"
 #include "Datasets/Annotation/nativeAnnotationPosition.h"
 #include <memory>
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace sereno;
 
@@ -11,20 +10,6 @@ JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_n
     std::shared_ptr<AnnotationLog>*      ann = (std::shared_ptr<AnnotationLog>*)jannPtr;
     std::shared_ptr<AnnotationPosition>* ptr = new std::shared_ptr<AnnotationPosition>(new AnnotationPosition(ann->get()));
     return (jlong)ptr;
-}
-
-JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeSetColor(JNIEnv* jenv, jclass jcls, jlong jptr, jfloat r, jfloat g, jfloat b, jfloat a)
-{
-    std::shared_ptr<AnnotationPosition>* ptr = (std::shared_ptr<AnnotationPosition>*)jptr;
-    (*ptr)->setColor(glm::vec4(r, g, b, a));
-}
-
-JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeGetColor(JNIEnv* jenv, jclass jcls, jlong jptr)
-{
-    std::shared_ptr<AnnotationPosition>* ptr = (std::shared_ptr<AnnotationPosition>*)jptr;
-    jfloatArray arr = jenv->NewFloatArray(4);
-    jenv->SetFloatArrayRegion(arr, 0, 4, glm::value_ptr((*ptr)->getColor()));
-    return arr;
 }
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationPosition_nativeSetXYZHeaderInteger(JNIEnv* jenv, jclass jcls, jlong jptr, jint x, jint y, jint z)

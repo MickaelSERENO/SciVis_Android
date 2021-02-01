@@ -71,6 +71,7 @@ public class SocketManager
     public static final short OPEN_LOG_DATA                   = 30;
     public static final short ADD_ANNOTATION_POSITION         = 31;
     public static final short SET_ANNOTATION_POSITION_INDEXES = 32;
+    public static final short ADD_ANNOTATION_POSIITON_TO_SD   = 33;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -920,6 +921,20 @@ public class SocketManager
 
         buf.putShort(ADD_ANNOTATION_POSITION);
         buf.putInt(containerID);
+
+        return buf.array();
+    }
+
+    public static byte[] createAddAnnotationPositionToSubData(MainActivity.DatasetIDBinding sd, MainActivity.AnnotationLogComponentIDBinding comp)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(ADD_ANNOTATION_POSIITON_TO_SD);
+        buf.putInt(sd.dataset.getID());
+        buf.putInt(sd.subDatasetID);
+        buf.putInt(comp.annot.getID());
+        buf.putInt(comp.componentID);
 
         return buf.array();
     }

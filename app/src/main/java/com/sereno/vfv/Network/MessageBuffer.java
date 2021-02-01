@@ -138,6 +138,14 @@ public class MessageBuffer
         /** Called when the message "ADD_LOG_DATA" has been successfully parsed
          * @param msg the message parsed*/
         void onOpenLogDataMessage(OpenLogDataMessage msg);
+
+        /** Called when the message "ADD_ANNOTATION_POSITION" has been successfully parsed
+         * @param msg the message parsed*/
+        void onAddAnnotationPositionMessage(AddAnnotationPositionMessage msg);
+
+        /** Called when the message "SET_ANNOTATION_POSITION_INDEXES" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSetAnnotationPositionIndexes(SetAnnotationPositionIndexes msg);
     }
 
     /** No current type received*/
@@ -198,6 +206,12 @@ public class MessageBuffer
 
     /** Open a log data*/
     public static final int ADD_LOG_DATA = 28;
+
+    /** Add an annotation position to an annotation log object*/
+    public static final int ADD_ANNOTATION_POSITION = 29;
+
+    /** Set the reading indexes of an already registered annotation position object*/
+    public static final int SET_ANNOTATION_POSITION_INDEXES = 30;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -388,6 +402,14 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onOpenLogDataMessage((OpenLogDataMessage) m_curMsg);
                         break;
+                    case ADD_ANNOTATION_POSITION:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAddAnnotationPositionMessage((AddAnnotationPositionMessage)m_curMsg);
+                        break;
+                    case SET_ANNOTATION_POSITION_INDEXES:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSetAnnotationPositionIndexes((SetAnnotationPositionIndexes) m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -466,19 +488,21 @@ public class MessageBuffer
             case GET_TOGGLE_MAP_VISIBILITY:
                 m_curMsg = new ToggleMapVisibilityMessage();
                 break;
-
             case GET_RESET_VOLUMETRIC_SELECTION:
                 m_curMsg = new ResetVolumetricSelectionMessage();
                 break;
-
             case GET_VOLUMETRIC_MASK:
                 m_curMsg = new SubDatasetVolumetricMaskMessage();
                 break;
-
             case ADD_LOG_DATA:
                 m_curMsg = new OpenLogDataMessage();
                 break;
-
+            case ADD_ANNOTATION_POSITION:
+                m_curMsg = new AddAnnotationPositionMessage();
+                break;
+            case SET_ANNOTATION_POSITION_INDEXES:
+                m_curMsg = new SetAnnotationPositionIndexes();
+                break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");
                 return;
