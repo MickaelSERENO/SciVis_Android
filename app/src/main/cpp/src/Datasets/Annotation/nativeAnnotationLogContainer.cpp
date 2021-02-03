@@ -39,14 +39,14 @@ JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLog
 JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogContainer_nativeSetTimeHeaderInt(JNIEnv* jenv, jclass jcls, jlong jptr, int header)
 {
     std::shared_ptr<AnnotationLogContainer>* ptr = (std::shared_ptr<AnnotationLogContainer>*)jptr;
-    return (*ptr)->setTimeColumn(header);
+    return (*ptr)->setTimeInd(header);
 }
 
 JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogContainer_nativeSetTimeHeaderString(JNIEnv* jenv, jclass jcls, jlong jptr, jstring header)
 {
     std::shared_ptr<AnnotationLogContainer>* ptr = (std::shared_ptr<AnnotationLogContainer>*)jptr;
     const char* cHeader = jenv->GetStringUTFChars(header, 0);
-    bool res = (*ptr)->setTimeColumn(cHeader);
+    bool res = (*ptr)->setTimeHeader(std::string(cHeader));
     jenv->ReleaseStringUTFChars(header, cHeader);
     return res;
 }

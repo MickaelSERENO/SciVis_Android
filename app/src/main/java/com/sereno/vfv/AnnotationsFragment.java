@@ -541,12 +541,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onAddAnnotationLog(ApplicationModel model, final AnnotationLogContainer container)
     {
-        container.addListener(new AnnotationLogContainer.AnnotationLogContainerListener()
+        container.addListener(new AnnotationLogContainer.IAnnotationLogContainerListener()
         {
             @Override
             public void onAddAnnotationLogPosition(final AnnotationLogContainer container, AnnotationPosition position)
             {
-                updateAnnotationLogPanel();
+                if(container == m_currentSelectedAnnotLog)
+                    updateAnnotationLogPanel();
 
                 position.addListener(new AnnotationLogComponent.AnnotationLogComponentListener()
                 {

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class AnnotationLogContainer
 {
     /** Interface for managing events from AnnotationLogContainer objects*/
-    public interface AnnotationLogContainerListener
+    public interface IAnnotationLogContainerListener
     {
         /** Function called when an AnnotationPosition has been added
          * @param container the container calling this method
@@ -13,7 +13,7 @@ public class AnnotationLogContainer
         void onAddAnnotationLogPosition(AnnotationLogContainer container, AnnotationPosition position);
     }
 
-    private ArrayList<AnnotationLogContainerListener> m_listeners = new ArrayList<>(); /**The listener to call on events*/
+    private ArrayList<IAnnotationLogContainerListener> m_listeners = new ArrayList<>(); /**The listener to call on events*/
 
     private long                          m_ptr;  /**The native C++ pointer of a std::shared_ptr<sereno::AnnotationLogContainer>*/
     private String[]                      m_headers; /**The headers of the database. Can be null if no header was asked*/
@@ -41,7 +41,7 @@ public class AnnotationLogContainer
 
     /** Register a listener to this object
      * @param listener the object to call when events are fired*/
-    public void addListener(AnnotationLogContainerListener listener)
+    public void addListener(IAnnotationLogContainerListener listener)
     {
         if(!m_listeners.contains(listener))
             m_listeners.add(listener);
@@ -49,7 +49,7 @@ public class AnnotationLogContainer
 
     /** Do not call anymore a registered listener
      * @param listener The listener to remove*/
-    public void removeListener(AnnotationLogContainerListener listener)
+    public void removeListener(IAnnotationLogContainerListener listener)
     {
         if(m_listeners.contains(listener))
             m_listeners.remove(listener);
@@ -133,6 +133,8 @@ public class AnnotationLogContainer
         if(nativePushAnnotationPosition(m_ptr, ann.getPtr()))
         {
             m_positions.add(ann);
+            for(IAnnotationLogContainerListener l : m_listeners)
+                l.onAddAnnotationLogPosition(this, ann);
             return true;
         }
         return false;
