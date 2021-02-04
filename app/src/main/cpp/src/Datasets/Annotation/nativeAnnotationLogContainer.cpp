@@ -95,3 +95,11 @@ JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogCont
 
     return (*ptr)->parseAnnotationPosition(*posPtr) == 0;
 }
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogContainer_nativeRemoveAnnotationPosition(JNIEnv* jenv, jclass jcls, jlong jptr, jlong jposPtr)
+{
+    std::shared_ptr<AnnotationLogContainer>* ptr    = (std::shared_ptr<AnnotationLogContainer>*)jptr;
+    std::shared_ptr<AnnotationPosition>*     posPtr = (std::shared_ptr<AnnotationPosition>*)jposPtr;
+
+    (*ptr)->removeAnnotationPosition(*posPtr);
+}

@@ -565,6 +565,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
+    public void onRemoveAnnotationLog(ApplicationModel model, AnnotationLogContainer annot) {}
+
+    @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt) {}
 
     @Override

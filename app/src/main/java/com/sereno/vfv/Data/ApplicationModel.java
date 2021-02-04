@@ -1,5 +1,6 @@
 package com.sereno.vfv.Data;
 
+import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.CountDownTimer;
@@ -77,6 +78,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param model the application model
          * @param dataset the Dataset to remove*/
         void onRemoveDataset(ApplicationModel model, Dataset dataset);
+
+        /** Remove an Annotation Log
+         * @param model the application model
+         * @param annot the Annotation to remove*/
+        void onRemoveAnnotationLog(ApplicationModel model, AnnotationLogContainer annot);
 
         /** Method called when the pointing technique is being updated
          * @param model the app data
@@ -520,9 +526,9 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public void removeDataset(Dataset dataset)
     {
         //First remove the subdatasets
-        for(int i = 0; i < dataset.getNbSubDataset(); i++)
+        while(dataset.getNbSubDataset() > 0)
         {
-            dataset.removeSubDataset(dataset.getSubDataset(i));
+            dataset.removeSubDataset(dataset.getSubDataset(0));
         }
 
         //Then the dataset in itself
@@ -541,6 +547,20 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
         else if(m_cloudPointDatasets.contains(dataset))
             m_cloudPointDatasets.remove(dataset);
+    }
+
+    /** Un-register an annotation log object
+     * @param annot the object to remove*/
+    public void removeAnnotationLog(AnnotationLogContainer annot)
+    {
+        if(!m_annotationLogs.contains(annot))
+            return;
+
+        m_annotationLogs.remove(annot);
+
+        //Remove the annotation log
+        for(IDataCallback clbk : m_listeners)
+            clbk.onRemoveAnnotationLog(this, annot);
     }
 
     /** Add a new annotation

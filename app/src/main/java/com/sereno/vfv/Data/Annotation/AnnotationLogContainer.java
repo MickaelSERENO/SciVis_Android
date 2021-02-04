@@ -11,6 +11,11 @@ public class AnnotationLogContainer
          * @param container the container calling this method
          * @param position the AnnotationPosition added to "container"*/
         void onAddAnnotationLogPosition(AnnotationLogContainer container, AnnotationPosition position);
+
+        /** Function called when an AnnotationPosition has been removed
+         * @param container the container calling this method
+         * @param position the AnnotationPosition being removed*/
+        void onRemoveAnnotationLogPosition(AnnotationLogContainer container, AnnotationPosition position);
     }
 
     private ArrayList<IAnnotationLogContainerListener> m_listeners = new ArrayList<>(); /**The listener to call on events*/
@@ -140,6 +145,18 @@ public class AnnotationLogContainer
         return false;
     }
 
+    public void removeAnnotationPosition(AnnotationPosition ann)
+    {
+        if(!m_positions.contains(ann))
+            return;
+
+        m_positions.remove(ann);
+        nativeRemoveAnnotationPosition(m_ptr, ann.getPtr());
+
+        for(IAnnotationLogContainerListener l : m_listeners)
+            l.onRemoveAnnotationLogPosition(this, ann);
+    }
+
     /** Get the file path associated with this logged information
      * @return the file path containing the data */
     public String getFilePath()
@@ -171,4 +188,5 @@ public class AnnotationLogContainer
     private static native int[]    nativeGetConsumedHeaders(long ptr);
     private static native long     nativeInitAnnotationPosition(long ptr);
     private static native boolean  nativePushAnnotationPosition(long ptr, long posPtr);
+    private static native void     nativeRemoveAnnotationPosition(long ptr, long posPtr);
 }

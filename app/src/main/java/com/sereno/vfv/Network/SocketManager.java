@@ -938,4 +938,16 @@ public class SocketManager
 
         return buf.array();
     }
+
+    public static byte[] createSetAnnotationPositionIndexes(MainActivity.AnnotationLogComponentIDBinding comp, int[] indexes)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 5*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+        buf.putShort(SET_ANNOTATION_POSITION_INDEXES);
+        buf.putInt(comp.annot.getID());
+        buf.putInt(comp.componentID);
+        for(int i = 0; i < 3; i++)
+            buf.putInt(indexes[i]);
+        return buf.array();
+    }
 }

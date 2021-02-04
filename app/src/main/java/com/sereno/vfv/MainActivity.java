@@ -1271,6 +1271,9 @@ public class MainActivity extends AppCompatActivity
     public void onRemoveDataset(ApplicationModel model, Dataset dataset) {}
 
     @Override
+    public void onRemoveAnnotationLog(ApplicationModel model, AnnotationLogContainer annot) {}
+
+    @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt)
     {
         if(m_menu == null)
@@ -1482,8 +1485,14 @@ public class MainActivity extends AppCompatActivity
                         m_model.setHeadsetsStatus(null);
 
                         //Clean every
+
+                        //Datasets
                         while(m_model.getDatasets().size() > 0)
                             m_model.removeDataset(m_model.getDatasets().get(0));
+
+                        //Annotations
+                        while(m_model.getAnnotationLogs().size() > 0)
+                            m_model.removeAnnotationLog(m_model.getAnnotationLogs().get(0));
                     }
                 }
         );
@@ -1493,6 +1502,12 @@ public class MainActivity extends AppCompatActivity
     public void onAddAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot)
     {
         m_socket.push(SocketManager.createAddAnnotationPosition(annot.getID()));
+    }
+
+    @Override
+    public void onSetAnnotationPositionIndexes(AnnotationsFragment frag, AnnotationPosition pos, int[] indexes)
+    {
+        m_socket.push(SocketManager.createSetAnnotationPositionIndexes(getAnnotationLogComponentIDBinding(pos), indexes));
     }
 
     @Override

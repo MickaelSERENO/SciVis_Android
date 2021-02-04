@@ -79,6 +79,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
          * @param annot the annotation log container where a new position entry should be added*/
         void onAddAnnotationPosition(AnnotationsFragment frag, AnnotationLogContainer annot);
 
+        /** Function called when a request to set the headers of an annotation position is fired
+         * @param frag the fragment calling this function
+         * @param pos the AnnotationPosition to consider
+         * @param indexes the new indexes. Size == 3*/
+        void onSetAnnotationPositionIndexes(AnnotationsFragment frag, AnnotationPosition pos, int[] indexes);
+
         /** Link a SubDataset with an AnnotationPosition object
          * @param frag the fragment calling this function
          * @param sd the SubDataset to which a request is made
@@ -183,7 +189,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     private TableLayout m_annotLogPositionTable;
 
     /** The array to update the table concerning log annotation positions*/
-    private ArrayList<Runnable> m_updateAnnotLogPositionTable = null;
+    private ArrayList<Runnable> m_updateAnnotLogPositionTable = new ArrayList<>();
 
     /******************************/
     /**********MODEL DATA**********/
@@ -524,6 +530,21 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
+    public void onRemoveAnnotationLog(ApplicationModel model, AnnotationLogContainer annot)
+    {
+        if(!m_annotationLogTrees.containsKey(annot))
+            return;
+
+        if(annot == m_currentSelectedAnnotLog)
+            m_currentSelectedAnnotLog = null;
+        resetCentralView();
+
+        Tree<View> view = (Tree<View>)m_annotationLogTrees.get(annot);
+        view.setParent(null, -1);
+        m_annotationLogTrees.remove(annot);
+    }
+
+    @Override
     public void onUpdatePointingTechnique(ApplicationModel model, int pt)
     {
     }
@@ -567,6 +588,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                         });
                     }
                 });
+            }
+
+            @Override
+            public void onRemoveAnnotationLogPosition(AnnotationLogContainer container, AnnotationPosition position)
+            {
+                if(container == m_currentSelectedAnnotLog)
+                    updateAnnotationLogPanel();
             }
         });
 
@@ -981,17 +1009,16 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             xSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
             {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long _l)
                 {
                     int[] posHeaders = pos.getHeaders();
                     HeaderID hID = (HeaderID) adapterView.getSelectedItem();
 
-                    if(hID.id != posHeaders[0])
-                    {
-                        pos.setXYZHeader(hID.id, posHeaders[1], posHeaders[2]);
-                        for(Runnable r : m_updateAnnotLogPositionTable)
-                            r.run();
-                    }
+                    if(hID.id == posHeaders[0])
+                        return;
+
+                    for(IAnnotationsFragmentListener l : m_afListeners)
+                        l.onSetAnnotationPositionIndexes(AnnotationsFragment.this, pos, new int[]{hID.id, posHeaders[1], posHeaders[2]});
                 }
 
                 @Override
@@ -1003,17 +1030,16 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             ySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
             {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long _l)
                 {
                     int[] posHeaders = pos.getHeaders();
                     HeaderID hID = (HeaderID) adapterView.getSelectedItem();
 
-                    if(hID.id != posHeaders[1])
-                    {
-                        pos.setXYZHeader(posHeaders[0], hID.id, posHeaders[2]);
-                        for(Runnable r : m_updateAnnotLogPositionTable)
-                            r.run();
-                    }
+                    if(hID.id == posHeaders[1])
+                        return;
+
+                    for(IAnnotationsFragmentListener l : m_afListeners)
+                        l.onSetAnnotationPositionIndexes(AnnotationsFragment.this, pos, new int[]{posHeaders[0], hID.id, posHeaders[2]});
                 }
 
                 @Override
@@ -1026,17 +1052,16 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
             {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long _l)
                 {
                     int[] posHeaders = pos.getHeaders();
-                    HeaderID hID = (HeaderID) adapterView.getItemAtPosition(i);
+                    HeaderID hID = (HeaderID) adapterView.getSelectedItem();
 
-                    if(hID.id != posHeaders[2])
-                    {
-                        pos.setXYZHeader(posHeaders[0], posHeaders[1], hID.id);
-                        for(Runnable r : m_updateAnnotLogPositionTable)
-                            r.run();
-                    }
+                    if(hID.id == posHeaders[2])
+                        return;
+
+                    for(IAnnotationsFragmentListener l : m_afListeners)
+                        l.onSetAnnotationPositionIndexes(AnnotationsFragment.this, pos, new int[]{posHeaders[0], posHeaders[1], hID.id});
                 }
 
                 @Override
@@ -1108,6 +1133,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         if(m_currentSelectedAnnotLog != null)
             m_annotationLogTrees.get(m_currentSelectedAnnotLog).value.setBackground(m_defaultImageViewBackground);
         m_currentSelectedAnnotLog = null;
+        m_updateAnnotLogPositionTable.clear();
     }
 
     private void changeCurrentAnnotation(AnnotationPosition pos)

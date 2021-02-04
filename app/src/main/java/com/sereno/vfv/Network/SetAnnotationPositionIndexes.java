@@ -12,8 +12,22 @@ public class SetAnnotationPositionIndexes extends ServerMessage
     private int[] m_indexes = new int[3];
 
     @Override
+    public void pushValue(int value)
+    {
+        if(cursor == 0)
+            m_annotID = value;
+        else if(cursor == 1)
+            m_compID = value;
+        else if(cursor <= 4)
+            m_indexes[cursor-2] = value;
+        super.pushValue(value);
+    }
+
+    @Override
     public byte getCurrentType()
     {
+        if(cursor <= 4)
+            return 'I';
         return 0;
     }
 
