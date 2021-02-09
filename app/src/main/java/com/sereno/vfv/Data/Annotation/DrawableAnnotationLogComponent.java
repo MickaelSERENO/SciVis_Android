@@ -1,9 +1,9 @@
 package com.sereno.vfv.Data.Annotation;
 
-import com.sereno.color.Color;
-
+/**Abstract base class for Drawable annotation component. Contains graphical information to render log annotation components.*/
 public abstract class DrawableAnnotationLogComponent
 {
+    /** The native C++ pointer of a std::shared_ptr<DrawableAnnotationLogComponent> linked to this java object*/
     protected long m_ptr;
 
     /** Constructor
@@ -14,10 +14,7 @@ public abstract class DrawableAnnotationLogComponent
     }
 
     @Override
-    public void finalize()
-    {
-
-    }
+    public void finalize() {}
 
     /** Get the native C++ std::shared_ptr<DrawableAnnotationLogComponent> ptr
      * @return the native C++ ptr. Derived class might use derived types for the C++ ptr*/
@@ -26,29 +23,28 @@ public abstract class DrawableAnnotationLogComponent
         return m_ptr;
     }
 
+    /** Set whether or not this component should try to consider time values
+     * @param t true if this component should try to consider time values, false otherwise*/
     public void setEnableTime(boolean t)
     {
         nativeSetEnableTime(m_ptr, t);
     }
 
+    /** Get whether or not this component should try to consider time values
+     * @return true if yes, false otherwise*/
     public boolean getEnableTime()
     {
         return nativeGetEnableTime(m_ptr);
     }
 
-    public Color getColor()
+    /** Get whether or not the time component is used. This is different than "getEnableTime" as this function also considers the parent containers time settings
+     * @return true if yes, false otherwise*/
+    public boolean IsTimeUsed()
     {
-        float[] color = nativeGetColor(m_ptr);
-        return new Color(color[0], color[1], color[2], color[3]);
-    }
-
-    public void setColor(Color c)
-    {
-        nativeSetColor(m_ptr, c.r, c.g, c.b, c.a);
+        return nativeIsTimeUsed(m_ptr);
     }
 
     private static native void    nativeSetEnableTime(long ptr, boolean t);
     private static native boolean nativeGetEnableTime(long ptr);
-    private static native void    nativeSetColor(long ptr, float r, float g, float b, float a);
-    private static native float[] nativeGetColor(long ptr);
+    private static native boolean nativeIsTimeUsed(long ptr);
 }

@@ -146,6 +146,10 @@ public class MessageBuffer
         /** Called when the message "SET_ANNOTATION_POSITION_INDEXES" has been successfully parsed
          * @param msg the message parsed*/
         void onSetAnnotationPositionIndexes(SetAnnotationPositionIndexes msg);
+
+        /** Called when the message "ADD_ANNOTATION_POSITION_TO_SD" has been successfully parsed
+         * @param msg the message parsed*/
+        void onAddAnnotationPositionToSD(AddAnnotationPositionToSDMessage msg);
     }
 
     /** No current type received*/
@@ -212,6 +216,9 @@ public class MessageBuffer
 
     /** Set the reading indexes of an already registered annotation position object*/
     public static final int SET_ANNOTATION_POSITION_INDEXES = 30;
+
+    /** Link an annotation position object to a subdataset, creating a new drawable*/
+    public static final int ADD_ANNOTATION_POSITION_TO_SD = 31;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -410,6 +417,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onSetAnnotationPositionIndexes((SetAnnotationPositionIndexes) m_curMsg);
                         break;
+                    case ADD_ANNOTATION_POSITION_TO_SD:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAddAnnotationPositionToSD((AddAnnotationPositionToSDMessage)m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -502,6 +513,9 @@ public class MessageBuffer
                 break;
             case SET_ANNOTATION_POSITION_INDEXES:
                 m_curMsg = new SetAnnotationPositionIndexes();
+                break;
+            case ADD_ANNOTATION_POSITION_TO_SD:
+                m_curMsg = new AddAnnotationPositionToSDMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

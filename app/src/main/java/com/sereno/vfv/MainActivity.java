@@ -50,6 +50,7 @@ import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
 import com.sereno.vfv.Dialog.Listener.INoticeDialogListener;
 import com.sereno.vfv.Dialog.Listener.INoticeVTKDialogListener;
 import com.sereno.vfv.Network.AddAnnotationPositionMessage;
+import com.sereno.vfv.Network.AddAnnotationPositionToSDMessage;
 import com.sereno.vfv.Network.AddCloudPointDatasetMessage;
 import com.sereno.vfv.Network.AddSubDatasetMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
@@ -1059,6 +1060,12 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+    }
+
+    @Override
+    public void onAddAnnotationPositionToSD(AddAnnotationPositionToSDMessage msg)
+    {
+        //TODO
     }
 
     @Override
