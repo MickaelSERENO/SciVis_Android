@@ -31,6 +31,7 @@ import com.sereno.VFVViewPager;
 import com.sereno.vfv.Data.Annotation.AnnotationLogComponent;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.AnnotationPosition;
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.CloudPointDataset;
@@ -696,6 +697,10 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
+    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
+    {}
+
+    @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
     }
@@ -753,6 +758,21 @@ public class MainActivity extends AppCompatActivity
         if(dataset == null)
             return null;
         return dataset.getSubDataset(sdID);
+    }
+
+    /** Get the AnnotationPosition object from the annotation log container ID and this component sub ID
+     * @param annotID the parent annotation log container ID to look for
+     * @param compID the component ID to search INSIDE the annotation log container
+     * @return the annotation position corresponding to the IDs, null otherwise*/
+    private AnnotationPosition getAnnotationPositionFromIDs(int annotID, int compID)
+    {
+        ArrayList<AnnotationLogContainer> annots = m_model.getAnnotationLogs();
+        for(AnnotationLogContainer annot : annots)
+            if(annot.getID() == annotID)
+                for(AnnotationPosition pos : annot.getAnnotationPositions())
+                    if(pos.getID() == compID)
+                        return pos;
+        return null;
     }
 
     @Override
@@ -1042,30 +1062,30 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run()
             {
-                ArrayList<AnnotationLogContainer> annots = m_model.getAnnotationLogs();
-                for(AnnotationLogContainer annot : annots)
-                {
-                    if(annot.getID() == msg.getAnnotID())
-                    {
-                        for(AnnotationPosition pos : annot.getAnnotationPositions())
-                        {
-                            if(pos.getID() == msg.getComponentID())
-                            {
-                                pos.setXYZHeader(msg.getIndexes()[0], msg.getIndexes()[1], msg.getIndexes()[2]);
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
+                AnnotationPosition pos = getAnnotationPositionFromIDs(msg.getAnnotID(), msg.getComponentID());
+                if(pos == null)
+                    return;
+                pos.setXYZHeader(msg.getIndexes()[0], msg.getIndexes()[1], msg.getIndexes()[2]);
             }
         });
     }
 
     @Override
-    public void onAddAnnotationPositionToSD(AddAnnotationPositionToSDMessage msg)
+    public void onAddAnnotationPositionToSD(final AddAnnotationPositionToSDMessage msg)
     {
-        //TODO
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                AnnotationPosition pos = getAnnotationPositionFromIDs(msg.getAnnotID(), msg.getComponentID());
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if(pos == null || sd == null)
+                    return;
+                DrawableAnnotationPosition ann = new DrawableAnnotationPosition(pos, msg.getDrawableID());
+                sd.addAnnotationPosition(ann);
+            }
+        });
     }
 
     @Override

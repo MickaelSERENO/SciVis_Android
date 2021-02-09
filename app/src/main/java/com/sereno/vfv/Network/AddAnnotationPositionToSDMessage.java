@@ -38,7 +38,7 @@ public class AddAnnotationPositionToSDMessage extends ServerMessage
 
     public int getDatasetID() {return  m_datasetID;}
     public int getSubDatasetID() {return m_sdID;}
-    public int getAnnotationLogID() {return m_annotID;}
-    public int getAnnotationComponentID() {return m_compID;}
+    public int getAnnotID() {return m_annotID;}
+    public int getComponentID() {return m_compID;}
     public int getDrawableID() {return m_drawableID;}
 }

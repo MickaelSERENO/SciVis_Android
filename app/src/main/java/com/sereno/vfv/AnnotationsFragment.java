@@ -34,6 +34,7 @@ import com.sereno.Tree;
 import com.sereno.vfv.Data.Annotation.AnnotationLogComponent;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.AnnotationPosition;
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.DataFile;
@@ -1293,6 +1294,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onSetVolumetricMask(SubDataset dataset)
     {
+    }
+
+    @Override
+    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
+    {
+        Log.d(MainActivity.TAG, "Adding annotation " + Integer.toString(pos.getID()));
     }
 
     @Override

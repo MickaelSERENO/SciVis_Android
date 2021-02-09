@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
@@ -303,6 +304,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
         //Hack, this is similar to a transfer function update
         onUpdateTF(dataset);
     }
+
+    @Override
+    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
+    {}
 
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously

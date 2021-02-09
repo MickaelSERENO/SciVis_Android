@@ -7,6 +7,7 @@ import android.os.CountDownTimer;
 
 import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
@@ -405,6 +406,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
             @Override
             public void onSetVolumetricMask(SubDataset dataset)
+            {}
+
+            @Override
+            public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
             {}
         });
 

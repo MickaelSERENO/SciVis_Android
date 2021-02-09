@@ -6,11 +6,16 @@ public abstract class DrawableAnnotationLogComponent
     /** The native C++ pointer of a std::shared_ptr<DrawableAnnotationLogComponent> linked to this java object*/
     protected long m_ptr;
 
+    /** The id of this object, inside the subdataset, as defined by the server*/
+    protected int m_id;
+
     /** Constructor
-     *  @param ptr the native C++ std::shared_ptr<DrawableAnnotationLogComponent> ptr or derived*/
-    protected DrawableAnnotationLogComponent(long ptr)
+     *  @param ptr the native C++ std::shared_ptr<DrawableAnnotationLogComponent> ptr or derived
+     *  @param id the ID as defined by the server*/
+    protected DrawableAnnotationLogComponent(long ptr, int id)
     {
         m_ptr = ptr;
+        m_id  = id;
     }
 
     @Override
@@ -22,6 +27,10 @@ public abstract class DrawableAnnotationLogComponent
     {
         return m_ptr;
     }
+
+    /** Get the ID of this object as defined by the server
+     * @return the ID of this object INSIDE the corresponding subdataset*/
+    public int getID() {return m_id;}
 
     /** Set whether or not this component should try to consider time values
      * @param t true if this component should try to consider time values, false otherwise*/

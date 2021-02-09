@@ -83,6 +83,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         /** Method called when the volumetric mask associated to a SubDataset has changed
          * @param dataset the dataset calling this method*/
         void onSetVolumetricMask(SubDataset dataset);
+
+        /** Method called when a DrawableAnnotationPosition has been added to a subdataset
+         * @param dataset the object calling this method
+         * @param pos the drawable object added to this subdataset*/
+        void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos);
     }
 
     /** The native C++ handle*/
@@ -464,6 +469,9 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     {
         m_annotationPositions.add(pos);
         nativeAddAnnotationPosition(m_ptr, pos.getPtr());
+
+        for(ISubDatasetListener l : m_listeners)
+            l.onAddDrawableAnnotationPosition(this, pos);
     }
 
     public void finalize()

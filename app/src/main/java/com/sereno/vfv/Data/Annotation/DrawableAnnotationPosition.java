@@ -4,9 +4,9 @@ import com.sereno.color.Color;
 
 public class DrawableAnnotationPosition extends DrawableAnnotationLogComponent
 {
-    protected DrawableAnnotationPosition(AnnotationPosition pos)
+    public DrawableAnnotationPosition(AnnotationPosition pos, int id)
     {
-        super(nativeInitPtr(pos.getAnnotationLog().getPtr(), pos.getPtr()));
+        super(nativeInitPtr(pos.getAnnotationLog().getPtr(), pos.getPtr()), id);
     }
 
     public Color getColor()

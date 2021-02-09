@@ -28,6 +28,7 @@ import com.sereno.Tree;
 import com.sereno.gl.GLSurfaceView;
 import com.sereno.gl.VFVSurfaceView;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.TF.TransferFunction;
@@ -489,6 +490,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             @Override
             public void onSetVolumetricMask(SubDataset dataset)
+            {}
+
+            @Override
+            public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
             {}
         };
         sd.addListener(snapEvent);
