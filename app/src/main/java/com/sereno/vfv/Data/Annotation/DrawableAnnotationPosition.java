@@ -4,9 +4,12 @@ import com.sereno.color.Color;
 
 public class DrawableAnnotationPosition extends DrawableAnnotationLogComponent
 {
+    private AnnotationPosition m_data = null;
+
     public DrawableAnnotationPosition(AnnotationPosition pos, int id)
     {
         super(nativeInitPtr(pos.getAnnotationLog().getPtr(), pos.getPtr()), id);
+        m_data = pos;
     }
 
     public Color getColor()
@@ -19,6 +22,7 @@ public class DrawableAnnotationPosition extends DrawableAnnotationLogComponent
     {
         nativeSetColor(m_ptr, c.r, c.g, c.b, c.a);
     }
+    public AnnotationPosition getData() {return m_data;}
 
     private static native void    nativeSetColor(long ptr, float r, float g, float b, float a);
     private static native float[] nativeGetColor(long ptr);
