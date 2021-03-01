@@ -81,6 +81,7 @@ import com.sereno.view.AnnotationStroke;
 import com.sereno.view.AnnotationText;
 import com.sereno.vfv.Data.TF.GTFData;
 import com.sereno.view.GTFView;
+import com.sereno.view.RangeColorData;
 import com.sereno.view.RangeColorView;
 import com.sereno.view.SeekBarHintView;
 import com.sereno.vfv.Data.TF.TransferFunction;
@@ -503,14 +504,42 @@ public class MainActivity extends AppCompatActivity
                 View gtfLayout = getLayoutInflater().inflate(R.layout.gtf_layout, null);
                 layout.addView(gtfLayout);
 
-
-                //Configure the spinner color mode
                 Spinner colorModeSpinner = (Spinner)gtfLayout.findViewById(R.id.colorModeSpinner);
-                final GTFView gtfView = gtfLayout.findViewById(R.id.gtfView);
+                final RangeColorView rangeColor = (RangeColorView)gtfLayout.findViewById(R.id.colorRange);
 
+                final GTFView gtfView = gtfLayout.findViewById(R.id.gtfView);
                 GTFData gtfData = (GTFData)m_model.getCurrentSubDataset().getTransferFunction();
                 gtfView.setModel(gtfData);
 
+                //Configure the range color
+                rangeColor.getModel().addOnRangeChangeListener(new RangeColorData.IOnRangeChangeListener()
+                {
+                    @Override
+                    public void onRawRangeChange(RangeColorData data, float minVal, float maxVal, int mode)
+                    {}
+
+                    @Override
+                    public void onClippingChange(RangeColorData view, float min, float max)
+                    {
+                        gtfView.getModel().setClippingValues(min, max);
+                    }
+                });
+
+                rangeColor.setOnTouchListener(new View.OnTouchListener()
+                {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent)
+                    {
+                        if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                            m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                        else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
+                                motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                            m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+                        return false;
+                    }
+                });
+
+                //Configure the spinner color mode
                 colorModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
                 {
                     @Override
@@ -647,14 +676,15 @@ public class MainActivity extends AppCompatActivity
             {
                 if(desc.getID() == gtf.getCPCPOrder()[0])
                 {
-                    rangeColorView.getModel().setRawRange(desc.getMin(), desc.getMax(), false);
+                    rangeColorView.getModel().setRawRange(desc.getMin(), desc.getMax());
                     break;
                 }
             }
         }
         else
-            rangeColorView.getModel().setRawRange(0.0f, 1.0f, false);
+            rangeColorView.getModel().setRawRange(0.0f, 1.0f);
         rangeColorView.getModel().setColorMode(gtf.getColorMode());
+        rangeColorView.getModel().setClampingRange(gtf.getMinClipping(), gtf.getMaxClipping());
 
         boolean isTriangularGTF = m_model.getCurrentSubDataset().getTransferFunctionType() == SubDataset.TRANSFER_FUNCTION_TGTF;
         gtfEnableGradient.setChecked(isTriangularGTF);
@@ -905,6 +935,7 @@ public class MainActivity extends AppCompatActivity
         {
             tf.setTimestep(msg.getTimestep());
             tf.setColorMode(msg.getColorMode());
+            tf.setClippingValues(msg.getMinClipping(), msg.getMaxClipping());
         }
         return tf;
     }

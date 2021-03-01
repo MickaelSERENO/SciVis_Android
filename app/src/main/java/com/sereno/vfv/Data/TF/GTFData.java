@@ -300,9 +300,20 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
         if(m_sd == null)
             return;
 
+        float timeStep = 0;
+        float minClamp = 0;
+        float maxClamp = 1;
+
         if(m_ptr != 0)
+        {
+            timeStep = getTimestep();
+            minClamp = getMinClipping();
+            maxClamp = getMaxClipping();
             nativeDeleteTF(m_ptr);
+        }
         m_ptr = nativeCreatePtr(m_dataset.getPtr(), m_gradientEnabled, getColorMode());
+        setTimestep(timeStep);
+        setClippingValues(minClamp, maxClamp);
         updatePtrRanges();
     }
 

@@ -135,7 +135,7 @@ void main()
     vec3 minPos = rayOrigin.xyz + (minT)*rayNormal + vec3(0.5, 0.5, 0.5);
     vec3 maxPos = rayOrigin.xyz + (maxT)*rayNormal + vec3(0.5, 0.5, 0.5);
 
-    float rayStep  = 1.0/length(rayNormal*uDimension);
+    float rayStep  = 1.0/max(max(uDimension.x, uDimension.y), uDimension.z);
     vec3 rayStepNormal = rayStep*rayNormal;
 
     float nbValues = (maxT-minT)/rayStep;
@@ -151,12 +151,6 @@ void main()
         vec4 tfColor = textureLod(uTexture0, rayPos,  0.0);
         vec4 col  = vec4(tfColor.xyz, 1.0);
         fragColor = fragColor + (1.0 - fragColor.a)*tfColor.a*col;
-
-        if(fragColor.a >= 0.90)
-        {
-            fragColor.a = 1.0;
-            return;
-        }
     }
 
     //At t=maxT

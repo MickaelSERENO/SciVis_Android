@@ -38,6 +38,29 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetTim
         (*tf)->setCurrentTimestep(time);
 }
 
+JNIEXPORT float JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetMinClipping(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        return (*tf)->getMinClipping();
+    return 0.0f;
+}
+
+JNIEXPORT float JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetMaxClipping(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        return (*tf)->getMaxClipping();
+    return 1.0f;
+}
+
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetClipping(JNIEnv* jenv, jobject instance, jlong ptr, jfloat min, jfloat max)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        (*tf)->setClipping(min, max);
+}
+
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeDeleteTF(JNIEnv* jenv, jobject instance, jlong ptr)
 {

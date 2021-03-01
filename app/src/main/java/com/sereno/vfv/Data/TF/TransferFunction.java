@@ -46,8 +46,7 @@ public abstract class TransferFunction
         if(t != getTimestep())
         {
             nativeSetTimestep(getNativeTransferFunction(), t);
-            for(int i = 0; i < m_listeners.size(); i++)
-                m_listeners.get(i).onUpdateTransferFunction(this);
+            callOnUpdateListeners();
         }
     }
 
@@ -67,8 +66,27 @@ public abstract class TransferFunction
         {
             m_colorMode = mode;
             nativeSetColorMode(getNativeTransferFunction(), mode);
-            for(int i = 0; i < m_listeners.size(); i++)
-                m_listeners.get(i).onUpdateTransferFunction(this);
+            callOnUpdateListeners();
+        }
+    }
+
+    public void setClippingValues(float min, float max)
+    {
+        boolean changed = (min != getMinClipping() || max != getMaxClipping());
+        if(changed)
+        {
+            min = Math.max(Math.min(min, 1.0f), 0.0f);
+            max = Math.max(Math.min(max, 1.0f), 0.0f);
+
+            if(min > max)
+            {
+                float _t = min;
+                min = max;
+                max = _t;
+            }
+
+            nativeSetClipping(getNativeTransferFunction(), min, max);
+            callOnUpdateListeners();
         }
     }
 
@@ -78,6 +96,14 @@ public abstract class TransferFunction
         for(ITransferFunctionListener l : m_listeners)
             l.onUpdateTransferFunction(this);
     }
+
+    /** Get The minimal clipping values in value domain (between 0.0f and 1.0f). Default: 0.0f
+     * @return the current minimum clipping value*/
+    public float getMinClipping() {return nativeGetMinClipping(getNativeTransferFunction());}
+
+    /** Get The maximal clipping values in value domain (between 0.0f and 1.0f). Default: 1.0f
+     * @return the current maximal clipping value*/
+    public float getMaxClipping() {return nativeGetMaxClipping(getNativeTransferFunction());}
 
     public int getType()
     {
@@ -106,6 +132,22 @@ public abstract class TransferFunction
      * @param tfPtr the native transfer function pointer
      * @return the timestep to apply*/
     protected native float nativeGetTimestep(long tfPtr);
+
+    /** Get the minimum clipping of the transfer function
+     * @param tfPtr the native transfer function pointer
+     * @return the clipping to apply*/
+    protected native float nativeGetMinClipping(long tfPtr);
+
+    /** Get the maximum clipping of the transfer function
+     * @param tfPtr the native transfer function pointer
+     * @return the clipping to apply*/
+    protected native float nativeGetMaxClipping(long tfPtr);
+
+    /** Set the clipping of the transfer function
+     * @param tfPtr the native transfer function pointer
+     * @param min the new minimum clipping to apply
+     * @param max the new maximum clipping to apply*/
+    protected native float nativeSetClipping(long tfPtr, float min, float max);
 
     /** Delete the native C++ std::shared_ptr\<TF\> object
      * @param tfPtr the pointer to delete*/

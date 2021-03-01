@@ -118,6 +118,12 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
         for(int i = 0; i < width; i+=3)
         {
             float t = (float)(i) / width;
+            if(t < getModel().getMinClampingRange())
+                t = 0.0f;
+            else if(t > getModel().getMaxClampingRange())
+                t = 1.0f;
+            else
+                t = (t-m_model.getMinClampingRange())/(m_model.getMaxClampingRange() - m_model.getMinClampingRange());
             Color c = ColorMode.computeRGBColor(t, m_model.getColorMode());
             c.a = 1.0f;
             int intColor = c.toARGB8888();
@@ -238,7 +244,13 @@ public class RangeColorView extends View implements RangeColorData.IOnRangeChang
     }
 
     @Override
-    public void onRangeChange(RangeColorData view, float minVal, float maxVal, int mode)
+    public void onRawRangeChange(RangeColorData view, float minVal, float maxVal, int mode)
+    {
+        invalidate();
+    }
+
+    @Override
+    public void onClippingChange(RangeColorData view, float min, float max)
     {
         invalidate();
     }

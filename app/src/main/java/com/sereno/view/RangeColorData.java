@@ -10,14 +10,19 @@ public class RangeColorData
     /* \brief Interface permitting to send a message when the range color has changed*/
     public interface IOnRangeChangeListener
     {
-        /** Function called when the range has changed
+        /** Function called when the raw range has changed
          * @param data the data calling this method
-         * @param minVal the current minimum value (between 0.0 and 1.0)
-         * @param maxVal the current maximum value (between 0.0 and 1.0)
+         * @param minVal the current minimum raw value
+         * @param maxVal the current maximum raw value
          * @param mode the color mode applied*/
-        void onRangeChange(RangeColorData data, float minVal, float maxVal, int mode);
-    }
+        void onRawRangeChange(RangeColorData data, float minVal, float maxVal, int mode);
 
+        /** Function called when the clipping range has changed
+         * @param data the data calling this method
+         * @param min the current minimum clipping value
+         * @param max the current maximum clipping value*/
+        void onClippingChange(RangeColorData data, float min, float max);
+    }
 
     private int   m_colorMode    = ColorMode.RAINBOW; /*!< The colormode to display*/
 
@@ -35,7 +40,7 @@ public class RangeColorData
         if(mode != m_colorMode)
         {
             m_colorMode = mode;
-            launchEvent();
+            launchRawRangeEvent();
         }
     }
 
@@ -45,7 +50,6 @@ public class RangeColorData
      */
     public void setClampingRange(float min, float max)
     {
-
         float tempMin = min;
         min = Math.min(min, max);
         max = Math.max(tempMin, max);
@@ -58,17 +62,18 @@ public class RangeColorData
         m_maxRangeValue = Math.min(Math.max(0.0f, max), 1.0f);
 
         if(changed)
-            launchEvent();
+            for(IOnRangeChangeListener l : m_onRangeChangeListeners)
+                l.onClippingChange(this, m_minRangeValue, m_maxRangeValue);
     }
 
     /** Launch the events of the range color changement*/
-    private void launchEvent()
+    private void launchRawRangeEvent()
     {
         float min       = m_minRangeValue;
         float max       = m_maxRangeValue;
         int   colorMode = m_colorMode;
         for(int i = 0; i < m_onRangeChangeListeners.size(); i++)
-            m_onRangeChangeListeners.get(i).onRangeChange(this, min, max, colorMode);
+            m_onRangeChangeListeners.get(i).onRawRangeChange(this, min, max, colorMode);
     }
 
     /** Get the minimum clamping range
@@ -94,9 +99,8 @@ public class RangeColorData
 
     /** Set the range raw values of the data (i.e., the ranges that users can understand, such as "min == 0.0kg, max == 100.0kg"
      * @param min the minimum range.
-     * @param max the maximum range.
-     * @param updateRange Should the function recompute the percentage selective ranges entered by "setRange"?*/
-    public void setRawRange(float min, float max, boolean updateRange)
+     * @param max the maximum range*/
+    public void setRawRange(float min, float max)
     {
         float tempMin = min;
         min = Math.min(min, max);
@@ -106,33 +110,11 @@ public class RangeColorData
         if(min != m_minRawValue || max != m_maxRawValue)
             changed=true;
 
-        if(updateRange)
-        {
-            //Get raw clamping values
-            float minClamping = m_minRangeValue * min;
-            float maxClamping = m_maxRangeValue * max;
-
-            //Update our values
-            m_minRawValue = min;
-            m_maxRawValue = max;
-
-            //Recompute the range
-            m_maxRangeValue = (maxClamping-m_minRangeValue)/(m_maxRawValue - m_minRangeValue);
-            m_minRangeValue = (minClamping-m_minRangeValue)/(m_maxRawValue - m_minRangeValue);
-
-            //Clamp again
-            m_minRangeValue = Math.min(Math.max(0.0f, m_minRangeValue), 1.0f);
-            m_maxRangeValue = Math.min(Math.max(0.0f, m_maxRangeValue), 1.0f);
-        }
-
-        if(!updateRange)
-        {
-            m_minRawValue = Math.min(min, max);
-            m_maxRawValue = Math.max(min, max);
-        }
+        m_minRawValue = Math.min(min, max);
+        m_maxRawValue = Math.max(min, max);
 
         if(changed)
-            launchEvent();
+            launchRawRangeEvent();
     }
 
     /** Get the range raw values of the data (i.e., the ranges that users can understand, such as "min == 0.0kg"

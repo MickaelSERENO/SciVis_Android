@@ -55,6 +55,12 @@ public class TFDatasetMessage extends ServerMessage
     /** The timestep cursor this transfer function is placed on*/
     private float m_timestep;
 
+    /** The minimum clipping value to use*/
+    private float m_minClipping;
+
+    /** The maximum clipping value to use*/
+    private float m_maxClipping;
+
     /** The current transfer function data*/
     private Object m_tfData = null;
 
@@ -76,16 +82,16 @@ public class TFDatasetMessage extends ServerMessage
                 {
                     GTFData data = (GTFData)m_tfData;
 
-                    if(cursor == 6)
+                    if(cursor == 8)
                     {
                         data.propData = new GTFData.PropData[val];
                         for(int i = 0; i < val; i++)
                             data.propData[i] = new GTFData.PropData();
                     }
-                    else if(cursor >= 7)
+                    else if(cursor >= 9)
                     {
-                        int propID = (cursor - 7)/3;
-                        int offset = (cursor - 7)%3;
+                        int propID = (cursor - 9)/3;
+                        int offset = (cursor - 9)%3;
                         if(propID < data.propData.length && offset == 0)
                             data.propData[propID].propID = val;
                     }
@@ -164,6 +170,16 @@ public class TFDatasetMessage extends ServerMessage
             m_timestep = val;
         }
 
+        else if(cursor == 6)
+        {
+            m_minClipping = val;
+        }
+
+        else if(cursor == 7)
+        {
+            m_maxClipping = val;
+        }
+
         else
         {
             switch(m_tfID)
@@ -173,10 +189,10 @@ public class TFDatasetMessage extends ServerMessage
                 {
                     GTFData data = (GTFData)m_tfData;
 
-                    if(cursor >= 7)
+                    if(cursor >= 9)
                     {
-                        int propID = (cursor - 7)/3;
-                        int offset = (cursor - 7)%3;
+                        int propID = (cursor - 9)/3;
+                        int offset = (cursor - 9)%3;
                         if(propID < data.propData.length)
                         {
                             if(offset == 1)
@@ -191,7 +207,7 @@ public class TFDatasetMessage extends ServerMessage
                 {
                     MergeTFData data = (MergeTFData) m_tfData;
 
-                    if(cursor == 6)
+                    if(cursor == 8)
                         data.t = val;
                     else
                     {
@@ -257,6 +273,14 @@ public class TFDatasetMessage extends ServerMessage
      * @return the cursor timestep*/
     public float getTimestep() {return m_timestep;}
 
+    /** Get The minimal clipping values in value domain (between 0.0f and 1.0f).
+     * @return the current minimum clipping value*/
+    public float getMinClipping() {return m_minClipping;}
+
+    /** Get The maximal clipping values in value domain (between 0.0f and 1.0f).
+     * @return the current maximal clipping value*/
+    public float getMaxClipping() {return m_maxClipping;}
+
     @Override
     byte getCurrentType()
     {
@@ -268,6 +292,10 @@ public class TFDatasetMessage extends ServerMessage
             return 'b'; //colorMode
         else if(cursor == 5)
             return 'f'; //timestep
+        else if(cursor == 6)
+            return 'f'; //min clipping
+        else if(cursor == 7)
+            return 'f'; //max clipping
 
         switch(m_tfID)
         {
@@ -276,13 +304,13 @@ public class TFDatasetMessage extends ServerMessage
             {
                 GTFData data = (GTFData)m_tfData;
 
-                if(cursor == 6)
+                if(cursor == 8)
                     return 'I'; //nbProps
                 else
                 {
-                    if((cursor-7)/3 < data.propData.length)
+                    if((cursor-9)/3 < data.propData.length)
                     {
-                        int offset = (cursor-7)%3;
+                        int offset = (cursor-9)%3;
                         switch(offset)
                         {
                             case 0:
@@ -297,7 +325,7 @@ public class TFDatasetMessage extends ServerMessage
             }
             case SubDataset.TRANSFER_FUNCTION_MERGE:
             {
-                if(cursor == 6)
+                if(cursor == 8)
                     return 'f'; //t
 
                 MergeTFData data = (MergeTFData)m_tfData;
@@ -315,7 +343,7 @@ public class TFDatasetMessage extends ServerMessage
     public int getMaxCursor()
     {
         //Default values
-        int maxCursor = 5;
+        int maxCursor = 7;
 
         //Then an offset depending on the type of the transfer function
         switch(m_tfID)
