@@ -69,6 +69,7 @@ import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SetAnnotationPositionIndexes;
+import com.sereno.vfv.Network.SetSubDatasetClippingMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
@@ -85,6 +86,7 @@ import com.sereno.view.SeekBarHintView;
 import com.sereno.vfv.Data.TF.TransferFunction;
 
 import java.io.File;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -146,6 +148,7 @@ public class MainActivity extends AppCompatActivity
     private ViewGroup        m_currentTFView = null;     /*!< The Current transfer function view to use*/
     private HashMap<Integer, View>  m_gtfSizeViews = new HashMap<>(); /*!< The views handling the size of the GTF*/
     private SubDataset       m_currentTFSubDataset = null; /*!< The current subdataset from which the transfer function widgets applies to*/
+    private SeekBarHintView  m_sdClippingView      = null; /*!< The view representing the clipping values of a subdataset*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -466,9 +469,7 @@ public class MainActivity extends AppCompatActivity
 
     /** Update all the widgets common to all transfer functions, such as time*/
     private void updateCommonTFWidgets()
-    {
-
-    }
+    {}
 
     /** Remove the current transfer function view*/
     private void removeCurrentTFView()
@@ -699,6 +700,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
     {}
+
+    @Override
+    public void onSetDepthClipping(SubDataset dataset, float depthClipping)
+    {
+        if(m_model.canModifySubDataset(dataset) && dataset.getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_NONE)
+            m_socket.push(SocketManager.createSDClippingEvent(getDatasetIDBinding(dataset), depthClipping));
+
+        updateDrawerLayout();
+    }
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -1084,6 +1094,21 @@ public class MainActivity extends AppCompatActivity
                     return;
                 DrawableAnnotationPosition ann = new DrawableAnnotationPosition(pos, msg.getDrawableID());
                 sd.addAnnotationPosition(ann);
+            }
+        });
+    }
+
+    @Override
+    public void onSetSubDatasetClipping(final SetSubDatasetClippingMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                if(sd != null)
+                    sd.setDepthClipping(msg.getDepthClipping());
             }
         });
     }
@@ -1597,13 +1622,37 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    /** \brief Set up the drawer layout (root layout)*/
+    /** Set up the drawer layout (root layout)*/
     private void setUpDrawerLayout()
     {
-        m_drawerLayout  = (DrawerLayout)findViewById(R.id.rootLayout);
+        m_drawerLayout   = (DrawerLayout)findViewById(R.id.rootLayout);
+        m_sdClippingView = m_drawerLayout.findViewById(R.id.depthClipping);
+        m_sdClippingView.setMax(1000);
+
+        m_sdClippingView.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+            {
+                if(m_model.getCurrentSubDataset() != null && m_model.canModifySubDataset(m_model.getCurrentSubDataset()))
+                    m_model.getCurrentSubDataset().setDepthClipping((float)(i)/seekBar.getMax());
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
     }
 
-    /** \brief Setup the toolbar */
+    private void updateDrawerLayout()
+    {
+        if(m_model.getCurrentSubDataset() != null)
+            m_sdClippingView.setProgress((int)(m_sdClippingView.getMax()*m_model.getCurrentSubDataset().getDepthClipping()));
+    }
+
+    /** Setup the toolbar */
     private void setUpToolbar()
     {
         //Set the support of toolbar

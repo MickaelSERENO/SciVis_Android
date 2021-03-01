@@ -64,4 +64,5 @@
     <string name="fileName">File name: </string>
     <string name="headers">Headers: </string>
     <string name="annotLogPosition">Position</string>
+    <string name="depthClipping">Depth clipping value: </string>
 </resources>

@@ -150,6 +150,10 @@ public class MessageBuffer
         /** Called when the message "ADD_ANNOTATION_POSITION_TO_SD" has been successfully parsed
          * @param msg the message parsed*/
         void onAddAnnotationPositionToSD(AddAnnotationPositionToSDMessage msg);
+
+        /** Called when the message "SET_SUBDATASET_CLIPPING" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSetSubDatasetClipping(SetSubDatasetClippingMessage msg);
     }
 
     /** No current type received*/
@@ -219,6 +223,9 @@ public class MessageBuffer
 
     /** Link an annotation position object to a subdataset, creating a new drawable*/
     public static final int ADD_ANNOTATION_POSITION_TO_SD = 31;
+
+    /** Set the subdataset clipping values*/
+    public static final int SET_SUBDATASET_CLIPPING = 32;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -421,6 +428,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onAddAnnotationPositionToSD((AddAnnotationPositionToSDMessage)m_curMsg);
                         break;
+                    case SET_SUBDATASET_CLIPPING:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSetSubDatasetClipping((SetSubDatasetClippingMessage)m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -516,6 +527,9 @@ public class MessageBuffer
                 break;
             case ADD_ANNOTATION_POSITION_TO_SD:
                 m_curMsg = new AddAnnotationPositionToSDMessage();
+                break;
+            case SET_SUBDATASET_CLIPPING:
+                m_curMsg = new SetSubDatasetClippingMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

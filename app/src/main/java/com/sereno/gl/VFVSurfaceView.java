@@ -228,8 +228,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
 
     @Override
-    public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container)
-    {}
+    public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container) {}
 
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
@@ -295,8 +294,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onSetMapVisibility(SubDataset dataset, boolean visibility)
-    {}
+    public void onSetMapVisibility(SubDataset dataset, boolean visibility){}
 
     @Override
     public void onSetVolumetricMask(SubDataset dataset)
@@ -306,8 +304,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
-    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
-    {}
+    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos){}
+
+    @Override
+    public void onSetDepthClipping(SubDataset dataset, float depthClipping) {/*TODO*/}
 
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously

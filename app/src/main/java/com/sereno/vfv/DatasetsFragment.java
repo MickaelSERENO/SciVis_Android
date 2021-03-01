@@ -481,20 +481,19 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
 
             @Override
-            public void onSetCanBeModified(SubDataset dataset, boolean status)
-            {}
+            public void onSetCanBeModified(SubDataset dataset, boolean status){}
 
             @Override
-            public void onSetMapVisibility(SubDataset dataset, boolean visibility)
-            {}
+            public void onSetMapVisibility(SubDataset dataset, boolean visibility){}
 
             @Override
-            public void onSetVolumetricMask(SubDataset dataset)
-            {}
+            public void onSetVolumetricMask(SubDataset dataset){}
 
             @Override
-            public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
-            {}
+            public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos){}
+
+            @Override
+            public void onSetDepthClipping(SubDataset dataset, float depthClipping){}
         };
         sd.addListener(snapEvent);
         snapEvent.onSetOwner(sd, sd.getOwnerID());

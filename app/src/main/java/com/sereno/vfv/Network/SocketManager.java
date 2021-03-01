@@ -72,6 +72,7 @@ public class SocketManager
     public static final short ADD_ANNOTATION_POSITION         = 31;
     public static final short SET_ANNOTATION_POSITION_INDEXES = 32;
     public static final short ADD_ANNOTATION_POSIITON_TO_SD   = 33;
+    public static final short SET_SUBDATASET_CLIPPING         = 34;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -948,6 +949,19 @@ public class SocketManager
         buf.putInt(comp.componentID);
         for(int i = 0; i < 3; i++)
             buf.putInt(indexes[i]);
+        return buf.array();
+    }
+
+    public static byte[] createSDClippingEvent(MainActivity.DatasetIDBinding sd, float depth)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SET_SUBDATASET_CLIPPING);
+        buf.putInt(sd.dataset.getID());
+        buf.putInt(sd.subDatasetID);
+        buf.putFloat(depth);
+
         return buf.array();
     }
 }

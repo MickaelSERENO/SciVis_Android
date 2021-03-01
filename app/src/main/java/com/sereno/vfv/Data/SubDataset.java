@@ -88,6 +88,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
          * @param dataset the object calling this method
          * @param pos the drawable object added to this subdataset*/
         void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos);
+
+        /** Method called when the depth clipping value has been set
+         * @param dataset the object calling this method
+         * @param depthClipping the new depth clipping value (clamped between 0.0f and 1.0f)*/
+        void onSetDepthClipping(SubDataset dataset, float depthClipping);
     }
 
     /** The native C++ handle*/
@@ -209,6 +214,29 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         if(m_ptr == 0)
             return null;
         return nativeGetScale(m_ptr);
+    }
+
+    /** Get the depth clipping value clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)
+     * @return the depth clipping value*/
+    public float getDepthClipping()
+    {
+        if(m_ptr == 0)
+            return -1;
+        return nativeGetDepthClipping(m_ptr);
+    }
+
+    /** Set the depth clipping value
+     * @param d the depth clipping value. The value is clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)*/
+    public void setDepthClipping(float d)
+    {
+        if(m_ptr == 0)
+            return;
+        else if(d != getDepthClipping())
+        {
+            nativeSetDepthClipping(m_ptr, d);
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onSetDepthClipping(this, d);
+        }
     }
 
     /** Get the native pointer of the SubDataset
@@ -561,6 +589,15 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param ptr the native pointer
      * @param isEnabled true to enable the volumetric mask, false otherwise*/
     private native void nativeEnableVolumetricMask(long ptr, boolean isEnabled);
+
+    /** Get the depth clipping value used on the native C++ SD object
+     * @param ptr the native pointer*/
+    private native float nativeGetDepthClipping(long ptr);
+
+    /** Set the depth clipping value to use for the native C++ SD object
+     * @param ptr the native pointer
+     * @param d the new depth clipping value to apply*/
+    private native void nativeSetDepthClipping(long ptr, float d);
 
     /** Native code to set the Gaussian Transfer Function ranges
      * pIDs, minVals, and maxVals should be coherent (same size and correspond to each one)

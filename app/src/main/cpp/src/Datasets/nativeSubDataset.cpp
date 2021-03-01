@@ -116,6 +116,19 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeEnableVolumetri
     sd->enableVolumetricMask(b);
 }
 
+JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    return sd->getDepthClipping();
+}
+
+JNIEXPORT void   JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat d)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->setDepthClipping(d);
+}
+
+
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetScale(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     jfloatArray arr = jenv->NewFloatArray(3);

@@ -1335,6 +1335,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
+    public void onSetDepthClipping(SubDataset dataset, float depthClipping){}
+
+    @Override
     public void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);
@@ -1396,5 +1399,4 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         updateBitmapText(text);
     }
-
 }
