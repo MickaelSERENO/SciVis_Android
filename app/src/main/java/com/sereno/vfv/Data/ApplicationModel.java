@@ -411,6 +411,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
             @Override
             public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
             {}
+
+            @Override
+            public void onSetDepthClipping(SubDataset dataset, float depthClipping)
+            {}
         });
 
         sd.setCanBeModified(canModifySubDataset(sd));
