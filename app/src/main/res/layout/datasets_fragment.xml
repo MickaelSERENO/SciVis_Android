@@ -18,6 +18,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/treeColor">
+
         <com.sereno.view.TreeView
             android:id="@+id/previewLayout"
             android:layout_height="wrap_content"

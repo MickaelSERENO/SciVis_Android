@@ -1,5 +1,7 @@
 package com.sereno.vfv.Data.Annotation;
 
+import com.sereno.vfv.Data.SubDataset;
+
 /**Abstract base class for Drawable annotation component. Contains graphical information to render log annotation components.*/
 public abstract class DrawableAnnotationLogComponent
 {
@@ -9,12 +11,17 @@ public abstract class DrawableAnnotationLogComponent
     /** The id of this object, inside the subdataset, as defined by the server*/
     protected int m_id;
 
+    /** The subdataset linked to this object*/
+    protected SubDataset m_sd;
+
     /** Constructor
-     *  @param ptr the native C++ std::shared_ptr<DrawableAnnotationLogComponent> ptr or derived
-     *  @param id the ID as defined by the server*/
-    protected DrawableAnnotationLogComponent(long ptr, int id)
+     * @param ptr the native C++ std::shared_ptr<DrawableAnnotationLogComponent> ptr or derived
+     * @param sd the subdataset owning this drawable annotation log component
+     * @param id the ID as defined by the server*/
+    protected DrawableAnnotationLogComponent(long ptr, SubDataset sd, int id)
     {
         m_ptr = ptr;
+        m_sd  = sd;
         m_id  = id;
     }
 
@@ -52,6 +59,8 @@ public abstract class DrawableAnnotationLogComponent
     {
         return nativeIsTimeUsed(m_ptr);
     }
+
+    public SubDataset getSubDataset() {return m_sd;}
 
     private static native void    nativeSetEnableTime(long ptr, boolean t);
     private static native boolean nativeGetEnableTime(long ptr);

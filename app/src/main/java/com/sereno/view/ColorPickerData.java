@@ -39,6 +39,8 @@ public class ColorPickerData
      * @param color the new color to apply*/
     public void setColor(HSVColor color)
     {
+        if(m_color.equals(color))
+            return;
         m_color = color;
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onSetColor(this, color.toRGB().toARGB8888());

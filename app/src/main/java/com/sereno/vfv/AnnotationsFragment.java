@@ -18,9 +18,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -34,6 +37,7 @@ import com.sereno.vfv.Data.Annotation.AnnotationPosition;
 import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
+import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
@@ -55,13 +59,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationCanvasData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener, SubDataset.ISubDatasetListener, Dataset.IDatasetListener
+public class AnnotationsFragment extends VFVFragment implements ApplicationModel.IDataCallback, AnnotationCanvasData.IAnnotationDataListener, AnnotationStroke.IAnnotationStrokeListener, AnnotationText.IAnnotationTextListener, SubDataset.ISubDatasetListener, Dataset.IDatasetListener, DrawableAnnotationPosition.IDrawableAnnotationPositionListener
 {
     private static class AnnotationBitmap
     {
         public Bitmap bitmap;
         public ImageView imageView;
     }
+
+    private static class HeaderID
+    {
+        public int id = -1;
+        public String header;
+
+        public HeaderID(int _id, String _header)
+        {
+            id = _id;
+            header = _header;
+        }
+
+        @Override
+        public String toString()
+        {
+            return header;
+        }
+    };
 
     /** Interface proposing callback methods regarding the AnnotationFragment*/
     public interface IAnnotationsFragmentListener
@@ -82,6 +104,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
          * @param sd the SubDataset to which a request is made
          * @param pos the AnnotationPosition to add to sd*/
         void onLinkSubDatasetAnnotationPosition(AnnotationsFragment frag, SubDataset sd, AnnotationPosition pos);
+
+        void onSetDrawableAnnotationPositionColor(AnnotationsFragment frag, DrawableAnnotationPosition pos, com.sereno.color.Color color);
+
+        void onSetDrawableAnnotationPositionMappedDataIndices(AnnotationsFragment frag, DrawableAnnotationPosition pos, int[] idx);
     }
 
     /** The lab for the drag and drop operation made on subdatasets*/
@@ -210,6 +236,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     /** The context creating this fragment*/
     private Context m_ctx = null;
 
+    private boolean m_inUpdate = false;
+
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -303,6 +331,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onRemoveSubDataset(Dataset dataset, SubDataset sd)
     {
+        if(m_currentDrawableAnnotationPosition != null &&
+           m_currentPanel == ANNOTATION_POSITION_SD_PANEL &&
+           m_currentDrawableAnnotationPosition.getSubDataset() == sd)
+            resetCentralView();
     }
 
     @Override
@@ -624,44 +656,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
     }
 
-
-    /**
-     * Set up the main layout
-     *
-     * @param v the main view containing all the Widgets
-     */
-    private void setUpMainLayout(View v)
+    private void setUpAnnotationCanvasPanel(View v)
     {
-        //The mains panels
-        m_annotationCanvasPanel           = v.findViewById(R.id.annotCanvasView);
-        m_annotationLogPanel              = v.findViewById(R.id.annotLogView);
-        m_drawableAnnotationPositionPanel = v.findViewById(R.id.annotPositionView);
-
-        //The tree views
-        m_previews   = (TreeView) v.findViewById(R.id.annotPreviewLayout);
-        m_logPreview = (TreeView) v.findViewById(R.id.logPreviewLayout);
-
-        //The annotation log view objects
-        m_annotLogFileName = (TextView) v.findViewById(R.id.annotLogFileName);
-        m_annotLogHeaders = (LinearLayout) v.findViewById(R.id.annotLogTableHeaders);
-        m_annotLogHeadersRow = v.findViewById(R.id.annotLogHeaderLayout);
-        m_annotLogPositionTable = (TableLayout) v.findViewById(R.id.annotLogCurrentPosition);
-
-        ImageView addPosition = (ImageView) v.findViewById(R.id.annotLogAddPosition);
-        addPosition.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                if(m_currentSelectedAnnotLog != null && m_model.getBindingInfo() != null) //Connected and we are in the correct view to add position
-                {
-                    for(IAnnotationsFragmentListener list : m_afListeners)
-                        list.onAddAnnotationPosition(AnnotationsFragment.this, m_currentSelectedAnnotLog);
-                }
-            }
-        });
-
-
         //The canvas annotation view objects
         m_annotView = (AnnotationCanvasView) v.findViewById(R.id.strokeTextView);
         m_annotView.setModel(null); //For the moment put it at null: we cannot draw anything (because no subdataset yet)
@@ -768,6 +764,107 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         m_defaultImageViewBackground = m_colorParam.getBackground();
     }
 
+    private void setUpAnnotationLog(View v)
+    {
+        m_annotLogFileName = (TextView) v.findViewById(R.id.annotLogFileName);
+        m_annotLogHeaders = (LinearLayout) v.findViewById(R.id.annotLogTableHeaders);
+        m_annotLogHeadersRow = v.findViewById(R.id.annotLogHeaderLayout);
+        m_annotLogPositionTable = (TableLayout) v.findViewById(R.id.annotLogCurrentPosition);
+
+        ImageView addPosition = (ImageView) v.findViewById(R.id.annotLogAddPosition);
+        addPosition.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if(m_currentSelectedAnnotLog != null && m_model.getBindingInfo() != null) //Connected and we are in the correct view to add position
+                {
+                    for(IAnnotationsFragmentListener list : m_afListeners)
+                        list.onAddAnnotationPosition(AnnotationsFragment.this, m_currentSelectedAnnotLog);
+                }
+            }
+        });
+    }
+
+    private void setUpDrawableAnnotationPosition(View v)
+    {
+        ColorPickerView annotPosColorView = v.findViewById(R.id.annotPositionColorPicker);
+        annotPosColorView.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                onTouchSwippingEvent(motionEvent);
+                return false;
+            }
+        });
+        annotPosColorView.getModel().addListener(new ColorPickerData.IColorPickerDataListener()
+        {
+            @Override
+            public void onSetColor(ColorPickerData data, int color)
+            {
+                if(m_inUpdate)
+                    return;
+                if(m_currentDrawableAnnotationPosition != null && m_currentPanel == ANNOTATION_POSITION_SD_PANEL)
+                    for(IAnnotationsFragmentListener l : m_afListeners)
+                        l.onSetDrawableAnnotationPositionColor(AnnotationsFragment.this, m_currentDrawableAnnotationPosition, data.getColor().toRGB());
+            }
+        });
+
+        CheckBox annotPosHasIndicesView = v.findViewById(R.id.annotPositionHasIndices);
+        annotPosHasIndicesView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+            {
+                if(m_inUpdate)
+                    return;
+                if(m_currentDrawableAnnotationPosition != null && m_currentPanel == ANNOTATION_POSITION_SD_PANEL)
+                {
+                    if(!b)
+                        for(IAnnotationsFragmentListener l : m_afListeners)
+                            l.onSetDrawableAnnotationPositionMappedDataIndices(AnnotationsFragment.this, m_currentDrawableAnnotationPosition, new int[0]);
+                    else
+                    {
+                        SubDataset sd = m_currentDrawableAnnotationPosition.getSubDataset();
+                        if(sd == null)
+                            return;
+
+                        TransferFunction tf = sd.getTransferFunction();
+                        if(tf == null)
+                            return;
+
+                        int[] newIdx = new int[tf.getDimension()];
+                        for(int i = 0; i < newIdx.length; i++)
+                            newIdx[i] = -1;
+
+                        for(IAnnotationsFragmentListener l : m_afListeners)
+                            l.onSetDrawableAnnotationPositionMappedDataIndices(AnnotationsFragment.this, m_currentDrawableAnnotationPosition, newIdx);
+                    }
+                }
+            }
+        });
+    }
+
+    /** Set up the main layout
+     * @param v the main view containing all the Widgets*/
+    private void setUpMainLayout(View v)
+    {
+        //The mains panels
+        m_annotationCanvasPanel           = v.findViewById(R.id.annotCanvasView);
+        m_annotationLogPanel              = v.findViewById(R.id.annotLogView);
+        m_drawableAnnotationPositionPanel = v.findViewById(R.id.annotPositionView);
+
+        //The tree views
+        m_previews   = (TreeView) v.findViewById(R.id.annotPreviewLayout);
+        m_logPreview = (TreeView) v.findViewById(R.id.logPreviewLayout);
+
+        //Set up the main components
+        setUpAnnotationCanvasPanel(v);
+        setUpAnnotationLog(v);
+        setUpDrawableAnnotationPosition(v);
+    }
+
     /**
      * Set the image views button backgrounds to TRANSPARENT and hides parameter layouts
      */
@@ -864,9 +961,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
     }
 
-    /**
-     * Update the annotation log panel correctely
-     */
+    /** Update the annotation log panel correctly*/
     private void updateAnnotationLogPanel()
     {
         m_currentPanel = ANNOTATION_LOG_PANEL;
@@ -895,24 +990,6 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
         //Redo the position table
         m_annotLogPositionTable.removeAllViews();
-
-        class HeaderID
-        {
-            public int id = -1;
-            public String header;
-
-            public HeaderID(int _id, String _header)
-            {
-                id = _id;
-                header = _header;
-            }
-
-            @Override
-            public String toString()
-            {
-                return header;
-            }
-        };
 
         m_updateAnnotLogPositionTable = new ArrayList<>();
 
@@ -1106,28 +1183,23 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             bmp.getValue().imageView.setBackground(m_defaultImageViewBackground);
     }
 
-    private void changeCurrentAnnotation(DrawableAnnotationPosition pos)
+    private void updateCurrentDrawableAnnotationPanel()
     {
-        m_currentPanel = ANNOTATION_POSITION_SD_PANEL;
-
-        Tree<View> tree = m_annotationPositionTrees.get(pos);
-        if(tree == null)
-            return;
-        tree.value.setBackgroundResource(R.drawable.round_rectangle_background);
-        m_currentDrawableAnnotationPosition = pos;
-        m_drawableAnnotationPositionPanel.setVisibility(View.VISIBLE);
+        boolean oldInUpdate = m_inUpdate;
+        m_inUpdate = true;
+        AnnotationLogContainer container = m_currentDrawableAnnotationPosition.getData().getAnnotationLog();
+        int[]    headers    = m_currentDrawableAnnotationPosition.getData().getHeaders();
+        String[] headersStr = new String[headers.length];
 
         //Dimensions
         TextView dimensionView = m_drawableAnnotationPositionPanel.findViewById(R.id.annotPositionDimension);
         String dimensionText = "";
-        int[]    headers    = pos.getData().getHeaders();
-        String[] headersStr = new String[headers.length];
 
-        if(pos.getData().getAnnotationLog().hasHeaders())
+        if(m_currentDrawableAnnotationPosition.getData().getAnnotationLog().hasHeaders())
             for(int i = 0; i < headersStr.length; i++)
             {
                 if(headers[i] != -1)
-                    headersStr[i] = pos.getData().getAnnotationLog().getHeaders()[headers[i]];
+                    headersStr[i] = m_currentDrawableAnnotationPosition.getData().getAnnotationLog().getHeaders()[headers[i]];
                 else
                     headersStr[i] = "-1";
             }
@@ -1143,8 +1215,89 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
         //Color
         ColorPickerView colorView = m_drawableAnnotationPositionPanel.findViewById(R.id.annotPositionColorPicker);
-        HSVColor col = new HSVColor(pos.getColor());
+        HSVColor col = new HSVColor(m_currentDrawableAnnotationPosition.getColor());
+        if(col.s < 0.001f) //No need to change the hue...
+            col.h = colorView.getModel().getColor().h;
         colorView.getModel().setColor(col);
+
+        //Indices
+        CheckBox hasIndicesView = m_drawableAnnotationPositionPanel.findViewById(R.id.annotPositionHasIndices);
+        int[] idx = m_currentDrawableAnnotationPosition.getMappedDataIndices().clone();
+        if(hasIndicesView.isChecked() != (idx.length != 0))
+            hasIndicesView.setChecked(idx.length != 0);
+
+        LinearLayout idxListView = m_drawableAnnotationPositionPanel.findViewById(R.id.annotPositionMapDataEntries);
+        idxListView.removeAllViews();
+
+        //Create the spinners for the indices
+        for(int i = 0; i < idx.length; i++)
+        {
+            int       indice = idx[i];
+            final int idxPos = i;
+            Spinner s = new Spinner(getContext());
+            s.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            ArrayAdapter<HeaderID> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item);
+            adapter.add(new HeaderID(-1, "-1"));
+
+            if(container.hasHeaders())
+            {
+                headersStr = container.getHeaders();
+                for(int j = 0; j < headersStr.length; j++)
+                    adapter.add(new HeaderID(j, headersStr[j]));
+            }
+            else
+                for(int j = 0; j < container.getNbColumns(); j++)
+                    adapter.add(new HeaderID(j, Integer.toString(j)));
+
+            s.setAdapter(adapter);
+            if(indice < headersStr.length)
+                s.setSelection(indice+1);
+            else
+                s.setSelection(0);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+            {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int _i, long _l)
+                {
+                    if(m_inUpdate)
+                        return;
+                    if(m_currentDrawableAnnotationPosition == null)
+                        return;
+                    int[] posHeaders = m_currentDrawableAnnotationPosition.getMappedDataIndices();
+                    HeaderID hID = (HeaderID)adapterView.getSelectedItem();
+                    if(posHeaders[idxPos] != hID.id)
+                    {
+                        posHeaders[idxPos] = hID.id;
+                        for(IAnnotationsFragmentListener l : m_afListeners)
+                            l.onSetDrawableAnnotationPositionMappedDataIndices(AnnotationsFragment.this, m_currentDrawableAnnotationPosition, posHeaders);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView)
+                {}
+            });
+
+            idxListView.addView(s);
+        }
+        m_inUpdate = oldInUpdate;
+    }
+
+    private void changeCurrentAnnotation(DrawableAnnotationPosition pos)
+    {
+        m_currentPanel = ANNOTATION_POSITION_SD_PANEL;
+
+        Tree<View> tree = m_annotationPositionTrees.get(pos);
+        if(tree == null)
+            return;
+        tree.value.setBackgroundResource(R.drawable.round_rectangle_background);
+        m_currentDrawableAnnotationPosition = pos;
+        m_drawableAnnotationPositionPanel.setVisibility(View.VISIBLE);
+
+        updateCurrentDrawableAnnotationPanel();
     }
 
     private void changeCurrentAnnotation(AnnotationCanvasData annotation)
@@ -1330,6 +1483,8 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         sdTree.addChild(tree, -1);
         m_annotationPositionTrees.put(pos, tree);
 
+        pos.addListener(this);
+
         if(m_currentPanel == NO_PANEL)
             changeCurrentAnnotation(pos);
     }
@@ -1398,5 +1553,24 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSetColor(AnnotationText text, int color)
     {
         updateBitmapText(text);
+    }
+
+
+    @Override
+    public void onSetColor(DrawableAnnotationPosition l, com.sereno.color.Color c)
+    {
+        m_inUpdate = true;
+        if(m_currentPanel == ANNOTATION_POSITION_SD_PANEL && m_currentDrawableAnnotationPosition == l)
+            updateCurrentDrawableAnnotationPanel();
+        m_inUpdate = false;
+    }
+
+    @Override
+    public void onSetMappedDataIndices(DrawableAnnotationPosition l, int[] idx)
+    {
+        m_inUpdate = true;
+        if(m_currentPanel == ANNOTATION_POSITION_SD_PANEL && m_currentDrawableAnnotationPosition == l)
+            updateCurrentDrawableAnnotationPanel();
+        m_inUpdate = false;
     }
 }

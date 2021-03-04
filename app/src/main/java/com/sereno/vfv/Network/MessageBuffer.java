@@ -154,6 +154,14 @@ public class MessageBuffer
         /** Called when the message "SET_SUBDATASET_CLIPPING" has been successfully parsed
          * @param msg the message parsed*/
         void onSetSubDatasetClipping(SetSubDatasetClippingMessage msg);
+
+        /** Called when the message "SET_DRAWABLE_ANNOTATION_POSITION_COLOR" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSetDrawableAnnotationPositionColor(SetDrawableAnnotationPositionColor msg);
+
+        /** Called when the message "SET_DRAWABLE_ANNOTATION_POSITION_IDX" has been successfully parsed
+         * @param msg the message parsed*/
+        void onSetDrawableAnnotationPositionIdx(SetDrawableAnnotationPositionIdx msg);
     }
 
     /** No current type received*/
@@ -226,6 +234,12 @@ public class MessageBuffer
 
     /** Set the subdataset clipping values*/
     public static final int SET_SUBDATASET_CLIPPING = 32;
+
+    /** Set the color of a drawable annotation position object*/
+    public static final int SET_DRAWABLE_ANNOTATION_POSITION_COLOR = 33;
+
+    /** Set the index being read from a log container for a drawable annotation position object*/
+    public static final int SET_DRAWABLE_ANNOTATION_POSITION_IDX   = 34;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -432,6 +446,14 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onSetSubDatasetClipping((SetSubDatasetClippingMessage)m_curMsg);
                         break;
+                    case SET_DRAWABLE_ANNOTATION_POSITION_COLOR:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSetDrawableAnnotationPositionColor((SetDrawableAnnotationPositionColor)m_curMsg);
+                        break;
+                    case SET_DRAWABLE_ANNOTATION_POSITION_IDX:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSetDrawableAnnotationPositionIdx((SetDrawableAnnotationPositionIdx)m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -530,6 +552,12 @@ public class MessageBuffer
                 break;
             case SET_SUBDATASET_CLIPPING:
                 m_curMsg = new SetSubDatasetClippingMessage();
+                break;
+            case SET_DRAWABLE_ANNOTATION_POSITION_COLOR:
+                m_curMsg = new SetDrawableAnnotationPositionColor();
+                break;
+            case SET_DRAWABLE_ANNOTATION_POSITION_IDX:
+                m_curMsg = new SetDrawableAnnotationPositionIdx();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

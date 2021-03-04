@@ -478,6 +478,8 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         }
     }
 
+    /** Set whether or not the map rendered below the 3D visualization in the headset should be rendered or not
+     * @param visible true if yes, false otherwise*/
     public void setMapVisibility(boolean visible)
     {
         if(visible != m_mapActivated)
@@ -488,11 +490,15 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         }
     }
 
+    /** Get whether or not the map rendered below the 3D visualization in the headset should be rendered or not
+     * @return visible true if yes, false otherwise*/
     public boolean getMapVisibility()
     {
         return m_mapActivated;
     }
 
+    /** Link an Drawable AnnotationPosition to this object
+     * @param pos the drawable to link with*/
     public void addAnnotationPosition(DrawableAnnotationPosition pos)
     {
         m_annotationPositions.add(pos);
@@ -500,6 +506,13 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
 
         for(ISubDatasetListener l : m_listeners)
             l.onAddDrawableAnnotationPosition(this, pos);
+    }
+
+    /** Get the list of all linked drawable AnnotationPosition objects
+     * @return a list of DrawableAnnotationPosition link to this SubDataset*/
+    public List<DrawableAnnotationPosition> getAnnotationPositions()
+    {
+        return m_annotationPositions;
     }
 
     public void finalize()

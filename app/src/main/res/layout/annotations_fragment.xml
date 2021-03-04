@@ -161,7 +161,6 @@
                     app:layout_column="0"
                     android:id="@+id/annotLogCurrentPosition">
                 </TableLayout>
-
             </android.support.v7.widget.GridLayout>
 
         </LinearLayout>
@@ -174,47 +173,44 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <LinearLayout
+            <android.support.v7.widget.GridLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/annotPositionDimension"/>
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/annotPositionDimension"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                    android:text="@string/annotPositionDimension"
+                    app:layout_row="0"
+                    app:layout_column="0"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/annotPositionFollowTime"/>
+                    android:id="@+id/annotPositionDimension"
+                    app:layout_row="0"
+                    app:layout_column="1"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/annotPositionFollowTime"
+                    app:layout_row="1"
+                    app:layout_column="0"/>
 
                 <CheckBox
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                    android:checked="true"
+                    app:layout_row="1"
+                    app:layout_column="1"/>
 
                 <TextView
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/annotPositionColor"/>
+                    android:text="@string/annotPositionColor"
+                    app:layout_row="2"
+                    app:layout_column="0"/>
 
                 <com.sereno.view.ColorPickerView
                     android:layout_height="75dp"
@@ -222,8 +218,49 @@
                     android:id="@+id/annotPositionColorPicker"
                     app:circleRadius="5dp"
                     app:pickerHueHeight="10dp"
-                    app:pickerSpace="5dp"/>
-            </LinearLayout>
+                    app:pickerSpace="5dp"
+                    app:layout_row="2"
+                    app:layout_column="1"/>
+
+                <View style="@style/Divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    app:layout_row="3"
+                    app:layout_columnSpan="2"
+                    app:layout_column="0"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"/>
+
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    app:layout_row="4"
+                    app:layout_column="0"
+                    android:text="@string/mapToData"/>
+
+                <CheckBox
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:id="@+id/annotPositionHasIndices"
+                    app:layout_row="4"
+                    app:layout_column="1"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_row="5"
+                    app:layout_column="0"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/dataColumn"/>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:id="@+id/annotPositionMapDataEntries"
+                    android:showDividers="middle"
+                    android:divider="@drawable/table_divider"/>
+            </android.support.v7.widget.GridLayout>
         </LinearLayout>
 
         <!-- Main Canvas View -->

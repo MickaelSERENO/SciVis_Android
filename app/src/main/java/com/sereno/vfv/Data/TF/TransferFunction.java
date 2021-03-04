@@ -105,10 +105,16 @@ public abstract class TransferFunction
      * @return the current maximal clipping value*/
     public float getMaxClipping() {return nativeGetMaxClipping(getNativeTransferFunction());}
 
+    /** Get the type of the transfer function (useful for casting)
+     * @return the type of the transfer function*/
     public int getType()
     {
         return SubDataset.TRANSFER_FUNCTION_NONE;
     }
+
+    /** Get the dimension of the transfer function
+     * @return the dimension of the transfer function*/
+    public int getDimension() {return nativeGetDimension(getNativeTransferFunction());}
 
     /** Create a native std::shared_ptr\<TF\> associated with this TransferFunction java counterpart
      * @return the native pointer, or 0 if an issue occured*/
@@ -148,6 +154,8 @@ public abstract class TransferFunction
      * @param min the new minimum clipping to apply
      * @param max the new maximum clipping to apply*/
     protected native float nativeSetClipping(long tfPtr, float min, float max);
+
+    protected native int nativeGetDimension(long tfPtr);
 
     /** Delete the native C++ std::shared_ptr\<TF\> object
      * @param tfPtr the pointer to delete*/

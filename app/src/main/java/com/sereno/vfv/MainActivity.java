@@ -25,9 +25,9 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sereno.VFVViewPager;
+import com.sereno.color.Color;
 import com.sereno.vfv.Data.Annotation.AnnotationLogComponent;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.AnnotationPosition;
@@ -69,6 +69,8 @@ import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
 import com.sereno.vfv.Network.SetAnnotationPositionIndexes;
+import com.sereno.vfv.Network.SetDrawableAnnotationPositionColor;
+import com.sereno.vfv.Network.SetDrawableAnnotationPositionIdx;
 import com.sereno.vfv.Network.SetSubDatasetClippingMessage;
 import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
@@ -87,7 +89,6 @@ import com.sereno.view.SeekBarHintView;
 import com.sereno.vfv.Data.TF.TransferFunction;
 
 import java.io.File;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -1123,7 +1124,7 @@ public class MainActivity extends AppCompatActivity
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
                 if(pos == null || sd == null)
                     return;
-                DrawableAnnotationPosition ann = new DrawableAnnotationPosition(pos, msg.getDrawableID());
+                DrawableAnnotationPosition ann = new DrawableAnnotationPosition(pos, sd, msg.getDrawableID());
                 sd.addAnnotationPosition(ann);
             }
         });
@@ -1140,6 +1141,44 @@ public class MainActivity extends AppCompatActivity
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
                 if(sd != null)
                     sd.setDepthClipping(msg.getDepthClipping());
+            }
+        });
+    }
+
+    @Override
+    public void onSetDrawableAnnotationPositionColor(final SetDrawableAnnotationPositionColor msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                for(DrawableAnnotationPosition pos : sd.getAnnotationPositions())
+                    if(pos.getID() == msg.getDrawableID())
+                    {
+                        pos.setColor(Color.fromARGB8888(msg.getColor()));
+                        break;
+                    }
+            }
+        });
+    }
+
+    @Override
+    public void onSetDrawableAnnotationPositionIdx(final SetDrawableAnnotationPositionIdx msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                for(DrawableAnnotationPosition pos : sd.getAnnotationPositions())
+                    if(pos.getID() == msg.getDrawableID())
+                    {
+                        pos.setMappedDataIndices(msg.getIndices());
+                        break;
+                    }
             }
         });
     }
@@ -1597,6 +1636,18 @@ public class MainActivity extends AppCompatActivity
     public void onLinkSubDatasetAnnotationPosition(AnnotationsFragment frag, SubDataset sd, AnnotationPosition pos)
     {
         m_socket.push(SocketManager.createAddAnnotationPositionToSubData(getDatasetIDBinding(sd), getAnnotationLogComponentIDBinding(pos)));
+    }
+
+    @Override
+    public void onSetDrawableAnnotationPositionColor(AnnotationsFragment frag, DrawableAnnotationPosition pos, Color color)
+    {
+        m_socket.push(SocketManager.createSetDrawableAnnotationPositionColor(pos, color));
+    }
+
+    @Override
+    public void onSetDrawableAnnotationPositionMappedDataIndices(AnnotationsFragment frag, DrawableAnnotationPosition pos, int[] idx)
+    {
+        m_socket.push(SocketManager.createSetDrawableAnnotationPositionMappedDataIndices(pos, idx));
     }
 
     /** Set up the main layout*/

@@ -39,12 +39,14 @@ public class HSVColor
         if(c == 0)
             h = 0;
         else if(max == color.r)
-            h = (color.g - color.b)/c;
+            h = (color.g - color.b)/c + 6;
         else if(max == color.g)
-            h = (color.b - color.r)/c;
+            h = (color.b - color.r)/c + 2;
         else if(max == color.b)
-            h = (color.r - color.g)/c;
+            h = (color.r - color.g)/c + 4;
         h *= 60.0f;
+        while(h >= 360.0f)
+            h -= 360.0f;
 
         //Compute the Saturation
         if(max == 0)
@@ -54,6 +56,8 @@ public class HSVColor
 
         //Compute the Value
         v = max;
+
+        a = color.a;
     }
 
     /** Is the hue defined?
@@ -86,6 +90,20 @@ public class HSVColor
             default:
                 return new Color(c+m, m, x+m, a);
         }
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if(o == this)
+            return true;
+
+        else if(o instanceof HSVColor)
+        {
+            HSVColor col = (HSVColor)o;
+            return col.h == h && col.s == s && col.v == v && col.a == a;
+        }
+        return false;
     }
 
     public Object clone()

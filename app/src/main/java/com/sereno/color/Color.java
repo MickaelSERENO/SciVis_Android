@@ -15,10 +15,18 @@ public class Color
      * @param _a alpha component*/
     public Color(float _r, float _g, float _b, float _a)
     {
-        r = _r;
-        g = _g;
-        b = _b;
-        a = _a;
+        r = _r > 0.0f ? (_r < 1.0f ? _r : 1.0f) : 0.0f;
+        g = _g > 0.0f ? (_g < 1.0f ? _g : 1.0f) : 0.0f;
+        b = _b > 0.0f ? (_b < 1.0f ? _b : 1.0f) : 0.0f;
+        a = _a > 0.0f ? (_a < 1.0f ? _a : 1.0f) : 0.0f;
+    }
+
+    public static Color fromARGB8888(int argb)
+    {
+        return new Color(((argb >> 16)&0xff)/255.0f,
+                         ((argb >> 8 )&0xff)/255.0f,
+                         ((argb      )&0xff)/255.0f,
+                         ((argb >> 24)&0xff)/255.0f);
     }
 
     /** Get a Int32 ARGB 8888 color
@@ -35,6 +43,20 @@ public class Color
     public Object clone()
     {
         return new Color(r, g, b, a);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if(o == this)
+            return true;
+        else if(o instanceof Color)
+        {
+            Color cmp = (Color)o;
+            return (cmp.a == a && cmp.r == r && cmp.g == g && cmp.b ==b);
+        }
+        return false;
+
     }
 
     static final Color WHITE   = new Color(1.0f, 1.0f, 1.0f, 1.0f);

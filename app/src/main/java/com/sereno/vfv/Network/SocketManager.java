@@ -2,6 +2,8 @@ package com.sereno.vfv.Network;
 
 import android.graphics.Point;
 
+import com.sereno.color.Color;
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.TF.MergeTFData;
@@ -73,6 +75,8 @@ public class SocketManager
     public static final short SET_ANNOTATION_POSITION_INDEXES = 32;
     public static final short ADD_ANNOTATION_POSIITON_TO_SD   = 33;
     public static final short SET_SUBDATASET_CLIPPING         = 34;
+    public static final short SET_DRAWABLE_ANNOTATION_POSITION_COLOR = 35;
+    public static final short SET_DRAWABLE_ANNOTATION_POSITION_IDX   = 36;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -967,6 +971,36 @@ public class SocketManager
         buf.putInt(sd.dataset.getID());
         buf.putInt(sd.subDatasetID);
         buf.putFloat(depth);
+
+        return buf.array();
+    }
+
+    public static byte[] createSetDrawableAnnotationPositionColor(DrawableAnnotationPosition pos, Color color)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 3*4 + 4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SET_DRAWABLE_ANNOTATION_POSITION_COLOR);
+        buf.putInt(pos.getSubDataset().getParent().getID());
+        buf.putInt(pos.getSubDataset().getID());
+        buf.putInt(pos.getID());
+        buf.putInt(color.toARGB8888());
+
+        return buf.array();
+    }
+
+    public static byte[] createSetDrawableAnnotationPositionMappedDataIndices(DrawableAnnotationPosition pos, int[] idx)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 3*4 + 4 + 4*idx.length);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SET_DRAWABLE_ANNOTATION_POSITION_IDX);
+        buf.putInt(pos.getSubDataset().getParent().getID());
+        buf.putInt(pos.getSubDataset().getID());
+        buf.putInt(pos.getID());
+        buf.putInt(idx.length);
+        for(int i : idx)
+            buf.putInt(i);
 
         return buf.array();
     }

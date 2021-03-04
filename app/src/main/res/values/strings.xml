@@ -65,4 +65,6 @@
     <string name="headers">Headers: </string>
     <string name="annotLogPosition">Position</string>
     <string name="depthClipping">Depth clipping value: </string>
+    <string name="dataColumn">Data columns: </string>
+    <string name="mapToData">Map color to data</string>
 </resources>

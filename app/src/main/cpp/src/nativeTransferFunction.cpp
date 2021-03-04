@@ -61,6 +61,13 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetCli
         (*tf)->setClipping(min, max);
 }
 
+JNIEXPORT int JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetDimension(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        return (*tf)->getDimension();
+    return 0;
+}
 
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeDeleteTF(JNIEnv* jenv, jobject instance, jlong ptr)
 {
