@@ -710,9 +710,9 @@ namespace sereno
                     //Allow a full rotation in only one movement
                     float roll  = (event->x - event->oldX)*M_PI;
                     float pitch = (event->y - event->oldY)*M_PI;
-                    pitch = 0; //Disable pitch rotation
+                    //pitch = 0; //Disable pitch rotation
 
-                    Quaternionf q = Quaternionf(roll, pitch, 0)*m_currentVis->getRotate();
+                    Quaternionf q = Quaternionf(0, pitch, 0)*Quaternionf(roll, 0, 0)*m_currentVis->getRotate();
                     m_mainData->sendRotationEvent(sd, q);
                 }
                 break;

@@ -138,14 +138,6 @@ namespace sereno
                         //For all values in the grid
                         for(uint32_t i = 0; i < m_dataset->getNbPoints(); i++)
                         {
-                            //Check the mask
-                            if(m_model->isVolumetricMaskEnabled() && m_model->getVolumetricMaskAt(i))
-                            {
-                                for(uint8_t h = 0; h < 4; h++)
-                                    cols[4*i+h] = 1.0f;
-                                continue;
-                            }
-
                             //For each parameter (e.g., temperature, presure, etc.)
                             for(uint32_t j = 0; j < tf->getDimension() - tf->hasGradient(); j++)
                             {
@@ -191,7 +183,16 @@ namespace sereno
                             tf->computeColor(tfInd, outCol);
                             for(uint8_t h = 0; h < 3; h++)
                                 cols[4*i+h] = outCol[h];
-                            cols[4*i+3] = tf->computeAlpha(tfInd);
+                            cols[4*i+3] = 255;
+
+                            //Check the mask
+                            if(m_model->isVolumetricMaskEnabled() && m_model->getVolumetricMaskAt(i))
+                                for(uint8_t h = 0; h < 3; h++)
+                                    cols[4*i+h] = std::min(255.0f, (255.0f-cols[4*i+h])*0.50f + cols[4*i+h]);
+                            else
+                                for(uint8_t h = 0; h < 3; h++)
+                                    cols[4*i+h] = cols[4*i+h]*0.75f;
+
                         }
                     }
 
