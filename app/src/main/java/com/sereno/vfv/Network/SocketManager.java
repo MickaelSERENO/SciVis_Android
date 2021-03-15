@@ -815,13 +815,14 @@ public class SocketManager
     /** Create a new selection input event
      * @param booleanOp the boolean operation to use for this new input
      * @return array of byte to send to push*/
-    public static byte[] createAddNewSelectionInputEvent(int booleanOp)
+    public static byte[] createAddNewSelectionInputEvent(int booleanOp, boolean isConstrained)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2+4);
+        ByteBuffer buf = ByteBuffer.allocate(2+4+1);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(ADD_NEW_SELECTION_INPUT);
         buf.putInt(booleanOp);
+        buf.put((byte)(isConstrained?1:0));
 
         return buf.array();
     }

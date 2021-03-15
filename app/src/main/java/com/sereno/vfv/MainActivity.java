@@ -1234,10 +1234,10 @@ public class MainActivity extends AppCompatActivity
         if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
         {
             if(tangibleMode == ApplicationModel.TANGIBLE_MODE_ORIGIN)
-                m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE)); //Specify that we are not in an operation
+                m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE, m_model.isVolumeSelectionConstrained())); //Specify that we are not in an operation
 
             else if(tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
-                m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+                m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation(), m_model.isVolumeSelectionConstrained()));
         }
     }
 

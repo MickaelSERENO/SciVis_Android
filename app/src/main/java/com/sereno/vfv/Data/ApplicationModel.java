@@ -753,6 +753,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
         m_volumeSelectionConstrained = b;
     }
 
+    public boolean isVolumeSelectionConstrained() {return m_volumeSelectionConstrained;}
+
     /** Set the current selection mode to use
      * @param selectMode the new selection mode to use (see SELECTION_MODE* )*/
     public void setCurrentSelectionMode(int selectMode)
