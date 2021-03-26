@@ -52,6 +52,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     /** Interface proposing callback methods regarding the DatasetsFragment*/
     public interface IDatasetsFragmentListener
     {
+        void onRequestFullScreen(DatasetsFragment frag, boolean inFullScreen);
+
         /** Called when a SubDatasets needs to be renamed
          * @param frag the Fragment calling this method
          * @param sd the SubDataset to rename
@@ -963,6 +965,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {
                 View child = viewGroup.getChildAt(i);
                 child.setVisibility(fullScreen ? View.GONE : View.VISIBLE);
+                for(IDatasetsFragmentListener l : m_dfListeners)
+                    l.onRequestFullScreen(this, true);
             }
         }
 
@@ -971,6 +975,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             view.findViewById(R.id.mainView).setVisibility(View.VISIBLE);
             m_surfaceView.setVisibility(View.VISIBLE);
             m_tangibleLayout.setVisibility(View.VISIBLE);
+            for(IDatasetsFragmentListener l : m_dfListeners)
+                l.onRequestFullScreen(this, false);
         }
 
         else

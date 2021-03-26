@@ -1520,6 +1520,22 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
+    public void onRequestFullScreen(DatasetsFragment frag, boolean inFullScreen)
+    {
+        TabLayout tabs = (TabLayout)findViewById(R.id.tabs);
+        if(inFullScreen)
+        {
+            getSupportActionBar().hide();
+            tabs.setVisibility(View.GONE);
+        }
+        else
+        {
+            getSupportActionBar().show();
+            tabs.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
     public void onRenameSubDataset(DatasetsFragment frag, SubDataset sd, String name)
     {
 
