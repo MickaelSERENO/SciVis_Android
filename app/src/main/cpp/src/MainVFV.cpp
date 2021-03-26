@@ -725,7 +725,7 @@ namespace sereno
         //Move the dataset if asked
         Quaternionf cameraRot(0, 0, 0, 1.0);
         if(inMovement)
-        {sz
+        {
             findHeadsetCameraTransformation(NULL, &cameraRot);
             glm::vec3 newPos = m_animationRotation.getInverse() * movement;
             newPos.x = newPos.z = 0.0f; //Disable some positions because USERS STUDY
