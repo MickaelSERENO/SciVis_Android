@@ -37,5 +37,16 @@
             android:scaleType="centerInside"
             android:src="@drawable/private_icon"
             android:visibility="gone"/>
+
+        <ImageView
+            android:id="@+id/datasetSVIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="32dp"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:scaleType="centerInside"
+            android:src="@drawable/subj_view_icon"
+            android:visibility="gone"/>
     </LinearLayout>
 </LinearLayout>
