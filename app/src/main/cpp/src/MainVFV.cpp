@@ -710,9 +710,21 @@ namespace sereno
                     //Allow a full rotation in only one movement
                     float roll  = (event->x - event->oldX)*M_PI;
                     float pitch = (event->y - event->oldY)*M_PI;
+
+                    glm::vec3 leftVector(1.0f, 0.0f, 0.0f);
+
+                    glm::vec3 headsetPos;
+                    if(findHeadsetCameraTransformation(&headsetPos, NULL))
+                    {
+
+                        glm::vec3 forwardVector = sd->getPosition()-headsetPos;
+                        forwardVector.y = 0.0f;
+                        forwardVector = glm::normalize(forwardVector);
+                        leftVector = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forwardVector);
+                    }
                     //pitch = 0; //Disable pitch rotation
 
-                    Quaternionf q = Quaternionf(0, pitch, 0)*Quaternionf(roll, 0, 0)*m_currentVis->getRotate();
+                    Quaternionf q = Quaternionf(leftVector, pitch)*Quaternionf(roll, 0, 0)*m_currentVis->getRotate();
                     m_mainData->sendRotationEvent(sd, q);
                 }
                 break;
