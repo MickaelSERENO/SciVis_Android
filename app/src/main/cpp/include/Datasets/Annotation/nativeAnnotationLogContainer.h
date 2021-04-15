@@ -19,5 +19,4 @@ extern "C"
     JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogContainer_nativePushAnnotationPosition(JNIEnv* jenv, jclass jcls, jlong jptr, jlong posPtr);
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Annotation_AnnotationLogContainer_nativeRemoveAnnotationPosition(JNIEnv* jenv, jclass jcls, jlong jptr, jlong posPtr);
 }
-
 #endif

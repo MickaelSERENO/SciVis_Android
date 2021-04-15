@@ -8,6 +8,7 @@ import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
+import com.sereno.vfv.Data.SubDatasetGroup;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
@@ -229,6 +230,12 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
 
     @Override
     public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container) {}
+
+    @Override
+    public void onAddSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg){}
+
+    @Override
+    public void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg){}
 
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}

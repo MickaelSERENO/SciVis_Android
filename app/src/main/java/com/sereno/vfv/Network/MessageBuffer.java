@@ -162,6 +162,11 @@ public class MessageBuffer
         /** Called when the message "SET_DRAWABLE_ANNOTATION_POSITION_IDX" has been successfully parsed
          * @param msg the message parsed*/
         void onSetDrawableAnnotationPositionIdx(SetDrawableAnnotationPositionIdx msg);
+
+        void onAddSubjectiveViewGroup(AddSubjectiveViewGroupMessage msg);
+        void onAddSubDatasetToSubjectiveViewStackedGroup(AddSubDatasetToSubjectiveViewStackedGroupMessage msg);
+        void onSetSubjectiveViewStackedParameters(SubjectiveViewStackedGroupGlobalParametersMessage msg);
+        void onRemoveSubDatasetGroup(RemoveSubDatasetGroupMessage msg);
     }
 
     /** No current type received*/
@@ -240,6 +245,11 @@ public class MessageBuffer
 
     /** Set the index being read from a log container for a drawable annotation position object*/
     public static final int SET_DRAWABLE_ANNOTATION_POSITION_IDX   = 34;
+
+    public static final int ADD_SUBJECTIVE_VIEW_GROUP = 35;
+    public static final int ADD_SD_TO_SV_STACKED_LINKED_GROUP = 36;
+    public static final int SET_SV_STACKED_GLOBAL_PARAMETERS = 37;
+    public static final int REMOVE_SUBDATASET_GROUP = 38;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -454,6 +464,22 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onSetDrawableAnnotationPositionIdx((SetDrawableAnnotationPositionIdx)m_curMsg);
                         break;
+                    case ADD_SUBJECTIVE_VIEW_GROUP:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAddSubjectiveViewGroup((AddSubjectiveViewGroupMessage)m_curMsg);
+                        break;
+                    case ADD_SD_TO_SV_STACKED_LINKED_GROUP:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onAddSubDatasetToSubjectiveViewStackedGroup((AddSubDatasetToSubjectiveViewStackedGroupMessage)m_curMsg);
+                        break;
+                    case SET_SV_STACKED_GLOBAL_PARAMETERS:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onSetSubjectiveViewStackedParameters((SubjectiveViewStackedGroupGlobalParametersMessage)m_curMsg);
+                        break;
+                    case REMOVE_SUBDATASET_GROUP:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onRemoveSubDatasetGroup((RemoveSubDatasetGroupMessage)m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -558,6 +584,18 @@ public class MessageBuffer
                 break;
             case SET_DRAWABLE_ANNOTATION_POSITION_IDX:
                 m_curMsg = new SetDrawableAnnotationPositionIdx();
+                break;
+            case ADD_SUBJECTIVE_VIEW_GROUP:
+                m_curMsg = new AddSubjectiveViewGroupMessage();
+                break;
+            case ADD_SD_TO_SV_STACKED_LINKED_GROUP:
+                m_curMsg = new AddSubDatasetToSubjectiveViewStackedGroupMessage();
+                break;
+            case SET_SV_STACKED_GLOBAL_PARAMETERS:
+                m_curMsg = new SubjectiveViewStackedGroupGlobalParametersMessage();
+                break;
+            case REMOVE_SUBDATASET_GROUP:
+                m_curMsg = new RemoveSubDatasetGroupMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

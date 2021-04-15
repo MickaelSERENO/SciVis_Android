@@ -4,11 +4,13 @@ import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.CountDownTimer;
+import android.util.Log;
 
 import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.TF.TransferFunction;
+import com.sereno.vfv.MainActivity;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationCanvasData;
@@ -136,10 +138,20 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param selectMode the new selection mode to use. See SELECTION_MODE_* */
         void onSetSelectionMode(ApplicationModel model, int selectMode);
 
-        /** Called when an annotation log as been added to the known logs
+        /** Called when an annotation log has been added to the known logs
          * @param model the app data model
          * @param container the annotation log data*/
         void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container);
+
+        /** Called when a new subdataset group has been added to the known groups
+         * @param model the app data model
+         * @param sdg the group being added*/
+        void onAddSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg);
+
+        /** Called when an already-registered subdataset group is being remove from the known groups
+         * @param model the app data model
+         * @param sdg the group being removed*/
+        void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg);
     }
 
     /** Annotation meta data*/
@@ -228,6 +240,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     private ArrayList<CloudPointDataset>      m_cloudPointDatasets  = new ArrayList<>(); /**!< The opened cloud point Datasets*/
     private ArrayList<Dataset>                m_datasets            = new ArrayList<>(); /**!< The opened Dataset (vtk + vectorField)*/
     private ArrayList<AnnotationLogContainer> m_annotationLogs      = new ArrayList<>(); /**!< The opened logs containing annotation data*/
+    private ArrayList<SubDatasetGroup>        m_subdatasetGroups    = new ArrayList<>(); /**!< The active subdataset groups*/
 
     /** The bitmap showing the content of the annotations*/
     private HashMap<AnnotationCanvasData, AnnotationMetaData> m_annotations = new HashMap<>();
@@ -453,7 +466,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
             onAddSubDataset(sd);
     }
 
-    /** @brief Add a VTKParser object into the known object loaded
+    /** Add a VTKParser object into the known object loaded
      * @param dataset the VTKDataset object*/
     public void addVTKDataset(VTKDataset dataset)
     {
@@ -466,7 +479,48 @@ public class ApplicationModel implements Dataset.IDatasetListener
             onAddSubDataset(sd);
     }
 
-    /** @brief Add an annotation log container object into the known object loaded
+    /** Register a new subdataset group
+     * @param group the new group to register*/
+    public void addSubdatasetGroup(SubDatasetGroup group)
+    {
+        if(m_subdatasetGroups.contains(group))
+            return;
+        m_subdatasetGroups.add(group);
+        for(IDataCallback clbk : m_listeners)
+            clbk.onAddSubDatasetGroup(this, group);
+    }
+
+    /** unregister a new subdataset group
+     * @param group the group to unregister. All its subdatasets are removed from this group*/
+    public void removeSubDatasetGroup(SubDatasetGroup group)
+    {
+        if(!m_subdatasetGroups.contains(group))
+            return;
+        m_subdatasetGroups.remove(group);
+        while(group.getSubDatasets().size() > 0)
+            if(!group.removeSubDataset(group.getSubDatasets().get(0)))
+            {
+                Log.e(MainActivity.TAG, "Issue about removing subdatasets from a group... quitting.");
+                break;
+            }
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onRemoveSubDatasetGroup(this, group);
+    }
+
+    /** Get all the registered subdataset groups
+     * @return the registered subdataset groups*/
+    public ArrayList<SubDatasetGroup> getSubDatasetGroups() {return m_subdatasetGroups;}
+
+    public SubDatasetGroup getSubDatasetGroup(int sdgID)
+    {
+        for(SubDatasetGroup sdg : m_subdatasetGroups)
+            if(sdg.getID() == sdgID)
+                return sdg;
+        return null;
+    }
+
+    /** Add an annotation log container object into the known object loaded
      * @param container the annotation log container to add*/
     public void addAnnotationLog(AnnotationLogContainer container)
     {
@@ -476,7 +530,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
             clbk.onAddAnnotationLog(this, container);
     }
 
-    /** @brief Get the Configuration object
+    /** Get the Configuration object
      * @return the Configuration object*/
     public Configuration getConfiguration()
     {

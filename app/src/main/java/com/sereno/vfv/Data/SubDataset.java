@@ -101,6 +101,9 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     /** The parent dataset*/
     private Dataset m_parent;
 
+    /** The subdataset group this subdataset belongs to*/
+    private SubDatasetGroup m_sdg = null;
+
     /** List of listeners bound to this SubDataset*/
     private List<ISubDatasetListener> m_listeners = new ArrayList<>();
 
@@ -513,6 +516,18 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
     public List<DrawableAnnotationPosition> getAnnotationPositions()
     {
         return m_annotationPositions;
+    }
+
+    void setSubDatasetGroup(SubDatasetGroup sdg)
+    {
+        if(m_sdg != null)
+            m_sdg.removeSubDataset(this);
+        m_sdg = sdg;
+    }
+
+    public SubDatasetGroup getSubDatasetGroup()
+    {
+        return m_sdg;
     }
 
     public void finalize()

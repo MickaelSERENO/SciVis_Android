@@ -37,6 +37,7 @@ import com.sereno.vfv.Data.Annotation.AnnotationPosition;
 import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
+import com.sereno.vfv.Data.SubDatasetGroup;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
@@ -74,7 +75,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
 
         public HeaderID(int _id, String _header)
         {
-            id = _id;
+            id     = _id;
             header = _header;
         }
 
@@ -625,6 +626,14 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
             }
         });
     }
+
+    @Override
+    public void onAddSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
+    {}
+
+    @Override
+    public void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
+    {}
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)

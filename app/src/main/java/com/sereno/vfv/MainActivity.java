@@ -37,6 +37,8 @@ import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.DataFile;
+import com.sereno.vfv.Data.SubDatasetGroup;
+import com.sereno.vfv.Data.SubDatasetSubjectiveStackedGroup;
 import com.sereno.vfv.Data.TF.MergeTFData;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.Dataset;
@@ -55,6 +57,8 @@ import com.sereno.vfv.Network.AddAnnotationPositionMessage;
 import com.sereno.vfv.Network.AddAnnotationPositionToSDMessage;
 import com.sereno.vfv.Network.AddCloudPointDatasetMessage;
 import com.sereno.vfv.Network.AddSubDatasetMessage;
+import com.sereno.vfv.Network.AddSubDatasetToSubjectiveViewStackedGroupMessage;
+import com.sereno.vfv.Network.AddSubjectiveViewGroupMessage;
 import com.sereno.vfv.Network.AddVTKDatasetMessage;
 import com.sereno.vfv.Network.AnchorAnnotationMessage;
 import com.sereno.vfv.Network.ClearAnnotationsMessage;
@@ -65,6 +69,7 @@ import com.sereno.vfv.Network.LocationTabletMessage;
 import com.sereno.vfv.Network.MessageBuffer;
 import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.OpenLogDataMessage;
+import com.sereno.vfv.Network.RemoveSubDatasetGroupMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetMessage;
 import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
@@ -77,6 +82,7 @@ import com.sereno.vfv.Network.SocketManager;
 import com.sereno.vfv.Network.SubDatasetLockOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetOwnerMessage;
 import com.sereno.vfv.Network.SubDatasetVolumetricMaskMessage;
+import com.sereno.vfv.Network.SubjectiveViewStackedGroupGlobalParametersMessage;
 import com.sereno.vfv.Network.TFDatasetMessage;
 import com.sereno.vfv.Network.ToggleMapVisibilityMessage;
 import com.sereno.view.AnnotationCanvasData;
@@ -1185,6 +1191,86 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onAddSubjectiveViewGroup(final AddSubjectiveViewGroupMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDataset sd = getSubDatasetFromID(msg.getBaseDatasetID(), msg.getBaseSubDatasetID());
+                SubDatasetSubjectiveStackedGroup sdg = new SubDatasetSubjectiveStackedGroup(sd, msg.getSubjectiveViewType(), msg.getSubDatasetGroupID());
+                m_model.addSubdatasetGroup(sdg);
+            }
+        });
+    }
+
+    @Override
+    public void onAddSubDatasetToSubjectiveViewStackedGroup(final AddSubDatasetToSubjectiveViewStackedGroupMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDatasetGroup sdg  = m_model.getSubDatasetGroup(msg.getSubDatasetGroupID());
+                if(sdg == null || !(sdg instanceof SubDatasetSubjectiveStackedGroup))
+                {
+                    Log.e(MainActivity.TAG, "Issue: Cannot add subjective subdatasets to a group that is not a SubDatasetSubjectiveStackedGroup");
+                    return;
+                }
+
+                SubDataset sdStacked = getSubDatasetFromID(msg.getDatasetID(), msg.getStackedSubDatasetID());
+                SubDataset sdLinked  = getSubDatasetFromID(msg.getDatasetID(), msg.getLinkedSubDatasetID());
+                SubDatasetSubjectiveStackedGroup subjectiveSDG = (SubDatasetSubjectiveStackedGroup)sdg;
+                subjectiveSDG.addSubjectiveSubDataset(sdStacked, sdLinked);
+            }
+        });
+    }
+
+    @Override
+    public void onSetSubjectiveViewStackedParameters(final SubjectiveViewStackedGroupGlobalParametersMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDatasetGroup sdg = m_model.getSubDatasetGroup(msg.getSubDatasetGroupID());
+                if(sdg == null || !(sdg instanceof SubDatasetSubjectiveStackedGroup))
+                {
+                    Log.e(MainActivity.TAG, "Issue: Cannot add subjective subdatasets to a group that is not a SubDatasetSubjectiveStackedGroup");
+                    return;
+                }
+
+                SubDatasetSubjectiveStackedGroup subjectiveSDG = (SubDatasetSubjectiveStackedGroup)sdg;
+                subjectiveSDG.setGap(msg.getGap());
+                subjectiveSDG.setMerge(msg.isMerged());
+                subjectiveSDG.setStackingMethod(msg.getStackedMethod());
+            }
+        });
+    }
+
+    @Override
+    public void onRemoveSubDatasetGroup(final RemoveSubDatasetGroupMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDatasetGroup sdg = m_model.getSubDatasetGroup(msg.getSubDatasetGroupID());
+                if(sdg == null)
+                {
+                    Log.e(MainActivity.TAG, "Cannot remove a non-registered subdataset group...");
+                    return;
+                }
+                m_model.removeSubDatasetGroup(sdg);
+            }
+        });
+    }
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -1472,6 +1558,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onAddAnnotationLog(ApplicationModel model, AnnotationLogContainer container)
+    {}
+
+    @Override
+    public void onAddSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
+    {}
+
+    @Override
+    public void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
     {}
 
     @Override
