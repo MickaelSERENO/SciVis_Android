@@ -36,7 +36,13 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             app:layout_rowWeight="1"
-            android:text="@string/openLogData"></Button>
+            android:text="@string/openLogData"/>
+
+        <Button
+            android:id="@+id/saveSubDataset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/saveSD"/>
     </LinearLayout>
 
     <View style="@style/Divider"
@@ -75,6 +81,8 @@
                     android:layout_weight="1"
                     app:textSize="12sp" />
             </LinearLayout>
+
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

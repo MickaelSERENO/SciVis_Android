@@ -67,4 +67,5 @@
     <string name="depthClipping">Depth clipping value: </string>
     <string name="dataColumn">Data columns: </string>
     <string name="mapToData">Map color to data</string>
+    <string name="saveSD">Save SubDataset</string>
 </resources>
