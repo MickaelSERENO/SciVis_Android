@@ -749,6 +749,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
+    {
+
+    }
+
+    @Override
     public void onEmptyMessage(EmptyMessage msg)
     {
     }
@@ -1676,6 +1682,18 @@ public class MainActivity extends AppCompatActivity
     public void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd)
     {
         m_socket.push(SocketManager.createResetVolumetricSelection(getDatasetIDBinding(sd)));
+    }
+
+    @Override
+    public void onAddPersonalSubjectiveView(DatasetsFragment frag, SubDatasetSubjectiveStackedGroup svGroup)
+    {
+        m_socket.push(SocketManager.createAddClientToSVGroup(svGroup.getID()));
+    }
+
+    @Override
+    public void onCreateSubjectiveViewGroup(DatasetsFragment frag, SubDataset sdBase, int svType)
+    {
+        m_socket.push(SocketManager.createSubjectiveViewGroup(getDatasetIDBinding(sdBase), svType));
     }
 
     public void redoGTFSizeRanges()

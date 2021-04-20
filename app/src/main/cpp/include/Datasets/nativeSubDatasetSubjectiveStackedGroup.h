@@ -14,5 +14,6 @@ extern "C"
     JNIEXPORT jint       JNICALL Java_com_sereno_vfv_Data_SubDatasetSubjectiveStackedGroup_nativeGetStackingMethod(JNIEnv *env, jclass clazz, jlong sdgPtr);
     JNIEXPORT jboolean   JNICALL Java_com_sereno_vfv_Data_SubDatasetSubjectiveStackedGroup_nativeAddSubjectiveSubDataset(JNIEnv *env, jclass clazz, jlong sdgPtr, jlong sdStackedPtr, jlong sdLinkedPtr);
     JNIEXPORT jlongArray JNICALL Java_com_sereno_vfv_Data_SubDatasetSubjectiveStackedGroup_nativeGetSubjectiveSubDatasets(JNIEnv *env, jclass clazz, jlong sdgPtr);
+    JNIEXPORT jlong      JNICALL Java_com_sereno_vfv_Data_SubDatasetSubjectiveStackedGroup_nativeGetBase(JNIEnv *env, jclass clazz, jlong sdgPtr);
 }
 #endif

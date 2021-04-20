@@ -68,4 +68,10 @@
     <string name="dataColumn">Data columns: </string>
     <string name="mapToData">Map color to data</string>
     <string name="saveSD">Save SubDataset</string>
+    <string name="createSV">Create Subjective Group</string>
+    <string name="createSVTitle">Create Subjective Group:</string>
+    <string name="svType">Type of Subjective View:</string>
+    <string name="removeSV">Remove Subjective Group</string>
+    <string name="switchToSV">Switch to Personal View</string>
+    <string name="switchToBase">Switch to Original View</string>
 </resources>

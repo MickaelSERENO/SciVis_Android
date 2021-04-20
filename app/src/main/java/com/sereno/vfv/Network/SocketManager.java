@@ -6,6 +6,7 @@ import com.sereno.color.Color;
 import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.SubDataset;
+import com.sereno.vfv.Data.SubDatasetSubjectiveStackedGroup;
 import com.sereno.vfv.Data.TF.MergeTFData;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VTKDataset;
@@ -77,6 +78,10 @@ public class SocketManager
     public static final short SET_SUBDATASET_CLIPPING         = 34;
     public static final short SET_DRAWABLE_ANNOTATION_POSITION_COLOR = 35;
     public static final short SET_DRAWABLE_ANNOTATION_POSITION_IDX   = 36;
+    public static final short ADD_SV_GROUP                           = 37;
+    public static final short REMOVE_SD_GROUP                        = 38;
+    public static final short SET_SV_STACKED_GROUP_GLOBAL_PARAMETERS = 39;
+    public static final short ADD_CLIENT_TO_SV_GROUP                 = 40;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -1001,6 +1006,55 @@ public class SocketManager
         buf.putInt(idx.length);
         for(int i : idx)
             buf.putInt(i);
+
+        return buf.array();
+    }
+
+    public static byte[] createSubjectiveViewGroup(MainActivity.DatasetIDBinding sd, int svType)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 3*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(ADD_SV_GROUP);
+        buf.putInt(svType);
+        buf.putInt(sd.dataset.getID());
+        buf.putInt(sd.subDatasetID);
+
+        return buf.array();
+    }
+
+    public static byte[] createRemoveSubDatasetGroup(int sdgID)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(REMOVE_SD_GROUP);
+        buf.putInt(sdgID);
+
+        return buf.array();
+    }
+
+    public static byte[] createSetSVGlobalParameters(SubDatasetSubjectiveStackedGroup sv)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4 + 4 + 4 + 1);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SET_SV_STACKED_GROUP_GLOBAL_PARAMETERS);
+        buf.putInt(sv.getID());
+        buf.putInt(sv.getStackingMethod());
+        buf.putFloat(sv.getGap());
+        buf.put((byte)(sv.getMerge()?1:0));
+
+        return buf.array();
+    }
+
+    public static byte[] createAddClientToSVGroup(int sdgID)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(ADD_CLIENT_TO_SV_GROUP);
+        buf.putInt(sdgID);
 
         return buf.array();
     }

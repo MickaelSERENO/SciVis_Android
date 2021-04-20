@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -32,6 +33,7 @@ import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.SubDatasetGroup;
+import com.sereno.vfv.Data.SubDatasetSubjectiveStackedGroup;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
@@ -39,7 +41,11 @@ import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.SubDataset;
 import com.sereno.vfv.Data.VTKDataset;
 import com.sereno.vfv.Dialog.Listener.INoticeCreateSDDialogListener;
+import com.sereno.vfv.Dialog.Listener.INoticeCreateSVDialogListener;
+import com.sereno.vfv.Dialog.Listener.INoticeVTKDialogListener;
 import com.sereno.vfv.Dialog.OpenCreateSDDialog;
+import com.sereno.vfv.Dialog.OpenCreateSVDialog;
+import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.view.AnnotationCanvasData;
@@ -48,7 +54,9 @@ import com.sereno.view.TreeView;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback, Dataset.IDatasetListener
+public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback,
+                                                             Dataset.IDatasetListener,
+                                                             SubDatasetSubjectiveStackedGroup.ISubDatasetSubjectiveStackedGroup
 {
     /** Interface proposing callback methods regarding the DatasetsFragment*/
     public interface IDatasetsFragmentListener
@@ -98,6 +106,17 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param frag the Fragment calling this method
          * @param sd the subdataset to reset the selection on*/
         void onResetVolumetricSelection(DatasetsFragment frag, SubDataset sd);
+
+        /** Ask to add a personal subjective view for a given subdataset
+         * @param frag the Fragment calling this method
+         * @param svGroup the group for which a new personal subjective view should be added*/
+        void onAddPersonalSubjectiveView(DatasetsFragment frag, SubDatasetSubjectiveStackedGroup svGroup);
+
+        /** Ask to create a subjective view group
+         * @param frag the Fragment calling this method
+         * @param sdBase the subdataset serving as a base for the new subjective view group
+         * @param svType the type of the new subjective view group*/
+        void onCreateSubjectiveViewGroup(DatasetsFragment frag, SubDataset sdBase, int svType);
     }
 
     public static final float INCH_TO_METER   = 0.0254f;
@@ -302,11 +321,33 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     popup.getMenu().findItem(R.id.makePublicSD_item).setVisible(false);
 
                 //Toggle the correct visibility button
+                popup.getMenu().findItem(R.id.createSV_item).setVisible(true);
+                popup.getMenu().findItem(R.id.switchToBase_item).setVisible(false);
+                popup.getMenu().findItem(R.id.switchToSV_item).setVisible(false);
+
                 if(sd.getMapVisibility())
                     popup.getMenu().findItem(R.id.enableMap_item).setVisible(false);
                 else
                     popup.getMenu().findItem(R.id.disableMap_item).setVisible(false);
 
+                if(sd.getSubDatasetGroup() == null)
+                    popup.getMenu().findItem(R.id.removeSV_item).setVisible(false);
+                else
+                {
+                    popup.getMenu().findItem(R.id.removeSV_item).setVisible(true);
+                    if(SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
+                    {
+                        SubDatasetSubjectiveStackedGroup svg = (SubDatasetSubjectiveStackedGroup)(sd.getSubDatasetGroup());
+                        if(svg.getSubjectiveSubDataset(m_model.getBindingInfo().getHeadsetID()) != null)
+                        {
+                            popup.getMenu().findItem(R.id.createSV_item).setVisible(false);
+                            if(svg.focusOnBase())
+                                popup.getMenu().findItem(R.id.switchToSV_item).setVisible(true);
+                            else
+                                popup.getMenu().findItem(R.id.switchToBase_item).setVisible(true);
+                        }
+                    }
+                }
 
                 //registering popup with OnMenuItemClickListener
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -323,16 +364,20 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                                 final EditText input = new EditText(getContext());
                                 builder.setView(input);
 
-                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                                {
                                     @Override
-                                    public void onClick(DialogInterface dialog, int which) {
+                                    public void onClick(DialogInterface dialog, int which)
+                                    {
                                         for(IDatasetsFragmentListener listener : m_dfListeners)
                                             listener.onRenameSubDataset(DatasetsFragment.this, sd, input.getText().toString());
                                     }
                                 });
-                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                                {
                                     @Override
-                                    public void onClick(DialogInterface dialog, int which) {
+                                    public void onClick(DialogInterface dialog, int which)
+                                    {
                                         dialog.cancel();
                                     }
                                 });
@@ -367,6 +412,59 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
                             case R.id.mergeWith_item:
                                 m_inMergedSubDataset = sd;
+                                break;
+
+                            case R.id.createSV_item:
+                            {
+                                if(sd.getSubDatasetGroup() != null)
+                                {
+                                    if(!SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
+                                    {
+                                        Toast.makeText(m_ctx, "The subdataset is already inside a group, but not a subjective one (TODO)", Toast.LENGTH_SHORT);
+                                        break;
+                                    }
+                                    for(IDatasetsFragmentListener listener : m_dfListeners)
+                                        listener.onAddPersonalSubjectiveView(DatasetsFragment.this, (SubDatasetSubjectiveStackedGroup)sd.getSubDatasetGroup());
+                                }
+                                else
+                                {
+                                    OpenCreateSVDialog svDialog = new OpenCreateSVDialog(m_ctx);
+                                    svDialog.open(new INoticeCreateSVDialogListener()
+                                    {
+                                        @Override
+                                        public void onDialogPositiveClick(OpenCreateSVDialog dialog)
+                                        {
+                                            for(IDatasetsFragmentListener l : m_dfListeners)
+                                                l.onCreateSubjectiveViewGroup(DatasetsFragment.this, sd, dialog.getSelectedSVType());
+                                        }
+
+                                        @Override
+                                        public void onDialogNegativeClick(OpenCreateSVDialog dialog) {}
+                                    });
+                                }
+                                break;
+                            }
+
+                            case R.id.switchToBase_item:
+                                if(sd.getSubDatasetGroup() != null)
+                                {
+                                    if(SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
+                                    {
+                                        SubDatasetSubjectiveStackedGroup svg = (SubDatasetSubjectiveStackedGroup)sd.getSubDatasetGroup();
+                                        svg.setFocus(true);
+                                    }
+                                }
+                                break;
+
+                            case R.id.switchToSV_item:
+                                if(sd.getSubDatasetGroup() != null)
+                                {
+                                    if(SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
+                                    {
+                                        SubDatasetSubjectiveStackedGroup svg = (SubDatasetSubjectiveStackedGroup)sd.getSubDatasetGroup();
+                                        svg.setFocus(false);
+                                    }
+                                }
                                 break;
                         }
                         return true;
@@ -497,6 +595,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             @Override
             public void onSetDepthClipping(SubDataset dataset, float depthClipping){}
+
+            @Override
+            public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
+            {
+                if(SubDatasetGroup.isSubjective(group))
+                {
+                    SubDatasetSubjectiveStackedGroup svGroup = (SubDatasetSubjectiveStackedGroup)group;
+
+                }
+            }
         };
         sd.addListener(snapEvent);
         snapEvent.onSetOwner(sd, sd.getOwnerID());
@@ -559,6 +667,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             m_headsetColor.setImageDrawable(getResources().getDrawable(R.drawable.no_snapshot));
             m_headsetColor.setBackgroundColor(Color.TRANSPARENT);
         }
+
+        for(SubDatasetGroup sdg : model.getSubDatasetGroups())
+        {
+            if(SubDatasetGroup.isSubjective(sdg))
+                updateSubjectiveViews((SubDatasetSubjectiveStackedGroup)sdg);
+        }
     }
 
     @Override
@@ -592,7 +706,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onAddSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
-    {}
+    {
+        if(SubDatasetGroup.isSubjective(sdg))
+        {
+            SubDatasetSubjectiveStackedGroup svg = (SubDatasetSubjectiveStackedGroup)sdg;
+            svg.addListener(this);
+        }
+    }
 
     @Override
     public void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
@@ -1034,5 +1154,88 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         Tree<View> dataView = new Tree<View>(l);
         m_previewLayout.getModel().addChild(dataView, -1);
         m_datasetTrees.put(d, dataView);
+    }
+
+
+    @Override
+    public void onSetGap(SubDatasetSubjectiveStackedGroup group, float gap)
+    {}
+
+    @Override
+    public void onSetMerge(SubDatasetSubjectiveStackedGroup group, boolean merge)
+    {}
+
+    @Override
+    public void onSetStackingMethod(SubDatasetSubjectiveStackedGroup group, int method)
+    {}
+
+    @Override
+    public void onAddSubjectiveViews(SubDatasetSubjectiveStackedGroup group, Pair<SubDataset, SubDataset> subjViews)
+    {
+        updateSubjectiveViews(group);
+    }
+
+    @Override
+    public void onSetFocus(SubDatasetSubjectiveStackedGroup group, boolean onBase)
+    {
+        updateSubjectiveViews(group);
+    }
+
+    private void updateSubjectiveViews(SubDatasetSubjectiveStackedGroup group)
+    {
+        boolean curDataset = false;
+
+        //Hide everyone
+        for(SubDataset sd : group.getSubDatasets())
+        {
+            if(sd == m_model.getCurrentSubDataset())
+                curDataset = true;
+            Tree<View> sdTree = m_sdTrees.get(sd);
+            if(sdTree != null)
+                sdTree.value.setVisibility(View.GONE);
+        }
+
+        //Show only base
+        if(group.focusOnBase())
+        {
+            Tree<View> sdTree = m_sdTrees.get(group.getBase());
+            if(sdTree != null)
+            {
+                sdTree.value.setVisibility(View.VISIBLE);
+                ImageView svIcon = (ImageView)sdTree.value.findViewById(R.id.datasetSVIcon);
+                svIcon.setVisibility(View.GONE);
+
+                if(curDataset)
+                    m_model.setCurrentSubDataset(group.getBase());
+            }
+        }
+
+        //Show only subjective
+        else
+        {
+            Pair<SubDataset, SubDataset> sv = group.getSubjectiveSubDataset(m_model.getBindingInfo().getHeadsetID());
+            if(sv != null)
+            {
+                SubDataset sd = null;
+                if(sv.second != null) //Show linked view first
+                    sd = sv.second;
+                else
+                    sd = sv.first; //Show stacked view if the linked view is not available
+
+                if(sd != null)
+                {
+                    Tree<View> sdTree = m_sdTrees.get(sd);
+                    if(sdTree != null)
+                    {
+                        sdTree.value.setVisibility(View.VISIBLE);
+                        ImageView svIcon = (ImageView)sdTree.value.findViewById(R.id.datasetSVIcon);
+                        svIcon.setVisibility(View.VISIBLE);
+
+                        if(curDataset)
+                            m_model.setCurrentSubDataset(sd);
+                    }
+                }
+            }
+        }
     }
 }

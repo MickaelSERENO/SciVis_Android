@@ -12,4 +12,10 @@
         <item>Left</item>
         <item>Right</item>
     </string-array>
+
+    <string-array name="svType">
+        <item>Stacked</item>
+        <item>Linked</item>
+        <item>Stacked and Linked</item>
+    </string-array>
 </resources>

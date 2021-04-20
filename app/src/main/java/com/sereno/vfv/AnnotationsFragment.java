@@ -1502,6 +1502,12 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSetDepthClipping(SubDataset dataset, float depthClipping){}
 
     @Override
+    public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
+    {
+
+    }
+
+    @Override
     public void onAddStroke(AnnotationCanvasData data, AnnotationStroke stroke)
     {
         stroke.addListener(this);

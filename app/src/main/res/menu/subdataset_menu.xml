@@ -6,30 +6,35 @@
 
     <item
         android:title="@string/rename"
-        android:id="@+id/rename_item">
-    </item>
+        android:id="@+id/rename_item"/>
     <item
         android:title="@string/duplicateSD"
-        android:id="@+id/duplicateSD_item">
-    </item>
+        android:id="@+id/duplicateSD_item"/>
     <item
         android:title="@string/removeSD"
-        android:id="@+id/removeSD_item">
-    </item>
+        android:id="@+id/removeSD_item"/>
     <item
         android:title="@string/makePublicSD"
-        android:id="@+id/makePublicSD_item">
-    </item>
+        android:id="@+id/makePublicSD_item"/>
     <item
         android:title="@string/disableMap"
-        android:id="@+id/disableMap_item">
-    </item>
+        android:id="@+id/disableMap_item"/>
     <item
         android:title="@string/enableMap"
-        android:id="@+id/enableMap_item">
-    </item>
+        android:id="@+id/enableMap_item"/>
     <item
         android:title="@string/mergeWith"
-        android:id="@+id/mergeWith_item">
-    </item>
+        android:id="@+id/mergeWith_item"/>
+    <item
+        android:title="@string/createSV"
+        android:id="@+id/createSV_item"/>
+    <item
+        android:title="@string/removeSV"
+        android:id="@+id/removeSV_item"/>
+    <item
+        android:title="@string/switchToSV"
+        android:id="@+id/switchToSV_item"/>
+    <item
+        android:title="@string/switchToBase"
+        android:id="@+id/switchToBase_item"/>
 </menu>

@@ -70,3 +70,9 @@ JNIEXPORT jlongArray JNICALL Java_com_sereno_vfv_Data_SubDatasetSubjectiveStacke
     }
     return arr;
 }
+
+JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_SubDatasetSubjectiveStackedGroup_nativeGetBase(JNIEnv *env, jclass clazz, jlong sdgPtr)
+{
+    SubDatasetSubjectiveStackedLinkedGroup* sdg = (SubDatasetSubjectiveStackedLinkedGroup*)sdgPtr;
+    return (jlong)sdg->getBase();
+}

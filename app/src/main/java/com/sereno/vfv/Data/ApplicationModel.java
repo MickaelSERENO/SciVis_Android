@@ -428,6 +428,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
             @Override
             public void onSetDepthClipping(SubDataset dataset, float depthClipping)
             {}
+
+            @Override
+            public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
+            {}
         });
 
         sd.setCanBeModified(canModifySubDataset(sd));

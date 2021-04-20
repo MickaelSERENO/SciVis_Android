@@ -1,9 +1,14 @@
 package com.sereno.vfv.Data;
 
+import android.graphics.Bitmap;
+
+import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
+import com.sereno.view.AnnotationCanvasData;
+
 import java.util.ArrayList;
 
 /** Base class for subdataset groups*/
-public abstract class SubDatasetGroup
+public abstract class SubDatasetGroup implements SubDataset.ISubDatasetListener
 {
     /** Interface to handle events from SubDatasetGroup objects*/
     public interface ISubDatasetGroupListener
@@ -23,16 +28,26 @@ public abstract class SubDatasetGroup
         void onUpdateSubDatasets(SubDatasetGroup sdg);
     };
 
+    /** Is the subdataset group "group" a subjective view group? (SubDatasetSubjectiveStackedGroup)
+     * @param group the group to test
+     * @return true if group is a group of subjective views, false otherwise*/
+    public static boolean isSubjective(SubDatasetGroup group)
+    {
+        return group.m_type == SD_GROUP_SV_LINKED  ||
+               group.m_type == SD_GROUP_SV_STACKED ||
+               group.m_type == SD_GROUP_SV_STACKED_LINKED;
+    }
+
     public static final int SD_GROUP_SV_STACKED        = 0;
     public static final int SD_GROUP_SV_LINKED         = 1;
-    public static final int SD_GROUP_SV_STACKED_LINKED = 3;
-    public static final int SD_GROUP_NONE              = 4;
+    public static final int SD_GROUP_SV_STACKED_LINKED = 2;
+    public static final int SD_GROUP_NONE              = 3;
 
     /** The subdatasets belonging to this group*/
     protected ArrayList<SubDataset>               m_subdatasets = new ArrayList<>();
 
     /** All the registered listeners*/
-    protected ArrayList<ISubDatasetGroupListener> m_listeners   = new ArrayList<>();
+    private ArrayList<ISubDatasetGroupListener> m_listeners     = new ArrayList<>();
 
     /** The native C++ pointer pointing to a SubDatasetGroup (or inherited class)*/
     protected long m_ptr;
@@ -168,6 +183,79 @@ public abstract class SubDatasetGroup
     {
         nativeDeletePtr(m_ptr);
     }
+
+    @Override
+    public void onRotationEvent(SubDataset dataset, float[] quaternion)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onPositionEvent(SubDataset dataset, float[] position)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onScaleEvent(SubDataset dataset, float[] scale)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onSnapshotEvent(SubDataset dataset, Bitmap snapshot) {}
+
+    @Override
+    public void onAddCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
+
+    @Override
+    public void onRemove(SubDataset dataset){}
+
+    @Override
+    public void onRemoveCanvasAnnotation(SubDataset dataset, AnnotationCanvasData annotation) {}
+
+    @Override
+    public void onUpdateTF(SubDataset dataset)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
+    {}
+
+    @Override
+    public void onSetOwner(SubDataset dataset, int headsetID)
+    {}
+
+    @Override
+    public void onSetCanBeModified(SubDataset dataset, boolean status)
+    {}
+
+    @Override
+    public void onSetMapVisibility(SubDataset dataset, boolean visibility)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onSetVolumetricMask(SubDataset dataset)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
+    {}
+
+    @Override
+    public void onSetDepthClipping(SubDataset dataset, float depthClipping)
+    {
+        updateSubDatasets();
+    }
+
+    @Override
+    public void onSetSubDatasetGroup(SubDataset sd, SubDatasetGroup group) {}
 
     private static native void    nativeDeletePtr(long ptr);
     private static native long[]  nativeGetSubDatasets(long sdgPtr);

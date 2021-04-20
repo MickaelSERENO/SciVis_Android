@@ -7,11 +7,23 @@ import java.util.ArrayList;
 /** Class representing subjective group where subdatasets can both be stacked and linked */
 public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
 {
+    public interface ISubDatasetSubjectiveStackedGroup
+    {
+        void onSetGap(SubDatasetSubjectiveStackedGroup group, float gap);
+        void onSetMerge(SubDatasetSubjectiveStackedGroup group, boolean merge);
+        void onSetStackingMethod(SubDatasetSubjectiveStackedGroup group, int method);
+        void onAddSubjectiveViews(SubDatasetSubjectiveStackedGroup group, Pair<SubDataset, SubDataset> subjViews);
+        void onSetFocus(SubDatasetSubjectiveStackedGroup group, boolean onBase);
+    }
+
     public static final int STACK_VERTICAL   = 0;
     public static final int STACK_HORIZONTAL = 1;
     public static final int STACK_END        = 2;
 
-    private boolean m_focusOnBase = false;
+    /** Is the current application focus on the base or on the subjective view?*/
+    private boolean m_focusOnBase = true;
+
+    private ArrayList<ISubDatasetSubjectiveStackedGroup> m_listeners     = new ArrayList<>();
 
     /** Constructor
      * @param base the original subdataset acting as a base
@@ -23,11 +35,34 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
         addSubDataset(base);
     }
 
+    /** Register a new listener to call on events
+     * @param l the listener to consider from now*/
+    public void addListener(ISubDatasetSubjectiveStackedGroup l)
+    {
+        if(m_listeners.contains(l))
+            return;
+        m_listeners.add(l);
+    }
+
+    /** Unregister a new listener to call on events
+     * @param l the listener to not consider anymore*/
+    public void removeListener(ISubDatasetSubjectiveStackedGroup l)
+    {
+        if(!m_listeners.contains(l))
+            return;
+        m_listeners.remove(l);
+    }
+
     /** Set the gap distance separating stacked subdatasets
      * @param gap the new gap distance (world-space distance)*/
     public void setGap(float gap)
     {
-        nativeSetGap(m_ptr, gap);
+        if(gap != getGap())
+        {
+            nativeSetGap(m_ptr, gap);
+            for(ISubDatasetSubjectiveStackedGroup clbk : m_listeners)
+                clbk.onSetGap(this, gap);
+        }
     }
 
     /** Get the gap distance separating stacked subdatasets
@@ -41,7 +76,12 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
      * @param merge true if yes, false otherwise*/
     public void setMerge(boolean merge)
     {
-        nativeSetMerge(m_ptr, merge);
+        if(merge != getMerge())
+        {
+            nativeSetMerge(m_ptr, merge);
+            for(ISubDatasetSubjectiveStackedGroup clbk : m_listeners)
+                clbk.onSetMerge(this, merge);
+        }
     }
 
     /** Should stacked subdataset be merged?
@@ -55,7 +95,12 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
      * @param stack the stack method; see STACK_* */
     public void setStackingMethod(int stack)
     {
-        nativeSetStackingMethod(m_ptr, stack);
+        if(stack != getStackingMethod())
+        {
+            nativeSetStackingMethod(m_ptr, stack);
+            for(ISubDatasetSubjectiveStackedGroup clbk : m_listeners)
+                clbk.onSetStackingMethod(this, stack);
+        }
     }
 
     /** Get the stacking method of stacked subdatasets
@@ -84,11 +129,21 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
                 addSubDataset(sdStacked);
             if(sdLinked != null)
                 addSubDataset(sdLinked);
+
+            for(ISubDatasetSubjectiveStackedGroup clbk : m_listeners)
+                clbk.onAddSubjectiveViews(this, new Pair<SubDataset, SubDataset>(sdStacked, sdLinked));
             return true;
         }
         return false;
     }
 
+    public SubDataset getBase()
+    {
+        return getSubDatasetFromNativePointer(nativeGetBase(m_ptr));
+    }
+
+    /** Get pairs of subjective views already registered
+     * @return pairs of subjective views. First == Stacked, Second == Linked. If a component is equal to null, it means that there is no view to fill this role*/
     public ArrayList<Pair<SubDataset, SubDataset>> getSubjectiveSubDatasets()
     {
         long[] sdIDs = nativeGetSubjectiveSubDatasets(m_ptr);
@@ -105,6 +160,10 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
         return ret;
     }
 
+
+    /** Get the pair of subjective views already registered that is owned by ownerID
+     * @param ownerID  the owner to look for.
+     * @return The pair of subjective views owned by ownerID. First == Stacked, Second == Linked. If a component is equal to null, it means that there is no view to fill this role*/
     public Pair<SubDataset, SubDataset> getSubjectiveSubDataset(int ownerID)
     {
         long[] sdIDs = nativeGetSubjectiveSubDatasets(m_ptr);
@@ -121,6 +180,23 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
         return null;
     }
 
+    /** Set the current application focus.
+     * @param onBase set this at true to focus on the base subjective view, or false to focus on the client's subjective view*/
+    public void setFocus(boolean onBase)
+    {
+        if(m_focusOnBase != onBase)
+        {
+            m_focusOnBase = onBase;
+            for(ISubDatasetSubjectiveStackedGroup clbk : m_listeners)
+                clbk.onSetFocus(this, onBase);
+        }
+    }
+
+    public boolean focusOnBase()
+    {
+        return m_focusOnBase;
+    }
+
     private static native long    nativeCreatePtr(long basePtr);
     private static native void    nativeSetGap(long ptr, float gap);
     private static native long    nativeGetGap(long ptr);
@@ -130,4 +206,5 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
     private static native int     nativeGetStackingMethod(long ptr);
     private static native boolean nativeAddSubjectiveSubDataset(long sdgPtr, long sdStackedPtr, long sdLinkedPtr);
     private static native long[]  nativeGetSubjectiveSubDatasets(long sdgPtr);
+    private static native long    nativeGetBase(long sdgPtr);
 }

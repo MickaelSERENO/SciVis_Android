@@ -246,10 +246,10 @@ public class MessageBuffer
     /** Set the index being read from a log container for a drawable annotation position object*/
     public static final int SET_DRAWABLE_ANNOTATION_POSITION_IDX   = 34;
 
-    public static final int ADD_SUBJECTIVE_VIEW_GROUP = 35;
+    public static final int ADD_SUBJECTIVE_VIEW_GROUP         = 35;
     public static final int ADD_SD_TO_SV_STACKED_LINKED_GROUP = 36;
-    public static final int SET_SV_STACKED_GLOBAL_PARAMETERS = 37;
-    public static final int REMOVE_SUBDATASET_GROUP = 38;
+    public static final int SET_SV_STACKED_GLOBAL_PARAMETERS  = 37;
+    public static final int REMOVE_SUBDATASET_GROUP           = 38;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;

@@ -93,6 +93,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
          * @param dataset the object calling this method
          * @param depthClipping the new depth clipping value (clamped between 0.0f and 1.0f)*/
         void onSetDepthClipping(SubDataset dataset, float depthClipping);
+
+        /** Method called when the subdataset group this subdataset belongs to has changed
+         * @param dataset the object calling this method
+         * @param group the new subdataset group owning this subdataset*/
+        void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group);
     }
 
     /** The native C++ handle*/

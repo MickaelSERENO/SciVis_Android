@@ -316,6 +316,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onSetDepthClipping(SubDataset dataset, float depthClipping) {/*TODO*/}
 
+    @Override
+    public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
+    {}
+
     /** Function called from the native code when the native code needs to change the current action
      * Pay attention that this is done asynchronously
      * @param a the new action to use*/
