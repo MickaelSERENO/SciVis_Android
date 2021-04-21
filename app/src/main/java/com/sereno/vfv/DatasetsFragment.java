@@ -1213,6 +1213,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         //Show only subjective
         else
         {
+            if(m_model.getBindingInfo() == null)
+            {
+                //No connection --> focus on Base
+                group.setFocus(true);
+                return;
+            }
+
             Pair<SubDataset, SubDataset> sv = group.getSubjectiveSubDataset(m_model.getBindingInfo().getHeadsetID());
             if(sv != null)
             {
