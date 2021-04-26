@@ -21,6 +21,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetClipping(JNIEnv* jenv, jobject instance, jlong ptr, jfloat min, jfloat max);
 
+    JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeCloneTF(JNIEnv* jenv, jobject instance, jlong ptr);
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeDeleteTF(JNIEnv* jenv, jobject instance, jlong ptr);
 
     JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_GTFData_nativeCreatePtr(JNIEnv* jenv, jobject instance, jlong datasetPtr, jboolean enableGradient, jint colorMode);
@@ -31,6 +32,8 @@ extern "C"
     JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeCreatePtr(JNIEnv* jenv, jobject instance, jfloat t, jlong tf1Ptr, jlong tf2Ptr);
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeSetInterpolationParameter(JNIEnv* jenv, jobject instance, jlong ptr, jfloat t);
+    JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeGetInterpolationParameter(JNIEnv* jenv, jobject instance, jlong ptr);
+
 }
 
 #endif

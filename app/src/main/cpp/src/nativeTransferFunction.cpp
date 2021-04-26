@@ -76,6 +76,15 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeDelete
         delete tf;
 }
 
+JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeCloneTF(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf == nullptr)
+        return 0;
+
+    return (jlong)new std::shared_ptr<TF>((*tf)->clone());
+}
+
 JNIEXPORT jlong JNICALL Java_com_sereno_vfv_Data_TF_GTFData_nativeCreatePtr(JNIEnv* jenv, jobject instance, jlong datasetPtr, jboolean enableGradient, jint colorMode)
 {
     std::shared_ptr<Dataset>* dataset = (std::shared_ptr<Dataset>*)datasetPtr;
@@ -169,4 +178,12 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeSetInterpol
     std::shared_ptr<MergeTF>* tf = (std::shared_ptr<MergeTF>*)ptr;
     if(tf)
         (*tf)->setInterpolationParameter(t);
+}
+
+JNIEXPORT float JNICALL Java_com_sereno_vfv_Data_TF_MergeTFData_nativeGetInterpolationParameter(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<MergeTF>* tf = (std::shared_ptr<MergeTF>*)ptr;
+    if(tf)
+        return (*tf)->getInterpolationParameter();
+    return -1.0f;
 }

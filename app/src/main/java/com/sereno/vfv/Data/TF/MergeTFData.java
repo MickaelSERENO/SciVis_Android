@@ -27,9 +27,6 @@ public class MergeTFData extends TransferFunction
     /** The "parent" Dataset in use*/
     private Dataset m_dataset = null;
 
-    /** The linear interpolation parameter. Must be between 0.0f and 1.0f*/
-    private float  m_t = 0.5f;
-
     /** The first transfer function data. Must be casted according to m_tf1Type*/
     private TransferFunction m_tf1 = null;
 
@@ -74,7 +71,7 @@ public class MergeTFData extends TransferFunction
 
     /** Get the interpolation t parameter. Value ranges between 0.0f and 1.0f
      * @return the interpolation t parameter. 0.0f == getTF1() being fully rendered. 1.0f == getTF2() being fully rendered.*/
-    public float getInterpolationParameter() {return m_t;}
+    public float getInterpolationParameter() {return nativeGetInterpolationParameter(getNativeTransferFunction());}
 
     /** Set the linear t parameter. Value ranges between 0.0f and 1.0f
      * @param t the linear t parameter. 0.0f == getTF1() being fully rendered. 1.0f == getTF2() being fully rendered.*/
@@ -82,11 +79,9 @@ public class MergeTFData extends TransferFunction
     {
         t = Math.min(Math.max(t, 0.0f), 1.0f);
 
-        if(t != m_t)
+        if(t != getInterpolationParameter())
         {
-            m_t = t;
-
-            nativeSetInterpolationParameter(getNativeTransferFunction(), m_t);
+            nativeSetInterpolationParameter(getNativeTransferFunction(), t);
             for(int i = 0; i < m_listeners.size(); i++)
                 m_listeners.get(i).OnChangeLinearInterpolation(this, t);
             callOnUpdateListeners();
@@ -111,7 +106,7 @@ public class MergeTFData extends TransferFunction
     public long getNativeTransferFunction()
     {
         if(m_ptr == 0)
-            m_ptr = nativeCreatePtr(m_t,  m_tf1.getNativeTransferFunction(), m_tf2.getNativeTransferFunction());
+            m_ptr = nativeCreatePtr(0.5f,  m_tf1.getNativeTransferFunction(), m_tf2.getNativeTransferFunction());
         return m_ptr;
     }
 
@@ -126,6 +121,19 @@ public class MergeTFData extends TransferFunction
         nativeDeleteTF(m_ptr);
     }
 
-    private native long nativeCreatePtr(float t, long tf1Ptr, long tf2Ptr);
-    private native long nativeSetInterpolationParameter(long ptr, float t);
+    public Object clone()
+    {
+        MergeTFData mergeTF = new MergeTFData(m_sd, (TransferFunction)m_tf1.clone(), (TransferFunction)m_tf2.clone());
+
+        long oldTF = mergeTF.m_ptr;
+        long newTF = nativeCloneTF(oldTF);
+        mergeTF.m_ptr = newTF;
+        nativeDeleteTF(oldTF);
+
+        return mergeTF;
+    }
+
+    private native long  nativeCreatePtr(float t, long tf1Ptr, long tf2Ptr);
+    private native long  nativeSetInterpolationParameter(long ptr, float t);
+    private native float nativeGetInterpolationParameter(long ptr);
 }

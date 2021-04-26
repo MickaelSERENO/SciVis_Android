@@ -2,6 +2,8 @@ package com.sereno.vfv.Data;
 
 import android.util.Pair;
 
+import com.sereno.vfv.Data.TF.TransferFunction;
+
 import java.util.ArrayList;
 
 /** Class representing subjective group where subdatasets can both be stacked and linked */
@@ -135,6 +137,20 @@ public class SubDatasetSubjectiveStackedGroup extends SubDatasetGroup
             return true;
         }
         return false;
+    }
+
+    public void updateSubDatasets()
+    {
+        ArrayList<Pair<SubDataset, SubDataset>> subjViews = getSubjectiveSubDatasets();
+
+        for(Pair<SubDataset, SubDataset> subj : subjViews)
+        {
+            if(subj.first != null && subj.second != null)
+            {
+                subj.first.setTransferFunction((TransferFunction)subj.second.getTransferFunction().clone());
+            }
+        }
+        super.updateSubDatasets();
     }
 
     public SubDataset getBase()

@@ -1,7 +1,10 @@
 package com.sereno.vfv.Data.TF;
 
+import android.util.Pair;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import com.sereno.vfv.Data.CPCPTexture;
@@ -340,6 +343,26 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
 
         nativeUpdateRanges(m_ptr, m_dataset.getPtr(), m_gradientEnabled, getColorMode(), pIDs, centers, scales);
         callOnUpdateListeners();
+    }
+
+    @Override
+    public Object clone()
+    {
+        GTFData gtf = new GTFData(m_sd);
+        long oldTF = gtf.m_ptr;
+        long newTF = nativeCloneTF(oldTF);
+        gtf.m_ptr = newTF;
+        nativeDeleteTF(oldTF);
+
+        HashMap<Integer, GTFPoint> ranges = new HashMap<>();
+        for(Map.Entry<Integer, GTFPoint> p : m_ranges.entrySet())
+            ranges.put(p.getKey(), (GTFPoint)p.getValue().clone());
+        gtf.updateRanges(ranges);
+
+        gtf.m_gradientEnabled = m_gradientEnabled;
+        gtf.m_cpcpOrder = (int[])m_cpcpOrder.clone();
+
+        return gtf;
     }
 
     native private long nativeCreatePtr(long datasetPtr, boolean enableGradient, int colorMode);

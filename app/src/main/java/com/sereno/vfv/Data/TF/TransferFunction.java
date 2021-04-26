@@ -19,9 +19,6 @@ public abstract class TransferFunction
     /** The listener to call when the transfer function has changed*/
     private ArrayList<ITransferFunctionListener> m_listeners = new ArrayList<>();
 
-    /** The color mode in application*/
-    private int m_colorMode = ColorMode.RAINBOW;
-
     public void addListener(ITransferFunctionListener listener)
     {
         if(!m_listeners.contains(listener))
@@ -54,7 +51,7 @@ public abstract class TransferFunction
      * @return the color mode to apply (see ColorMode static fields)*/
     public int getColorMode()
     {
-        return m_colorMode;
+        return nativeGetColorMode(getNativeTransferFunction());
     }
 
     /** Set the color mode to apply to the visualization widget
@@ -64,7 +61,6 @@ public abstract class TransferFunction
         boolean changed = (mode != getColorMode());
         if(changed)
         {
-            m_colorMode = mode;
             nativeSetColorMode(getNativeTransferFunction(), mode);
             callOnUpdateListeners();
         }
@@ -116,6 +112,11 @@ public abstract class TransferFunction
      * @return the dimension of the transfer function*/
     public int getDimension() {return nativeGetDimension(getNativeTransferFunction());}
 
+    public Object clone()
+    {
+        return null;
+    }
+
     /** Create a native std::shared_ptr\<TF\> associated with this TransferFunction java counterpart
      * @return the native pointer, or 0 if an issue occured*/
     public abstract long getNativeTransferFunction();
@@ -156,6 +157,8 @@ public abstract class TransferFunction
     protected native float nativeSetClipping(long tfPtr, float min, float max);
 
     protected native int nativeGetDimension(long tfPtr);
+
+    protected native long nativeCloneTF(long tfPtr);
 
     /** Delete the native C++ std::shared_ptr\<TF\> object
      * @param tfPtr the pointer to delete*/
