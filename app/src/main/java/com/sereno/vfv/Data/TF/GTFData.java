@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.sereno.color.ColorMode;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.Dataset;
 import com.sereno.vfv.Data.PointFieldDesc;
@@ -306,6 +307,7 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
         float timeStep = 0;
         float minClamp = 0;
         float maxClamp = 1;
+        int   colorMode = ColorMode.RAINBOW;
 
         if(m_ptr != 0)
         {
@@ -314,7 +316,7 @@ public class GTFData extends TransferFunction implements Dataset.IDatasetListene
             maxClamp = getMaxClipping();
             nativeDeleteTF(m_ptr);
         }
-        m_ptr = nativeCreatePtr(m_dataset.getPtr(), m_gradientEnabled, getColorMode());
+        m_ptr = nativeCreatePtr(m_dataset.getPtr(), m_gradientEnabled, colorMode);
         setTimestep(timeStep);
         setClippingValues(minClamp, maxClamp);
         updatePtrRanges();
