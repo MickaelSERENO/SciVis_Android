@@ -71,6 +71,7 @@ import com.sereno.vfv.Network.MoveDatasetMessage;
 import com.sereno.vfv.Network.OpenLogDataMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetGroupMessage;
 import com.sereno.vfv.Network.RemoveSubDatasetMessage;
+import com.sereno.vfv.Network.RenameSubDatasetMessage;
 import com.sereno.vfv.Network.ResetVolumetricSelectionMessage;
 import com.sereno.vfv.Network.RotateDatasetMessage;
 import com.sereno.vfv.Network.ScaleDatasetMessage;
@@ -750,9 +751,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
-    {
+    {}
 
-    }
+    @Override
+    public void onRename(SubDataset dataset, String name)
+    {}
 
     @Override
     public void onEmptyMessage(EmptyMessage msg)
@@ -1277,6 +1280,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onRenameSubDataset(final RenameSubDatasetMessage msg)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
+                sd.setName(msg.getSubDatasetName());
+            }
+        });
+    }
+
+    @Override
     public void onHeadsetsStatusMessage(final HeadsetsStatusMessage msg)
     {
         runOnUiThread(new Runnable() {
@@ -1639,7 +1656,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRenameSubDataset(DatasetsFragment frag, SubDataset sd, String name)
     {
-
+        m_socket.push(SocketManager.createRenameSubDataset(getDatasetIDBinding(sd), name));
     }
 
     @Override
@@ -1694,6 +1711,18 @@ public class MainActivity extends AppCompatActivity
     public void onCreateSubjectiveViewGroup(DatasetsFragment frag, SubDataset sdBase, int svType)
     {
         m_socket.push(SocketManager.createSubjectiveViewGroup(getDatasetIDBinding(sdBase), svType));
+    }
+
+    @Override
+    public void onRemoveSubDatasetGroup(DatasetsFragment frag, SubDatasetGroup sdg)
+    {
+        m_socket.push(SocketManager.createRemoveSubDatasetGroup(sdg.getID()));
+    }
+
+    @Override
+    public void onMergeSubjectiveViews(DatasetsFragment frag, SubDatasetSubjectiveStackedGroup svg, boolean merge)
+    {
+        m_socket.push(SocketManager.createSetSVGlobalParameters(svg.getID(), svg.getStackingMethod(), svg.getGap(), merge));
     }
 
     public void redoGTFSizeRanges()

@@ -341,13 +341,13 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onAddSubDataset(Dataset dataset, final SubDataset sd)
     {
-        sd.addListener(this);
-
         getActivity().runOnUiThread(new Runnable()
         {
             @Override
             public void run()
             {
+                sd.addListener(AnnotationsFragment.this);
+
                 final View sdTitle = getActivity().getLayoutInflater().inflate(R.layout.annotation_canvas_key_entry, null);
                 sdTitle.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -1505,6 +1505,16 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
     {
 
+    }
+
+    @Override
+    public void onRename(SubDataset dataset, String name)
+    {
+        if(!m_subDatasetTrees.containsKey(dataset))
+            return;
+        Tree<View> view = m_subDatasetTrees.get(dataset);
+        TextView txtView = (TextView)view.value.findViewById(R.id.annotation_key_entry_name);
+        txtView.setText(name);
     }
 
     @Override

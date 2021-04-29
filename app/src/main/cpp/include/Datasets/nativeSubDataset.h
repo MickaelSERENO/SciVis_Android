@@ -35,6 +35,8 @@ extern "C"
 
     JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIEnv* jenv, jobject jobj, jlong ptr);
 
+    JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetName(JNIEnv* jenv, jobject jobj, jlong ptr, jstring);
+
     JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* jenv, jobject jobj, jlong ptr);
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetTF(JNIEnv* jenv, jobject jobj, jlong ptr, jint type, jlong tfPtr);

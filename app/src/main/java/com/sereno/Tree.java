@@ -100,6 +100,11 @@ public class Tree<T>
         return m_extend;
     }
 
+    public boolean getExtendInHierarchy()
+    {
+        return m_extend && (m_parent == null || m_parent.getExtend());
+    }
+
     /** Set the extendability of this Leaf
      * @param extend true if should be extended, false otherwise*/
     public void setExtend(boolean extend)

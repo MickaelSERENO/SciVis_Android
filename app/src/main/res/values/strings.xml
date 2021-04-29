@@ -74,4 +74,6 @@
     <string name="removeSV">Remove Subjective Group</string>
     <string name="switchToSV">Switch to Personal View</string>
     <string name="switchToBase">Switch to Original View</string>
+    <string name="mergeSV">Merge Subjective Views</string>
+    <string name="unmergeSV">Unmerge Subjective Views</string>
 </resources>

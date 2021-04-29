@@ -98,6 +98,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
          * @param dataset the object calling this method
          * @param group the new subdataset group owning this subdataset*/
         void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group);
+
+        /** Method called when the subdataset name has changed
+         * @param dataset the object calling this method
+         * @param name the new name to apply*/
+        void onRename(SubDataset dataset, String name);
     }
 
     /** The native C++ handle*/
@@ -335,6 +340,21 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         if(m_ptr == 0)
             return "";
         return nativeGetName(m_ptr);
+    }
+
+    /** Set the SubDataset name
+     * @param name the new name to apply*/
+    public void setName(String name)
+    {
+        if(m_ptr == 0)
+            return;
+
+        if(!name.equals(getName()))
+        {
+            nativeSetName(m_ptr, name);
+            for(int i = 0; i < m_listeners.size(); i++)
+                m_listeners.get(i).onRename(this, name);
+        }
     }
 
     /** Get the SubDataset ID
@@ -645,6 +665,11 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param ptr the native pointer
      * @return the SubDataset name*/
     private native String nativeGetName(long ptr);
+
+    /** Native code to set the SubDataset name
+     * @param ptr the native pointer
+     * @param name the new SubDataset name*/
+    private native void nativeSetName(long ptr, String name);
 
     /** Native code to get the SubDataset ID
      * @param ptr the native pointer

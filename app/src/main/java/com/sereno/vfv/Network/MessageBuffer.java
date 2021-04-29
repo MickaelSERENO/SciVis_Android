@@ -167,6 +167,7 @@ public class MessageBuffer
         void onAddSubDatasetToSubjectiveViewStackedGroup(AddSubDatasetToSubjectiveViewStackedGroupMessage msg);
         void onSetSubjectiveViewStackedParameters(SubjectiveViewStackedGroupGlobalParametersMessage msg);
         void onRemoveSubDatasetGroup(RemoveSubDatasetGroupMessage msg);
+        void onRenameSubDataset(RenameSubDatasetMessage msg);
     }
 
     /** No current type received*/
@@ -250,6 +251,7 @@ public class MessageBuffer
     public static final int ADD_SD_TO_SV_STACKED_LINKED_GROUP = 36;
     public static final int SET_SV_STACKED_GLOBAL_PARAMETERS  = 37;
     public static final int REMOVE_SUBDATASET_GROUP           = 38;
+    public static final int RENAME_SUBDATASET                 = 39;
 
     /** The current message being parsed*/
     private ServerMessage m_curMsg = null;
@@ -480,6 +482,10 @@ public class MessageBuffer
                         for(IMessageBufferCallback clbk : m_listeners)
                             clbk.onRemoveSubDatasetGroup((RemoveSubDatasetGroupMessage)m_curMsg);
                         break;
+                    case RENAME_SUBDATASET:
+                        for(IMessageBufferCallback clbk : m_listeners)
+                            clbk.onRenameSubDataset((RenameSubDatasetMessage)m_curMsg);
+                        break;
                     default:
                         Log.e(MainActivity.TAG, "Unknown type " + m_curMsg.getCurrentType() + ". No more data can be read without errors...");
                         break;
@@ -596,6 +602,9 @@ public class MessageBuffer
                 break;
             case REMOVE_SUBDATASET_GROUP:
                 m_curMsg = new RemoveSubDatasetGroupMessage();
+                break;
+            case RENAME_SUBDATASET:
+                m_curMsg = new RenameSubDatasetMessage();
                 break;
             default:
                 Log.e(MainActivity.TAG, "Unknown type " + type + ". No more data can be read without errors...");

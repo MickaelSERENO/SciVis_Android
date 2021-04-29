@@ -79,9 +79,10 @@ public class SocketManager
     public static final short SET_DRAWABLE_ANNOTATION_POSITION_COLOR = 35;
     public static final short SET_DRAWABLE_ANNOTATION_POSITION_IDX   = 36;
     public static final short ADD_SV_GROUP                           = 37;
-    public static final short REMOVE_SD_GROUP                        = 38;
-    public static final short SET_SV_STACKED_GROUP_GLOBAL_PARAMETERS = 39;
+    public static final short SET_SV_STACKED_GROUP_GLOBAL_PARAMETERS = 38;
+    public static final short REMOVE_SD_GROUP                        = 39;
     public static final short ADD_CLIENT_TO_SV_GROUP                 = 40;
+    public static final short RENAME_SUBDATASET                      = 41;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -1034,16 +1035,16 @@ public class SocketManager
         return buf.array();
     }
 
-    public static byte[] createSetSVGlobalParameters(SubDatasetSubjectiveStackedGroup sv)
+    public static byte[] createSetSVGlobalParameters(int sdgID, int stackingMethod, float gap, boolean merge)
     {
         ByteBuffer buf = ByteBuffer.allocate(2 + 4 + 4 + 4 + 1);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(SET_SV_STACKED_GROUP_GLOBAL_PARAMETERS);
-        buf.putInt(sv.getID());
-        buf.putInt(sv.getStackingMethod());
-        buf.putFloat(sv.getGap());
-        buf.put((byte)(sv.getMerge()?1:0));
+        buf.putInt(sdgID);
+        buf.putInt(stackingMethod);
+        buf.putFloat(gap);
+        buf.put((byte)(merge?1:0));
 
         return buf.array();
     }
@@ -1055,6 +1056,20 @@ public class SocketManager
 
         buf.putShort(ADD_CLIENT_TO_SV_GROUP);
         buf.putInt(sdgID);
+
+        return buf.array();
+    }
+
+    public static byte[] createRenameSubDataset(MainActivity.DatasetIDBinding sd, String name)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 4 + name.length());
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(RENAME_SUBDATASET);
+        buf.putInt(sd.dataset.getID());
+        buf.putInt(sd.subDatasetID);
+        buf.putInt(name.length());
+        buf.put(name.getBytes(StandardCharsets.US_ASCII));
 
         return buf.array();
     }

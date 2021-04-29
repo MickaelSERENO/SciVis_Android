@@ -30,11 +30,17 @@
         android:id="@+id/createSV_item"/>
     <item
         android:title="@string/removeSV"
-        android:id="@+id/removeSV_item"/>
+        android:id="@+id/removeSDG_item"/>
     <item
         android:title="@string/switchToSV"
         android:id="@+id/switchToSV_item"/>
     <item
         android:title="@string/switchToBase"
         android:id="@+id/switchToBase_item"/>
+    <item
+        android:title="@string/mergeSV"
+        android:id="@+id/mergeSV_item"/>
+    <item
+        android:title="@string/unmergeSV"
+        android:id="@+id/unmergeSV_item"/>
 </menu>

@@ -432,6 +432,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
             @Override
             public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
             {}
+
+            @Override
+            public void onRename(SubDataset dataset, String name)
+            {}
         });
 
         sd.setCanBeModified(canModifySubDataset(sd));

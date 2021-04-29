@@ -145,6 +145,14 @@ JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIE
     return jenv->NewStringUTF(name.c_str());
 }
 
+JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetName(JNIEnv* jenv, jobject jobj, jlong ptr, jstring name)
+{
+    const char* cName = jenv->GetStringUTFChars(name, 0);
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->setName(std::string(cName));
+    jenv->ReleaseStringUTFChars(name, cName);
+}
+
 JNIEXPORT jint JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetID(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;

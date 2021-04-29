@@ -221,16 +221,13 @@ public abstract class SubDatasetGroup implements SubDataset.ISubDatasetListener
     }
 
     @Override
-    public void onSetCurrentHeadset(SubDataset dataset, int headsetID)
-    {}
+    public void onSetCurrentHeadset(SubDataset dataset, int headsetID){}
 
     @Override
-    public void onSetOwner(SubDataset dataset, int headsetID)
-    {}
+    public void onSetOwner(SubDataset dataset, int headsetID){}
 
     @Override
-    public void onSetCanBeModified(SubDataset dataset, boolean status)
-    {}
+    public void onSetCanBeModified(SubDataset dataset, boolean status){}
 
     @Override
     public void onSetMapVisibility(SubDataset dataset, boolean visibility)
@@ -245,8 +242,7 @@ public abstract class SubDatasetGroup implements SubDataset.ISubDatasetListener
     }
 
     @Override
-    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos)
-    {}
+    public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos){}
 
     @Override
     public void onSetDepthClipping(SubDataset dataset, float depthClipping)
@@ -256,6 +252,10 @@ public abstract class SubDatasetGroup implements SubDataset.ISubDatasetListener
 
     @Override
     public void onSetSubDatasetGroup(SubDataset sd, SubDatasetGroup group) {}
+
+
+    @Override
+    public void onRename(SubDataset dataset, String name){}
 
     private static native void    nativeDeletePtr(long ptr);
     private static native long[]  nativeGetSubDatasets(long sdgPtr);

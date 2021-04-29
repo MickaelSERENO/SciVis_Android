@@ -48,11 +48,13 @@ import com.sereno.vfv.Dialog.OpenCreateSVDialog;
 import com.sereno.vfv.Dialog.OpenVTKDatasetDialog;
 import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
+import com.sereno.vfv.Network.SubjectiveViewStackedGroupGlobalParametersMessage;
 import com.sereno.view.AnnotationCanvasData;
 import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback,
                                                              Dataset.IDatasetListener,
@@ -117,6 +119,17 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param sdBase the subdataset serving as a base for the new subjective view group
          * @param svType the type of the new subjective view group*/
         void onCreateSubjectiveViewGroup(DatasetsFragment frag, SubDataset sdBase, int svType);
+
+        /** Ask to remove a subdataset group
+         * @param frag the Fragment calling this method
+         * @param sdg the SubDataset group to remove*/
+        void onRemoveSubDatasetGroup(DatasetsFragment frag, SubDatasetGroup sdg);
+
+        /** Ask to merge/unmerge all the stacled subjective views belonging to a subdataset subjective stacked group
+         * @param frag the Fragment calling this method
+         * @param svg the SubDatasetSubjectiveStackedGroup to modify
+         * @param merge the merge parameter*/
+        void onMergeSubjectiveViews(DatasetsFragment frag, SubDatasetSubjectiveStackedGroup svg, boolean merge);
     }
 
     public static final float INCH_TO_METER   = 0.0254f;
@@ -324,6 +337,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 popup.getMenu().findItem(R.id.createSV_item).setVisible(true);
                 popup.getMenu().findItem(R.id.switchToBase_item).setVisible(false);
                 popup.getMenu().findItem(R.id.switchToSV_item).setVisible(false);
+                popup.getMenu().findItem(R.id.mergeSV_item).setVisible(false);
+                popup.getMenu().findItem(R.id.unmergeSV_item).setVisible(false);
 
                 if(sd.getMapVisibility())
                     popup.getMenu().findItem(R.id.enableMap_item).setVisible(false);
@@ -331,10 +346,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     popup.getMenu().findItem(R.id.disableMap_item).setVisible(false);
 
                 if(sd.getSubDatasetGroup() == null)
-                    popup.getMenu().findItem(R.id.removeSV_item).setVisible(false);
+                    popup.getMenu().findItem(R.id.removeSDG_item).setVisible(false);
                 else
                 {
-                    popup.getMenu().findItem(R.id.removeSV_item).setVisible(true);
+                    popup.getMenu().findItem(R.id.removeSDG_item).setVisible(true);
                     if(SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
                     {
                         SubDatasetSubjectiveStackedGroup svg = (SubDatasetSubjectiveStackedGroup)(sd.getSubDatasetGroup());
@@ -346,6 +361,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                             else
                                 popup.getMenu().findItem(R.id.switchToBase_item).setVisible(true);
                         }
+                        if(svg.getMerge())
+                            popup.getMenu().findItem(R.id.unmergeSV_item).setVisible(true);
+                        else
+                            popup.getMenu().findItem(R.id.mergeSV_item).setVisible(true);
                     }
                 }
 
@@ -445,6 +464,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                                 break;
                             }
 
+                            case R.id.removeSDG_item:
+                            {
+                                if(sd.getSubDatasetGroup() != null)
+                                {
+                                    for(IDatasetsFragmentListener l : m_dfListeners)
+                                        l.onRemoveSubDatasetGroup(DatasetsFragment.this, sd.getSubDatasetGroup());
+                                }
+                                break;
+                            }
+
                             case R.id.switchToBase_item:
                                 if(sd.getSubDatasetGroup() != null)
                                 {
@@ -464,6 +493,22 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                                         SubDatasetSubjectiveStackedGroup svg = (SubDatasetSubjectiveStackedGroup)sd.getSubDatasetGroup();
                                         svg.setFocus(false);
                                     }
+                                }
+                                break;
+
+                            case R.id.mergeSV_item:
+                                if(sd.getSubDatasetGroup() != null && SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
+                                {
+                                    for(IDatasetsFragmentListener l : m_dfListeners)
+                                        l.onMergeSubjectiveViews(DatasetsFragment.this, (SubDatasetSubjectiveStackedGroup)sd.getSubDatasetGroup(), true);
+                                }
+                                break;
+
+                            case R.id.unmergeSV_item:
+                                if(sd.getSubDatasetGroup() != null && SubDatasetGroup.isSubjective(sd.getSubDatasetGroup()))
+                                {
+                                    for(IDatasetsFragmentListener l : m_dfListeners)
+                                        l.onMergeSubjectiveViews(DatasetsFragment.this, (SubDatasetSubjectiveStackedGroup)sd.getSubDatasetGroup(), false);
                                 }
                                 break;
                         }
@@ -545,6 +590,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_sdTrees.remove(dataset);
                 if(m_sdImages.containsKey(dataset))
                     m_sdImages.remove(dataset);
+                if(dataset.getSubDatasetGroup() != null)
+                    if(SubDatasetGroup.isSubjective(dataset.getSubDatasetGroup()))
+                        updateSubjectiveViews((SubDatasetSubjectiveStackedGroup)dataset.getSubDatasetGroup());
             }
 
             @Override
@@ -605,6 +653,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
                 }
             }
+
+            @Override
+            public void onRename(SubDataset dataset, String name)
+            {}
         };
         sd.addListener(snapEvent);
         snapEvent.onSetOwner(sd, sd.getOwnerID());
@@ -716,7 +768,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg)
-    {}
+    {
+        updateWholeTree();
+    }
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
@@ -1179,6 +1233,14 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     public void onSetFocus(SubDatasetSubjectiveStackedGroup group, boolean onBase)
     {
         updateSubjectiveViews(group);
+    }
+
+    private void updateWholeTree()
+    {
+        m_previewLayout.onSetExtend(m_previewLayout.getModel(), m_previewLayout.getModel().getExtendInHierarchy());
+        for(SubDatasetGroup svg : m_model.getSubDatasetGroups())
+            if(SubDatasetGroup.isSubjective(svg))
+                updateSubjectiveViews((SubDatasetSubjectiveStackedGroup)svg);
     }
 
     private void updateSubjectiveViews(SubDatasetSubjectiveStackedGroup group)
