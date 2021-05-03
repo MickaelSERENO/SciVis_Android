@@ -112,6 +112,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private ApplicationModel m_model             = null;  /*!< The application model to use*/
     private Context          m_ctx               = null;  /*!< The application context*/
     private boolean          m_modelBound        = false; /*!< Is the model bound?*/
+    private boolean          m_inFullScreen      = false; /*!< Am I supposed to be in full screen mode?*/
 
     private HashMap<SubDataset, Tree<View>> m_sdTrees      = new HashMap<>(); /*!< HashMap binding subdataset to their represented Tree*/
     private HashMap<Dataset, Tree<View>>    m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
@@ -697,7 +698,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         //Surface view listeners
         m_surfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(m_inFullScreen)
+                    return false;
                 if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                 {
                     for(IFragmentListener l : ((VFVFragment)(DatasetsFragment.this)).m_listeners)
@@ -823,7 +827,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
                 }
-                return false;
+                return true;
             }
         });
 
@@ -839,7 +843,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
                 }
-                return false;
+                return true;
             }
         });
 
@@ -897,6 +901,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     l.onResetVolumetricSelection(DatasetsFragment.this, m_model.getCurrentSubDataset());
             }
         });
+
         updateScale(tabletScaleBar.getProgress());
 
         //End task
@@ -928,6 +933,16 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                         break;
                     }
                 }
+            }
+        });
+
+        v.findViewById(R.id.resetOrientation).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if(m_model.getCurrentSubDataset() != null)
+                    m_model.getCurrentSubDataset().setRotation(new float[]{1.0f, 0.0f, 0.0f, 0.0f});
             }
         });
 
@@ -995,6 +1010,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
      * @param fullScreen true to set the SurfaceView in fullscreen, false to reput everything back to "normal"*/
     public void setSVFullScreen(boolean fullScreen)
     {
+        m_inFullScreen = fullScreen;
+
         View view = getView();
         if(view instanceof ViewGroup)
         {
@@ -1011,6 +1028,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             view.findViewById(R.id.mainView).setVisibility(View.VISIBLE);
             m_surfaceView.setVisibility(View.VISIBLE);
             m_tangibleLayout.setVisibility(View.VISIBLE);
+
+            for(IFragmentListener l : m_listeners)
+                l.onDisableSwipping(DatasetsFragment.this);
+
             for(IDatasetsFragmentListener l : m_dfListeners)
                 l.onRequestFullScreen(this, true);
         }
@@ -1018,6 +1039,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         else
         {
             m_tangibleLayout.setVisibility(View.GONE);
+
+            for(IFragmentListener l : m_listeners)
+                l.onEnableSwipping(DatasetsFragment.this);
 
             for(IDatasetsFragmentListener l : m_dfListeners)
                 l.onRequestFullScreen(this, false);

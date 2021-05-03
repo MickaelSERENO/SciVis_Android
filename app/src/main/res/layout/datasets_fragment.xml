@@ -97,8 +97,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <ImageButton
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
                     android:background="@drawable/tangible_button"
                     android:scaleType="fitCenter"
                     android:id="@+id/tangibleButton"
@@ -106,8 +106,8 @@
 
                 <ImageButton
                     android:id="@+id/originButton"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
                     android:layout_alignParentRight="true"
                     android:background="@drawable/position_button"
                     android:scaleType="fitCenter" />
@@ -117,25 +117,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="75dp">
+                android:layout_marginTop="96dp">
 
                 <ImageButton
                     android:id="@+id/unionButton"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
                     android:background="@drawable/add_button_unchecked"
                     android:scaleType="fitCenter"/>
 
                 <ImageButton
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
                     android:background="@drawable/minus_button_unchecked"
                     android:scaleType="fitCenter"
                     android:id="@+id/minusButton"/>
 
                 <ImageButton
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
                     android:background="@drawable/inter_button_unchecked"
                     android:scaleType="fitCenter"
                     android:id="@+id/intersectionButton"/>
@@ -262,7 +262,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="fill_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="horizontal">
@@ -272,6 +272,17 @@
                 android:layout_height="wrap_content"
                 android:text="@string/endTask"
                 android:id="@+id/endTaskButton" />
+
+            <View android:layout_height="0dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/resetOrientation"
+                android:id="@+id/resetOrientation"/>
+
         </LinearLayout>
     </LinearLayout>
 </android.support.v7.widget.GridLayout>
