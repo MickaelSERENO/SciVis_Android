@@ -55,4 +55,5 @@
     <string name="endTask">End Task</string>
     <string name="errorNoSelection">Cannot end the task: no volumetric selection has been performed</string>
     <string name="errorNoTrialYet">Cannot end the task: no trial is currently running (maybe the server computes something)</string>
+    <string name="done">Done</string>
 </resources>

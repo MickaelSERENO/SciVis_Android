@@ -140,6 +140,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
         /** Called when the next trial has started
          * @param model the app data model*/
         void onStartNextTrial(ApplicationModel model);
+
+        void onStopCapturingTangible(ApplicationModel model, boolean capturing);
     }
 
     /** Annotation meta data*/
@@ -322,6 +324,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** The application current tangible mode?*/
     private int m_tangibleMode = TANGIBLE_MODE_NONE;
+
+    private boolean m_stopCapturingTangible = false;
 
     /** Have we performed a selection during this trial?*/
     private boolean m_hasPerformedSelection = false;
@@ -764,6 +768,22 @@ public class ApplicationModel implements Dataset.IDatasetListener
         m_curSelectionMode = selectMode;
     }
 
+    public void setCaptureTangible(boolean capture)
+    {
+        if(m_stopCapturingTangible == capture)
+        {
+            m_reinitTangible = true;
+            m_stopCapturingTangible = !capture;
+            for(IDataCallback clbk : m_listeners)
+                clbk.onStopCapturingTangible(this, m_stopCapturingTangible);
+        }
+    }
+
+    public boolean isCapturingTangible()
+    {
+        return !m_stopCapturingTangible;
+    }
+
     /** Get the current selection mode in use
      * @return the current selection mode ID. See SELECTION_MODE_* */
     public int getCurrentSelectionMode()
@@ -776,6 +796,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param rot the tablet's rotation*/
     public void setLocation(float[] pos, float[] rot)
     {
+        if(m_stopCapturingTangible)
+            return;
         if(m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
         {
             boolean isReinited = false;
@@ -901,15 +923,18 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param mode true if true, false otherwise*/
     public void setTangibleMode(int mode)
     {
-        if(m_tangibleMode == TANGIBLE_MODE_NONE &&
-           mode != TANGIBLE_MODE_NONE)
+        if(m_tangibleMode != mode)
         {
-            m_reinitTangible = true;
-        }
+            if (m_tangibleMode == TANGIBLE_MODE_NONE &&
+                    mode != TANGIBLE_MODE_NONE)
+            {
+                m_reinitTangible = true;
+            }
 
-        for(IDataCallback clbk : m_listeners)
-            clbk.onSetTangibleMode(this, mode);
-        m_tangibleMode = mode;
+            m_tangibleMode = mode;
+            for (IDataCallback clbk : m_listeners)
+                clbk.onSetTangibleMode(this, mode);
+        }
     }
 
     /** Get the tablet current tangible mode
@@ -951,9 +976,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param op the current boolean operation in use. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/
     public void setCurrentBooleanOperation(int op)
     {
-        for(IDataCallback clbk : m_listeners)
-            clbk.onSetCurrentBooleanOperation(this, op);
-        m_currentBooleanOperation = op;
+        if(op != m_currentBooleanOperation)
+        {
+            m_currentBooleanOperation = op;
+            for (IDataCallback clbk : m_listeners)
+                clbk.onSetCurrentBooleanOperation(this, op);
+        }
     }
 
     /** Get the current boolean operation the tablet is performing in selection mode

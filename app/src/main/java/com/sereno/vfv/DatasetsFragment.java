@@ -124,9 +124,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private SubDataset m_inMergedSubDataset = null; /*!< Is there an object that requested to be merged?*/
 
     /** Selection menu buttons*/
-    private Button m_startSelectionBtn   = null;
-    private Button m_endSelectionBtn     = null;
-    private Button m_confirmSelectionBtn = null;
+    private Button m_startSelectionBtn     = null;
+    private Button m_endSelectionBtn       = null;
+    private Button m_confirmSelectionBtn   = null;
+    private Button m_closeSelectionMeshBtn = null;
 
     /** Boolean buttons*/
     private ImageButton m_unionBtn = null;
@@ -182,6 +183,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             for (CloudPointDataset d : model.getCloudPointDataset())
                 onAddCloudPointDataset(m_model, d);
             onChangeCurrentSubDataset(m_model, m_model.getCurrentSubDataset());
+            onSetTangibleMode(m_model, m_model.getCurrentTangibleMode());
 
             if (m_surfaceView != null)
             {
@@ -526,7 +528,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onChangeCurrentAction(ApplicationModel model, int action) {
+    public void onChangeCurrentAction(ApplicationModel model, int action)
+    {
+        updateCloseSelectionMeshBtn();
     }
 
 
@@ -633,8 +637,23 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         }
     }
 
+    private void updateCloseSelectionMeshBtn()
+    {
+
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING && m_model.getCurrentTangibleMode() == ApplicationModel.TANGIBLE_MODE_MOVE)
+            m_closeSelectionMeshBtn.setVisibility(View.VISIBLE);
+        else
+            m_closeSelectionMeshBtn.setVisibility(View.GONE);
+    }
+
     @Override
     public void onSetTangibleMode(ApplicationModel model, int inTangibleMode)
+    {
+        updateCloseSelectionMeshBtn();
+    }
+
+    @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean stop)
     {}
 
     /** Update all the widgets for time-manipulations*/
@@ -665,6 +684,11 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         }
     }
 
+    private void closeCurrentSelectionMesh()
+    {
+        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
+    }
+
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
     private void setUpMainLayout(View v)
@@ -672,7 +696,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_surfaceView   = (VFVSurfaceView)v.findViewById(R.id.surfaceView);
         m_previewLayout = (TreeView)v.findViewById(R.id.previewLayout);
         m_headsetColor  = (ImageView)v.findViewById(R.id.headsetColor);
-
 
         /** Setup the selection menu*/
         final SeekBar tabletScaleBar = (SeekBar)v.findViewById(R.id.tabletScaleBar);
@@ -758,7 +781,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {}
         });
 
-
         m_tangibleLayout = (ViewGroup) v.findViewById(R.id.tangibleLayout);
         m_tangibleLayout.setVisibility(View.GONE);
 
@@ -823,9 +845,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 if(motionEvent.getPointerCount() == 1)
                 {
                     if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                    {
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_MOVE);
+                        m_model.setCaptureTangible(true);
+                    }
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
-                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
+                        m_model.setCaptureTangible(false);
                 }
                 return true;
             }
@@ -839,11 +864,24 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 if(motionEvent.getPointerCount() == 1)
                 {
                     if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                    {
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_ORIGIN);
+                        m_model.setCaptureTangible(true);
+                    }
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
                 }
                 return true;
+            }
+        });
+
+        m_closeSelectionMeshBtn = v.findViewById(R.id.closeSelectionMesh);
+        m_closeSelectionMeshBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                closeCurrentSelectionMesh();
             }
         });
 
@@ -859,6 +897,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
+                closeCurrentSelectionMesh();
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION);
             }
         });
@@ -868,6 +907,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
+                closeCurrentSelectionMesh();
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_MINUS);
             }
         });
@@ -877,6 +917,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
+                closeCurrentSelectionMesh();
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_INTERSECTION);
             }
         });
@@ -990,6 +1031,9 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             {
             }
         });
+
+        if(m_model != null)
+            onSetTangibleMode(m_model, m_model.getCurrentTangibleMode());
     }
 
     public void updateScale(int progress)

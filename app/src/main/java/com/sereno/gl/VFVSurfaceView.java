@@ -245,6 +245,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     }
 
     @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean stop) {}
+
+    @Override
     public void onRotationEvent(SubDataset dataset, float[] quaternion)
     {
         nativeOnRotationChange(m_ptr, dataset.getNativePtr());

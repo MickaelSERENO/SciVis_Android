@@ -1243,6 +1243,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean stop) {}
+
+    @Override
     public void onSetSelectionMode(ApplicationModel model, int selectMode)
     {
         if(m_menu == null)

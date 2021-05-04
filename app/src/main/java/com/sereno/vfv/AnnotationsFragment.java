@@ -346,6 +346,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
 
+    @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean stop) {}
+
 
     /** Set up the main layout
      * @param v the main view containing all the Widgets*/
