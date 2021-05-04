@@ -1592,6 +1592,10 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean capturing)
+    {}
+
+    @Override
     public void onEnableSwipping(Fragment fragment)
     {
         m_viewPager.setPagingEnabled(true);

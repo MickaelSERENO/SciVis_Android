@@ -238,6 +238,10 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg){}
 
     @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean capturing)
+    {}
+
+    @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
 
     private void onAddDataset(ApplicationModel model, Dataset d)

@@ -636,6 +636,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {}
 
     @Override
+    public void onStopCapturingTangible(ApplicationModel model, boolean capturing)
+    {}
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
     {
     }

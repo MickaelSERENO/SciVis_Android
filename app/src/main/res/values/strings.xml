@@ -76,4 +76,5 @@
     <string name="switchToBase">Switch to Original View</string>
     <string name="mergeSV">Merge Subjective Views</string>
     <string name="unmergeSV">Unmerge Subjective Views</string>
+    <string name="done">Done</string>
 </resources>

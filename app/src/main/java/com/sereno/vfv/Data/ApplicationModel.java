@@ -152,6 +152,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param model the app data model
          * @param sdg the group being removed*/
         void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg);
+
+        void onStopCapturingTangible(ApplicationModel model, boolean capturing);
     }
 
     /** Annotation meta data*/
@@ -318,6 +320,9 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** The application current tangible mode?*/
     private int m_tangibleMode = TANGIBLE_MODE_NONE;
+
+    /** Stop capturing 3D tangible locations */
+    private boolean m_stopCapturingTangible = false;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -834,9 +839,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param selectMode the new selection mode to use (see SELECTION_MODE* )*/
     public void setCurrentSelectionMode(int selectMode)
     {
-        for(IDataCallback clbk : m_listeners)
-            clbk.onSetSelectionMode(this, selectMode);
-        m_curSelectionMode = selectMode;
+        if(selectMode != m_curSelectionMode)
+        {
+            m_curSelectionMode = selectMode;
+            for(IDataCallback clbk : m_listeners)
+                clbk.onSetSelectionMode(this, selectMode);
+        }
     }
 
     /** Get the current selection mode in use
@@ -846,11 +854,29 @@ public class ApplicationModel implements Dataset.IDatasetListener
         return m_curSelectionMode;
     }
 
+    public void setCaptureTangible(boolean capture)
+    {
+        if(m_stopCapturingTangible == capture)
+        {
+            m_reinitTangible = true;
+            m_stopCapturingTangible = !capture;
+            for(IDataCallback clbk : m_listeners)
+                clbk.onStopCapturingTangible(this, m_stopCapturingTangible);
+        }
+    }
+
+    public boolean isCapturingTangible()
+    {
+        return !m_stopCapturingTangible;
+    }
+
     /** @brief update the tablet's location if the location is significant for the current mode of the tablet
      * @param pos the tablet's position
      * @param rot the tablet's rotation*/
     public void setLocation(float[] pos, float[] rot)
     {
+        if(m_stopCapturingTangible)
+            return;
         if(m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
         {
             boolean isReinited = false;
@@ -975,15 +1001,18 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param mode true if true, false otherwise*/
     public void setTangibleMode(int mode)
     {
-        if(m_tangibleMode == TANGIBLE_MODE_NONE &&
-           mode != TANGIBLE_MODE_NONE)
+        if(m_tangibleMode != mode)
         {
-            m_reinitTangible = true;
-        }
+            if (m_tangibleMode == TANGIBLE_MODE_NONE &&
+                    mode != TANGIBLE_MODE_NONE)
+            {
+                m_reinitTangible = true;
+            }
 
-        for(IDataCallback clbk : m_listeners)
-            clbk.onSetTangibleMode(this, mode);
-        m_tangibleMode = mode;
+            m_tangibleMode = mode;
+            for (IDataCallback clbk : m_listeners)
+                clbk.onSetTangibleMode(this, mode);
+        }
     }
 
     /** Get the tablet current tangible mode
@@ -997,9 +1026,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param op the current boolean operation in use. See BOOLEAN_UNION, BOOLEAN_MINUS, and BOOLEAN_INTERSECTION*/
     public void setCurrentBooleanOperation(int op)
     {
-        for(IDataCallback clbk : m_listeners)
-            clbk.onSetCurrentBooleanOperation(this, op);
-        m_currentBooleanOperation = op;
+        if(op != m_currentBooleanOperation)
+        {
+            m_currentBooleanOperation = op;
+            for(IDataCallback clbk : m_listeners)
+                clbk.onSetCurrentBooleanOperation(this, op);
+        }
     }
 
     /** Get the current boolean operation the tablet is performing in selection mode
