@@ -380,6 +380,7 @@ namespace sereno
                             if(m_selecting)
                             {
                                 m_lasso->startLasso(x, y/ratio, -1);
+                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_LASSO);
                             }
                             else
                             {
@@ -432,7 +433,7 @@ namespace sereno
                         }
                         else
                         {
-                            m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
+                            //m_mainData->setCurrentAction(VFV_CURRENT_ACTION_MOVING);
                         }
                         break;
                     }

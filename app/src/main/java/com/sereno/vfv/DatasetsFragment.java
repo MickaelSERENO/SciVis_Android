@@ -530,9 +530,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action)
     {
+        //if(action != ApplicationModel.CURRENT_ACTION_SELECTING)
+        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
         updateCloseSelectionMeshBtn();
     }
-
 
     @Override
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
@@ -639,11 +640,12 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private void updateCloseSelectionMeshBtn()
     {
-
         if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING && m_model.getCurrentTangibleMode() == ApplicationModel.TANGIBLE_MODE_MOVE)
             m_closeSelectionMeshBtn.setVisibility(View.VISIBLE);
         else
+        {
             m_closeSelectionMeshBtn.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -812,12 +814,15 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
+                closeCurrentSelectionMesh();
                 if(m_model.getCurrentAction() == m_model.CURRENT_ACTION_SELECTING)
                 {
                     m_model.setCurrentAction(m_model.CURRENT_ACTION_REVIEWING_SELECTION);
                     m_confirmSelectionBtn.setVisibility(View.VISIBLE);
                     m_endSelectionBtn.setText(R.string.cancelSelection);
-                }else{
+                }
+                else
+                {
                     m_surfaceView.setSelection(false);
                     setSVFullScreen(false);
                     m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);

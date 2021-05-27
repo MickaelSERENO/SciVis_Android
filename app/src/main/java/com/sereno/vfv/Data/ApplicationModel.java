@@ -587,6 +587,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
         if(action != m_currentAction)
         {
             m_currentAction = action;
+
             for(IDataCallback clbk : m_listeners)
                 clbk.onChangeCurrentAction(this, action);
         }

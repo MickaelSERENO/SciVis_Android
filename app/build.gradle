@@ -2,6 +2,8 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
+    buildToolsVersion "30.0.2"
+    ndkVersion "22.1.7171670"
     defaultConfig {
         applicationId "com.sereno.vfv"
         minSdkVersion 21
@@ -26,6 +28,13 @@ android {
         doNotStrip '**/.*so'
         doNotStrip '*/x86/*.so'
         doNotStrip '*/x86/libnative-lib.so'
+        pickFirst '**/armeabi-v7a/libserenoVTKParser.so'
+        pickFirst '**/armeabi-v7a/libserenoSciVis.so'
+        pickFirst '**/armeabi-v7a/libserenoMath.so'
+        pickFirst '**/armeabi-v7a/libpng.so'
+        pickFirst '**/armeabi-v7a/libpng16.so'
+        pickFirst '**/armeabi-v7a/lib3ds.so'
+        pickFirst '**/armeabi-v7a/lib3ds-2.so'
     }
 
     buildTypes {
