@@ -815,7 +815,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onClick(View view)
             {
                 closeCurrentSelectionMesh();
-                if(m_model.getCurrentAction() == m_model.CURRENT_ACTION_SELECTING)
+                if(m_model.isInSelection() && m_model.getCurrentAction() != m_model.CURRENT_ACTION_REVIEWING_SELECTION)
                 {
                     m_model.setCurrentAction(m_model.CURRENT_ACTION_REVIEWING_SELECTION);
                     m_confirmSelectionBtn.setVisibility(View.VISIBLE);

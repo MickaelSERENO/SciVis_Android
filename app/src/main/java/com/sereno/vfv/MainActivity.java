@@ -969,7 +969,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onNextTBTrialMessage(NextTBTrialMessage msg)
     {
-        m_model.setCurrentSelectionMode(msg.getTangibleMode());
+        if(msg.getTangibleMode() == ApplicationModel.TANGIBLE_BRUSH_STUDY_2D)
+            m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_ALIGNED);
+        else
+            m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_FULL);
 	    m_model.setCurrentTBTrial(msg.getTrialID());
         m_model.startTBTrial();
     }
@@ -1223,6 +1226,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfirmSelection(ApplicationModel model) {
         m_socket.push(SocketManager.createConfirmSelectionEvent(getDatasetIDBinding(model.getCurrentSubDataset())));
+        m_model.setIsInSelection(false);
     }
 
     @Override
@@ -1235,7 +1239,10 @@ public class MainActivity extends AppCompatActivity
         if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
         {
             if(tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
+            {
                 m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation(), m_model.isVolumeSelectionConstrained()));
+                m_model.setIsInSelection(true);
+            }
             else
                 m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE, m_model.isVolumeSelectionConstrained())); //Specify that we are not in an operation
 

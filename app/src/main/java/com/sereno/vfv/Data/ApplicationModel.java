@@ -208,6 +208,9 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /** Relative position and rotation*/
     public static final int SELECTION_MODE_RELATIVE_FULL    = 2;
 
+    public static final int TANGIBLE_BRUSH_STUDY_ORIGINAL = 0;
+    public static final int TANGIBLE_BRUSH_STUDY_2D       = 1;
+
     /** Boolean operation IDs*/
     public static final int BOOLEAN_NONE         = -1;
     public static final int BOOLEAN_UNION        = 0;
@@ -231,7 +234,6 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public static final int END_TB_ERROR_NONE         = 0;
     public static final int END_TB_ERROR_NO_SELECTION = 1;
     public static final int END_TB_ERROR_NO_TRIAL     = 2;
-
 
     private ArrayList<IDataCallback> m_listeners = new ArrayList<>(); /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;                        /**!< The configuration object*/
@@ -332,6 +334,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** Has the trial started?*/
     private boolean m_hasTrialStarted = false;
+
+    /** Is there a selection being entered?*/
+    private boolean          m_hasSelection      = false; /*!< Is there a selection being entered?*/
+
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -580,6 +586,16 @@ public class ApplicationModel implements Dataset.IDatasetListener
         return m_annotations;
     }
 
+    public void setIsInSelection(boolean isInSelection)
+    {
+        m_hasSelection = isInSelection;
+    }
+
+    public boolean isInSelection()
+    {
+        return m_hasSelection;
+    }
+
     /** Set the current action of the tablet bound to the tablet
      * @param action the type of action (see CURRENT_ACTION_*)*/
     public void setCurrentAction(int action)
@@ -587,6 +603,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
         if(action != m_currentAction)
         {
             m_currentAction = action;
+            if(action == CURRENT_ACTION_NOTHING)
+                m_hasSelection = false;
 
             for(IDataCallback clbk : m_listeners)
                 clbk.onChangeCurrentAction(this, action);
