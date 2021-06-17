@@ -220,7 +220,8 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onSetCurrentBooleanOperation(ApplicationModel model, int op) {}
 
     @Override
-    public void onSetSelectionMode(ApplicationModel model, int selectMode) {}
+    public void onSetSelectionMode(ApplicationModel model, int selectMode)
+    {}
 
     @Override
     public void onSetTBUserStudyMode(ApplicationModel model, int tbMode)

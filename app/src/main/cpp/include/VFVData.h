@@ -60,6 +60,14 @@ namespace sereno
         VFV_TB_USER_STUDY_2D = 1,
     };
 
+    enum VFVSelectionMode
+    {
+        VFV_SELECTION_MODE_NONE             = -1,
+        VFV_SELECTION_MODE_ABSOLUTE         = 0,
+        VFV_SELECTION_MODE_RELATIVE_ALIGNED = 1,
+        VFV_SELECTION_MODE_RELATIVE_FULL    = 2,
+    };
+
     struct SubDatasetEvent
     {
         SubDataset* sd; /*!< The subdataset being updated*/
@@ -92,7 +100,7 @@ namespace sereno
     /** \brief location event information */
     struct SetLocationEvent
     {
-        glm::vec3 pos;          /*!< Tablet's position */
+        glm::vec3 pos;      /*!< Tablet's position */
         Quaternionf rot;    /*!< Tablet's rotation */
     };
 

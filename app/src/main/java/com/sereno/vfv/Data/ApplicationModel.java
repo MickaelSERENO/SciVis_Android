@@ -201,15 +201,13 @@ public class ApplicationModel implements Dataset.IDatasetListener
     
     /** Absolute position*/
     public static final int SELECTION_MODE_ABSOLUTE = 0;
-
     /** Relative position but absolute rotation*/
     public static final int SELECTION_MODE_RELATIVE_ALIGNED = 1;
-
     /** Relative position and rotation*/
-    public static final int SELECTION_MODE_RELATIVE_FULL    = 2;
+    public static final int SELECTION_MODE_RELATIVE_FULL  = 2;
 
-    public static final int TANGIBLE_BRUSH_STUDY_ORIGINAL = 0;
-    public static final int TANGIBLE_BRUSH_STUDY_2D       = 1;
+    public static final int TANGIBLE_BRUSH_STUDY_3D       = 0;
+    public static final int TANGIBLE_BRUSH_STUDY_ORIGINAL = 1;
 
     /** Boolean operation IDs*/
     public static final int BOOLEAN_NONE         = -1;
@@ -239,7 +237,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     private Configuration            m_config;                        /**!< The configuration object*/
 
     private int m_currentTrial           = 0;                  /**!< The current trial for the TB user study */
-    private int m_currentTBUserStudyMode = TB_USER_STUDY_2D;   /**!< The current tangible brush mode for the user study (AR vs 2D)*/
+    private int m_currentTBUserStudyMode = TB_USER_STUDY_AR;   /**!< The current tangible brush mode for the user study (AR vs 2D)*/
 
     /*********************************************************************/
     /************************ DATASETS ATTRIBUTES ************************/

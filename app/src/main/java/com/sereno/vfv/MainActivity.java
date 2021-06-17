@@ -969,10 +969,16 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onNextTBTrialMessage(NextTBTrialMessage msg)
     {
-        if(msg.getTangibleMode() == ApplicationModel.TANGIBLE_BRUSH_STUDY_2D)
+        if(msg.getTangibleMode() == ApplicationModel.TANGIBLE_BRUSH_STUDY_3D)
+        {
             m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_ALIGNED);
+            m_model.setCurrentTBUserStudyMode(ApplicationModel.TANGIBLE_BRUSH_STUDY_3D);
+        }
         else
+        {
             m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_FULL);
+            m_model.setCurrentTBUserStudyMode(ApplicationModel.TANGIBLE_BRUSH_STUDY_ORIGINAL);
+        }
 	    m_model.setCurrentTBTrial(msg.getTrialID());
         m_model.startTBTrial();
     }

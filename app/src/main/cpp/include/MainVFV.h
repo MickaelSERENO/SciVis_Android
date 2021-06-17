@@ -212,6 +212,7 @@ namespace sereno
             /*---------------------------Volume selection data----------------------------*/
             /*----------------------------------------------------------------------------*/
 
+            VFVTBUserStudyMode   m_tbUserStudyMode = VFV_TB_USER_STUDY_AR;
             bool                 m_selecting;
             Lasso*               m_lasso;
             glm::vec3            m_tabletPos;

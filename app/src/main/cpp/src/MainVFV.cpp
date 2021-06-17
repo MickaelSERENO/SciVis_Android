@@ -166,7 +166,7 @@ namespace sereno
         float ratio  = height/width;
 
         float widgetWidth  = 2.0f*WIDGET_WIDTH_PX/width;
-        float widgetHeight = 2.0*ratio - 2.0*widgetWidth;
+        float widgetHeight = 2.0f - 2.0*widgetWidth/ratio;
 
         //3D texture manipulation widgets
         m_3dImageManipGO[LEFT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
@@ -175,20 +175,20 @@ namespace sereno
         m_3dImageManipGO[RIGHT_IMAGE].setScale(glm::vec3(widgetWidth, widgetHeight, 1.0f));
         m_3dImageManipGO[RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, 0.0f, -1.0f));
 
-        m_3dImageManipGO[TOP_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth, 1.0f));
-        m_3dImageManipGO[TOP_IMAGE].setPosition(glm::vec3(0.0f, ratio-widgetWidth*0.5f, -1.0f));
-        m_3dImageManipGO[BOTTOM_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth, 1.0f));
-        m_3dImageManipGO[BOTTOM_IMAGE].setPosition(glm::vec3(0.0f, -ratio+widgetWidth*0.5f, -1.0f));
+        m_3dImageManipGO[TOP_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth/ratio, 1.0f));
+        m_3dImageManipGO[TOP_IMAGE].setPosition(glm::vec3(0.0f, 1.0f-widgetWidth*0.5f/ratio, -1.0f));
+        m_3dImageManipGO[BOTTOM_IMAGE].setScale(glm::vec3(2.0f-2.0*widgetWidth, widgetWidth/ratio, 1.0f));
+        m_3dImageManipGO[BOTTOM_IMAGE].setPosition(glm::vec3(0.0f, -1.0f+widgetWidth*0.5f/ratio, -1.0f));
 
         int corners[4] {TOP_LEFT_IMAGE, TOP_RIGHT_IMAGE, BOTTOM_RIGHT_IMAGE, BOTTOM_LEFT_IMAGE};
         for(int i = 0; i < 4; i++)
-            m_3dImageManipGO[corners[i]].setScale(glm::vec3(widgetWidth, widgetWidth, 1.0));
+            m_3dImageManipGO[corners[i]].setScale(glm::vec3(widgetWidth, widgetWidth/ratio, 1.0));
 
-        m_3dImageManipGO[TOP_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, ratio-widgetWidth*0.5f, -1.0));
-        m_3dImageManipGO[TOP_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, ratio-widgetWidth*0.5f, -1.0));
+        m_3dImageManipGO[TOP_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, 1.0f-widgetWidth*0.5f/ratio, -1.0));
+        m_3dImageManipGO[TOP_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, 1.0f-widgetWidth*0.5f/ratio, -1.0));
 
-        m_3dImageManipGO[BOTTOM_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, -ratio+widgetWidth*0.5f, -1.0));
-        m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -ratio+widgetWidth*0.5f, -1.0));
+        m_3dImageManipGO[BOTTOM_LEFT_IMAGE].setPosition(glm::vec3(-1.0f+widgetWidth*0.5f, -1.0f+widgetWidth*0.5f/ratio, -1.0));
+        m_3dImageManipGO[BOTTOM_RIGHT_IMAGE].setPosition(glm::vec3(1.0f-widgetWidth*0.5f, -1.0f+widgetWidth*0.5f/ratio, -1.0));
 
         //Not connected logo
         m_notConnectedGO->setPosition(glm::vec3(0.0f, 0.0f, -1.0f));
@@ -248,18 +248,26 @@ namespace sereno
         else if((m_currentWidgetAction == NO_IMAGE && numberFinger <= 1) || !m_curSDCanBeModified)
         {
             //Cancel the animation
-            if(m_inAnimation || forceReset)
+            //if(m_inAnimation || forceReset)
             {
                 m_animationTimer = 0;
 
                 m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
                                                               -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
                                                                ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                              -10.0f, 10.0f, false);
+                                                              -100.0f, 100.0f, false);
 
                 //Reset camera position
-                m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-                m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
+                if(m_tbUserStudyMode == VFV_TB_USER_STUDY_AR)
+                {
+                    m_surfaceData->renderer.getCameraTransformable().setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+                    m_surfaceData->renderer.getCameraTransformable().setRotate(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f));
+                }
+                else
+                {
+                    m_surfaceData->renderer.getCameraTransformable().setPosition(m_tabletPos);
+                    m_surfaceData->renderer.getCameraTransformable().setRotate(m_tabletRot*Quaternionf(glm::vec3(1.0, 0.0, 0.0), M_PI/2.0f));
+                }
             }
             m_inAnimation = false;
         }
@@ -272,20 +280,29 @@ namespace sereno
                 if(m_currentVis)
                 {
                     m_animationStartingPoint = m_currentVis->getPosition();
-                    if(!findHeadsetCameraTransformation(&m_animationEndingPoint, &m_animationRotation))
+
+                    if(m_tbUserStudyMode == VFV_TB_USER_STUDY_AR)
                     {
-                        m_animationEndingPoint = glm::vec3(0, 0, -10);
-                        m_animationRotation    = Quaternionf();
-                        m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
+
+                        if(!findHeadsetCameraTransformation(&m_animationEndingPoint, &m_animationRotation))
+                        {
+                            m_animationRotation    = Quaternionf();
+                        }
+                        else
+                        {
+                            glm::vec3 eulerAngles = m_animationRotation.toEulerAngles();
+                            eulerAngles.x = eulerAngles.z = 0;
+                            eulerAngles.y *= -1.0f;
+                            m_animationRotation = Quaternionf::fromEulerAngles(eulerAngles);
+                        }
                     }
                     else
                     {
-                        m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
-                        glm::vec3 eulerAngles = m_animationRotation.toEulerAngles();
-                        eulerAngles.x = eulerAngles.z = 0;
-                        eulerAngles.y *= -1.0f;
-                        m_animationRotation = Quaternionf::fromEulerAngles(eulerAngles);
+                        m_animationRotation = m_tabletRot*Quaternionf(glm::vec3(1.0, 0.0, 0.0), M_PI/2.0f);
                     }
+
+                    m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
+                    m_animationEndingPoint = m_animationRotation*glm::vec3(0, 0, -3);
                 }
                 m_animationTimer = 0;
             }
@@ -293,7 +310,7 @@ namespace sereno
             if(m_currentVis && m_animationTimer <= MAX_CAMERA_ANIMATION_TIMER)
             {
                 glm::vec3 dir = m_animationEndingPoint - m_animationStartingPoint;
-                m_surfaceData->renderer.getCameraTransformable().setPosition(((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir);
+                m_surfaceData->renderer.getCameraTransformable().setPosition(m_animationStartingPoint + ((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir);
 
                 //Old version using look at
                 //lookAt(m_surfaceData->renderer.getCameraTransformable(), glm::vec3(0.0f, 1.0f, 0.0f), ((float)m_animationTimer)/MAX_CAMERA_ANIMATION_TIMER*dir, m_animationStartingPoint, false);
@@ -306,6 +323,7 @@ namespace sereno
     void MainVFV::run()
     {
         m_surfaceData->renderer.setViewport(Rectangle2i(0, 0, m_surfaceData->renderer.getWidth(), m_surfaceData->renderer.getHeight()));
+        placeCamera(true);
 
         glEnable(GL_DEPTH_TEST);
         bool     visible = true;
@@ -561,7 +579,10 @@ namespace sereno
                 if(m_surfaceData->renderer.getCameraParams().w == 1.0 && !m_selecting) //Orthographic mode
                 {
                     for(int i = 0; i < 8; i++)
+                    {
+                        m_3dImageManipGO[i].setEnableCamera(false);
                         m_3dImageManipGO[i].update(&m_surfaceData->renderer);
+                    }
                     if(!m_curSDCanBeModified)
                         m_notConnectedGO->update(&m_surfaceData->renderer);
                 }
@@ -712,21 +733,34 @@ namespace sereno
                     float roll  = (event->x - event->oldX)*M_PI;
                     float pitch = (event->y - event->oldY)*M_PI;
 
-                    glm::vec3 leftVector(1.0f, 0.0f, 0.0f);
-
-                    glm::vec3 headsetPos;
-                    if(findHeadsetCameraTransformation(&headsetPos, NULL))
+                    if(m_tbUserStudyMode == VFV_TB_USER_STUDY_AR)
                     {
+                        glm::vec3 leftVector(1.0f, 0.0f, 0.0f);
 
-                        glm::vec3 forwardVector = sd->getPosition()-headsetPos;
-                        forwardVector.y = 0.0f;
-                        forwardVector = glm::normalize(forwardVector);
-                        leftVector = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forwardVector);
+                        glm::vec3 headsetPos;
+                        if(findHeadsetCameraTransformation(&headsetPos, NULL))
+                        {
+                            glm::vec3 forwardVector = sd->getPosition()-headsetPos;
+                            forwardVector.y = 0.0f;
+                            forwardVector = glm::normalize(forwardVector);
+                            leftVector = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forwardVector);
+                        }
+                        //pitch = 0; //Disable pitch rotation
+
+                        Quaternionf q = Quaternionf(leftVector, pitch)*Quaternionf(roll, 0, 0)*m_currentVis->getRotate();
+                        m_mainData->sendRotationEvent(sd, q);
                     }
-                    //pitch = 0; //Disable pitch rotation
+                    else
+                    {
+                        glm::vec3 leftVector(1.0f, 0.0f, 0.0f);
+                        glm::vec3 topVector(0.0f, 1.0f, 0.0f);
 
-                    Quaternionf q = Quaternionf(leftVector, pitch)*Quaternionf(roll, 0, 0)*m_currentVis->getRotate();
-                    m_mainData->sendRotationEvent(sd, q);
+                        leftVector = m_surfaceData->renderer.getCameraTransformable().getRotate()*leftVector;
+                        topVector = m_surfaceData->renderer.getCameraTransformable().getRotate()*topVector;
+
+                        Quaternionf q = Quaternionf(leftVector, pitch)*Quaternionf(topVector, roll)*m_currentVis->getRotate();
+                        m_mainData->sendRotationEvent(sd, q);
+                    }
                 }
                 break;
             }
@@ -736,12 +770,17 @@ namespace sereno
         }
 
         //Move the dataset if asked
-        Quaternionf cameraRot(0, 0, 0, 1.0);
         if(inMovement)
         {
-            findHeadsetCameraTransformation(NULL, &cameraRot);
-            glm::vec3 newPos = m_animationRotation.getInverse() * movement;
-            newPos.x = newPos.z = 0.0f; //Disable some positions because USERS STUDY
+            glm::vec3 newPos;
+
+            if(m_tbUserStudyMode == VFV_TB_USER_STUDY_AR)
+            {
+                newPos = m_animationRotation.getInverse() * movement;
+                newPos.x = newPos.z = 0.0f; //Disable some positions because USERS STUDY
+            }
+            else
+                newPos = m_animationRotation * movement;
             m_mainData->sendPositionEvent(sd, sd->getPosition() + newPos);
         }
     }
@@ -1102,6 +1141,12 @@ endRemoveDataset:
                         m_mainData->setCurrentAction(VFV_CURRENT_ACTION_NOTHING);
                         m_lasso->clearLasso();
                     }
+                    break;
+                }
+
+                case VFV_SET_TB_USER_STUDY_MODE:
+                {
+                    m_tbUserStudyMode = event->tbUserStudy.tbMode;
                     break;
                 }
 
