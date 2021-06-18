@@ -213,3 +213,9 @@ JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetTBUserStudyM
 
     data->onSetTBUserStudyMode(tbMode);
 }
+
+JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetCurrentAction(JNIEnv* env, jobject instance, jlong ptr, jint action)
+{
+    VFVData* data = (VFVData*)ptr;
+    data->onSetCurrentAction((VFVCurrentAction)action);
+}

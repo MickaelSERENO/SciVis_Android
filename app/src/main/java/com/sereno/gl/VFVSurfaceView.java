@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
@@ -155,7 +156,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action)
     {
-
+        nativeOnSetCurrentAction(m_ptr, action);
     }
 
     @Override
@@ -236,6 +237,9 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onStartNextTrial(ApplicationModel model)
     {}
+
+    @Override
+    public void onSetPostReviewRotation(ApplicationModel model, Quaternion rot){}
 
     @Override
     public void onSetTangibleMode(ApplicationModel model, int tangibleMode) {}
@@ -439,4 +443,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param data the C++ internal data pointer
      * @param tbMode the tangible brush mode ID. See TB_USER_STUDY_* */
     private native void nativeOnSetTBUserStudyMode(long ptr, int tbMode);
+
+    private native void nativeOnSetCurrentAction(long ptr, int action);
 }

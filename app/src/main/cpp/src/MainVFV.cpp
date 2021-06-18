@@ -192,7 +192,7 @@ namespace sereno
 
         //Not connected logo
         m_notConnectedGO->setPosition(glm::vec3(0.0f, 0.0f, -1.0f));
-        m_notConnectedGO->setScale(glm::vec3(2.0f-widgetWidth, 2.0f-widgetWidth, 2.0f));
+        m_notConnectedGO->setScale(glm::vec3(2.0f-widgetWidth, (2.0f-widgetWidth)/ratio, 2.0f));
     }
 
     bool MainVFV::findHeadsetCameraTransformation(glm::vec3* outPos, Quaternionf* outRot)
@@ -358,13 +358,19 @@ namespace sereno
                             m_currentWidgetAction = NO_IMAGE;
                             if(m_selecting)
                             {
-                                if(m_lasso->endLasso())
+                                if(m_mainData->getCurrentAction() == VFV_CURRENT_ACTION_LASSO)
                                 {
-                                    m_mainData->setLasso(m_lasso->getData());
-                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SELECTING);
+                                    if(m_lasso->endLasso())
+                                    {
+                                        m_mainData->setLasso(m_lasso->getData());
+                                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SELECTING);
+                                    }
+                                    else
+                                    {
+                                        m_lasso->clearLasso();
+                                        m_mainData->setLasso(m_lasso->getData());
+                                    }
                                 }
-                                else
-                                    m_lasso->clearLasso();
                             }
                             else
                             {
@@ -397,8 +403,11 @@ namespace sereno
 
                             if(m_selecting)
                             {
-                                m_lasso->startLasso(x, y/ratio, -1);
-                                m_mainData->setCurrentAction(VFV_CURRENT_ACTION_LASSO);
+                                if(m_mainData->getCurrentAction() != VFV_CURRENT_ACTION_REVIEWING_SELECTION)
+                                {
+                                    m_lasso->startLasso(x, y/ratio, -1);
+                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_LASSO);
+                                }
                             }
                             else
                             {
@@ -584,7 +593,10 @@ namespace sereno
                         m_3dImageManipGO[i].update(&m_surfaceData->renderer);
                     }
                     if(!m_curSDCanBeModified)
+                    {
+                        m_notConnectedGO->setEnableCamera(false);
                         m_notConnectedGO->update(&m_surfaceData->renderer);
+                    }
                 }
 
                 m_lasso->update(&m_surfaceData->renderer);
@@ -688,8 +700,9 @@ namespace sereno
                 }
                 
                 //selection
-                if(m_selecting){
-                    if(m_lasso->continueLasso(event->x, event->y, -1))
+                if(m_selecting)
+                {
+                    if(m_mainData->getCurrentAction() == VFV_CURRENT_ACTION_LASSO && m_lasso->continueLasso(event->x, event->y, -1))
                         m_mainData->setLasso(m_lasso->getData());
                 }
 

@@ -405,6 +405,17 @@ namespace sereno
              * \param sd the SubDataset to evaluate
              * \return true if it can be modified, false otherwise*/
             bool canSubDatasetBeModified(SubDataset* sd);
+
+            VFVCurrentAction getCurrentAction()
+            {
+                return m_curAction;
+            }
+            void onSetCurrentAction(VFVCurrentAction action)
+            {
+                lock();
+                m_curAction = action;
+                unlock();
+            }
         private:
             /* \brief  Add a subdataset event without parameter (update only)
              * \param sd the subdataset 
@@ -432,6 +443,8 @@ namespace sereno
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
             VFVTBUserStudyMode m_tbUserStudyMode = VFV_TB_USER_STUDY_AR; /*!< The current tangible mode for the associated user study*/
+
+            VFVCurrentAction m_curAction = VFV_CURRENT_ACTION_NOTHING;
 
             jobject                  m_javaObj = 0;    /*!< The java object linked to this model object*/
             std::deque<VFVEvent*>    m_events;         /*!< The events from Java*/

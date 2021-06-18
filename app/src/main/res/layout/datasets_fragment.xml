@@ -116,13 +116,27 @@
                         android:id="@+id/closeSelectionMesh"/>
                 </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/originButton"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
-                    android:background="@drawable/position_button"
-                    android:scaleType="fitCenter" />
+                    android:orientation="horizontal"
+                    >
+                    <ImageButton
+                        android:id="@+id/originButton"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:background="@drawable/position_button"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/postRotationButton"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_alignParentRight="true"
+                        android:background="@drawable/post_rotation_button"
+                        android:scaleType="fitCenter" />
+                </LinearLayout>
             </RelativeLayout>
 
             <LinearLayout

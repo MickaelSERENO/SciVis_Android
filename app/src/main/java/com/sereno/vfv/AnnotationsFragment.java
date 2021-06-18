@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sereno.Tree;
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.VectorFieldDataset;
@@ -327,6 +328,9 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     @Override
     public void onStartNextTrial(ApplicationModel model)
     {}
+
+    @Override
+    public void onSetPostReviewRotation(ApplicationModel model, Quaternion rot){}
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}

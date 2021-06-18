@@ -142,6 +142,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
         void onStartNextTrial(ApplicationModel model);
 
         void onStopCapturingTangible(ApplicationModel model, boolean capturing);
+
+        void onSetPostReviewRotation(ApplicationModel model, Quaternion rot);
     }
 
     /** Annotation meta data*/
@@ -216,9 +218,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public static final int BOOLEAN_INTERSECTION = 2;
 
     /** The different tangible mode*/
-    public static final int TANGIBLE_MODE_NONE   = 0;
-    public static final int TANGIBLE_MODE_MOVE   = 1;
-    public static final int TANGIBLE_MODE_ORIGIN = 2;
+    public static final int TANGIBLE_MODE_NONE          = 0;
+    public static final int TANGIBLE_MODE_MOVE          = 1;
+    public static final int TANGIBLE_MODE_ORIGIN        = 2;
+    public static final int TANGIBLE_MODE_POST_ROTATION = 3;
 
     /** The handedness values*/
     public static final int HANDEDNESS_LEFT = 0;
@@ -309,6 +312,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** The start orientation of the tablet during its movements*/
     private Quaternion m_startRotation = new Quaternion();
+
+    private Quaternion m_postReviewRotation = new Quaternion();
+
+    private Quaternion m_startPostReviewRotation = new Quaternion();
 
     /** Was the tangible movement restarted?*/
     private boolean m_reinitTangible = false;
@@ -667,6 +674,9 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
         for(IDataCallback clbk : m_listeners)
             clbk.onUpdateBindingInformation(this, info);
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetLocation(this, m_position, m_rotation);
     }
 
     /** Get the binding information
@@ -815,7 +825,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     {
         if(m_stopCapturingTangible)
             return;
-        if(m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO)
+        if(m_currentAction == CURRENT_ACTION_SELECTING || m_currentAction == CURRENT_ACTION_LASSO || m_currentAction == CURRENT_ACTION_REVIEWING_SELECTION)
         {
             boolean isReinited = false;
             if(m_reinitTangible)
@@ -901,10 +911,36 @@ public class ApplicationModel implements Dataset.IDatasetListener
                 }
             }
 
+            else if(m_tangibleMode == TANGIBLE_MODE_POST_ROTATION)
+            {
+                Quaternion postRot = new Quaternion();
+
+                //Apply the relative-full mapping for post-rotations
+                if(!isReinited)
+                    postRot = m_startPostReviewRotation.multiplyBy(m_startRotation.getInverse().multiplyBy(new Quaternion(rot[1], rot[2], rot[3], rot[0])));
+                else
+                {
+                    m_startPostReviewRotation = (Quaternion)m_postReviewRotation.clone();
+                    postRot = m_postReviewRotation;
+                }
+
+                setPostReviewRotation(postRot);
+            }
+
             for(IDataCallback clbk : m_listeners)
                 clbk.onSetLocation(this, m_position, m_rotation);
 
         }
+    }
+
+    public void setPostReviewRotation(Quaternion rot)
+    {
+        if(m_postReviewRotation.equals(rot))
+            return;
+
+        m_postReviewRotation = rot;
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetPostReviewRotation(this, rot);
     }
 
     /** @brief set the tablet's scale
@@ -942,8 +978,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
     {
         if(m_tangibleMode != mode)
         {
-            if (m_tangibleMode == TANGIBLE_MODE_NONE &&
-                    mode != TANGIBLE_MODE_NONE)
+            if (m_tangibleMode == TANGIBLE_MODE_NONE          && mode != TANGIBLE_MODE_NONE ||
+                m_tangibleMode != TANGIBLE_MODE_POST_ROTATION && mode == TANGIBLE_MODE_POST_ROTATION)
             {
                 m_reinitTangible = true;
             }

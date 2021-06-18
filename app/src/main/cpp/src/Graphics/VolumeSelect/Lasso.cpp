@@ -49,6 +49,9 @@ namespace sereno
 
     bool Lasso::endLasso()
     {
+        if(m_data.size() <= 6) //Not enough points
+            return false;
+
         float diffX = m_data[0] - m_data[m_nbVertices*3-3];
         float diffY = m_data[1] - m_data[m_nbVertices*3-2];
         float mag = sqrt(diffX*diffX + diffY*diffY);

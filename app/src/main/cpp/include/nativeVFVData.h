@@ -150,6 +150,7 @@ extern "C"
     JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnTFUpdated(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr);
 
     JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetTBUserStudyMode(JNIEnv* env, jobject instance, jlong ptr, jint tbMode);
+    JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetCurrentAction(JNIEnv* env, jobject instance, jlong ptr, jint action);
 }
 
 #endif

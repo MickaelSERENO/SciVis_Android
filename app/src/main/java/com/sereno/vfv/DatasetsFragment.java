@@ -30,6 +30,7 @@ import android.widget.ToggleButton;
 import com.sereno.Tree;
 import com.sereno.gl.GLSurfaceView;
 import com.sereno.gl.VFVSurfaceView;
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.TF.TransferFunction;
@@ -128,6 +129,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private Button m_endSelectionBtn       = null;
     private Button m_confirmSelectionBtn   = null;
     private Button m_closeSelectionMeshBtn = null;
+
+    /** Some tangible button*/
+    private ImageButton m_tangiblePositionBtn     = null;
+    private ImageButton m_tangiblePostRotationBtn = null;
 
     /** Boolean buttons*/
     private ImageButton m_unionBtn = null;
@@ -530,8 +535,20 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action)
     {
-        //if(action != ApplicationModel.CURRENT_ACTION_SELECTING)
         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
+        if(action == ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
+        {
+            m_tangiblePostRotationBtn.setVisibility(View.VISIBLE);
+            m_tangiblePositionBtn.setVisibility(View.GONE);
+        }
+        else
+        {
+            if(m_model.getCurrentTBUserStudyMode() == ApplicationModel.TANGIBLE_BRUSH_STUDY_3D)
+                m_tangiblePositionBtn.setVisibility(View.VISIBLE);
+            else //Hide for the 2D condition
+                m_tangiblePositionBtn.setVisibility(View.GONE);
+            m_tangiblePostRotationBtn.setVisibility(View.GONE);
+        }
         updateCloseSelectionMeshBtn();
     }
 
@@ -601,6 +618,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
     }
 
+    @Override
+    public void onSetPostReviewRotation(ApplicationModel model, Quaternion rot){}
 
     @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot) {}
@@ -790,7 +809,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_endSelectionBtn        = (Button) v.findViewById(R.id.endSelection);
         m_confirmSelectionBtn    = (Button) v.findViewById(R.id.confirmSelection);
         ImageButton tangibleBtn  = (ImageButton) v.findViewById(R.id.tangibleButton);
-        ImageButton setOriginBtn = (ImageButton) v.findViewById(R.id.originButton);
+        m_tangiblePositionBtn    = (ImageButton) v.findViewById(R.id.originButton);
+        m_tangiblePostRotationBtn = (ImageButton) v.findViewById(R.id.postRotationButton);
 
         m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -861,7 +881,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-        setOriginBtn.setOnTouchListener(new View.OnTouchListener()
+        m_tangiblePositionBtn.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent)
@@ -871,6 +891,25 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                     if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
                     {
                         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_ORIGIN);
+                        m_model.setCaptureTangible(true);
+                    }
+                    else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)
+                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
+                }
+                return true;
+            }
+        });
+
+        m_tangiblePostRotationBtn.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(motionEvent.getPointerCount() == 1)
+                {
+                    if(motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+                    {
+                        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_POST_ROTATION);
                         m_model.setCaptureTangible(true);
                     }
                     else if(motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL)

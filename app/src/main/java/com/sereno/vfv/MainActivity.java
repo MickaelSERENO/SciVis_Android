@@ -29,6 +29,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.sereno.VFVViewPager;
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CPCPTexture;
 import com.sereno.vfv.Data.CloudPointDataset;
@@ -1251,8 +1252,10 @@ public class MainActivity extends AppCompatActivity
             }
             else
                 m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE, m_model.isVolumeSelectionConstrained())); //Specify that we are not in an operation
-
         }
+
+        if(m_model.getCurrentAction() != ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
+            m_model.setPostReviewRotation(new Quaternion());
     }
 
     @Override
@@ -1287,6 +1290,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStartNextTrial(ApplicationModel model)
     {}
+
+    @Override
+    public void onSetPostReviewRotation(ApplicationModel model, Quaternion rot)
+    {
+        DatasetIDBinding idBinding = null;
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
+        {
+            idBinding = getDatasetIDBinding(model.getCurrentSubDataset());
+            if (idBinding.dataset == null)
+                idBinding = null;
+        }
+
+        m_socket.push(SocketManager.createPostReviewRotationEvent(idBinding, rot.toFloatArray()));
+    }
 
     @Override
     public void onEnableSwipping(Fragment fragment)

@@ -82,6 +82,21 @@ public class Quaternion
     }
 
     @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == this)
+            return true;
+
+        else if(obj instanceof Quaternion)
+        {
+            Quaternion qObj = (Quaternion)obj;
+            return x == qObj.x && y == qObj.y && z == qObj.z && w == qObj.w;
+        }
+
+        return false;
+    }
+
+    @Override
     public Object clone()
     {
         return new Quaternion(x, y, z, w);

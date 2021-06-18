@@ -69,6 +69,7 @@ public class SocketManager
     public static final short MERGE_SUBDATSETS           = 28;
     public static final short RESET_VOLUMETRIC_SELECTION = 29;
     public static final short END_TB_TASK                = 30;
+    public static final short SEND_POST_REVIEW_ROTATION  = 31;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -899,6 +900,33 @@ public class SocketManager
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(END_TB_TASK);
+
+        return buf.array();
+    }
+
+    /** Create a Post-review Rotation event data to send to the server
+     * @param ids the dataset and subdatasets IDs
+     * @param qArr the array of the new quaternion to send (w, i, j, k)
+     * @return array of byte to send to push*/
+    public static byte[] createPostReviewRotationEvent(MainActivity.DatasetIDBinding ids, float[] qArr)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2+2*4+4*4);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SEND_POST_REVIEW_ROTATION);
+        if(ids != null)
+        {
+            buf.putInt(ids.dataset.getID());
+            buf.putInt(ids.subDatasetID);
+        }
+        else
+        {
+            buf.putInt(-1);
+            buf.putInt(-1);
+        }
+
+        for(int i = 0; i < 4; i++)
+            buf.putFloat(qArr[i]);
 
         return buf.array();
     }
