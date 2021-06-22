@@ -860,6 +860,10 @@ public class MainActivity extends AppCompatActivity
                 m_model.setBindingInfo(msg);
                 if(msg.getHeadsetID() == -1)
                     m_model.endPendingAnnotation(true);
+
+                //Send tablet's interactive data
+                onSetLocation(m_model, m_model.getTabletPosition(), m_model.getTabletRotation());
+                onSetTabletScale(m_model, m_model.getTabletScale(), m_model.getTabletWidth(), m_model.getTabletHeight(), m_model.getTabletX(), m_model.getTabletY());
             }
         });
     }
@@ -980,6 +984,9 @@ public class MainActivity extends AppCompatActivity
             m_model.setCurrentSelectionMode(ApplicationModel.SELECTION_MODE_RELATIVE_FULL);
             m_model.setCurrentTBUserStudyMode(ApplicationModel.TANGIBLE_BRUSH_STUDY_ORIGINAL);
         }
+
+        Quaternion rot = new Quaternion(new float[]{1.0f, 0.0f, 0.0f}, -(float)Math.PI/2.0f);
+        m_model.setInternalTabletPositionAndRotation(new float[]{0.0f, 0.0f, -0.75f}, rot.toFloatArray());
 	    m_model.setCurrentTBTrial(msg.getTrialID());
         m_model.startTBTrial();
     }

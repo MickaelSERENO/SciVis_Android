@@ -292,6 +292,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /***************** TANGIBLE INTERACTION ATTRIBUTES *******************/
     /*********************************************************************/
 
+    private float m_tabletScale  = 1.0f;
+    private float m_tabletWidth  = 1920;
+    private float m_tabletHeight = 1024;
+    private float m_tabletX      = 0;
+    private float m_tabletY      = 0;
+
     /** Current tablet's virtual position*/
     private float[] m_position = new float[]{0.0f, 0.0f, 0.0f};
 
@@ -917,7 +923,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
                 //Apply the relative-full mapping for post-rotations
                 if(!isReinited)
-                    postRot = m_startPostReviewRotation.multiplyBy(m_startRotation.getInverse().multiplyBy(new Quaternion(rot[1], rot[2], rot[3], rot[0])));
+                    postRot = m_startRotation.getInverse().multiplyBy(r).multiplyBy(m_startPostReviewRotation);
                 else
                 {
                     m_startPostReviewRotation = (Quaternion)m_postReviewRotation.clone();
@@ -931,6 +937,25 @@ public class ApplicationModel implements Dataset.IDatasetListener
                 clbk.onSetLocation(this, m_position, m_rotation);
 
         }
+    }
+
+    public float[] getTabletPosition()
+    {
+        return m_position;
+    }
+
+    public float[] getTabletRotation()
+    {
+        return m_rotation;
+    }
+
+    public void setInternalTabletPositionAndRotation(float[] position, float[] rotation)
+    {
+        m_position = position;
+        m_rotation = rotation;
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetLocation(this, m_position, m_rotation);
     }
 
     public void setPostReviewRotation(Quaternion rot)
@@ -951,9 +976,20 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param posy the tablet view's vertical position*/
     public void setTabletScale(float scale, float width, float height, float posx, float posy)
     {
+        m_tabletScale  = scale;
+        m_tabletWidth  = width;
+        m_tabletHeight = height;
+        m_tabletX      = posx;
+        m_tabletY      = posy;
         for(IDataCallback clbk : m_listeners)
             clbk.onSetTabletScale(this, scale, width, height, posx, posy);
     }
+
+    public float getTabletScale()  {return m_tabletScale;}
+    public float getTabletWidth()  {return m_tabletWidth;}
+    public float getTabletHeight() {return m_tabletHeight;}
+    public float getTabletX()      {return m_tabletX;}
+    public float getTabletY()      {return m_tabletY;}
 
     /** @brief called when the lasso is traced
      * @param data the lasso data*/
