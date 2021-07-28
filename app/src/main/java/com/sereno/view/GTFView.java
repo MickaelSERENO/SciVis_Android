@@ -313,6 +313,38 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         }
     }
 
+    private int getHistogramOffset()
+    {
+        int[] order = m_model.getCPCPOrder();
+
+        //Get some measurements and text information
+        String minText = "";
+        String maxText = "";
+        for(PointFieldDesc desc : m_model.getDataset().getParent().getPointFieldDescs())
+        {
+            if(desc.getID() == order[0])
+            {
+                minText = Float.toString(desc.getMin());
+                maxText = Float.toString(desc.getMax());
+                break;
+            }
+        }
+        float leftTextSize  = m_textPaint.measureText(minText);
+        float rightTextSize = m_textPaint.measureText(maxText);
+        leftTextSize  = Math.max(leftTextSize, rightTextSize); //Center things
+        leftTextSize  = Math.max(leftTextSize, m_sliderHeight);
+
+        return (int)(leftTextSize/2.0f);
+    }
+
+    private int getColorRangeWidth()
+    {
+        int[] order = m_model.getCPCPOrder();
+
+        int width  = (int)(getWidth() - getHistogramOffset()*2);
+        return width;
+    }
+
     /** Draw the 1D Histogram on screen
      * @param canvas the canvas where to draw*/
     private void draw1DHistogram(Canvas canvas)
@@ -336,7 +368,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         leftTextSize  = Math.max(leftTextSize, rightTextSize); //Center things
         leftTextSize  = Math.max(leftTextSize, m_sliderHeight);
         rightTextSize = leftTextSize;
-        int width  = (int)(getWidth() - (leftTextSize+rightTextSize)/2.0f);
+        int width  = getColorRangeWidth();
         float textHeight = computeTextHeight();
         float triangleHeight = (float)(m_sliderHeight*Math.sqrt(3.0f)/2.0f);
         int height = (int)(getHeight() - 2*textHeight - 1 - triangleHeight);
@@ -350,11 +382,11 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         //Draw the histogram
         for (int i = 0; i < width/2; i++)
         {
-            int histoID = (int)Math.floor(histo.length * (double)2*i/width);
+            int histoID = (int)(histo.length * i/(width/2.0));
             if(histoID > histo.length - 1)
                 histoID = histo.length - 1;
 
-            m_paint.setColor(ColorMode.computeRGBColor(histo[histoID], m_model.getColorMode()).toARGB8888());
+            m_paint.setColor(ColorMode.computeRGBColor(1.0f-histo[histoID], ColorMode.GRAYSCALE).toARGB8888());
             canvas.drawRect(2*i+leftTextSize/2.0f, 0, 2*i+leftTextSize/2.0f+2, height - 1, m_paint);
         }
 
@@ -372,7 +404,7 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         //Draw the text below the handles
         PointFieldDesc ptDesc = m_model.getDataset().getParent().getPointFieldDescs()[order[0]];
         for(int j = 0; j < 2; j++)
-            canvas.drawText(Float.toString(pointData.center * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v+m_sliderHeight/2.0f, height+triangleHeight+textHeight, m_textPaint);
+            canvas.drawText(Float.toString(pointData.center * (ptDesc.getMax()-ptDesc.getMin()) + ptDesc.getMin()), v, height+triangleHeight+textHeight, m_textPaint);
 
         //Draw the texts
         canvas.drawText(minText, leftTextSize/2.0f,             getHeight(), m_textPaint);
@@ -405,10 +437,10 @@ public class GTFView extends View implements GTFData.IGTFDataListener
         if(m_model.getCPCPOrder().length == 0)
             return false;
 
-        int      width       = getWidth() - m_sliderHeight;
+        int      width       = getColorRangeWidth();
         int      x           = (int)e.getX();
         boolean  valueChanged = false;
-        float    indice       = Math.min(Math.max((x - m_sliderHeight/2.0f)/width, 0.0f), 1.0f);
+        float    indice       = Math.min(Math.max((x - getHistogramOffset())/(float)width, 0.0f), 1.0f);
 
         float center = m_model.getRanges().get(m_model.getCPCPOrder()[0]).center;
         float scale  = m_model.getRanges().get(m_model.getCPCPOrder()[0]).scale;

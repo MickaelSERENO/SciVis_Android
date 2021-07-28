@@ -557,14 +557,6 @@ namespace sereno
                 placeCamera();
 
                 //Draw the scene
-                if(m_surfaceData->renderer.getCameraParams().w == 1.0 && !m_selecting) //Orthographic mode
-                {
-                    for(int i = 0; i < 8; i++)
-                        m_3dImageManipGO[i].update(&m_surfaceData->renderer);
-                    if(!m_curSDCanBeModified)
-                        m_notConnectedGO->update(&m_surfaceData->renderer);
-                }
-
                 m_lasso->update(&m_surfaceData->renderer);
 
                 if(m_currentVis != NULL)
@@ -574,6 +566,14 @@ namespace sereno
                     //m_currentVisFBORenderer->render();
                     //m_currentVisFBOGO->update(&m_surfaceData->renderer);
                     m_currentVis->update(&m_surfaceData->renderer);
+                }
+
+                if(m_surfaceData->renderer.getCameraParams().w == 1.0 && !m_selecting) //Orthographic mode
+                {
+                    for(int i = 0; i < 8; i++)
+                        m_3dImageManipGO[i].update(&m_surfaceData->renderer);
+                    if(!m_curSDCanBeModified)
+                        m_notConnectedGO->update(&m_surfaceData->renderer);
                 }
 
                 m_surfaceData->renderer.render();
@@ -783,17 +783,20 @@ namespace sereno
                     //First get max element
                     static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
                     uint32_t maxVal = 0;
+                    {
+                        std::lock_guard<std::mutex> lockMP(ompMutex);
 #if defined(_OPENMP)
-                    #pragma omp parallel for reduction(max:maxVal)
+                        #pragma omp parallel for reduction(max:maxVal)
 #endif
-                    for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
-                        maxVal = (histogram[k] > maxVal ? histogram[k] : maxVal);
+                        for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
+                            maxVal = (histogram[k] > maxVal ? histogram[k] : maxVal);
 
 #if defined(_OPENMP)
-                    #pragma omp parallel for
+                        #pragma omp parallel for
 #endif
-                    for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
-                        ((float*)histogram)[k] = ((float)histogram[k])/(float)maxVal; //This work because sizeof(float) == sizeof(uint32_t)
+                        for(uint32_t k = 0; k < HISTOGRAM_WIDTH*HISTOGRAM_HEIGHT; k++)
+                            ((float*)histogram)[k] = ((float)histogram[k])/(float)maxVal; //This work because sizeof(float) == sizeof(uint32_t)
+                    }
 
                     //Run a job to make them as Texture objects
                     runOnMainThread([this, dataset, histogram, i, j]()
@@ -823,11 +826,14 @@ namespace sereno
 
                         //Parallel reduction to get the max
                         float maxVal = 0;
+                        {
+                            std::lock_guard<std::mutex> lockMP(ompMutex);
 #ifdef _OPENMP
-                        #pragma omp parallel for reduction(max:maxVal)
+                            #pragma omp parallel for reduction(max:maxVal)
 #endif
-                        for(uint32_t k = 0; k < CPCP_TEXTURE_WIDTH*CPCP_TEXTURE_HEIGHT; k++)
-                            maxVal = (((float*)pixels)[k] > maxVal ? ((float*)pixels)[k] : maxVal);
+                            for(uint32_t k = 0; k < CPCP_TEXTURE_WIDTH*CPCP_TEXTURE_HEIGHT; k++)
+                                maxVal = (((float*)pixels)[k] > maxVal ? ((float*)pixels)[k] : maxVal);
+                        }
 
                         //Normalize the texture
                         FBO normalizeFBO(CPCP_TEXTURE_WIDTH, CPCP_TEXTURE_HEIGHT, GL_RGBA8, false);
@@ -890,19 +896,20 @@ namespace sereno
             //Check type. This is used to earn time regarding histogram* size
             //First get max element
             static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(float) != sizeof(uint32_t)");
-            uint32_t maxVal = 0;
+            {
+                uint32_t maxVal = 0;
 #if defined(_OPENMP)
-            #pragma omp parallel for reduction(max:maxVal)
+                std::lock_guard<std::mutex> lockMP(ompMutex);
+                #pragma omp parallel for reduction(max:maxVal)
 #endif
-            for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
-                maxVal = (histogram[k] > maxVal ? histogram[k] : maxVal);
-
+                for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
+                    maxVal = (histogram[k] > maxVal ? histogram[k] : maxVal);
 #if defined(_OPENMP)
-            #pragma omp parallel for
+                #pragma omp parallel for
 #endif
-            for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
-                ((float*)histogram)[k] = (float)histogram[k]/(float)maxVal;
-
+                for(uint32_t k = 0; k < HISTOGRAM_WIDTH; k++)
+                    ((float*)histogram)[k] = (float)histogram[k]/maxVal;
+            }
             //Run a job to make them as Texture objects
             runOnMainThread([this, dataset, histogram, i]()
             {

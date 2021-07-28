@@ -28,13 +28,19 @@ public class DataFile
             {
                 //Check if composed of digits
                 String s = res.get(i).toString().substring(j+1);
+                boolean noDigit = false;
                 for(int k = 0; k < s.length(); k++)
                 {
                     if(!Character.isDigit(s.charAt(k)))
                     {
-                        i++;
-                        continue;
+                        noDigit = true;
+                        break;
                     }
+                }
+                if(noDigit)
+                {
+                    i++;
+                    continue;
                 }
 
                 //If yes, remove value i

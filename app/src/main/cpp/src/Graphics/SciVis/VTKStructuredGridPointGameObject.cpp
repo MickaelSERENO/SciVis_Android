@@ -335,11 +335,12 @@ namespace sereno
                                     double intPart;
                                     uint8_t outColT1[4];
                                     tf->computeColor(tfIndT1, outColT1);
+                                    outColT1[3] = tf->computeAlpha(tfIndT1);
                                     uint8_t outColT2[4];
                                     tf->computeColor(tfIndT2, outColT2);
-                                    for(uint8_t h = 0; h < 3; h++)
+                                    outColT2[3] = tf->computeAlpha(tfIndT2);
+                                    for(uint8_t h = 0; h < 4; h++)
                                         cols[4*destID+h] = ((float)outColT1[h] * (1.0f-modf(t, &intPart)) + (float)outColT2[h] * modf(t, &intPart));
-                                    cols[4*destID+3] = tf->computeAlpha(tfIndT1);
                                 }
                     }
 

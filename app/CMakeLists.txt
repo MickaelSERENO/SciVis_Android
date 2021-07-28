@@ -133,7 +133,7 @@ add_definitions(-DSNAPSHOT)
 
 target_compile_options(native-lib PRIVATE  ${LIB3DS_CFLAGS} ${GLM_CFLAGS} ${SERENO_VTK_PARSER_CFLAGS} ${SERENO_MATH_CFLAGS} ${SERENO_SCI_VIS_CFLAGS} ${OpenMP_CXX_FLAGS})
 target_link_libraries(native-lib  ${GLM_LDFLAGS} png-lib 3ds-lib sereno_vtk_parser-lib sereno_math-lib sereno_sci_vis-lib
-                      ${z-lib} ${log-lib} ${egl-lib} ${gles-lib} ${android-lib} ${OpenMP_EXE_LINKER_FLAGS} -static-openmp)
+                      ${z-lib} ${log-lib} ${egl-lib} ${gles-lib} ${android-lib} ${OpenMP_EXE_LINKER_FLAGS})
 
 #Copy .so
 if(ANDROID)
