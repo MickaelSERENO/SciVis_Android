@@ -118,7 +118,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param op the new operation in action*/
         void onSetCurrentBooleanOperation(ApplicationModel model, int op);
 
-        /** Called when the tangible mode of the application has changed
+        /** Called when the tangible mode of the application has changedcheckWritting
          * @param model the app data model
          * @param inTangibleMode the device current the tangible mode?*/
         void onSetTangibleMode(ApplicationModel model, int inTangibleMode);

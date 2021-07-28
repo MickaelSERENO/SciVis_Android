@@ -38,7 +38,7 @@ public class SocketManager
     /** How many milliseconds the thread has to sleep before reattempting to connect ?*/
     public static final int FAIL_CONNECT_SLEEP = 200;
     /** How many milliseconds the thread has to sleep before resending data ?*/
-    public static final int THREAD_SLEEP       = 1000/90;
+    public static final int THREAD_SLEEP       = 1;
     public static final int READ_TIMEOUT       = 0;
 
     /* ************************************************************ */

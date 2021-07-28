@@ -257,6 +257,7 @@ namespace sereno
             /*----------------------------------------------------------------------------*/
             std::queue<MainThreadFunc> m_mainThreadFuncs;      /*!< Jobs to execute in the Main thread*/
             std::mutex                 m_mainThreadFuncsMutex; /*!< Mutex bound to the m_mainThreadFuncs object*/
+            std::mutex                 m_loadDatasetMutex;
     };
 }
 #endif

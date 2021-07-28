@@ -252,9 +252,9 @@ namespace sereno
             {
                 m_animationTimer = 0;
 
-                m_surfaceData->renderer.setOrthographicMatrix(-1.0f, 1.0f,
-                                                              -((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
-                                                               ((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                m_surfaceData->renderer.setOrthographicMatrix(-0.75f, 0.75f,
+                                                              -0.75f*((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
+                                                               0.75f*((float)m_surfaceData->renderer.getHeight())/m_surfaceData->renderer.getWidth(),
                                                               -100.0f, 100.0f, false);
 
                 //Reset camera position
@@ -302,7 +302,7 @@ namespace sereno
                     }
 
                     m_surfaceData->renderer.getCameraTransformable().setRotate(m_animationRotation);
-                    m_animationEndingPoint = m_animationRotation*glm::vec3(0, 0, -3);
+                    m_animationEndingPoint = m_animationRotation*glm::vec3(0, 0, -0.0f);
                 }
                 m_animationTimer = 0;
             }
@@ -810,7 +810,10 @@ namespace sereno
 
     void MainVFV::onLoadDataset(Dataset* dataset, uint32_t status)
     {
+        std::lock_guard<std::mutex> lock(m_loadDatasetMutex);
         LOG_INFO("Creating dataset's histograms");
+        return;
+
         //Create every possible 2D histograms
         uint32_t ptDescSize = dataset->getPointFieldDescs().size();
         bool     loaded     = true;

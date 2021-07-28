@@ -538,16 +538,25 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
         if(action == ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
         {
-            m_tangiblePostRotationBtn.setVisibility(View.VISIBLE);
+            if(m_model.getCurrentTBUserStudyMode() == ApplicationModel.TANGIBLE_BRUSH_STUDY_3D)
+                m_tangiblePostRotationBtn.setVisibility(View.GONE);
+            else
+                m_tangiblePostRotationBtn.setVisibility(View.VISIBLE);
             m_tangiblePositionBtn.setVisibility(View.GONE);
         }
         else
         {
+            //Show correct buttons depending on the use case
             if(m_model.getCurrentTBUserStudyMode() == ApplicationModel.TANGIBLE_BRUSH_STUDY_3D)
+            {
                 m_tangiblePositionBtn.setVisibility(View.VISIBLE);
-            else //Hide for the 2D condition
+                m_tangiblePostRotationBtn.setVisibility(View.GONE);
+            }
+            else
+            {
                 m_tangiblePositionBtn.setVisibility(View.GONE);
-            m_tangiblePostRotationBtn.setVisibility(View.GONE);
+                m_tangiblePostRotationBtn.setVisibility(View.VISIBLE);
+            }
         }
         updateCloseSelectionMeshBtn();
     }
@@ -826,6 +835,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_endSelectionBtn.setText(R.string.endSelection);
                 updateScale(tabletScaleBar.getProgress());
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION); //Default == Union
+                m_model.setCurrentAction(ApplicationModel.CURRENT_ACTION_LASSO);
             }
         });
 
@@ -1021,13 +1031,18 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             }
         });
 
-        v.findViewById(R.id.resetOrientation).setOnClickListener(new View.OnClickListener()
+        v.findViewById(R.id.resetGeometry).setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
                 if(m_model.getCurrentSubDataset() != null)
+                {
                     m_model.getCurrentSubDataset().setRotation(new float[]{1.0f, 0.0f, 0.0f, 0.0f});
+                    m_model.getCurrentSubDataset().setPosition(new float[]{0.0f, 0.0f, 0.0f});
+                    Quaternion rot = Quaternion.lookAt(new float[]{-0.33f, 0.33f, -0.33f}, new float[]{0.0f, 0.0f, 0.0f}).multiplyBy(new Quaternion(new float[]{1.0f, 0.0f, 0.0f}, -(float)Math.PI/2.0f));
+                    m_model.setInternalTabletPositionAndRotation(new float[]{-0.33f, 0.33f, -0.33f}, rot.toFloatArray());
+                }
             }
         });
 

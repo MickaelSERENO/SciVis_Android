@@ -50,7 +50,7 @@
     <string name="interpolationParameter">t</string>
     <string name="constrained">Constrained</string>
     <string name="unConstrained">Unconstrained</string>
-    <string name="resetOrientation">Reset Orientation</string>
+    <string name="resetGeometry">Reset Geometry</string>
     <string name="reset">Reset Selection</string>
     <string name="endTask">End Task</string>
     <string name="errorNoSelection">Cannot end the task: no volumetric selection has been performed</string>

@@ -343,6 +343,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action) {
         m_socket.push(SocketManager.createCurrentActionEvent(action));
+        if(action != ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION &&
+           action != ApplicationModel.CURRENT_ACTION_LASSO &&
+           action != ApplicationModel.CURRENT_ACTION_SELECTING)
+            m_model.setPostReviewRotation(new Quaternion());
     }
 
     @Override
@@ -985,8 +989,8 @@ public class MainActivity extends AppCompatActivity
             m_model.setCurrentTBUserStudyMode(ApplicationModel.TANGIBLE_BRUSH_STUDY_ORIGINAL);
         }
 
-        Quaternion rot = new Quaternion(new float[]{1.0f, 0.0f, 0.0f}, -(float)Math.PI/2.0f);
-        m_model.setInternalTabletPositionAndRotation(new float[]{0.0f, 0.0f, -0.75f}, rot.toFloatArray());
+        Quaternion rot = Quaternion.lookAt(new float[]{-0.33f, 0.33f, -0.33f}, new float[]{0.0f, 0.0f, 0.0f}).multiplyBy(new Quaternion(new float[]{1.0f, 0.0f, 0.0f}, -(float)Math.PI/2.0f));
+        m_model.setInternalTabletPositionAndRotation(new float[]{-0.33f, 0.33f, -0.33f}, rot.toFloatArray());
 	    m_model.setCurrentTBTrial(msg.getTrialID());
         m_model.startTBTrial();
     }
@@ -1261,8 +1265,8 @@ public class MainActivity extends AppCompatActivity
                 m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE, m_model.isVolumeSelectionConstrained())); //Specify that we are not in an operation
         }
 
-        if(m_model.getCurrentAction() != ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
-            m_model.setPostReviewRotation(new Quaternion());
+        //if(m_model.getCurrentAction() != ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
+        //    m_model.setPostReviewRotation(new Quaternion());
     }
 
     @Override
@@ -1302,7 +1306,9 @@ public class MainActivity extends AppCompatActivity
     public void onSetPostReviewRotation(ApplicationModel model, Quaternion rot)
     {
         DatasetIDBinding idBinding = null;
-        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION)
+        if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION ||
+           m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_LASSO ||
+           m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
         {
             idBinding = getDatasetIDBinding(model.getCurrentSubDataset());
             if (idBinding.dataset == null)
