@@ -153,7 +153,15 @@ public class ApplicationModel implements Dataset.IDatasetListener
          * @param sdg the group being removed*/
         void onRemoveSubDatasetGroup(ApplicationModel model, SubDatasetGroup sdg);
 
+        /** Called when the capturing status of tangible movements has changed
+         * @param model the app data model
+         * @param capturing whether or not tangible movements are being captured*/
         void onStopCapturingTangible(ApplicationModel model, boolean capturing);
+
+        /** Called when the selection method of volumetric selection has changed
+         * @param model the app data model
+         * @param method the volumetric selection method. See SELECTION_METHOD_* */
+        void onSetSelectionMethod(ApplicationModel model, byte method);
     }
 
     /** Annotation meta data*/
@@ -230,6 +238,10 @@ public class ApplicationModel implements Dataset.IDatasetListener
     public static final int HANDEDNESS_LEFT = 0;
     public static final int HANDEDNESS_RIGHT  = 1;
 
+    /** The volumetric selection method*/
+    public static final byte SELECTION_METHOD_TANGIBLE = 0;
+    public static final byte SELECTION_METHOD_FROM_TOP = 1;
+
     private ArrayList<IDataCallback> m_listeners = new ArrayList<>(); /**!< The known listeners to call when the model changed*/
     private Configuration            m_config;                        /**!< The configuration object*/
 
@@ -285,6 +297,21 @@ public class ApplicationModel implements Dataset.IDatasetListener
     /***************** TANGIBLE INTERACTION ATTRIBUTES *******************/
     /*********************************************************************/
 
+    /** The current tablet tangible scaling factor*/
+    private float m_tabletScale  = 1.0f;
+
+    /** The current tablet tangible width in pixels*/
+    private float m_tabletWidth  = 1920;
+
+    /** The current tablet tangible height in pixels*/
+    private float m_tabletHeight = 1024;
+
+    /** The current tangible tablet X position in pixels*/
+    private float m_tabletX      = 0;
+
+    /** The current tangible tablet Y position in pixels*/
+    private float m_tabletY      = 0;
+
     /** Current tablet's virtual position*/
     private float[] m_position = new float[]{0.0f, 0.0f, 0.0f};
 
@@ -323,6 +350,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
 
     /** Stop capturing 3D tangible locations */
     private boolean m_stopCapturingTangible = false;
+
+    /** Is there a selection to consider?*/
+    private boolean m_hasSelection = false;
+
+    /** The current volumetric selection method*/
+    private byte m_selectionMethod = SELECTION_METHOD_TANGIBLE;
 
     /** @brief Basic constructor, initialize the data at its default state */
     public ApplicationModel(Context ctx)
@@ -665,6 +698,8 @@ public class ApplicationModel implements Dataset.IDatasetListener
         if(action != m_currentAction)
         {
             m_currentAction = action;
+            if(action == CURRENT_ACTION_NOTHING)
+                m_hasSelection = false;
             for(IDataCallback clbk : m_listeners)
                 clbk.onChangeCurrentAction(this, action);
         }
@@ -865,9 +900,38 @@ public class ApplicationModel implements Dataset.IDatasetListener
         }
     }
 
+    /** Are we capturing tangible movements?
+     * @return true if yes, false otherwise*/
     public boolean isCapturingTangible()
     {
         return !m_stopCapturingTangible;
+    }
+
+    public void setIsInSelection(boolean isInSelection)
+    {
+        m_hasSelection = isInSelection;
+    }
+
+    /** Is the tablet currently in a selection process? (i.e., a volumetric object is created)
+     * @return true if yes, false otherwise*/
+    public boolean isInSelection()
+    {
+        return m_hasSelection;
+    }
+
+    public byte getSelectionMethod()
+    {
+        return m_selectionMethod;
+    }
+
+    public void setSelectionMethod(byte method)
+    {
+        if(method != m_selectionMethod)
+        {
+            m_selectionMethod = method;
+            for (IDataCallback clbk : m_listeners)
+                clbk.onSetSelectionMethod(this, method);
+        }
     }
 
     /** @brief update the tablet's location if the location is significant for the current mode of the tablet
@@ -969,6 +1033,31 @@ public class ApplicationModel implements Dataset.IDatasetListener
         }
     }
 
+    public float getTabletScale()  {return m_tabletScale;}
+    public float getTabletWidth()  {return m_tabletWidth;}
+    public float getTabletHeight() {return m_tabletHeight;}
+    public float getTabletX()      {return m_tabletX;}
+    public float getTabletY()      {return m_tabletY;}
+
+    public float[] getTabletPosition()
+    {
+        return m_position;
+    }
+
+    public float[] getTabletRotation()
+    {
+        return m_rotation;
+    }
+
+    public void setInternalTabletPositionAndRotation(float[] position, float[] rotation)
+    {
+        m_position = position;
+        m_rotation = rotation;
+
+        for(IDataCallback clbk : m_listeners)
+            clbk.onSetLocation(this, m_position, m_rotation);
+    }
+
     /** @brief set the tablet's scale
      * @param scale the tablet's scale
      * @param width the tablet view's width
@@ -977,6 +1066,11 @@ public class ApplicationModel implements Dataset.IDatasetListener
      * @param posy the tablet view's vertical position*/
     public void setTabletScale(float scale, float width, float height, float posx, float posy)
     {
+        m_tabletScale  = scale;
+        m_tabletWidth  = width;
+        m_tabletHeight = height;
+        m_tabletX      = posx;
+        m_tabletY      = posy;
         for(IDataCallback clbk : m_listeners)
             clbk.onSetTabletScale(this, scale, width, height, posx, posy);
     }
@@ -1003,8 +1097,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
     {
         if(m_tangibleMode != mode)
         {
-            if (m_tangibleMode == TANGIBLE_MODE_NONE &&
-                    mode != TANGIBLE_MODE_NONE)
+            if (m_tangibleMode == TANGIBLE_MODE_NONE && mode != TANGIBLE_MODE_NONE)
             {
                 m_reinitTangible = true;
             }

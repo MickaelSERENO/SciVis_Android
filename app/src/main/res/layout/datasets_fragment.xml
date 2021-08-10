@@ -89,9 +89,26 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|left"
             android:orientation="vertical"
             android:id="@+id/tangibleLayout">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#44ffffff"
+                android:layout_marginBottom="15dp">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|left"
+                    android:id="@+id/toggleVolumetricMask"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/toggleVolumetricMask"
+                    android:layout_gravity="center_vertical|left" />
+            </LinearLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -221,13 +238,25 @@
         app:layout_row="1"
         app:layout_rowWeight="1">
 
-        <Button
-            android:id="@+id/startSelection"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:checked="false"
-            android:text="@string/startSelection"/>
-
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/startSelection"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="@string/startSelection"/>
+            <Button
+                android:id="@+id/startSelectionTop"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="@string/startSelectionTop"/>
+        </LinearLayout>
         <View style="@style/Divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"/>

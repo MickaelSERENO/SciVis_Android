@@ -74,6 +74,30 @@ public class Quaternion
         return new float[]{res.x, res.y, res.z};
     }
 
+    /** Create a quaternion that point from sourcePoint to destPoint
+     * @param sourcePoint the source 3D point
+     * @param destPoint the source 3D point
+     * @return the quaternion*/
+    public static Quaternion lookAt(float[] sourcePoint, float[] destPoint)
+    {
+        float[] forwardVector = Vector3.normalise(Vector3.minus(destPoint, sourcePoint));
+        float dot = forwardVector[2];
+
+        if (Math.abs(dot - (-1.0f)) < 0.000001f)
+        {
+            return new Quaternion(new float[]{0.0f, 1.0f, 0.0f}, (float)Math.PI);
+        }
+        if (Math.abs(dot - (1.0f)) < 0.000001f)
+        {
+            return new Quaternion();
+        }
+
+        float rotAngle = (float) Math.acos(dot);
+        float[] rotAxis = Vector3.crossProduct(new float[]{0.0f, 0.0f, 1.0f}, forwardVector);
+        rotAxis = Vector3.normalise(rotAxis);
+        return new Quaternion(rotAxis, rotAngle);
+    }
+
     /** Convert this quaternion to a float array
      * @return a float array containing {w, x, y, z}*/
     public float[] toFloatArray()

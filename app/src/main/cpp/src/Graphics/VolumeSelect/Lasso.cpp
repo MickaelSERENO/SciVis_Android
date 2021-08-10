@@ -40,7 +40,7 @@ namespace sereno
             m_data.push_back(z);
 
             m_nbVertices += 1;
-            
+
             buildVBO();
             return true;
         }
@@ -63,7 +63,7 @@ namespace sereno
             m_data.push_back(m_data.at(2));
 
             m_nbVertices += 1;
-            
+
             buildVBO();
             return true;
         }

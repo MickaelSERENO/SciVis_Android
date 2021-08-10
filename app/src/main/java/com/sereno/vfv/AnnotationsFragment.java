@@ -640,6 +640,10 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {}
 
     @Override
+    public void onSetSelectionMethod(ApplicationModel model, byte method)
+    {}
+
+    @Override
     public void onSetLocation(ApplicationModel model, float[] pos, float[] rot)
     {
     }

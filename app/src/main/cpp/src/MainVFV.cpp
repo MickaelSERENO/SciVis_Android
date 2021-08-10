@@ -340,13 +340,19 @@ namespace sereno
                             m_currentWidgetAction = NO_IMAGE;
                             if(m_selecting)
                             {
-                                if(m_lasso->endLasso())
+                                if(m_mainData->getCurrentAction() == VFV_CURRENT_ACTION_LASSO)
                                 {
-                                    m_mainData->setLasso(m_lasso->getData());
-                                    m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SELECTING);
+                                    if(m_lasso->endLasso())
+                                    {
+                                        m_mainData->setLasso(m_lasso->getData());
+                                        m_mainData->setCurrentAction(VFV_CURRENT_ACTION_SELECTING);
+                                    }
+                                    else
+                                    {
+                                        m_lasso->clearLasso();
+                                        m_mainData->setLasso(m_lasso->getData());
+                                    }
                                 }
-                                else
-                                    m_lasso->clearLasso();
                             }
                             else
                             {
@@ -360,11 +366,12 @@ namespace sereno
                     {
                         if(m_mainData->getHeadsetID() == -1)
                             break;
+
                         uint32_t numberFinger = 0;
                         TouchCoord* tc = NULL;
                         for(uint32_t i = 0; NULL != (tc = m_surfaceData->getTouchCoord(i++));)
                             if(tc->type != TOUCH_TYPE_UP)
-                                numberFinger++;
+                                numberFinger+=1;
 
                         if(numberFinger == 1)
                         {

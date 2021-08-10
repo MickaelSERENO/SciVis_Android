@@ -38,6 +38,7 @@
     <string name="transferFunction">Transfer Function</string>
     <string name="selection">Selection</string>
     <string name="startSelection">Start Selection</string>
+    <string name="startSelectionTop">Start Selection From Top</string>
     <string name="endSelection">End Selection</string>
     <string name="cancelSelection">Cancel Selection</string>
     <string name="confirmSelection">Confirm Selection</string>
@@ -77,4 +78,5 @@
     <string name="mergeSV">Merge Subjective Views</string>
     <string name="unmergeSV">Unmerge Subjective Views</string>
     <string name="done">Done</string>
+    <string name="toggleVolumetricMask">Toggle Mask</string>
 </resources>

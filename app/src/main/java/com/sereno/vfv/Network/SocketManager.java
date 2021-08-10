@@ -83,6 +83,7 @@ public class SocketManager
     public static final short REMOVE_SD_GROUP                        = 39;
     public static final short ADD_CLIENT_TO_SV_GROUP                 = 40;
     public static final short RENAME_SUBDATASET                      = 41;
+    public static final short SET_VOLUMETRIC_SELECTION_METHOD        = 42;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -1073,4 +1074,15 @@ public class SocketManager
 
         return buf.array();
     }
+
+    public static byte[] createSetVolumetricSelectionMethod(byte method)
+    {
+        ByteBuffer buf = ByteBuffer.allocate(2 + 1);
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        buf.putShort(SET_VOLUMETRIC_SELECTION_METHOD);
+        buf.put(method);
+
+        return buf.array();
+    };
 }

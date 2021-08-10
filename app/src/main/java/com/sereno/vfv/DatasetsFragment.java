@@ -15,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -55,6 +56,7 @@ import com.sereno.view.TreeView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class DatasetsFragment extends VFVFragment implements ApplicationModel.IDataCallback,
                                                              Dataset.IDatasetListener,
@@ -131,6 +133,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
          * @param merge the merge parameter*/
         void onMergeSubjectiveViews(DatasetsFragment frag, SubDatasetSubjectiveStackedGroup svg, boolean merge);
     }
+
+    public interface StartSelectionInterface{void run(boolean fromTop);}
 
     public static final float INCH_TO_METER   = 0.0254f;
     public static final int   TIME_SLIDER_MAX = 10;
@@ -691,7 +695,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     }
 
     @Override
-    public void onChangeCurrentAction(ApplicationModel model, int action) {
+    public void onChangeCurrentAction(ApplicationModel model, int action)
+    {
+        m_model.setTangibleMode(ApplicationModel.TANGIBLE_MODE_NONE);
+        updateCloseSelectionMeshBtn();
     }
 
 
@@ -813,7 +820,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     private void updateCloseSelectionMeshBtn()
     {
-
         if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING && m_model.getCurrentTangibleMode() == ApplicationModel.TANGIBLE_MODE_MOVE)
             m_closeSelectionMeshBtn.setVisibility(View.VISIBLE);
         else
@@ -828,6 +834,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
     @Override
     public void onStopCapturingTangible(ApplicationModel model, boolean stop)
+    {}
+
+    @Override
+    public void onSetSelectionMethod(ApplicationModel model, byte method)
     {}
 
     /** Update all the widgets for time-manipulations*/
@@ -963,21 +973,50 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_startSelectionBtn      = (Button) v.findViewById(R.id.startSelection);
         m_endSelectionBtn        = (Button) v.findViewById(R.id.endSelection);
         m_confirmSelectionBtn    = (Button) v.findViewById(R.id.confirmSelection);
-        ImageButton tangibleBtn  = (ImageButton) v.findViewById(R.id.tangibleButton);
-        ImageButton setOriginBtn = (ImageButton) v.findViewById(R.id.originButton);
+        m_unionBtn               = (ImageButton)v.findViewById(R.id.unionButton);
+        m_minusBtn               = (ImageButton)v.findViewById(R.id.minusButton);
+        m_interBtn               = (ImageButton)v.findViewById(R.id.intersectionButton);
+        Button startSelectionTopBtn = (Button) v.findViewById(R.id.startSelectionTop);
+        CheckBox toggleMaskBtn      = (CheckBox) v.findViewById(R.id.toggleVolumetricMask);
+        final ToggleButton constrainSelection = v.findViewById(R.id.constraintSelection);
+        final ImageButton tangibleBtn   = (ImageButton) v.findViewById(R.id.tangibleButton);
+        final ImageButton setOriginBtn  = (ImageButton) v.findViewById(R.id.originButton);
+
+        final StartSelectionInterface startSelection = new StartSelectionInterface()
+        {
+            public void run(boolean fromTop)
+            {
+                int visibility = (fromTop) ? View.INVISIBLE : View.VISIBLE;
+
+                tangibleBtn.setVisibility(visibility);
+                setOriginBtn.setVisibility(visibility);
+                constrainSelection.setVisibility(visibility);
+
+                m_surfaceView.setSelection(true);
+                setSVFullScreen(true);
+                m_surfaceViewVolumeSelectLayout.setVisibility(View.VISIBLE);
+                m_confirmSelectionBtn.setVisibility(View.GONE);
+                m_endSelectionBtn.setText(R.string.endSelection);
+                updateScale(tabletScaleBar.getProgress());
+                m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION); //Default == Union
+            }
+        };
 
         m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                m_surfaceView.setSelection(true);
-                setSVFullScreen(true);
-                m_surfaceViewVolumeSelectLayout.setVisibility(View.VISIBLE);
-                m_confirmSelectionBtn.setVisibility(view.GONE);
-                m_endSelectionBtn.setText(R.string.endSelection);
-                updateScale(tabletScaleBar.getProgress());
-                m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION); //Default == Union
+                startSelection.run(false);
+            }
+        });
+
+        startSelectionTopBtn.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                startSelection.run(true);
             }
         });
 
@@ -1062,10 +1101,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_surfaceViewVolumeSelectLayout = v.findViewById(R.id.volumeLayoutInMV);
         m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
 
-        m_unionBtn = (ImageButton)v.findViewById(R.id.unionButton);
-        m_minusBtn = (ImageButton)v.findViewById(R.id.minusButton);
-        m_interBtn = (ImageButton)v.findViewById(R.id.intersectionButton);
-
         m_unionBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -1097,7 +1132,6 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         });
 
         //Handle constrain volume selection mode
-        ToggleButton constrainSelection = v.findViewById(R.id.constraintSelection);
         constrainSelection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
             @Override
@@ -1129,7 +1163,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                m_model.setTimeAnimationStatus(false, 500, 1.0f/3.0f);
+                m_model.setTimeAnimationStatus(false, 2000, 0.25f);
             }
         });
 
@@ -1138,7 +1172,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                m_model.setTimeAnimationStatus(true, 500, 1.0f/3.0f);
+                m_model.setTimeAnimationStatus(true, 2000, 0.25f);
             }
         });
 

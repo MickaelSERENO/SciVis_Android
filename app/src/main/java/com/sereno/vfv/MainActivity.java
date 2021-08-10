@@ -966,6 +966,10 @@ public class MainActivity extends AppCompatActivity
                 m_model.setBindingInfo(msg);
                 if(msg.getHeadsetID() == -1)
                     m_model.endPendingCanvasAnnotation(true);
+
+                //Send tablet's interactive data
+                onSetLocation(m_model, m_model.getTabletPosition(), m_model.getTabletRotation());
+                onSetTabletScale(m_model, m_model.getTabletScale(), m_model.getTabletWidth(), m_model.getTabletHeight(), m_model.getTabletX(), m_model.getTabletY());
             }
         });
     }
@@ -1594,6 +1598,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStopCapturingTangible(ApplicationModel model, boolean capturing)
     {}
+
+    @Override
+    public void onSetSelectionMethod(ApplicationModel model, byte method)
+    {
+        m_socket.push(SocketManager.createSetVolumetricSelectionMethod(method));
+    }
 
     @Override
     public void onEnableSwipping(Fragment fragment)
