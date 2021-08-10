@@ -148,6 +148,8 @@ extern "C"
      * \param ptr the VFVData ptr
      * \param sdPtr the SubDataset C++ ptr associated*/
     JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnTFUpdated(JNIEnv* env, jobject instance, jlong ptr, jlong sdPtr);
+
+    JNIEXPORT void JNICALL Java_com_sereno_gl_VFVSurfaceView_nativeOnSetCurrentAction(JNIEnv* env, jobject instance, jlong ptr, jint action);
 }
 
 #endif

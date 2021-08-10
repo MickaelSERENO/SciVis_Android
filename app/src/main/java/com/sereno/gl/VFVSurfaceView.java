@@ -158,7 +158,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     @Override
     public void onChangeCurrentAction(ApplicationModel model, int action)
     {
-
+        nativeOnSetCurrentAction(m_ptr, action);
     }
 
     @Override
@@ -452,4 +452,6 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
      * @param data the C++ internal data pointer
      * @param selection true if the selection is in progress, false otherwise*/
     private native void nativeOnSetSelection(long data, boolean selection);
+
+    private native void nativeOnSetCurrentAction(long ptr, int action);
 }
