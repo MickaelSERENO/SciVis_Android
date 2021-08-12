@@ -112,6 +112,8 @@ public abstract class TransferFunction
      * @return the dimension of the transfer function*/
     public int getDimension() {return nativeGetDimension(getNativeTransferFunction());}
 
+    public boolean hasGradient() {return nativeHasGradient(getNativeTransferFunction());}
+
     public Object clone()
     {
         return null;
@@ -157,6 +159,8 @@ public abstract class TransferFunction
     protected native float nativeSetClipping(long tfPtr, float min, float max);
 
     protected native int nativeGetDimension(long tfPtr);
+
+    protected native boolean nativeHasGradient(long tfPtr);
 
     protected native long nativeCloneTF(long tfPtr);
 

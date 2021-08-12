@@ -322,7 +322,7 @@ public class VFVSurfaceView extends GLSurfaceView implements ApplicationModel.ID
     public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos){}
 
     @Override
-    public void onSetDepthClipping(SubDataset dataset, float depthClipping) {/*TODO*/}
+    public void onSetDepthClipping(SubDataset dataset, float minDepthClipping, float maxDepthClipping) {/*TODO*/}
 
     @Override
     public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)

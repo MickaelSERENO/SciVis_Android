@@ -91,8 +91,9 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
 
         /** Method called when the depth clipping value has been set
          * @param dataset the object calling this method
-         * @param depthClipping the new depth clipping value (clamped between 0.0f and 1.0f)*/
-        void onSetDepthClipping(SubDataset dataset, float depthClipping);
+         * @param minClipping the new min depth clipping value (clamped between 0.0f and 1.0f)
+         * @param maxClipping the new max depth clipping value (clamped between 0.0f and 1.0f)*/
+        void onSetDepthClipping(SubDataset dataset, float minClipping, float maxClipping);
 
         /** Method called when the subdataset group this subdataset belongs to has changed
          * @param dataset the object calling this method
@@ -229,26 +230,36 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
         return nativeGetScale(m_ptr);
     }
 
-    /** Get the depth clipping value clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)
+    /** Get the max depth clipping value clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)
      * @return the depth clipping value*/
-    public float getDepthClipping()
+    public float getMaxDepthClipping()
     {
         if(m_ptr == 0)
             return -1;
-        return nativeGetDepthClipping(m_ptr);
+        return nativeGetMaxDepthClipping(m_ptr);
     }
 
-    /** Set the depth clipping value
-     * @param d the depth clipping value. The value is clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)*/
-    public void setDepthClipping(float d)
+    /** Get the min depth clipping value clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)
+     * @return the depth clipping value*/
+    public float getMinDepthClipping()
+    {
+        if(m_ptr == 0)
+            return -1;
+        return nativeGetMinDepthClipping(m_ptr);
+    }
+
+    /** Set the depth clipping value. Values are clamped between 0.0f (totally clipped) and 1.0f (no clipping at all)
+     * @param d the max depth clipping value. */
+    public void setDepthClipping(float min, float max)
     {
         if(m_ptr == 0)
             return;
-        else if(d != getDepthClipping())
+
+        else if(min != getMinDepthClipping() || max != getMaxDepthClipping())
         {
-            nativeSetDepthClipping(m_ptr, d);
+            nativeSetDepthClipping(m_ptr, min, max);
             for(int i = 0; i < m_listeners.size(); i++)
-                m_listeners.get(i).onSetDepthClipping(this, d);
+                m_listeners.get(i).onSetDepthClipping(this, min, max);
         }
     }
 
@@ -331,6 +342,13 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
 
         for(int i = 0; i < m_listeners.size(); i++)
             m_listeners.get(i).onSetVolumetricMask(this);
+    }
+
+    /** Get whether the volumetric mask is enabled or not
+     * @return true if yes, false otherwise*/
+    public boolean isVolumetricMaskEnabled()
+    {
+        return nativeIsVolumetricMaskEnabled(m_ptr);
     }
 
     /** Get the SubDataset name
@@ -643,14 +661,19 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param isEnabled true to enable the volumetric mask, false otherwise*/
     private native void nativeEnableVolumetricMask(long ptr, boolean isEnabled);
 
-    /** Get the depth clipping value used on the native C++ SD object
+    /** Get the min depth clipping value used on the native C++ SD object
      * @param ptr the native pointer*/
-    private native float nativeGetDepthClipping(long ptr);
+    private native float nativeGetMinDepthClipping(long ptr);
+
+    /** Get the max depth clipping value used on the native C++ SD object
+     * @param ptr the native pointer*/
+    private native float nativeGetMaxDepthClipping(long ptr);
 
     /** Set the depth clipping value to use for the native C++ SD object
      * @param ptr the native pointer
-     * @param d the new depth clipping value to apply*/
-    private native void nativeSetDepthClipping(long ptr, float d);
+     * @param min the new min depth clipping value to apply
+     * @param max the new max depth clipping value to apply*/
+    private native void nativeSetDepthClipping(long ptr, float min, float max);
 
     /** Native code to set the Gaussian Transfer Function ranges
      * pIDs, minVals, and maxVals should be coherent (same size and correspond to each one)
@@ -680,4 +703,6 @@ public class SubDataset implements TransferFunction.ITransferFunctionListener
      * @param ptr the native pointer of the subdataset
      * @param annotPtr a std::shared<DrawableAnnotationPosition> (or derived) native C++ pointer*/
     private native void nativeAddAnnotationPosition(long ptr, long annotPtr);
+
+    private native boolean nativeIsVolumetricMaskEnabled(long ptr);
 }

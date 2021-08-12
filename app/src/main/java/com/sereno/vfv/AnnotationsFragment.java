@@ -851,7 +851,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
                         if(tf == null)
                             return;
 
-                        int[] newIdx = new int[tf.getDimension()];
+                        int[] newIdx = new int[tf.getDimension() - (tf.hasGradient()?1:0)];
                         for(int i = 0; i < newIdx.length; i++)
                             newIdx[i] = -1;
 
@@ -1507,7 +1507,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     }
 
     @Override
-    public void onSetDepthClipping(SubDataset dataset, float depthClipping){}
+    public void onSetDepthClipping(SubDataset dataset, float minDepthClipping, float maxDepthClipping){}
 
     @Override
     public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)

@@ -29,6 +29,7 @@ import android.widget.TextView;
 
 import com.sereno.VFVViewPager;
 import com.sereno.color.Color;
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.Annotation.AnnotationLogComponent;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.AnnotationPosition;
@@ -95,6 +96,8 @@ import com.sereno.view.RangeColorData;
 import com.sereno.view.RangeColorView;
 import com.sereno.view.SeekBarHintView;
 import com.sereno.vfv.Data.TF.TransferFunction;
+import com.sereno.view.TwoHandlesSeekBarData;
+import com.sereno.view.TwoHandlesSeekBarView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -158,7 +161,7 @@ public class MainActivity extends AppCompatActivity
     private ViewGroup        m_currentTFView = null;     /*!< The Current transfer function view to use*/
     private HashMap<Integer, View>  m_gtfSizeViews = new HashMap<>(); /*!< The views handling the size of the GTF*/
     private SubDataset       m_currentTFSubDataset = null; /*!< The current subdataset from which the transfer function widgets applies to*/
-    private SeekBarHintView  m_sdClippingView      = null; /*!< The view representing the clipping values of a subdataset*/
+    private TwoHandlesSeekBarView m_sdClippingView = null; /*!< The view representing the clipping values of a subdataset*/
 
     /** @brief OnCreate function. Called when the activity is on creation*/
     @Override
@@ -383,7 +386,21 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
-    public void onChangeCurrentAction(ApplicationModel model, int action) {
+    public void onChangeCurrentAction(ApplicationModel model, int action)
+    {
+        if(action == ApplicationModel.CURRENT_ACTION_REVIEWING_SELECTION && m_model.getSelectionMethod() == ApplicationModel.SELECTION_METHOD_FROM_TOP)
+        {
+            m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+            m_model.setIsInSelection(true);
+
+            float[] pos = new float[]{0.0f, 0.0f, -m_model.getCurrentSubDataset().getScale()[2]/2.0f};
+            Quaternion quaternion = new Quaternion(m_model.getCurrentSubDataset().getRotation());
+            pos = quaternion.rotateVector(pos);
+            for(int i = 0; i < 3; i++)
+                pos[i] += m_model.getCurrentSubDataset().getPosition()[i];
+            m_model.setInternalTabletPositionAndRotation(pos, quaternion.multiplyBy(new Quaternion(new float[]{1.0f, 0.0f, 0.0f}, (float)Math.PI/2.0f)).toFloatArray());
+        }
+        
         m_socket.push(SocketManager.createCurrentActionEvent(action));
     }
 
@@ -741,10 +758,10 @@ public class MainActivity extends AppCompatActivity
     {}
 
     @Override
-    public void onSetDepthClipping(SubDataset dataset, float depthClipping)
+    public void onSetDepthClipping(SubDataset dataset, float minClipping, float maxClipping)
     {
         if(m_model.canModifySubDataset(dataset) && dataset.getTransferFunctionType() != SubDataset.TRANSFER_FUNCTION_NONE)
-            m_socket.push(SocketManager.createSDClippingEvent(getDatasetIDBinding(dataset), depthClipping));
+            m_socket.push(SocketManager.createSDClippingEvent(getDatasetIDBinding(dataset), minClipping, maxClipping));
 
         updateDrawerLayout();
     }
@@ -1160,7 +1177,7 @@ public class MainActivity extends AppCompatActivity
             {
                 SubDataset sd = getSubDatasetFromID(msg.getDatasetID(), msg.getSubDatasetID());
                 if(sd != null)
-                    sd.setDepthClipping(msg.getDepthClipping());
+                    sd.setDepthClipping(msg.getMinDepthClipping(), msg.getMaxDepthClipping());
             }
         });
     }
@@ -1383,6 +1400,7 @@ public class MainActivity extends AppCompatActivity
     public void onChangeCurrentSubDataset(ApplicationModel model, SubDataset sd)
     {
         redoTFWidget();
+        updateDrawerLayout();
     }
 
     /** Redo the GTF layout. More specifically, redo all the widgets handling the "size" components of GTF*/
@@ -1549,6 +1567,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfirmSelection(ApplicationModel model) {
         m_socket.push(SocketManager.createConfirmSelectionEvent(getDatasetIDBinding(model.getCurrentSubDataset())));
+        m_model.setIsInSelection(false);
     }
 
     @Override
@@ -1561,7 +1580,10 @@ public class MainActivity extends AppCompatActivity
         if(m_model.getCurrentAction() == ApplicationModel.CURRENT_ACTION_SELECTING)
         {
             if(tangibleMode == ApplicationModel.TANGIBLE_MODE_MOVE)
+            {
                 m_socket.push(SocketManager.createAddNewSelectionInputEvent(m_model.getCurrentBooleanOperation()));
+                m_model.setIsInSelection(true);
+            }
             else
                 m_socket.push(SocketManager.createAddNewSelectionInputEvent(ApplicationModel.BOOLEAN_NONE));
         }
@@ -1881,29 +1903,40 @@ public class MainActivity extends AppCompatActivity
     {
         m_drawerLayout   = (DrawerLayout)findViewById(R.id.rootLayout);
         m_sdClippingView = m_drawerLayout.findViewById(R.id.depthClipping);
-        m_sdClippingView.setMax(1000);
 
-        m_sdClippingView.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        m_sdClippingView.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+            public boolean onTouch(View view, MotionEvent motionEvent)
+            {
+                if(motionEvent.getAction() == MotionEvent.ACTION_UP)
+                    m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
+                        motionEvent.getAction() == MotionEvent.ACTION_MOVE)
+                    m_drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+                return false;
+            }
+        });
+
+        m_sdClippingView.getModel().addOnRangeChangeListener(new TwoHandlesSeekBarData.IOnRangeChangeListener()
+        {
+            @Override
+            public void onRawRangeChange(TwoHandlesSeekBarData data, float minVal, float maxVal)
+            {}
+
+            @Override
+            public void onClippingChange(TwoHandlesSeekBarData data, float min, float max)
             {
                 if(m_model.getCurrentSubDataset() != null && m_model.canModifySubDataset(m_model.getCurrentSubDataset()))
-                    m_model.getCurrentSubDataset().setDepthClipping((float)(i)/seekBar.getMax());
+                    m_model.getCurrentSubDataset().setDepthClipping(min, max);
             }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
     }
 
     private void updateDrawerLayout()
     {
         if(m_model.getCurrentSubDataset() != null)
-            m_sdClippingView.setProgress((int)(m_sdClippingView.getMax()*m_model.getCurrentSubDataset().getDepthClipping()));
+            m_sdClippingView.getModel().setClampingRange(m_model.getCurrentSubDataset().getMinDepthClipping(), m_model.getCurrentSubDataset().getMaxDepthClipping());
     }
 
     /** Setup the toolbar */

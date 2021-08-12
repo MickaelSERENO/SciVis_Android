@@ -1,0 +1,27 @@
+Executable : /opt/android-sdk/cmake/3.10.2.4988404/bin/cmake
+arguments : 
+-H/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app
+-DCMAKE_CXX_FLAGS=-std=c++1z -frtti -fexceptions
+-DCMAKE_FIND_ROOT_PATH=/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/prefab/x86/prefab
+-DCMAKE_BUILD_TYPE=Release
+-DCMAKE_TOOLCHAIN_FILE=/opt/android-ndk/build/cmake/android.toolchain.cmake
+-DANDROID_ABI=x86
+-DANDROID_NDK=/opt/android-ndk
+-DCMAKE_ANDROID_ARCH_ABI=x86
+-DCMAKE_ANDROID_NDK=/opt/android-ndk
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/build/intermediates/cmake/release/obj/x86
+-DCMAKE_MAKE_PROGRAM=/opt/android-sdk/cmake/3.10.2.4988404/bin/ninja
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_SYSTEM_VERSION=21
+-DCMAKE_PREFIX_PATH_ARM=/home/mickael/.local/android/armeabi-v7a/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig
+-DCMAKE_PREFIX_PATH_X86=/home/mickael/.local/android/x86/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig
+-DANDROID_ARM_NEON=TRUE
+-DANDROID_PLATFORM=android-21
+-DDEBUG=TRUE
+-DANDROID_STL=c++_shared
+-B/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/x86
+-GNinja
+jvmArgs : 
+
+Build command args:

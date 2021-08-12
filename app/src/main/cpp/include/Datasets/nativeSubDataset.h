@@ -29,9 +29,13 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeEnableVolumetricMask(JNIEnv* jenv, jobject jobj, jlong ptr, jboolean b);
 
-    JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr);
+    JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsVolumetricMaskEnabled(JNIEnv* jenv, jobject jobj, jlong ptr);
 
-    JNIEXPORT void   JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat d);
+    JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr);
+
+    JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr);
+
+    JNIEXPORT void   JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat minD, jfloat maxD);
 
     JNIEXPORT jstring JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetName(JNIEnv* jenv, jobject jobj, jlong ptr);
 

@@ -116,18 +116,30 @@ JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeEnableVolumetri
     sd->enableVolumetricMask(b);
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr)
+JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeIsVolumetricMaskEnabled(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    return sd->getDepthClipping();
+    return sd->isVolumetricMaskEnabled();
 }
 
-JNIEXPORT void   JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat d)
+
+JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMinDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr)
 {
     SubDataset* sd = (SubDataset*)ptr;
-    sd->setDepthClipping(d);
+    return sd->getMinDepthClipping();
 }
 
+JNIEXPORT jfloat JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetMaxDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    return sd->getMaxDepthClipping();
+}
+
+JNIEXPORT void   JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeSetDepthClipping(JNIEnv* jenv, jobject jobj, jlong ptr, jfloat minD, jfloat maxD)
+{
+    SubDataset* sd = (SubDataset*)ptr;
+    sd->setDepthClipping(minD, maxD);
+}
 
 JNIEXPORT jfloatArray JNICALL Java_com_sereno_vfv_Data_SubDataset_nativeGetScale(JNIEnv* jenv, jobject jobj, jlong ptr)
 {

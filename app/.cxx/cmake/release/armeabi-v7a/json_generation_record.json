@@ -1,0 +1,866 @@
+[
+  {
+    "level": "INFO",
+    "message": "Start JSON generation. Platform version: 21 min SDK version: armeabi-v7a",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "No CMake version was specified in build.gradle. Using default version 3.10.2.",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Trying to locate CMake in local SDK repository.",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "- CMake found in SDK at \u0027/opt/android-sdk/cmake/3.10.2.4988404\u0027 had version \u00273.10.2\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "CMake \u00273.6.0\u0027 found in SDK did not match requested version \u00273.10.2\u0027.",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "rebuilding JSON /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/android_gradle_build.json due to:",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "- expected json /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/android_gradle_build.json file is not present, will remove stale json folder",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "- missing previous command file /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/build_command.txt, will remove stale json folder",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "- command changed from previous, will remove stale json folder",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "created folder \u0027/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "executing cmake Executable : /opt/android-sdk/cmake/3.10.2.4988404/bin/cmake\narguments : \n-H/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\n-DCMAKE_CXX_FLAGS\u003d-std\u003dc++1z -frtti -fexceptions\n-DCMAKE_FIND_ROOT_PATH\u003d/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/prefab/armeabi-v7a/prefab\n-DCMAKE_BUILD_TYPE\u003dRelease\n-DCMAKE_TOOLCHAIN_FILE\u003d/opt/android-ndk/build/cmake/android.toolchain.cmake\n-DANDROID_ABI\u003darmeabi-v7a\n-DANDROID_NDK\u003d/opt/android-ndk\n-DCMAKE_ANDROID_ARCH_ABI\u003darmeabi-v7a\n-DCMAKE_ANDROID_NDK\u003d/opt/android-ndk\n-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\n-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/build/intermediates/cmake/release/obj/armeabi-v7a\n-DCMAKE_MAKE_PROGRAM\u003d/opt/android-sdk/cmake/3.10.2.4988404/bin/ninja\n-DCMAKE_SYSTEM_NAME\u003dAndroid\n-DCMAKE_SYSTEM_VERSION\u003d21\n-DCMAKE_PREFIX_PATH_ARM\u003d/home/mickael/.local/android/armeabi-v7a/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig\n-DCMAKE_PREFIX_PATH_X86\u003d/home/mickael/.local/android/x86/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig\n-DANDROID_ARM_NEON\u003dTRUE\n-DANDROID_PLATFORM\u003dandroid-21\n-DDEBUG\u003dTRUE\n-DANDROID_STL\u003dc++_shared\n-B/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\n-GNinja\njvmArgs : \n\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "[\u003d\u003d \"CMake Server\" \u003d\u003d[\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"supportedProtocolVersions\":[{\"isExperimental\":true,\"major\":1,\"minor\":1}],\"type\":\"hello\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "]\u003d\u003d \"CMake Server\" \u003d\u003d]\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\n  \"type\": \"handshake\",\n  \"cookie\": \"gradle-cmake-cookie\",\n  \"protocolVersion\": {\n    \"isExperimental\": true,\n    \"major\": 1,\n    \"minor\": 1\n  },\n  \"sourceDirectory\": \"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\",\n  \"buildDirectory\": \"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\",\n  \"generator\": \"Ninja\"\n}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"gradle-cmake-cookie\",\"inReplyTo\":\"handshake\",\"type\":\"reply\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\n  \"type\": \"configure\",\n  \"cacheArguments\": [\n    \"\",\n    \"-DCMAKE_CXX_FLAGS\\u003d-std\\u003dc++1z -frtti -fexceptions\",\n    \"-DCMAKE_FIND_ROOT_PATH\\u003d/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/prefab/armeabi-v7a/prefab\",\n    \"-DCMAKE_BUILD_TYPE\\u003dRelease\",\n    \"-DCMAKE_TOOLCHAIN_FILE\\u003d/opt/android-ndk/build/cmake/android.toolchain.cmake\",\n    \"-DANDROID_ABI\\u003darmeabi-v7a\",\n    \"-DANDROID_NDK\\u003d/opt/android-ndk\",\n    \"-DCMAKE_ANDROID_ARCH_ABI\\u003darmeabi-v7a\",\n    \"-DCMAKE_ANDROID_NDK\\u003d/opt/android-ndk\",\n    \"-DCMAKE_EXPORT_COMPILE_COMMANDS\\u003dON\",\n    \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\\u003d/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/build/intermediates/cmake/release/obj/armeabi-v7a\",\n    \"-DCMAKE_MAKE_PROGRAM\\u003d/opt/android-sdk/cmake/3.10.2.4988404/bin/ninja\",\n    \"-DCMAKE_SYSTEM_NAME\\u003dAndroid\",\n    \"-DCMAKE_SYSTEM_VERSION\\u003d21\",\n    \"-DCMAKE_PREFIX_PATH_ARM\\u003d/home/mickael/.local/android/armeabi-v7a/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig\",\n    \"-DCMAKE_PREFIX_PATH_X86\\u003d/home/mickael/.local/android/x86/lib/pkgconfig:/home/mickael/.local/android/common_abi/lib/pkgconfig\",\n    \"-DANDROID_ARM_NEON\\u003dTRUE\",\n    \"-DANDROID_PLATFORM\\u003dandroid-21\",\n    \"-DDEBUG\\u003dTRUE\",\n    \"-DANDROID_STL\\u003dc++_shared\"\n  ]\n}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"CMake Warning at /opt/android-ndk/build/cmake/android.toolchain.cmake:449 (message):\\n  An old version of CMake is being used that cannot automatically detect\\n  compiler attributes.  Compiler identification is being bypassed.  Some\\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\\n  CMake\u0027s built-in compiler identification.\\nCall Stack (most recent call first):\\n  /opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake:94 (include)\\n  CMakeLists.txt:2 (project)\\n\\n\",\"title\":\"Warning\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "WARN",
+    "message": "CMake Warning at /opt/android-ndk/build/cmake/android.toolchain.cmake:449 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake\u0027s built-in compiler identification.\nCall Stack (most recent call first):\n  /opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake:94 (include)\n  CMakeLists.txt:2 (project)\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Check for working C compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Check for working C compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"CMake Warning at /opt/android-ndk/build/cmake/android.toolchain.cmake:449 (message):\\n  An old version of CMake is being used that cannot automatically detect\\n  compiler attributes.  Compiler identification is being bypassed.  Some\\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\\n  CMake\u0027s built-in compiler identification.\\nCall Stack (most recent call first):\\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\\n\\n\",\"title\":\"Warning\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "WARN",
+    "message": "CMake Warning at /opt/android-ndk/build/cmake/android.toolchain.cmake:449 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake\u0027s built-in compiler identification.\nCall Stack (most recent call first):\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":33,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Check for working C compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -- works\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Check for working C compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -- works",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting C compiler ABI info\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting C compiler ABI info",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":65,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting C compiler ABI info - done\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting C compiler ABI info - done",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting C compile features\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting C compile features",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":96,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":126,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":155,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting C compile features - done\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting C compile features - done",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Check for working CXX compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Check for working CXX compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":184,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Check for working CXX compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ -- works\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Check for working CXX compiler: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ -- works",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compiler ABI info\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compiler ABI info",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":211,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compiler ABI info - done\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compiler ABI info - done",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compile features\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compile features",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":237,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":262,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":287,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":311,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compile features - done\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compile features - done",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Compiling for armeabi-v7a\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Compiling for armeabi-v7a",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Found PkgConfig: /bin/pkg-config (found version \\\"1.7.3\\\") \",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Found PkgConfig: /bin/pkg-config (found version \"1.7.3\") ",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Checking for module \u0027lib3ds\u0027\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Checking for module \u0027lib3ds\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"  Found lib3ds, version 1.3.0\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "  Found lib3ds, version 1.3.0",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Checking for module \u0027libpng16\u0027\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Checking for module \u0027libpng16\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"  Found libpng16, version 1.6.37\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "  Found libpng16, version 1.6.37",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Checking for module \u0027glm\u0027\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Checking for module \u0027glm\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"  Found glm, version 0.9.9\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "  Found glm, version 0.9.9",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Checking for module \u0027serenoVTKParser\u0027\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Checking for module \u0027serenoVTKParser\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"  Found serenoVTKParser, version 1.0\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "  Found serenoVTKParser, version 1.0",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Checking for module \u0027serenoMath\u0027\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Checking for module \u0027serenoMath\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"  Found serenoMath, version 1.0\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "  Found serenoMath, version 1.0",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Checking for module \u0027serenoSciVis\u0027\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Checking for module \u0027serenoSciVis\u0027",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"  Found serenoSciVis, version 1.0\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "  Found serenoSciVis, version 1.0",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"-L/home/mickael/.local/android/armeabi-v7a/lib;-l3ds-2\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "-L/home/mickael/.local/android/armeabi-v7a/lib;-l3ds-2",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"3ds-2.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/lib3ds-2.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "3ds-2.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/lib3ds-2.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"-L/home/mickael/.local/android/armeabi-v7a/lib;-lpng16\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "-L/home/mickael/.local/android/armeabi-v7a/lib;-lpng16",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"png16.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libpng16.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "png16.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libpng16.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"/home/mickael/.local/android/armeabi-v7a/lib/libpng16.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "/home/mickael/.local/android/armeabi-v7a/lib/libpng16.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"-L/home/mickael/.local/android/armeabi-v7a/lib;-lserenoVTKParser\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "-L/home/mickael/.local/android/armeabi-v7a/lib;-lserenoVTKParser",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"serenoVTKParser.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libserenoVTKParser.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "serenoVTKParser.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libserenoVTKParser.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"/home/mickael/.local/android/armeabi-v7a/lib/libserenoVTKParser.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "/home/mickael/.local/android/armeabi-v7a/lib/libserenoVTKParser.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"-L/home/mickael/.local/android/armeabi-v7a/lib;-lserenoMath\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "-L/home/mickael/.local/android/armeabi-v7a/lib;-lserenoMath",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"serenoMath.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libserenoMath.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "serenoMath.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libserenoMath.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"/home/mickael/.local/android/armeabi-v7a/lib/libserenoMath.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "/home/mickael/.local/android/armeabi-v7a/lib/libserenoMath.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"-L/home/mickael/.local/android/armeabi-v7a/lib;-lserenoSciVis\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "-L/home/mickael/.local/android/armeabi-v7a/lib;-lserenoSciVis",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"serenoSciVis.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libserenoSciVis.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "serenoSciVis.so--\u003e/home/mickael/.local/android/armeabi-v7a/lib/libserenoSciVis.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"/home/mickael/.local/android/armeabi-v7a/lib/libserenoSciVis.so\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "/home/mickael/.local/android/armeabi-v7a/lib/libserenoSciVis.so",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"CMake Warning at /opt/android-ndk/build/cmake/android.toolchain.cmake:449 (message):\\n  An old version of CMake is being used that cannot automatically detect\\n  compiler attributes.  Compiler identification is being bypassed.  Some\\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\\n  CMake\u0027s built-in compiler identification.\\nCall Stack (most recent call first):\\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/CMakeTmp/CMakeLists.txt:3 (project)\\n\\n\",\"title\":\"Warning\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "WARN",
+    "message": "CMake Warning at /opt/android-ndk/build/cmake/android.toolchain.cmake:449 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake\u0027s built-in compiler identification.\nCall Stack (most recent call first):\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/CMakeFiles/CMakeTmp/CMakeLists.txt:3 (project)\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":334,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":356,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":377,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Found OpenMP_C: -fopenmp\u003dlibomp  \",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Found OpenMP_C: -fopenmp\u003dlibomp  ",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":398,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Found OpenMP_CXX: -fopenmp\u003dlibomp  \",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Found OpenMP_CXX: -fopenmp\u003dlibomp  ",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Found OpenMP: TRUE   \",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Found OpenMP: TRUE   ",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":1000,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Configuring done\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Configuring done",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"type\":\"reply\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"type\":\"compute\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"progressCurrent\":1000,\"progressMaximum\":1000,\"progressMessage\":\"Generating\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"message\":\"Generating done\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "Generating done",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"message\":\"CMake Warning:\\n  Manually-specified variables were not used by the project:\\n\\n    CMAKE_PREFIX_PATH_X86\\n    DEBUG\\n\\n\",\"title\":\"Warning\",\"type\":\"message\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "WARN",
+    "message": "CMake Warning:\n  Manually-specified variables were not used by the project:\n\n    CMAKE_PREFIX_PATH_X86\n    DEBUG\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"type\":\"reply\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"type\":\"cmakeInputs\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"buildFiles\":[{\"isCMake\":true,\"isTemporary\":false,\"sources\":[\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystem.cmake.in\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCCompiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-C.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCXXCompiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-CXX.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompilerABI.c\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCXXCompiler.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPkgConfig.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPackageHandleStandardArgs.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPackageMessage.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindOpenMP.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPackageHandleStandardArgs.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPackageMessage.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPackageHandleStandardArgs.cmake\",\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/FindPackageMessage.cmake\"]},{\"isCMake\":false,\"isTemporary\":false,\"sources\":[\"CMakeLists.txt\",\"/opt/android-ndk/build/cmake/android.toolchain.cmake\",\"/opt/android-ndk/build/cmake/platforms.cmake\",\"/opt/android-ndk/build/cmake/compiler_id.cmake\",\"/opt/android-ndk/build/cmake/android.toolchain.cmake\",\"cmake/AndroidNdkGdb.cmake\"]},{\"isCMake\":false,\"isTemporary\":true,\"sources\":[\".cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeSystem.cmake\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeCCompiler.cmake\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.c\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.c\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.c\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeCCompiler.cmake\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.cxx\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.cxx\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.cxx\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/feature_tests.cxx\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/FindOpenMP/OpenMPTryFlag.c\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/FindOpenMP/OpenMPCheckVersion.c\",\".cxx/cmake/release/armeabi-v7a/CMakeFiles/FindOpenMP/OpenMPCheckVersion.cpp\"]}],\"cmakeRootDirectory\":\"/opt/android-sdk/cmake/3.10.2.4988404/share/cmake-3.10\",\"cookie\":\"\",\"inReplyTo\":\"cmakeInputs\",\"sourceDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\",\"type\":\"reply\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"type\":\"codemodel\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"configurations\":[{\"name\":\"Release\",\"projects\":[{\"buildDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\",\"name\":\"Jni VFV\",\"sourceDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\",\"targets\":[{\"buildDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\",\"fullName\":\"COPY_SO\",\"name\":\"COPY_SO\",\"sourceDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\",\"type\":\"UTILITY\"},{\"buildDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\",\"fullName\":\"NDK_GDB\",\"name\":\"NDK_GDB\",\"sourceDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\",\"type\":\"UTILITY\"},{\"artifacts\":[\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/build/intermediates/cmake/release/obj/armeabi-v7a/libnative-lib.so\"],\"buildDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a\",\"fileGroups\":[{\"isGenerated\":false,\"sources\":[\"src/main/cpp/include/CLData.h\",\"src/main/cpp/include/ConcurrentVector.h\",\"src/main/cpp/include/Datasets/DatasetMetaData.h\",\"src/main/cpp/include/Datasets/nativeCloudPointDataset.h\",\"src/main/cpp/include/Datasets/nativeDataset.h\",\"src/main/cpp/include/Datasets/nativeSubDataset.h\",\"src/main/cpp/include/Datasets/nativeVTKDataset.h\",\"src/main/cpp/include/Datasets/nativeVTKParser.h\",\"src/main/cpp/include/Datasets/nativeVectorFieldDataset.h\",\"src/main/cpp/include/Event.h\",\"src/main/cpp/include/GLSurfaceViewData.h\",\"src/main/cpp/include/Graphics/DefaultGameObject.h\",\"src/main/cpp/include/Graphics/Drawable.h\",\"src/main/cpp/include/Graphics/DrawableTexture.h\",\"src/main/cpp/include/Graphics/FBO.h\",\"src/main/cpp/include/Graphics/FBORenderer.h\",\"src/main/cpp/include/Graphics/GLRenderer.h\",\"src/main/cpp/include/Graphics/GPUData.h\",\"src/main/cpp/include/Graphics/GameObject.h\",\"src/main/cpp/include/Graphics/Materials/CPCPMaterial.h\",\"src/main/cpp/include/Graphics/Materials/CloudPointMaterial.h\",\"src/main/cpp/include/Graphics/Materials/ColorGridMaterial.h\",\"src/main/cpp/include/Graphics/Materials/ColorMaterial.h\",\"src/main/cpp/include/Graphics/Materials/Material.h\",\"src/main/cpp/include/Graphics/Materials/NormalizeMaterial.h\",\"src/main/cpp/include/Graphics/Materials/PhongMaterial.h\",\"src/main/cpp/include/Graphics/Materials/RedToGrayMaterial.h\",\"src/main/cpp/include/Graphics/Materials/SimpleTextureMaterial.h\",\"src/main/cpp/include/Graphics/Materials/UniColorMaterial.h\",\"src/main/cpp/include/Graphics/MeshData.h\",\"src/main/cpp/include/Graphics/Render.h\",\"src/main/cpp/include/Graphics/SciVis/CloudPointGameObject.h\",\"src/main/cpp/include/Graphics/SciVis/DefaultSciVis.h\",\"src/main/cpp/include/Graphics/SciVis/SciVis.h\",\"src/main/cpp/include/Graphics/SciVis/TransferFunction/TFTexture.h\",\"src/main/cpp/include/Graphics/SciVis/VTKStructuredGridPointGameObject.h\",\"src/main/cpp/include/Graphics/SciVis/VectorField.h\",\"src/main/cpp/include/Graphics/SciVis/VolumeRenderingPlaneAlgorithm.h\",\"src/main/cpp/include/Graphics/Shader.h\",\"src/main/cpp/include/Graphics/Shapes/Circle.h\",\"src/main/cpp/include/Graphics/Shapes/Cone.h\",\"src/main/cpp/include/Graphics/Shapes/Cube.h\",\"src/main/cpp/include/Graphics/Shapes/Cylinder.h\",\"src/main/cpp/include/Graphics/Shapes/Geometry.h\",\"src/main/cpp/include/Graphics/Shapes/Sphere.h\",\"src/main/cpp/include/Graphics/Texture.h\",\"src/main/cpp/include/Graphics/VolumeSelect/Lasso.h\",\"src/main/cpp/include/HeadsetStatus.h\",\"src/main/cpp/include/MainVFV.h\",\"src/main/cpp/include/MeshLoader.h\",\"src/main/cpp/include/ResourcesManager.h\",\"src/main/cpp/include/VFVData.h\",\"src/main/cpp/include/image.h\",\"src/main/cpp/include/jniData.h\",\"src/main/cpp/include/main.h\",\"src/main/cpp/include/nativeGLSurfaceView.h\",\"src/main/cpp/include/nativeTransferFunction.h\",\"src/main/cpp/include/nativeVFVData.h\",\"src/main/cpp/include/utils.h\",\"src/main/cpp/include/visibility.h\"]},{\"compileFlags\":\"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE\u003d2 -march\u003darmv7-a -mthumb -Wformat -Werror\u003dformat-security  -std\u003dc++1z -frtti -fexceptions -fopenmp\u003dlibomp -g -Oz -DNDEBUG  -fPIC   -I/home/mickael/.local/android/armeabi-v7a/include -I/home/mickael/.local/android/common_abi/include -fopenmp\u003dlibomp\",\"defines\":[\"SNAPSHOT\",\"native_lib_EXPORTS\"],\"includePath\":[{\"path\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/src/main/cpp/include\"}],\"isGenerated\":false,\"language\":\"CXX\",\"sources\":[\"src/main/cpp/src/Datasets/DatasetMetaData.cpp\",\"src/main/cpp/src/Datasets/nativeCloudPointDataset.cpp\",\"src/main/cpp/src/Datasets/nativeDataset.cpp\",\"src/main/cpp/src/Datasets/nativeSubDataset.cpp\",\"src/main/cpp/src/Datasets/nativeVTKDataset.cpp\",\"src/main/cpp/src/Datasets/nativeVTKParser.cpp\",\"src/main/cpp/src/Datasets/nativeVectorFieldDataset.cpp\",\"src/main/cpp/src/GLSurfaceViewData.cpp\",\"src/main/cpp/src/Graphics/DefaultGameObject.cpp\",\"src/main/cpp/src/Graphics/Drawable.cpp\",\"src/main/cpp/src/Graphics/FBO.cpp\",\"src/main/cpp/src/Graphics/FBORenderer.cpp\",\"src/main/cpp/src/Graphics/GLRenderer.cpp\",\"src/main/cpp/src/Graphics/GameObject.cpp\",\"src/main/cpp/src/Graphics/Materials/CPCPMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/CloudPointMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/ColorGridMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/ColorMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/Material.cpp\",\"src/main/cpp/src/Graphics/Materials/NormalizeMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/PhongMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/RedToGrayMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/SimpleTextureMaterial.cpp\",\"src/main/cpp/src/Graphics/Materials/UniColorMaterial.cpp\",\"src/main/cpp/src/Graphics/MeshData.cpp\",\"src/main/cpp/src/Graphics/Render.cpp\",\"src/main/cpp/src/Graphics/SciVis/CloudPointGameObject.cpp\",\"src/main/cpp/src/Graphics/SciVis/DefaultSciVis.cpp\",\"src/main/cpp/src/Graphics/SciVis/VTKStructuredGridPointGameObject.cpp\",\"src/main/cpp/src/Graphics/SciVis/VectorField.cpp\",\"src/main/cpp/src/Graphics/Shader.cpp\",\"src/main/cpp/src/Graphics/Shapes/Circle.cpp\",\"src/main/cpp/src/Graphics/Shapes/Cone.cpp\",\"src/main/cpp/src/Graphics/Shapes/Cube.cpp\",\"src/main/cpp/src/Graphics/Shapes/Cylinder.cpp\",\"src/main/cpp/src/Graphics/Shapes/Geometry.cpp\",\"src/main/cpp/src/Graphics/Shapes/Sphere.cpp\",\"src/main/cpp/src/Graphics/Texture.cpp\",\"src/main/cpp/src/Graphics/VolumeSelect/Lasso.cpp\",\"src/main/cpp/src/MainVFV.cpp\",\"src/main/cpp/src/MeshLoader.cpp\",\"src/main/cpp/src/VFVData.cpp\",\"src/main/cpp/src/image.cpp\",\"src/main/cpp/src/jniData.cpp\",\"src/main/cpp/src/main.cpp\",\"src/main/cpp/src/nativeGLSurfaceView.cpp\",\"src/main/cpp/src/nativeTransferFunction.cpp\",\"src/main/cpp/src/nativeVFVData.cpp\"]}],\"fullName\":\"libnative-lib.so\",\"linkFlags\":\"-Wl,--exclude-libs,libgcc.a -Wl,--exclude-libs,libgcc_real.a -Wl,--exclude-libs,libatomic.a -Wl,--build-id\u003dsha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--exclude-libs,libunwind.a -Wl,--no-undefined -Qunused-arguments\",\"linkLibraries\":\"/home/mickael/.local/android/armeabi-v7a/lib/libpng16.so /home/mickael/.local/android/armeabi-v7a/lib/lib3ds-2.so /home/mickael/.local/android/armeabi-v7a/lib/libserenoVTKParser.so /home/mickael/.local/android/armeabi-v7a/lib/libserenoMath.so /home/mickael/.local/android/armeabi-v7a/lib/libserenoSciVis.so -Wl,-Bstatic -lz -Wl,-Bdynamic -llog -lEGL -lGLESv3 -landroid -static-openmp -latomic -lm\",\"linkerLanguage\":\"CXX\",\"name\":\"native-lib\",\"sourceDirectory\":\"/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app\",\"sysroot\":\"/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot\",\"type\":\"SHARED_LIBRARY\"}]}]}],\"cookie\":\"\",\"inReplyTo\":\"codemodel\",\"type\":\"reply\"}\n",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "done executing cmake",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "write build output /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/build_output.txt",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "write command file /mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/armeabi-v7a/build_command.txt",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  },
+  {
+    "level": "INFO",
+    "message": "JSON generation completed without problems",
+    "file": "/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/CMakeLists.txt",
+    "tag": "release|armeabi-v7a"
+  }
+]

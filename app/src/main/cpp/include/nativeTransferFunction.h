@@ -14,6 +14,7 @@ extern "C"
     JNIEXPORT float JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetMaxClipping(JNIEnv* jenv, jobject instance, jlong ptr);
 
     JNIEXPORT int JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetDimension(JNIEnv* jenv, jobject instance, jlong ptr);
+    JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeHasGradient(JNIEnv* jenv, jobject instance, jlong ptr);
 
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeSetColorMode(JNIEnv* jenv, jobject instance, jlong ptr, jint mode);
 

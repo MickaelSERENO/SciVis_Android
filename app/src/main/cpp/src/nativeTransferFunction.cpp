@@ -69,6 +69,14 @@ JNIEXPORT int JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeGetDime
     return 0;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeHasGradient(JNIEnv* jenv, jobject instance, jlong ptr)
+{
+    std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;
+    if(tf)
+        return (*tf)->hasGradient();
+    return false;
+}
+
 JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_TF_TransferFunction_nativeDeleteTF(JNIEnv* jenv, jobject instance, jlong ptr)
 {
     std::shared_ptr<TF>* tf = (std::shared_ptr<TF>*)ptr;

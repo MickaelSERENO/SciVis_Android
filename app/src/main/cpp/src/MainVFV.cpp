@@ -715,7 +715,7 @@ namespace sereno
                 else
                 {
                     //Allow a full rotation in only one movement
-                    float roll  = (event->x - event->oldX)*M_PI;
+                    float roll  = -(event->x - event->oldX)*M_PI;
                     float pitch = (event->y - event->oldY)*M_PI;
 
                     glm::vec3 leftVector(1.0f, 0.0f, 0.0f);

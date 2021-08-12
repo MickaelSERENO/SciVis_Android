@@ -29,12 +29,14 @@ import android.widget.ToggleButton;
 import com.sereno.Tree;
 import com.sereno.gl.GLSurfaceView;
 import com.sereno.gl.VFVSurfaceView;
+import com.sereno.math.Quaternion;
 import com.sereno.vfv.Data.Annotation.AnnotationLogContainer;
 import com.sereno.vfv.Data.Annotation.DrawableAnnotationPosition;
 import com.sereno.vfv.Data.ApplicationModel;
 import com.sereno.vfv.Data.CloudPointDataset;
 import com.sereno.vfv.Data.SubDatasetGroup;
 import com.sereno.vfv.Data.SubDatasetSubjectiveStackedGroup;
+import com.sereno.vfv.Data.TF.GTFData;
 import com.sereno.vfv.Data.TF.TransferFunction;
 import com.sereno.vfv.Data.VectorFieldDataset;
 import com.sereno.vfv.Data.CPCPTexture;
@@ -51,6 +53,8 @@ import com.sereno.vfv.Network.HeadsetBindingInfoMessage;
 import com.sereno.vfv.Network.HeadsetsStatusMessage;
 import com.sereno.vfv.Network.SubjectiveViewStackedGroupGlobalParametersMessage;
 import com.sereno.view.AnnotationCanvasData;
+import com.sereno.view.SeekBarGraduatedData;
+import com.sereno.view.SeekBarGraduatedView;
 import com.sereno.view.TreeView;
 
 import java.util.ArrayList;
@@ -152,7 +156,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
 
     private HashMap<SubDataset, Tree<View>> m_sdTrees      = new HashMap<>(); /*!< HashMap binding subdataset to their represented Tree*/
-    private HashMap<Dataset, Tree<View>>    m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
+    private HashMap<Dataset,    Tree<View>> m_datasetTrees = new HashMap<>(); /*!< HashMap binding dataset to their represented Tree*/
 
     private HashMap<SubDataset, ImageView> m_sdImages  = new HashMap<>();     /*!< HashMap binding subdataset to their represented ImageView*/
 
@@ -172,9 +176,10 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private ImageButton m_minusBtn = null;
 
     /** Time buttons*/
+    private View        m_timeLayout   = null;
     private ImageButton m_playTimeBtn  = null;
     private ImageButton m_pauseTimeBtn = null;
-    private SeekBar     m_timeSlider   = null;
+    private SeekBarGraduatedView m_timeSlider   = null;
 
     public DatasetsFragment()
     {
@@ -561,6 +566,8 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         dataView.addChild(layoutTree, -1);
         m_sdTrees.put(sd, layoutTree);
 
+        final TextView sdLabelView = (TextView)layout.findViewById(R.id.sdLabel);
+
         SubDataset.ISubDatasetListener snapEvent = new SubDataset.ISubDatasetListener()
         {
             @Override
@@ -649,7 +656,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos){}
 
             @Override
-            public void onSetDepthClipping(SubDataset dataset, float depthClipping){}
+            public void onSetDepthClipping(SubDataset dataset, float minDepthClipping, float maxDepthClipping){}
 
             @Override
             public void onSetSubDatasetGroup(SubDataset dataset, SubDatasetGroup group)
@@ -663,10 +670,14 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
 
             @Override
             public void onRename(SubDataset dataset, String name)
-            {}
+            {
+                sdLabelView.setText(name);
+            }
         };
         sd.addListener(snapEvent);
         snapEvent.onSetOwner(sd, sd.getOwnerID());
+        snapEvent.onRename(sd, sd.getName());
+        snapEvent.onUpdateTF(sd);
     }
 
     @Override
@@ -844,16 +855,22 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
     private void updateTimeWidgets()
     {
         SubDataset sd = m_model.getCurrentSubDataset();
-        if(sd == null)
+        if(sd == null || sd.getParent().getNbTimesteps() <= 1)
+        {
+            m_timeLayout.setVisibility(View.GONE);
             return;
+        }
+
+        m_timeLayout.setVisibility(View.VISIBLE);
 
         TransferFunction tf = sd.getTransferFunction();
         if(tf == null)
             return;
 
         //Update the time slider
-        m_timeSlider.setMax(TIME_SLIDER_MAX*sd.getParent().getNbTimesteps());
+        m_timeSlider.setMax(TIME_SLIDER_MAX*(sd.getParent().getNbTimesteps()-1));
         m_timeSlider.setProgress((int)(tf.getTimestep()*TIME_SLIDER_MAX));
+        m_timeSlider.getModel().setNbSteps(sd.getParent().getNbTimesteps());
 
         //Update the play/pause buttons
         if(m_model.isTimeAnimationPlaying())
@@ -977,7 +994,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_minusBtn               = (ImageButton)v.findViewById(R.id.minusButton);
         m_interBtn               = (ImageButton)v.findViewById(R.id.intersectionButton);
         Button startSelectionTopBtn = (Button) v.findViewById(R.id.startSelectionTop);
-        CheckBox toggleMaskBtn      = (CheckBox) v.findViewById(R.id.toggleVolumetricMask);
+        final CheckBox toggleMaskBtn      = (CheckBox) v.findViewById(R.id.toggleVolumetricMask);
         final ToggleButton constrainSelection = v.findViewById(R.id.constraintSelection);
         final ImageButton tangibleBtn   = (ImageButton) v.findViewById(R.id.tangibleButton);
         final ImageButton setOriginBtn  = (ImageButton) v.findViewById(R.id.originButton);
@@ -999,8 +1016,33 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
                 m_endSelectionBtn.setText(R.string.endSelection);
                 updateScale(tabletScaleBar.getProgress());
                 m_model.setCurrentBooleanOperation(ApplicationModel.BOOLEAN_UNION); //Default == Union
+
+                toggleMaskBtn.setChecked(m_model.getCurrentSubDataset().isVolumetricMaskEnabled());
+
+                if(fromTop)
+                {
+                    m_model.setSelectionMethod(ApplicationModel.SELECTION_METHOD_FROM_TOP);
+                    float[] pos = new float[]{0.0f, 0.0f, m_model.getCurrentSubDataset().getScale()[2]/2.0f};
+                    Quaternion quaternion = new Quaternion(m_model.getCurrentSubDataset().getRotation());
+                    pos = quaternion.rotateVector(pos);
+                    for(int i = 0; i < 3; i++)
+                        pos[i] += m_model.getCurrentSubDataset().getPosition()[i];
+                    m_model.setInternalTabletPositionAndRotation(pos, quaternion.multiplyBy(new Quaternion(new float[]{1.0f, 0.0f, 0.0f}, (float)Math.PI/2.0f)).toFloatArray());
+                }
+                else
+                    m_model.setSelectionMethod(ApplicationModel.SELECTION_METHOD_TANGIBLE);
             }
         };
+
+        toggleMaskBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+             {
+                 @Override
+                 public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+                 {
+                     m_model.getCurrentSubDataset().enableVolumetricMask(b);
+                 }
+             }
+        );
 
         m_startSelectionBtn.setOnClickListener(new View.OnClickListener()
         {
@@ -1025,12 +1067,13 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                if(m_model.getCurrentAction() == m_model.CURRENT_ACTION_SELECTING)
+                if(m_model.isInSelection() && m_model.getCurrentAction() != m_model.CURRENT_ACTION_REVIEWING_SELECTION)
                 {
                     m_model.setCurrentAction(m_model.CURRENT_ACTION_REVIEWING_SELECTION);
                     m_confirmSelectionBtn.setVisibility(View.VISIBLE);
                     m_endSelectionBtn.setText(R.string.cancelSelection);
-                }else{
+                }
+                else{
                     m_surfaceView.setSelection(false);
                     setSVFullScreen(false);
                     m_surfaceViewVolumeSelectLayout.setVisibility(View.GONE);
@@ -1154,6 +1197,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         updateScale(tabletScaleBar.getProgress());
 
         //Handle time buttons
+        m_timeLayout   = v.findViewById(R.id.timeLayout);
         m_pauseTimeBtn = v.findViewById(R.id.pauseTimeButton);
         m_playTimeBtn  = v.findViewById(R.id.playTimeButton);
         m_timeSlider   = v.findViewById(R.id.timeSlider);
@@ -1163,7 +1207,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                m_model.setTimeAnimationStatus(false, 2000, 0.25f);
+                m_model.setTimeAnimationStatus(false, 2000, 0.5f);
             }
         });
 
@@ -1172,7 +1216,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
             @Override
             public void onClick(View view)
             {
-                m_model.setTimeAnimationStatus(true, 2000, 0.25f);
+                m_model.setTimeAnimationStatus(true, 2000, 0.5f);
             }
         });
 

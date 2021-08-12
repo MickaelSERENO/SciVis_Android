@@ -8,8 +8,11 @@ public class SetSubDatasetClippingMessage extends ServerMessage
     /** The subdataset ID of the message*/
     private int m_subDatasetID;
 
-    /** The depth clipping value*/
-    private float m_depthClipping;
+    /** The min depth clipping value*/
+    private float m_minDepthClipping;
+
+    /** The max depth clipping value*/
+    private float m_maxDepthClipping;
 
     @Override
     public void pushValue(int v)
@@ -26,7 +29,9 @@ public class SetSubDatasetClippingMessage extends ServerMessage
     public void pushValue(float v)
     {
         if(cursor == 2)
-            m_depthClipping = v;
+            m_minDepthClipping = v;
+        else if(cursor == 3)
+            m_maxDepthClipping = v;
         super.pushValue(v);
     }
 
@@ -35,7 +40,7 @@ public class SetSubDatasetClippingMessage extends ServerMessage
     {
         if(cursor <= 1)
             return 'I';
-        else if(cursor == 2)
+        else if(cursor <= 3)
             return 'f';
         return 0;
     }
@@ -43,7 +48,7 @@ public class SetSubDatasetClippingMessage extends ServerMessage
     @Override
     public int getMaxCursor()
     {
-        return 2;
+        return 3;
     }
 
     /** Get the dataset ID parsed
@@ -60,7 +65,11 @@ public class SetSubDatasetClippingMessage extends ServerMessage
         return m_subDatasetID;
     }
 
-    /** Get the depth clipping parsed
-     * @return the depth clipping. value should be clamped between 0.0f (total clipping) to 1.0f (no clipping applied)*/
-    public float getDepthClipping() {return m_depthClipping;}
+    /** Get the max Depth clipping parsed
+     * @return the max depth clipping. value should be clamped between 0.0f (total clipping) to 1.0f (no clipping applied)*/
+    public float getMaxDepthClipping() {return m_maxDepthClipping;}
+
+    /** Get the min Depth clipping parsed
+     * @return the min depth clipping. value should be clamped between 0.0f (total clipping) to 1.0f (no clipping applied)*/
+    public float getMinDepthClipping() {return m_minDepthClipping;}
 }

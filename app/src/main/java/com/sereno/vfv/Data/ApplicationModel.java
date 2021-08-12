@@ -464,7 +464,7 @@ public class ApplicationModel implements Dataset.IDatasetListener
             {}
 
             @Override
-            public void onSetDepthClipping(SubDataset dataset, float depthClipping)
+            public void onSetDepthClipping(SubDataset dataset, float minDepthClipping, float maxDepthClipping)
             {}
 
             @Override
@@ -912,11 +912,12 @@ public class ApplicationModel implements Dataset.IDatasetListener
         m_hasSelection = isInSelection;
     }
 
-    /** Is the tablet currently in a selection process? (i.e., a volumetric object is created)
+    /** Is the tablet currently in a selection process? (i.e., a volumetric object is created and should be created?)
      * @return true if yes, false otherwise*/
     public boolean isInSelection()
     {
-        return m_hasSelection;
+        return m_hasSelection ||
+               (m_selectionMethod == SELECTION_METHOD_FROM_TOP && m_currentAction == CURRENT_ACTION_SELECTING);
     }
 
     public byte getSelectionMethod()

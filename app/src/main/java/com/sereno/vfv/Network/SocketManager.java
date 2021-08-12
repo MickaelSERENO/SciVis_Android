@@ -83,7 +83,7 @@ public class SocketManager
     public static final short REMOVE_SD_GROUP                        = 39;
     public static final short ADD_CLIENT_TO_SV_GROUP                 = 40;
     public static final short RENAME_SUBDATASET                      = 41;
-    public static final short SET_VOLUMETRIC_SELECTION_METHOD        = 42;
+    public static final short SET_VOLUMETRIC_SELECTION_METHOD        = 43;
 
     /* ************************************************************ */
     /* *********************Private attributes********************* */
@@ -969,15 +969,16 @@ public class SocketManager
         return buf.array();
     }
 
-    public static byte[] createSDClippingEvent(MainActivity.DatasetIDBinding sd, float depth)
+    public static byte[] createSDClippingEvent(MainActivity.DatasetIDBinding sd, float minDepth, float maxDepth)
     {
-        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 4);
+        ByteBuffer buf = ByteBuffer.allocate(2 + 2*4 + 2*4);
         buf.order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort(SET_SUBDATASET_CLIPPING);
         buf.putInt(sd.dataset.getID());
         buf.putInt(sd.subDatasetID);
-        buf.putFloat(depth);
+        buf.putFloat(minDepth);
+        buf.putFloat(maxDepth);
 
         return buf.array();
     }

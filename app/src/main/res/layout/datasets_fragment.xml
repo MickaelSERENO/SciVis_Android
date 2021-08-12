@@ -264,7 +264,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:id="@+id/timeLayout">
 
             <ImageButton
                 android:id="@+id/playTimeButton"
@@ -286,13 +287,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
-            <SeekBar
+            <com.sereno.view.SeekBarGraduatedView
                 android:id="@+id/timeSlider"
                 android:progress="1"
                 android:max="1000"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                app:stepHeight="16dp"
+                app:stepWidth="2dp"/>
 
             <TextView
                 android:id="@+id/endTimeText"

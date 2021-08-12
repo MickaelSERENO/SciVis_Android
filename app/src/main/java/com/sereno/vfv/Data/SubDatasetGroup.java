@@ -245,7 +245,7 @@ public abstract class SubDatasetGroup implements SubDataset.ISubDatasetListener
     public void onAddDrawableAnnotationPosition(SubDataset dataset, DrawableAnnotationPosition pos){}
 
     @Override
-    public void onSetDepthClipping(SubDataset dataset, float depthClipping)
+    public void onSetDepthClipping(SubDataset dataset, float minDepthClipping, float maxDepthClipping)
     {
         updateSubDatasets();
     }

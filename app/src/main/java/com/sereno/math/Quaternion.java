@@ -34,6 +34,13 @@ public class Quaternion
         w = _w;
     }
 
+    /** Constructor, create a custom quaternion based on a float array (w, i, j, k)
+     * @param quat the float array*/
+    public Quaternion(float[] quat)
+    {
+        this(quat[1], quat[2], quat[3], quat[0]);
+    }
+
     /** Constructor, create a quaternion from a axis angle
      * @param axis the 3D axis to rotate around
      * @param angle the angle to rotate to*/

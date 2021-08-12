@@ -1,0 +1,5 @@
+/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/x86/CMakeFiles/rebuild_cache.dir
+/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/x86/CMakeFiles/NDK_GDB.dir
+/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/x86/CMakeFiles/COPY_SO.dir
+/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/x86/CMakeFiles/edit_cache.dir
+/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/release/x86/CMakeFiles/native-lib.dir

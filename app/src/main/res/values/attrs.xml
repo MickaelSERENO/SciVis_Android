@@ -22,6 +22,16 @@
         <attr name="enableHandle"      format="boolean"/>
     </declare-styleable>
 
+    <declare-styleable name="TwoHandleSeekBarView">
+        <attr name="handleWidth"      format="dimension"/>
+        <attr name="lineHeight"       format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="SeekBarGraduatedView">
+        <attr name="stepWidth"      format="dimension"/>
+        <attr name="stepHeight"     format="dimension"/>
+    </declare-styleable>
+
     <declare-styleable name="ColorPickerView">
         <attr name="circleRadius"      format="dimension"/>
         <attr name="pickerSpace"       format="dimension"/>

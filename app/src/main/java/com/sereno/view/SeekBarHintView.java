@@ -13,7 +13,7 @@ public class SeekBarHintView extends SeekBar
 {
     public static final int TEXT_SIZE = 24;  /*!< The default text height*/
 
-    private Paint m_textPaint = new Paint(); /*!< The paint applied for text */
+    protected Paint m_textPaint = new Paint(); /*!< The paint applied for text */
 
     public SeekBarHintView(Context context)
     {
@@ -48,7 +48,7 @@ public class SeekBarHintView extends SeekBar
 
     /** Compute the displayed text height (using descent and ascent)
      * @return the floating point text height based on m_textPaint*/
-    private float computeTextHeight()
+    protected float computeTextHeight()
     {
         return m_textPaint.getFontMetrics().descent - m_textPaint.getFontMetrics().ascent;
     }

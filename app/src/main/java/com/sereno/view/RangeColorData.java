@@ -58,12 +58,14 @@ public class RangeColorData
         if(min != m_minRawValue || max != m_maxRawValue)
             changed=true;
 
-        m_minRangeValue = Math.min(Math.max(0.0f, min), 1.0f);
-        m_maxRangeValue = Math.min(Math.max(0.0f, max), 1.0f);
-
         if(changed)
-            for(IOnRangeChangeListener l : m_onRangeChangeListeners)
+        {
+            m_minRangeValue = Math.min(Math.max(0.0f, min), 1.0f);
+            m_maxRangeValue = Math.min(Math.max(0.0f, max), 1.0f);
+
+            for (IOnRangeChangeListener l : m_onRangeChangeListeners)
                 l.onClippingChange(this, m_minRangeValue, m_maxRangeValue);
+        }
     }
 
     /** Launch the events of the range color changement*/

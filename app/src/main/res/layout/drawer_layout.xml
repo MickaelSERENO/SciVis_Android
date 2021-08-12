@@ -74,14 +74,14 @@
                     android:layout_height="wrap_content"
                     android:text="@string/depthClipping" />
 
-                <com.sereno.view.SeekBarHintView
+                <com.sereno.view.TwoHandlesSeekBarView
                     android:id="@+id/depthClipping"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:textSize="12sp" />
+                    app:textSize="12sp"
+                    app:lineHeight="2dp"/>
             </LinearLayout>
-
 
         </LinearLayout>
     </ScrollView>

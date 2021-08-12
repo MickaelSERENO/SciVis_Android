@@ -1,0 +1,7 @@
+{
+  "ndkVersionFromDsl": "22.1.7171670",
+  "ndkDirProperty": "/opt/android-ndk",
+  "androidNdkHomeEnvironmentVariable": "/opt/android-ndk",
+  "sdkFolder": "/opt/android-sdk",
+  "sideBySideNdkFolderNames": []
+}
