@@ -16,7 +16,7 @@
 #include "Datasets/VTKDataset.h"
 #include "Datasets/CloudPointDataset.h"
 #include "ColorMode.h"
-#include "Datasets/DatasetMetaData.h"
+#include "Datasets/DatasetHistograms.h"
 
 namespace sereno
 {
@@ -359,14 +359,14 @@ namespace sereno
                 return std::shared_ptr<Dataset>();
             }
 
-            /** \brief  Get the DatasetMetaData bound to a given dataset
+            /** \brief  Get the DatasetHistograms bound to a given dataset
              * \param dataset the dataset to look at
              *
              * \return   the MetaData of the dataset given in parameter. Default std::shared_ptr if not found */
-            std::shared_ptr<DatasetMetaData> getDatasetMetaData(const std::shared_ptr<Dataset>& dataset)
+            std::shared_ptr<DatasetHistograms> getDatasetHistograms(const std::shared_ptr<Dataset>& dataset)
             {
-                auto it = m_datasetMetaDatas.find(dataset);
-                return (it == m_datasetMetaDatas.end() ? std::shared_ptr<DatasetMetaData>() : it->second);
+                auto it = m_datasetHistograms.find(dataset);
+                return (it == m_datasetHistograms.end() ? std::shared_ptr<DatasetHistograms>() : it->second);
             }
 
             /** \brief Tells whether a giving SubDataset can be modified or not
@@ -412,7 +412,7 @@ namespace sereno
             std::vector<std::shared_ptr<Dataset>> m_datas;   /*!< The data paths */
             std::map<SubDataset*, jobject> m_jSubDatasetMap; /*!< Map permitting to look up the java SubDataset objects*/
 
-            std::map<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>> m_datasetMetaDatas; /*!< MetaData of Loaded dataset*/
+            std::map<std::shared_ptr<Dataset>, std::shared_ptr<DatasetHistograms>> m_datasetHistograms; /*!< MetaData of Loaded dataset*/
 
             int m_headsetID = -1; /*!< The headset ID this device is bound to*/
 

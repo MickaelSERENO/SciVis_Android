@@ -869,7 +869,7 @@ namespace sereno
                         hist2D.ptFieldID1 = i;
                         hist2D.ptFieldID2 = j;
 
-                        std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
+                        std::shared_ptr<DatasetHistograms> metaData = m_mainData->getDatasetHistograms(m_mainData->getDatasetSharedPtr(dataset));
                         if(metaData.get())
                             metaData->add2DHistogram(hist2D);
 
@@ -929,7 +929,7 @@ namespace sereno
                 hist1D.texture   = std::shared_ptr<Texture2D>(text);
                 hist1D.ptFieldID = i;
 
-                std::shared_ptr<DatasetMetaData> metaData = m_mainData->getDatasetMetaData(m_mainData->getDatasetSharedPtr(dataset));
+                std::shared_ptr<DatasetHistograms> metaData = m_mainData->getDatasetHistograms(m_mainData->getDatasetSharedPtr(dataset));
                 if(metaData.get())
                     metaData->add1DHistogram(hist1D);
 

@@ -12,6 +12,11 @@ public class SeekBarGraduatedData
          * @param model the data model calling this method
          * @param nbSteps the new number of steps*/
         void onSetNbSteps(SeekBarGraduatedData model, int nbSteps);
+
+        /** Event called when the labels have changed. Use "toString" on "labels" to retrive the label
+         * @param model the data model calling this method
+         * @param labels the array of objects to use as labels (use toString())*/
+        void onSetLabels(SeekBarGraduatedData model, Object[] labels);
     }
 
     /** The number of graduations*/
@@ -19,6 +24,7 @@ public class SeekBarGraduatedData
 
     /** Listeners to call on events*/
     private ArrayList<ISeekBarGraduatedListener> m_listeners = new ArrayList<>();
+    private Object[] m_labels = new Object[0];
 
     public SeekBarGraduatedData(){}
 
@@ -54,5 +60,17 @@ public class SeekBarGraduatedData
             for(ISeekBarGraduatedListener l : m_listeners)
                 l.onSetNbSteps(this, nbSteps);
         }
+    }
+
+    public Object[] getLabels()
+    {
+        return m_labels;
+    }
+
+    public void setLabels(Object[] labels)
+    {
+        m_labels = labels;
+        for(ISeekBarGraduatedListener l : m_listeners)
+            l.onSetLabels(this, labels);
     }
 }

@@ -258,8 +258,8 @@ namespace sereno
                 DatasetGradient* grad = getModel()->getParent()->getOrComputeGradient(indices);
 
                 float    t  =  tf->getCurrentTimestep();
-                uint32_t t1 = std::min((uint32_t)floor(t), getModel()->getParent()->getNbTimesteps());
-                uint32_t t2 = std::min((uint32_t)ceil (t), getModel()->getParent()->getNbTimesteps());
+                uint32_t t1 = std::min((uint32_t)floor(t), getModel()->getParent()->getNbTimesteps()-1);
+                uint32_t t2 = std::min((uint32_t)ceil (t), getModel()->getParent()->getNbTimesteps()-1);
 
                 //Use the transfer function to generate the 3D texture
                 #pragma omp parallel

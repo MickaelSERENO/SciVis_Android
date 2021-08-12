@@ -871,6 +871,7 @@ public class DatasetsFragment extends VFVFragment implements ApplicationModel.ID
         m_timeSlider.setMax(TIME_SLIDER_MAX*(sd.getParent().getNbTimesteps()-1));
         m_timeSlider.setProgress((int)(tf.getTimestep()*TIME_SLIDER_MAX));
         m_timeSlider.getModel().setNbSteps(sd.getParent().getNbTimesteps());
+        m_timeSlider.getModel().setLabels(sd.getParent().getMetadata().perTimesteps);
 
         //Update the play/pause buttons
         if(m_model.isTimeAnimationPlaying())

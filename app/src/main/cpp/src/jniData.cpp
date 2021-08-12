@@ -24,6 +24,15 @@ namespace sereno
     jmethodID jDataset_onLoadCPCPTexture              = 0;
     jmethodID jDataset_onLoad1DHistogram              = 0;
 
+    jclass    jDatasetMetadataClass                     = 0;
+    jmethodID jDatasetMetadata_constructor              = 0;
+    jfieldID  jDatasetMetadata_coastline                = 0;
+    jfieldID  jDatasetMetadata_perTimesteps             = 0;
+
+    jclass    jDatasetMetaData_PerTimestepMetadataClass        = 0;
+    jmethodID jDatasetMetaData_PerTimestepMetadata_constructor = 0;
+    jfieldID  jDatasetMetadata_PerTimestepMetadata_date        = 0;
+
     jclass    jSubDatasetClass                        = 0;
     jmethodID jSubDataset_setRotation                 = 0;
     jmethodID jSubDataset_setPosition                 = 0;
@@ -64,24 +73,30 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return -1;
 
     //Load classes
-    jVFVSurfaceViewClass            = getJNIClassGlobalReference(env, "com/sereno/gl/VFVSurfaceView");
-    jBitmapClass                    = getJNIClassGlobalReference(env, "android/graphics/Bitmap");
-    jBitmapConfigClass              = getJNIClassGlobalReference(env, "android/graphics/Bitmap$Config");
-    jDatasetClass                   = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/Dataset");
-    jSubDatasetClass                = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
-    jHeadsetStatusClass             = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetsStatusMessage$HeadsetStatus");
-    jHeadsetBindingInfoMessageClass = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetBindingInfoMessage");
-    jPointFieldDescClass            = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/PointFieldDesc");
+    jVFVSurfaceViewClass                      = getJNIClassGlobalReference(env, "com/sereno/gl/VFVSurfaceView");
+    jBitmapClass                              = getJNIClassGlobalReference(env, "android/graphics/Bitmap");
+    jBitmapConfigClass                        = getJNIClassGlobalReference(env, "android/graphics/Bitmap$Config");
+    jDatasetClass                             = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/Dataset");
+    jDatasetMetadataClass                     = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/DatasetMetadata");
+    jDatasetMetaData_PerTimestepMetadataClass = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/DatasetMetadata$PerTimestepMetadata");
+    jSubDatasetClass                          = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/SubDataset");
+    jHeadsetStatusClass                       = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetsStatusMessage$HeadsetStatus");
+    jHeadsetBindingInfoMessageClass           = getJNIClassGlobalReference(env, "com/sereno/vfv/Network/HeadsetBindingInfoMessage");
+    jPointFieldDescClass                      = getJNIClassGlobalReference(env, "com/sereno/vfv/Data/PointFieldDesc");
 
     //Load methods
     jVFVSurfaceView_setCurrentAction = env->GetMethodID(jVFVSurfaceViewClass, "setCurrentAction", "(I)V");
     jVFVSurfaceView_setLasso         = env->GetMethodID(jVFVSurfaceViewClass, "setLasso", "([F)V");
 
-    jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset",      "()I");
-    jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset",        "(I)Lcom/sereno/vfv/Data/SubDataset;");
+    jDataset_getNbSubDataset    = env->GetMethodID(jDatasetClass, "getNbSubDataset", "()I");
+    jDataset_getSubDataset      = env->GetMethodID(jDatasetClass, "getSubDataset", "(I)Lcom/sereno/vfv/Data/SubDataset;");
     jDataset_onLoadDataset      = env->GetMethodID(jDatasetClass, "onLoadDataset", "(Z)V");
     jDataset_onLoadCPCPTexture  = env->GetMethodID(jDatasetClass, "onLoadCPCPTexture", "(Landroid/graphics/Bitmap;II)V");
     jDataset_onLoad1DHistogram  = env->GetMethodID(jDatasetClass, "onLoad1DHistogram", "([FI)V");
+
+    jDatasetMetadata_constructor = env->GetMethodID(jDatasetMetadataClass, "<init>", "()V");
+
+    jDatasetMetaData_PerTimestepMetadata_constructor = env->GetMethodID(jDatasetMetaData_PerTimestepMetadataClass, "<init>", "()V");
 
     jSubDataset_setRotation      = env->GetMethodID(jSubDatasetClass, "setRotation", "([F)V");
     jSubDataset_setPosition      = env->GetMethodID(jSubDatasetClass, "setPosition", "([F)V");
@@ -102,6 +117,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     jHeadsetStatus_id            = env->GetFieldID(jHeadsetStatusClass, "id",            "I");
     jHeadsetStatus_color         = env->GetFieldID(jHeadsetStatusClass, "color",         "I");
     jHeadsetStatus_currentAction = env->GetFieldID(jHeadsetStatusClass, "currentAction", "I");
+
+    jDatasetMetadata_coastline    = env->GetFieldID(jDatasetMetadataClass, "coastline",    "Ljava/lang/String;");
+    jDatasetMetadata_perTimesteps = env->GetFieldID(jDatasetMetadataClass, "perTimesteps", "[Lcom/sereno/vfv/Data/DatasetMetadata$PerTimestepMetadata;");
+
+    jDatasetMetadata_PerTimestepMetadata_date = env->GetFieldID(jDatasetMetaData_PerTimestepMetadataClass, "date", "Ljava/lang/String;");
     
     //Load static object
     jobject bmpConfARGB = env->GetStaticObjectField(jBitmapConfigClass, jBitmapConfig_ARGB);
@@ -122,6 +142,8 @@ void JNI_OnUnload(JavaVM *vm, void *reserved)
     env->DeleteGlobalRef(jBitmapClass);
     env->DeleteGlobalRef(jBitmapConfigClass);
     env->DeleteGlobalRef(jDatasetClass);
+    env->DeleteGlobalRef(jDatasetMetadataClass);
+    env->DeleteGlobalRef(jDatasetMetaData_PerTimestepMetadataClass);
     env->DeleteGlobalRef(jSubDatasetClass);
     env->DeleteGlobalRef(jBitmapConfigARGB);
     env->DeleteGlobalRef(jHeadsetStatusClass);

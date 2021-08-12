@@ -55,7 +55,7 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
-            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset, jVectorField))));
+            m_datasetHistograms.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetHistograms>>(dataset, std::shared_ptr<DatasetHistograms>(new DatasetHistograms(dataset, jVectorField))));
         }
         unlock();
         addEvent(ev);
@@ -69,7 +69,7 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
-            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset, jCloudPoint))));
+            m_datasetHistograms.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetHistograms>>(dataset, std::shared_ptr<DatasetHistograms>(new DatasetHistograms(dataset, jCloudPoint))));
         }
         unlock();
         addEvent(ev);
@@ -83,7 +83,7 @@ namespace sereno
         lock();
         {
             m_datas.push_back(dataset);
-            m_datasetMetaDatas.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetMetaData>>(dataset, std::shared_ptr<DatasetMetaData>(new DatasetMetaData(dataset, jVTK))));
+            m_datasetHistograms.insert(std::pair<std::shared_ptr<Dataset>, std::shared_ptr<DatasetHistograms>>(dataset, std::shared_ptr<DatasetHistograms>(new DatasetHistograms(dataset, jVTK))));
         }
         unlock();
         addEvent(ev);
@@ -316,7 +316,7 @@ namespace sereno
 
     void VFVData::sendOnDatasetLoaded(std::shared_ptr<Dataset> pDataset, bool success)
     {
-        std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
+        std::shared_ptr<DatasetHistograms> metaData = getDatasetHistograms(pDataset);
         if(metaData)
         {
             jniMainThread->CallVoidMethod(metaData->getJavaDatasetObj(), jDataset_onLoadDataset, success);
@@ -326,7 +326,7 @@ namespace sereno
     void VFVData::sendCPCPTexture(std::shared_ptr<Dataset> pDataset, uint32_t* pixels, uint32_t width, uint32_t height,
                                   uint32_t pIDLeft, uint32_t pIDRight)
     {
-        std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
+        std::shared_ptr<DatasetHistograms> metaData = getDatasetHistograms(pDataset);
         if(metaData)
         {
             jobject bitmap = createjARGBBitmap(pixels, width, height, jniMainThread);
@@ -337,7 +337,7 @@ namespace sereno
 
     void VFVData::send1DHistogram(std::shared_ptr<Dataset> pDataset, float* values, uint32_t width, uint32_t pID)
     {
-        std::shared_ptr<DatasetMetaData> metaData = getDatasetMetaData(pDataset);
+        std::shared_ptr<DatasetHistograms> metaData = getDatasetHistograms(pDataset);
         if(metaData)
         {
             jfloatArray jarr = createjFloatArray(values, width, jniMainThread);

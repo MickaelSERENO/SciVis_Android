@@ -90,10 +90,14 @@ public class SeekBarGraduatedView extends SeekBarHintView implements SeekBarGrad
         int height = getHeight();
         int paddingLeft = getPaddingLeft();
         int width  = getWidth() - paddingLeft - getPaddingRight();
+        float textHeight = computeTextHeight();
+
         for(int i = 0; i < m_model.getNbSteps(); i++)
         {
             int x = (int)(((float)i) * width/(m_model.getNbSteps()-1)) + paddingLeft;
             c.drawLine(x, (height-m_graduationHeight)/2, x, (height+m_graduationHeight)/2, m_paint);
+            if(m_model.getLabels().length > i)
+                c.drawText(m_model.getLabels()[i].toString(), x, (height+m_graduationHeight)/2+textHeight, m_textPaint);
         }
 
         super.onDraw(c);
@@ -101,6 +105,12 @@ public class SeekBarGraduatedView extends SeekBarHintView implements SeekBarGrad
 
     @Override
     public void onSetNbSteps(SeekBarGraduatedData model, int nbSteps)
+    {
+        invalidate();
+    }
+
+    @Override
+    public void onSetLabels(SeekBarGraduatedData model, Object[] labels)
     {
         invalidate();
     }

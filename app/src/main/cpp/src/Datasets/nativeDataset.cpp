@@ -65,3 +65,37 @@ JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetPointFi
 
     return jArr;
 }
+
+JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetMetadata(JNIEnv* jenv, jclass jcls, jlong ptr)
+{
+    //Fetch pointers
+    std::shared_ptr<Dataset>* dataset = (std::shared_ptr<Dataset>*)ptr;
+    Dataset* d = dataset->get();
+    const DatasetMetadata& md = d->getMetadata();
+
+    //Create metadata object
+    jobject jmd        = jenv->NewObject(jDatasetMetadataClass, jDatasetMetadata_constructor);
+
+    //Coastline
+    jstring jcoastline = jenv->NewStringUTF(md.coastlinePath.c_str());
+    jenv->SetObjectField(jmd, jDatasetMetadata_coastline, jcoastline);
+
+    //Timesteps
+    jobjectArray jPerTimesteps = jenv->NewObjectArray(md.perTimestepMetadata.size(), jDatasetMetaData_PerTimestepMetadataClass, 0);
+    for(int i = 0; i < md.perTimestepMetadata.size(); i++)
+    {
+        jobject jtimestep = jenv->NewObject(jDatasetMetaData_PerTimestepMetadataClass, jDatasetMetaData_PerTimestepMetadata_constructor);
+        jstring jdate = jenv->NewStringUTF(md.perTimestepMetadata[i].date.c_str());
+        jenv->SetObjectField(jtimestep, jDatasetMetadata_PerTimestepMetadata_date, jdate);
+        jenv->SetObjectArrayElement(jPerTimesteps, i, jtimestep);
+
+        jenv->DeleteLocalRef(jtimestep);
+        jenv->DeleteLocalRef(jdate);
+    }
+    jenv->SetObjectField(jmd, jDatasetMetadata_perTimesteps, jPerTimesteps);
+
+    jenv->DeleteLocalRef(jcoastline);
+    jenv->DeleteLocalRef(jPerTimesteps);
+
+    return jmd;
+}

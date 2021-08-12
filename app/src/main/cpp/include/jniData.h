@@ -27,6 +27,15 @@ namespace sereno
     extern jmethodID jDataset_onLoadCPCPTexture;
     extern jmethodID jDataset_onLoad1DHistogram;
 
+    extern jclass    jDatasetMetadataClass;
+    extern jmethodID jDatasetMetadata_constructor;
+    extern jfieldID  jDatasetMetadata_coastline;
+    extern jfieldID  jDatasetMetadata_perTimesteps;
+
+    extern jclass    jDatasetMetaData_PerTimestepMetadataClass;
+    extern jmethodID jDatasetMetaData_PerTimestepMetadata_constructor;
+    extern jfieldID  jDatasetMetadata_PerTimestepMetadata_date;
+
     extern jclass    jSubDatasetClass;
     extern jmethodID jSubDataset_setRotation;
     extern jmethodID jSubDataset_setPosition;

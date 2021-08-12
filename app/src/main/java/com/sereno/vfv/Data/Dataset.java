@@ -193,6 +193,14 @@ public abstract class Dataset
         }
     }
 
+    /** Get the meta data associated to this object.
+     * Note that a java object is re-allocated (due to JNI) each time this method is called
+     * @return the metadata*/
+    public DatasetMetadata getMetadata()
+    {
+        return nativeGetMetadata(m_ptr);
+    }
+
     /** Get whether or not this Dataset has finished to load
      * @return true if yes, false otherwise*/
     public boolean isLoaded() {return m_isLoaded;}
@@ -283,4 +291,6 @@ public abstract class Dataset
      * @param ptr the Dataset native pointer
      * @return the newly created point field descriptors*/
     private native PointFieldDesc[] nativeGetPointFieldDescs(long ptr);
+
+    private native DatasetMetadata nativeGetMetadata(long ptr);
 }

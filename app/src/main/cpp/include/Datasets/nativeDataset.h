@@ -49,6 +49,8 @@ extern "C"
     JNIEXPORT void JNICALL Java_com_sereno_vfv_Data_Dataset_nativeAddSubDataset(JNIEnv* jenv, jclass jcls, jlong ptr, jlong sdPtr, jboolean updateID);
 
     JNIEXPORT jobjectArray JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetPointFieldDescs(JNIEnv* jenv, jclass jcls, jlong ptr);
+
+    JNIEXPORT jobject JNICALL Java_com_sereno_vfv_Data_Dataset_nativeGetMetadata(JNIEnv* jenv, jclass jcls, jlong ptr);
 }
 
 #endif   /* ----- #ifndef NATIVEDATASET_INC  ----- */
