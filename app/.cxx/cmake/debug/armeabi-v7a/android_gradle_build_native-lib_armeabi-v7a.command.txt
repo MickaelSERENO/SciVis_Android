@@ -1,7 +1,0 @@
-Executable : /opt/android-sdk/cmake/3.10.2.4988404/bin/ninja
-arguments : 
--C
-/mnt/Documents/Programmation/Android/Vector_Field_Visualization_Android/app/.cxx/cmake/debug/armeabi-v7a
-native-lib
-jvmArgs : 
-
