@@ -1,4 +1,4 @@
-package com.sereno.view;
+d package com.sereno.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 import android.widget.SeekBar;
 
 import com.sereno.vfv.R;
-
+    
 public class SeekBarGraduatedView extends SeekBarHintView implements SeekBarGraduatedData.ISeekBarGraduatedListener
 {
     public static final int GRADUATION_HEIGHT = 24;
