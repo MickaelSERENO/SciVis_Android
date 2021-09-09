@@ -1,4 +1,4 @@
-d package com.sereno.view;
+package com.sereno.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
