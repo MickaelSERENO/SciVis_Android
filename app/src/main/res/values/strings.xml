@@ -79,4 +79,5 @@
     <string name="unmergeSV">Unmerge Subjective Views</string>
     <string name="done">Done</string>
     <string name="toggleVolumetricMask">Toggle Mask</string>
+    <string name="svMerge">Merge</string>
 </resources>

@@ -1321,6 +1321,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
     {
         m_currentPanel = ANNOTATION_CANVAS_SD_PANEL;
         m_annotView.setVisibility(View.VISIBLE);
+        m_annotationCanvasPanel.setVisibility(View.VISIBLE);
 
         //Our particular stylized
         m_bitmaps.get(annotation).imageView.setBackgroundResource(R.drawable.round_rectangle_background);
@@ -1374,7 +1375,7 @@ public class AnnotationsFragment extends VFVFragment implements ApplicationModel
         Tree<View> tree = m_subDatasetTrees.get(dataset);
 
         final AnnotationBitmap bmp = new AnnotationBitmap();
-        bmp.bitmap = Bitmap.createBitmap(m_annotView.getWidth(), m_annotView.getHeight(), Bitmap.Config.ARGB_8888);
+        bmp.bitmap = Bitmap.createBitmap(640, 640, Bitmap.Config.ARGB_8888);
 
         final ImageView snapImg = new ImageView(getContext());
         snapImg.setAdjustViewBounds(true);

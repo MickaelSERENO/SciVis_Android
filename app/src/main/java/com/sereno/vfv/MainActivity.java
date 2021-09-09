@@ -1337,7 +1337,7 @@ public class MainActivity extends AppCompatActivity
                 ApplicationModel.AnnotationMetaData annotMetaData = new ApplicationModel.AnnotationMetaData(sd, -1);
                 m_model.addCanvasAnnotation(data, annotMetaData);
 
-                if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
+                //if(msg.getHeadsetID() == m_model.getBindingInfo().getHeadsetID())
                 {
                     m_model.endPendingCanvasAnnotation(false);
                 }
